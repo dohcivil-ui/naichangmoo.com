@@ -1,0 +1,29 @@
+[
+  {
+    "version": "0.3.0",
+    "title": "Interactive Landing and Source Status Console",
+    "description": "ส่งมอบ full editable Next.js source scaffold พร้อม Landing mockup, app registry, Hermes pilot disclosure, quotation intake และ Roadmap/Handoff HTML console.",
+    "scope": ["Landing app registry และ SVG icon system", "ESTIMETR trial/read-only interaction preview", "Drizzle initial migration", "Hermes typed review policy", "Roadmap/Handoff runtime console"],
+    "verification": ["pnpm lint", "pnpm test (4 passed)", "pnpm typecheck", "NODE_ENV=production pnpm build", "pnpm db:generate", "browser verification"],
+    "rollback": "Return to tag v0.2.0-architecture; the initial migration is not applied to a database.",
+    "path": "docs/handoff/2026-08-22-interactive-landing-and-status-console.md"
+  },
+  {
+    "version": "0.2.0",
+    "title": "Architecture Decisions",
+    "description": "กำหนด runtime, data model และ security boundaries ก่อนสร้าง application source.",
+    "scope": ["ADRs 0001–0005", "PostgreSQL/R2/queue boundary", "trial entitlement และ Hermes pilot policy"],
+    "verification": ["node scripts/check-roadmap.mjs", "git diff --check"],
+    "rollback": "กลับไป tag v0.1.0-initial-governance; ไม่มี migration หรือ production data เปลี่ยนแปลง.",
+    "path": "docs/handoff/2026-08-22-architecture-decisions.md"
+  },
+  {
+    "version": "0.1.0",
+    "title": "Initial Project Governance",
+    "description": "สร้าง project memory, rules, ADR command, Git hooks และ roadmap versioning.",
+    "scope": ["CONTEXT.md / PROJECT.md / AGENTS.md", "Git hook และ roadmap JSON", "Hermes runtime assessment"],
+    "verification": ["node scripts/check-roadmap.mjs"],
+    "rollback": "เป็น root governance milestone; revert commit 2767d94 หากต้องเริ่มใหม่.",
+    "path": "docs/handoff/2026-08-22-initial-governance.md"
+  }
+]

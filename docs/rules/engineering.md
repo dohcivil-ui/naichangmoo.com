@@ -4,6 +4,8 @@
 
 Every new change starts on a dedicated branch. Before every commit, update roadmap version files and run the release/quality command that applies to the current scaffold. A commit without a handoff note is incomplete. Milestones require annotated semantic tags such as `v0.1.0-initial-governance`.
 
+Every roadmap version, annotated tag, commit message and handoff must use an aligned **title**, **description**, **changed scope**, **verification** and **rollback** statement. The roadmap version file is immutable after commit; `roadmap.json` is the current pointer and the HTML console reads it at runtime.
+
 ## Data and migrations
 
 Schema is source-controlled. A schema change must include a reviewed Drizzle migration, authorization impact, rollback/risk note and tests. Do not use `db push` as a substitute for a production migration process.

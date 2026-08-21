@@ -1,0 +1,48 @@
+{
+  "name": "naichangmoo-com",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.20.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "hooks:setup": "node scripts/setup-git-hooks.mjs",
+    "security:check": "node scripts/security-check.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1115.0",
+    "@aws-sdk/s3-request-presigner": "^3.1115.0",
+    "@better-auth/drizzle-adapter": "^1.7.1",
+    "better-auth": "^1.7.1",
+    "bullmq": "^6.2.0",
+    "drizzle-orm": "^0.45.2",
+    "ioredis": "^6.0.0",
+    "next": "16.3.2",
+    "pg": "^8.16.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "16.3.2",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}
