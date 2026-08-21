@@ -1,3 +1,5 @@
+import { visualAssetUrl } from "@/lib/visual-assets";
+
 export type AppAccess = "paid_trial" | "member_free" | "doh_staff_only" | "agent_service";
 
 export type PlatformApp = {
@@ -5,6 +7,8 @@ export type PlatformApp = {
   name: string;
   eyebrow: string;
   description: string;
+  iconSrc: string;
+  iconAlt: string;
   access: AppAccess;
   href: string;
   status: "available" | "coming_soon" | "restricted";
@@ -16,15 +20,19 @@ export const platformApps: PlatformApp[] = [
     name: "ESTIMETR",
     eyebrow: "COST WORKSPACE",
     description: "ประมาณราคางานอาคารแบบมีหลักฐาน ตั้งโครงการ → ถอดแบบ → ผูกราคา → ตรวจเอกสาร",
+    iconSrc: visualAssetUrl("estimeter"),
+    iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
     access: "paid_trial",
     href: "/apps/estimeter",
     status: "available"
   },
   {
     slug: "rcopt",
-    name: "RCOPT",
+    name: "กำแพงกันดิน",
     eyebrow: "RC RETAINING WALL",
-    description: "เครื่องมือออกแบบกำแพงดิน คสล. สำหรับสมาชิก โดยแยก workflow ตรวจและอธิบายผล",
+    description: "ตรวจและออกแบบกำแพงกันดิน คสล. สำหรับสมาชิก โดยแยก workflow ตรวจและอธิบายผล",
+    iconSrc: visualAssetUrl("retaining_wall"),
+    iconAlt: "สัญลักษณ์กำแพงกันดิน คสล.",
     access: "member_free",
     href: "/apps/rcopt",
     status: "coming_soon"
@@ -34,6 +42,8 @@ export const platformApps: PlatformApp[] = [
     name: "TRAFFIC SIGN",
     eyebrow: "MATERIAL CALCULATOR",
     description: "คำนวณรายการวัสดุป้ายจราจรแบบ form → list → BOQ สำหรับสมาชิก",
+    iconSrc: visualAssetUrl("traffic_sign"),
+    iconAlt: "สัญลักษณ์คำนวณวัสดุป้ายจราจร",
     access: "member_free",
     href: "/apps/traffic-sign",
     status: "coming_soon"
@@ -43,6 +53,8 @@ export const platformApps: PlatformApp[] = [
     name: "LAND ACQUISITION V2",
     eyebrow: "DOH STAFF WORKSPACE",
     description: "ระบบงานจัดกรรมสิทธิ์ที่ดินสำหรับบุคลากรกรมทางหลวงตามสิทธิ์ที่ได้รับ",
+    iconSrc: visualAssetUrl("land_acquisition"),
+    iconAlt: "สัญลักษณ์งานจัดกรรมสิทธิ์ที่ดิน",
     access: "doh_staff_only",
     href: "/apps/land-acquisition",
     status: "restricted"

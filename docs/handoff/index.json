@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.4.0",
+    "title": "Unified App Shell and Interactive Landing System",
+    "description": "เพิ่ม icon graphic, micro-interaction และ shared app shell เพื่อให้ทุกหน้าและทุกแอปใช้ platform UI system เดียวกัน.",
+    "scope": ["กำแพงกันดิน name correction", "per-app icon graphic และ visual asset proxy", "PlatformNav/PlatformFooter/AppShell", "motion/focus/reduced-motion rules", "platform UI system documentation"],
+    "verification": ["pnpm lint", "pnpm test (4 passed)", "pnpm typecheck", "NODE_ENV=production pnpm build", "pnpm security:check", "node scripts/check-roadmap.mjs", "browser verification"],
+    "rollback": "Return to tag v0.3.0-interactive-landing; no database migration is applied.",
+    "path": "docs/handoff/2026-08-22-unified-app-shell-and-interactive-landing.md"
+  },
+  {
     "version": "0.3.0",
     "title": "Interactive Landing and Source Status Console",
     "description": "ส่งมอบ full editable Next.js source scaffold พร้อม Landing mockup, app registry, Hermes pilot disclosure, quotation intake และ Roadmap/Handoff HTML console.",

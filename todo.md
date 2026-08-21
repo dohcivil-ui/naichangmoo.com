@@ -1,0 +1,9 @@
+# Project TODO
+
+- [x] Update RCOPT product name to กำแพงกันดิน across Landing, registry and handoff metadata.
+- [x] Replace generic line icons with original app-card icon graphics aligned to the NaiChangMoo visual system.
+- [x] Add accessible micro-interactions for hover, focus, click and scroll-in-view without obstructing engineering workflow.
+- [x] Create a shared platform design system and app shell so every page and app uses the same navigation, layout, card, form, status, motion and responsive conventions.
+- [x] Update roadmap v0.4.0, handoff, verification and rollback metadata before committing the visual interaction milestone.
+- [x] Run lint, tests, typecheck, production build, security preflight and browser verification.
+- [x] Commit, annotate a semantic Git tag, and push the full source milestone to GitHub.

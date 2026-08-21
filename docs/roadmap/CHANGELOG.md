@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.4.0 — Unified App Shell and Interactive Landing System — 2026-08-22
+
+Added original per-app icon graphics, a visual asset proxy, micro-interaction patterns, shared PlatformNav/PlatformFooter/AppShell components, and the platform UI system specification. Corrected RCOPT’s user-facing name to กำแพงกันดิน.
+
 ## v0.3.0 — Interactive Landing and Source Status Console — 2026-08-22
 
 Created full editable Next.js scaffold with Landing app registry, SVG icon system, Hermes pilot disclosure, ESTIMETR trial interaction preview, enterprise quotation intake and runtime Roadmap/Handoff HTML console. This version adds consistent title, description, scope, verification and rollback metadata to the active roadmap source.
