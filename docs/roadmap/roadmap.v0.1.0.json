@@ -1,0 +1,22 @@
+{
+  "version": "0.1.0",
+  "updatedAt": "2026-08-22T00:00:00+07:00",
+  "status": "initial-governance",
+  "goal": "Establish a source-controlled Initial Project for Nai Chang Moo before application source scaffolding.",
+  "constraints": [
+    "Use engineering-tool workflows, not a generic AI dashboard.",
+    "Pilot deploys on Vercel; production targets Hostinger VPS + PostgreSQL + Cloudflare R2.",
+    "Hermes pilot only reviews AI Takeoff evidence via typed jobs and approval gates.",
+    "Do not migrate or modify Land Acquisition V2 legacy source/schema/data in this repository."
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "planned", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "planned", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "planned", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement SVG icon system and enterprise quotation intake", "status": "planned", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "planned", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "planned", "phase": "release" }
+  ]
+}

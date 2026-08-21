@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+set -eu
+
+node scripts/check-roadmap.mjs
+
+if [ -f package.json ]; then
+  pnpm lint
+  pnpm test
+  pnpm typecheck
+fi
