@@ -6,7 +6,7 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 
 1. Create a dedicated Git branch before adding a feature, migration, security remediation or refactor.
 2. Add the work as an unchecked roadmap item before implementation.
-3. Update the versioned roadmap and the `roadmap.json` pointer before every commit.
+3. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
 4. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
 5. Run the quality gate required by the changed code before committing.
 6. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.

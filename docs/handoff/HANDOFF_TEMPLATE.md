@@ -1,16 +1,16 @@
-# Handoff — `<commit-or-tag>`
+# Handoff — `v<semantic-version>: <Short title>`
 
-## Purpose
+## Description
 
-Explain the user-visible or architectural objective completed by this commit.
+Write one concise paragraph describing the outcome of the version in language that matches the roadmap title and annotated Git tag.
 
-## Changed
+## Changed Scope
 
 | Area | Files | Summary |
 |---|---|---|
 | ... | ... | ... |
 
-## Verified
+## Verification
 
 List commands/tests, their outcome and any manual verification.
 
