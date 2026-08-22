@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.10.1",
+    "title": "ESTIMETR Public Pilot Verification",
+    "description": "บันทึกผลตรวจ Vercel public pilot ของ ESTIMETR workspace, Landing และ Roadmap/Handoff โดยไม่เปลี่ยน product behavior.",
+    "scope": ["deployment READY verification", "public ESTIMETR, Landing and roadmap routes", "validation evidence record"],
+    "verification": ["Vercel READY", "three public routes reviewed", "v0.10.0 quality gate already passed"],
+    "rollback": "Return to tag v0.10.0-estimeter-workspace; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-public-pilot-verification.md"
+  },
+  {
     "version": "0.10.0",
     "title": "ESTIMETR Traceable BOQ Estimation Workspace",
     "description": "แทนหน้า ESTIMETR placeholder ด้วย workspace แบบมี QA gate, evidence ledger และ BOQ readiness ที่ไม่อ้างว่าเป็นข้อมูลจริง.",

@@ -1,0 +1,22 @@
+{
+  "version": "0.10.1",
+  "title": "ESTIMETR Public Pilot Verification",
+  "description": "บันทึกผลตรวจ public Vercel pilot ของ ESTIMETR traceable BOQ workspace, Landing และ Roadmap/Handoff หลัง release v0.10.0 โดยไม่เปลี่ยนพฤติกรรมของ product.",
+  "updatedAt": "2026-08-22T14:45:00+07:00",
+  "status": "public_pilot_verified",
+  "scope": [
+    "verify Vercel deployment for commit f586a8a is READY",
+    "verify public ESTIMETR workspace route, Landing route and Roadmap/Handoff route",
+    "record validation evidence and reviewer links"
+  ],
+  "verification": [
+    "Vercel deployment dpl_7oBAbLSDCrVymULJHwxpTPtNczJp is READY",
+    "public ESTIMETR, Landing and Roadmap/Handoff routes render without authentication",
+    "credential-less Vercel build, lint, typecheck, tests, security preflight, roadmap validation and diff check previously passed for v0.10.0"
+  ],
+  "rollback": "Return to tag v0.10.0-estimeter-workspace. This verification release contains documentation/version metadata only and no migration or user data.",
+  "items": [
+    { "id": "IP-026", "title": "Implement traceable BOQ estimation workflow and validation record", "status": "done", "phase": "release" },
+    { "id": "IP-027", "title": "Verify public Vercel pilot routes for ESTIMETR workspace release", "status": "done", "phase": "release" }
+  ]
+}

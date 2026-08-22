@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.10.1 — ESTIMETR Public Pilot Verification — 2026-08-22
+
+Recorded a successful public Vercel review of the ESTIMETR workspace, Landing and Roadmap/Handoff routes after the v0.10.0 workspace release. This release changes no product behavior.
+
 ## v0.10.0 — ESTIMETR Traceable BOQ Estimation Workspace — 2026-08-22
 
 Replaced the ESTIMETR placeholder with an interactive four-stage workspace for drawing review, quantity take-off, unit-cost estimation and BOQ readiness. The pilot clearly separates evidence, quantities, price-source readiness and document approval from live production data.
