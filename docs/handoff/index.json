@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.10.0",
+    "title": "ESTIMETR Traceable BOQ Estimation Workspace",
+    "description": "แทนหน้า ESTIMETR placeholder ด้วย workspace แบบมี QA gate, evidence ledger และ BOQ readiness ที่ไม่อ้างว่าเป็นข้อมูลจริง.",
+    "scope": ["four gated ESTIMETR stages", "quantity/unit/evidence view", "price-source and BOQ readiness states", "workflow tests and responsive validation"],
+    "verification": ["lint/typecheck/build pass", "vitest 4 files / 8 tests pass", "desktop progression and 375×812 viewport reviewed", "pending security and public Vercel review"],
+    "rollback": "Return to tag v0.9.2-estimetr-terminology; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-traceable-boq-workspace.md"
+  },
+  {
     "version": "0.9.2",
     "title": "ESTIMETR Estimation Terminology",
     "description": "แก้คำ workflow ของ ESTIMETR จาก “ผูกราคา” เป็น “ประมาณราคา” ให้ตรงกับศัพท์งานประมาณราคา.",

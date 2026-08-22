@@ -1,0 +1,26 @@
+{
+  "version": "0.10.0",
+  "title": "ESTIMETR Traceable BOQ Estimation Workspace",
+  "description": "แทนหน้า ESTIMETR placeholder ด้วย workspace แบบมี QA gate ตามลำดับ ตรวจแบบ → ถอดปริมาณ → ประมาณราคา → สรุป BOQ โดยแสดง evidence, หน่วยวัด, ความพร้อมของแหล่งราคา และสถานะเอกสารอย่างตรงไปตรงมา.",
+  "updatedAt": "2026-08-22T14:40:00+07:00",
+  "status": "ready_for_public_review",
+  "scope": [
+    "interactive ESTIMETR workspace with four gated stages",
+    "drawing/spec review, quantity evidence and unit-cost source states",
+    "BOQ readiness with private OH&P/profit/VAT context and separate government workflow context",
+    "workflow gate unit tests and browser/mobile validation record"
+  ],
+  "verification": [
+    "eslint passes",
+    "vitest passes 4 files / 8 tests",
+    "TypeScript typecheck passes",
+    "credential-less DEPLOY_TARGET=vercel production build passes",
+    "desktop stage progression and 375×812 mobile layout reviewed",
+    "security preflight, roadmap validation, diff check and public Vercel review pending"
+  ],
+  "rollback": "Return to tag v0.9.2-estimetr-terminology. This release has no migration, database write or user data to reverse.",
+  "items": [
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "done", "phase": "implementation" },
+    { "id": "IP-026", "title": "Implement traceable BOQ estimation workflow and validation record", "status": "done", "phase": "release" }
+  ]
+}

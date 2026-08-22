@@ -26,3 +26,5 @@
 - [x] Apply the NM logo/wordmark and engineering line-art hero composition from the approved reference to navigation and Landing without copying unrelated UI.
 - [x] Replace current app icon treatments with original engineering app badges that have clear subject composition, per-app color cues and consistent product-grade framing.
 - [x] Replace ESTIMETR user-facing wording “ผูกราคา” with “ประมาณราคา” across workflow, app shell and relevant release documentation.
+- [x] Research BOQ principles from the supplied reference and synthesize a traceable ESTIMETR flow: review drawings, quantity take-off, unit cost estimation and BOQ compilation.
+- [x] Replace the ESTIMETR placeholder with an interactive estimation workspace that shows quantities, material/labor unit costs, direct cost, OH&P/VAT treatment and document readiness.

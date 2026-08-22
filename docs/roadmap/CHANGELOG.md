@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.10.0 — ESTIMETR Traceable BOQ Estimation Workspace — 2026-08-22
+
+Replaced the ESTIMETR placeholder with an interactive four-stage workspace for drawing review, quantity take-off, unit-cost estimation and BOQ readiness. The pilot clearly separates evidence, quantities, price-source readiness and document approval from live production data.
+
 ## v0.9.2 — ESTIMETR Estimation Terminology — 2026-08-22
 
 Replaced the user-facing term “ผูกราคา” with “ประมาณราคา” across the ESTIMETR workflow and app registry.
