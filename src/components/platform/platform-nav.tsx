@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NaiChangMooMark } from "@/components/icons/platform-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
+import { BrandLogo } from "@/components/platform/brand-logo";
 
 export function PlatformNav({ workspace }: { workspace?: string }) {
   const pathname = usePathname();
@@ -39,7 +39,7 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
   return (
     <nav className="site-nav" aria-label="เมนูหลัก">
       <div className="container site-nav__inner">
-        <Link className="brand" href="/"><NaiChangMooMark /><span>นายช่างหมู<small>{workspace ?? "CIVIL APPS ASSISTANT"}</small></span></Link>
+        <Link className="brand" href="/" aria-label="นายช่างหมู — CIVIL APPS ASSISTANT"><BrandLogo />{workspace ? <span className="brand__workspace">{workspace}</span> : null}</Link>
         <div className="nav-links" aria-label="ทางลัด platform">
           {navItems.map((item) => {
             const isActive = ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;

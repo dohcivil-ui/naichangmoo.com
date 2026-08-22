@@ -1,0 +1,15 @@
+{
+  "version": "0.9.0",
+  "title": "NM Brand Composition and Engineering App Badges",
+  "description": "นำ NM wordmark จากภาพอ้างอิงมาใช้ใน navigation, ปรับ hero เป็น engineering line-art และเปลี่ยน icon app เป็นชุด product badge ที่มี subject composition ชัดเจน.",
+  "updatedAt": "2026-08-22T11:10:00+07:00",
+  "status": "ready_for_brand_and_badge_review",
+  "scope": ["เพิ่ม NM wordmark และ compact mark ใน visual asset registry", "ใช้ wordmark บน shared navigation และ workspace label ใน app shell", "เปลี่ยน hero visual เป็น source-controlled bridge/city engineering line-art", "สร้างและผูก ESTIMETR, retaining wall, traffic sign, land acquisition และ Hermes product badges", "ปรับ app-card badge frame ให้มี per-app technical-grid color cues"],
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "credential-less production build", "pending security/roadmap validation and public Vercel visual review"],
+  "rollback": "Return to tag v0.8.0-enterprise-page to restore earlier brand mark, hero signals and icon assets.",
+  "items": [
+    { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" },
+    { "id": "IP-022", "title": "Apply approved NM wordmark and engineering line-art composition", "status": "done", "phase": "release" },
+    { "id": "IP-023", "title": "Replace generic icon treatments with product-grade engineering app badges", "status": "done", "phase": "release" }
+  ]
+}

@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.9.0",
+    "title": "NM Brand Composition and Engineering App Badges",
+    "description": "นำ NM wordmark, engineering line-art และชุด product-grade app badges มาใช้กับ shared platform.",
+    "scope": ["NM wordmark navigation", "hero engineering line-art", "product badges", "per-app badge framing"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "credential-less production build", "pending Vercel public review"],
+    "rollback": "Return to tag v0.8.0-enterprise-page; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-nm-brand-and-engineering-badges.md"
+  },
+  {
     "version": "0.8.0",
     "title": "Dedicated Enterprise Quotation Page",
     "description": "ย้ายแบบฟอร์มใบเสนอราคาองค์กรออกจาก Landing ไปหน้า `/enterprise` เพื่อลดความหนาแน่นของหน้าแรก.",

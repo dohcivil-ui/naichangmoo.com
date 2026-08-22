@@ -13,7 +13,7 @@ type AppCardProps = {
 export function AppCard({ app }: AppCardProps) {
   const cardRef = useRef<HTMLElement>(null);
   const cta = app.status === "available" ? "ดู workflow" : app.status === "restricted" ? "ขอสิทธิ์ใช้งาน" : "กำลังเตรียมระบบ";
-  const className = app.status === "available" ? "app-card app-card--available" : "app-card";
+  const className = ["app-card", `app-card--${app.slug}`, app.status === "available" ? "app-card--available" : ""].filter(Boolean).join(" ");
 
   useEffect(() => {
     const card = cardRef.current;

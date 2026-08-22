@@ -23,3 +23,5 @@
 - [x] Add restrained press/release feedback and anchor-aware active tones to navigation buttons without decorative AI-style motion.
 - [x] Restore the navigation active state to a light translucent teal treatment while retaining tactile press/release feedback.
 - [x] Move the enterprise quotation form from Landing to a dedicated quotation page and update primary navigation accordingly.
+- [x] Apply the NM logo/wordmark and engineering line-art hero composition from the approved reference to navigation and Landing without copying unrelated UI.
+- [x] Replace current app icon treatments with original engineering app badges that have clear subject composition, per-app color cues and consistent product-grade framing.

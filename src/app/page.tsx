@@ -1,5 +1,6 @@
 import { AppCard } from "@/components/landing/app-card";
 import { LandingMotion } from "@/components/landing/landing-motion";
+import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { TrialPolicyPreview } from "@/components/landing/trial-policy-preview";
 import Image from "next/image";
@@ -24,7 +25,10 @@ export default function LandingPage() {
           <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href="#apps">ดูแอปและสิทธิ์ใช้งาน</a></div>
             <p className="hero__note">สมาชิกใหม่ใช้ ESTIMETR ได้ 5 วัน ไม่เกิน 1 โครงการ โดยข้อมูลยังเปิดดูได้เมื่อสิทธิ์ทดลองหมดอายุ</p>
           </div>
-          <aside className="workflow-rail" aria-label="ลำดับงาน ESTIMETR" data-reveal data-reveal-delay="1"><h2>ESTIMETR WORKFLOW</h2>{["ตั้งโครงการและแบบ", "กำหนดสเกลและตรวจหลักฐาน", "ถอดปริมาณและทบทวน", "ผูกราคาและจัดทำเอกสาร"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          <div className="hero__side" data-reveal data-reveal-delay="1">
+            <HeroEngineeringArt />
+            <aside className="workflow-rail" aria-label="ลำดับงาน ESTIMETR"><h2>ESTIMETR WORKFLOW</h2>{["ตั้งโครงการและแบบ", "กำหนดสเกลและตรวจหลักฐาน", "ถอดปริมาณและทบทวน", "ผูกราคาและจัดทำเอกสาร"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          </div>
         </div>
       </section>
 

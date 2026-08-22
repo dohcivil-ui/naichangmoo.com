@@ -1,12 +1,12 @@
 {
-  "version": "0.8.0",
-  "title": "Dedicated Enterprise Quotation Page",
-  "description": "ย้ายแบบฟอร์มขอใบเสนอราคาสำหรับองค์กร/หน่วยงานออกจาก Landing ไปยังหน้า `/enterprise` เพื่อให้ Landing เน้น app cards, workflow และ platform functions.",
-  "scope": ["เพิ่ม dedicated route `/enterprise`", "ย้าย enterprise form และ explanatory content ออกจาก Landing", "เปลี่ยน primary quote navigation ให้ชี้หน้าใหม่", "ปรับ anchor observer ให้เฝ้าเฉพาะ sections ที่ยังอยู่บน Landing"],
-  "updatedAt": "2026-08-22T10:45:00+07:00",
-  "status": "ready_for_enterprise_route_review",
-  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public route review"],
-  "rollback": "Return to tag v0.7.1-light-teal-active to restore the enterprise form inline on Landing.",
+  "version": "0.9.0",
+  "title": "NM Brand Composition and Engineering App Badges",
+  "description": "นำ NM wordmark จากภาพอ้างอิงมาใช้ใน navigation, ปรับ hero เป็น engineering line-art และเปลี่ยน icon app เป็นชุด product badge ที่มี subject composition ชัดเจน.",
+  "scope": ["เพิ่ม NM wordmark และ compact mark ใน visual asset registry", "ใช้ wordmark บน shared navigation และ workspace label ใน app shell", "เปลี่ยน hero visual เป็น source-controlled bridge/city engineering line-art", "สร้างและผูก ESTIMETR, retaining wall, traffic sign, land acquisition และ Hermes product badges", "ปรับ app-card badge frame ให้มี per-app technical-grid color cues"],
+  "updatedAt": "2026-08-22T11:10:00+07:00",
+  "status": "ready_for_brand_and_badge_review",
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "credential-less production build", "pending security/roadmap validation and public Vercel visual review"],
+  "rollback": "Return to tag v0.8.0-enterprise-page to restore earlier brand mark, hero signals and icon assets.",
   "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
@@ -30,6 +30,8 @@
     { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" },
     { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" },
     { "id": "IP-020", "title": "Restore active state as a light translucent teal treatment", "status": "done", "phase": "release" },
-    { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" }
+    { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" },
+    { "id": "IP-022", "title": "Apply approved NM wordmark and engineering line-art composition", "status": "done", "phase": "release" },
+    { "id": "IP-023", "title": "Replace generic icon treatments with product-grade engineering app badges", "status": "done", "phase": "release" }
   ]
 }

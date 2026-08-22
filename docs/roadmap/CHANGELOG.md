@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.9.0 — NM Brand Composition and Engineering App Badges — 2026-08-22
+
+Applied the approved NM wordmark and engineering line-art layout to the shared platform, and replaced generic-looking icon treatments with a coherent set of civil-engineering product badges.
+
 ## v0.8.0 — Dedicated Enterprise Quotation Page — 2026-08-22
 
 Moved the enterprise quotation form out of Landing to `/enterprise`, leaving Landing focused on product discovery and platform workflow.
