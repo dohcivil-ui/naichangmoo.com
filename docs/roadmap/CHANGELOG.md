@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.4.1 — Vercel Auth-Safe Pilot Build — 2026-08-22
+
+Fixed Vercel build-time failure caused by eager Better Auth database initialization. The auth route now imports the database-backed runtime only when required environment values exist, and Landing shows a safe sign-in preview state until real authentication infrastructure is configured.
+
 ## v0.4.0 — Unified App Shell and Interactive Landing System — 2026-08-22
 
 Added original per-app icon graphics, a visual asset proxy, micro-interaction patterns, shared PlatformNav/PlatformFooter/AppShell components, and the platform UI system specification. Corrected RCOPT’s user-facing name to กำแพงกันดิน.

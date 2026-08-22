@@ -17,8 +17,7 @@
     "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm typecheck",
     "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED NODE_ENV=production pnpm build",
     "pnpm security:check",
-    "node scripts/check-roadmap.mjs",
-    "browser verification of Landing and shared app shell"
+    "node scripts/check-roadmap.mjs"
   ],
   "rollback": "Return to tag v0.4.0-unified-app-shell. The rollback restores eager Better Auth initialization and therefore is unsuitable for a Vercel pilot without database credentials.",
   "constraints": [

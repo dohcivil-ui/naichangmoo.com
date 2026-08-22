@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.4.1",
+    "title": "Vercel Auth-Safe Pilot Build",
+    "description": "แก้ Better Auth build boundary เพื่อให้ pilot preview build ได้แม้ยังไม่มี PostgreSQL หรือ OAuth credentials.",
+    "scope": ["auth availability guard", "lazy Better Auth route import", "safe Landing login preview state", "missing-environment build coverage"],
+    "verification": ["lint", "6 unit tests", "typecheck", "production build with DB/auth env unset", "security preflight", "roadmap validation"],
+    "rollback": "Return to tag v0.4.0-unified-app-shell; this is not appropriate for a credential-less Vercel pilot.",
+    "path": "docs/handoff/2026-08-22-vercel-auth-safe-pilot-build.md"
+  },
+  {
     "version": "0.4.0",
     "title": "Unified App Shell and Interactive Landing System",
     "description": "เพิ่ม icon graphic, micro-interaction และ shared app shell เพื่อให้ทุกหน้าและทุกแอปใช้ platform UI system เดียวกัน.",

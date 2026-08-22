@@ -7,3 +7,8 @@
 - [x] Update roadmap v0.4.0, handoff, verification and rollback metadata before committing the visual interaction milestone.
 - [x] Run lint, tests, typecheck, production build, security preflight and browser verification.
 - [x] Commit, annotate a semantic Git tag, and push the full source milestone to GitHub.
+- [ ] Diagnose inaccessible temporary preview and provide a user-accessible review channel with a verified URL.
+- [ ] Inspect Vercel integration and prepare a Vercel pilot deployment for the source branch with no production secrets.
+- [ ] Verify public Landing, app routes, Roadmap/Handoff and safe asset handling on the Vercel review URL.
+- [x] Fix Vercel build failure caused by eager Better Auth database initialization when DATABASE_URL is absent in pilot preview.
+- [ ] Add safe preview sign-in state, run quality gate, version the fix, deploy to Vercel and verify all review routes.
