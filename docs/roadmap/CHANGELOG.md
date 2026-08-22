@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.7.0 — Tactile Engineering Navigation — 2026-08-22
+
+Added restrained press/release feedback and anchor-aware active tones for navigation pills. Active state now communicates the selected work context without decorative motion.
+
 ## v0.6.1 — Navigation Button Hierarchy — 2026-08-22
 
 Restyled every sticky navigation item as an accessible pill button. The enterprise quotation shortcut remains the orange primary action.

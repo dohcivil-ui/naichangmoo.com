@@ -1,12 +1,12 @@
 {
-  "version": "0.6.1",
-  "title": "Navigation Button Hierarchy",
-  "description": "เปลี่ยน sticky navigation ให้เมนูหลักทุกตัวเป็นปุ่ม pill ที่กดได้ชัดเจน และคงปุ่มขอใบเสนอราคาเป็น primary action ที่เด่นที่สุด.",
-  "scope": ["ทำแอปของเรา, Hermes 24/7 และสถานะโครงการเป็น pill buttons", "เพิ่ม hover, focus-visible, active press และ contrast states", "ยืนยันให้ขอใบเสนอราคาเป็น orange primary pill", "รักษา mobile horizontal pill navigation", "คง Retaining Wall Cantilever / Bisection Algorithm card copy จาก v0.6.0"],
-  "updatedAt": "2026-08-22T10:10:00+07:00",
-  "status": "ready_for_navigation_button_review",
-  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending credential-less Vercel production build", "pending security preflight and roadmap validation", "pending public Vercel button navigation review"],
-  "rollback": "Return to tag v0.6.0-sticky-enterprise-nav to restore the earlier mixed text-link and quote-pill navigation.",
+  "version": "0.7.0",
+  "title": "Tactile Engineering Navigation",
+  "description": "เพิ่ม press/release feedback และ anchor-aware active states ให้ navigation pills เพื่อบอกตำแหน่งงานที่กำลังเลือกอย่างสุขุม ไม่ใช้ motion แบบ decorative AI Slop.",
+  "scope": ["เปลี่ยน PlatformNav เป็น client component เพื่อสังเกต anchor section ที่กำลังใช้งาน", "เพิ่ม mouse/touch press compression และ release settle duration สั้น", "ใช้ ink active tone สำหรับเมนูทั่วไปและ dark-orange active tone สำหรับ quote action", "รักษา keyboard focus, aria-current และ reduced-motion policy"],
+  "updatedAt": "2026-08-22T10:20:00+07:00",
+  "status": "ready_for_tactile_navigation_review",
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public review"],
+  "rollback": "Return to tag v0.6.1-navigation-pills to remove active section tracking and tactile navigation state.",
   "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
@@ -27,6 +27,7 @@
     { "id": "IP-015", "title": "Verify public Vercel review routes and share complete test link set", "status": "done", "phase": "release" },
     { "id": "IP-016", "title": "Add sticky platform navigation with enterprise quote shortcut", "status": "done", "phase": "release" },
     { "id": "IP-017", "title": "Refine Retaining Wall Cantilever card copy for Bisection Algorithm", "status": "done", "phase": "release" },
-    { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" }
+    { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" },
+    { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" }
   ]
 }

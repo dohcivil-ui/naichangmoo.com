@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.7.0",
+    "title": "Tactile Engineering Navigation",
+    "description": "เพิ่ม press/release feedback และ anchor-aware active states ให้ navigation pills อย่างสุขุมแบบเครื่องมือวิศวกรรม.",
+    "scope": ["active section tracking", "tactile press/release", "ink and dark-orange active tones", "aria-current and reduced motion guards"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "pending Vercel public review"],
+    "rollback": "Return to tag v0.6.1-navigation-pills; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-tactile-engineering-navigation.md"
+  },
+  {
     "version": "0.6.1",
     "title": "Navigation Button Hierarchy",
     "description": "ปรับ sticky navigation ทุกตัวเป็น pill button และรักษาปุ่มขอใบเสนอราคาเป็น primary action.",

@@ -1,17 +1,51 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { NaiChangMooMark } from "@/components/icons/platform-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
 
 export function PlatformNav({ workspace }: { workspace?: string }) {
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const sections = ["apps", "hermes", "enterprise"]
+      .map((id) => document.getElementById(id))
+      .filter((section): section is HTMLElement => Boolean(section));
+    if (!sections.length || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const current = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (current?.target.id) setActiveSection(current.target.id);
+    }, { rootMargin: "-27% 0px -58%", threshold: [0.1, 0.3, 0.55] });
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [pathname]);
+
+  const navItems = [
+    { id: "apps", label: "แอปของเรา", href: "/#apps" },
+    { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
+    { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
+    { id: "enterprise", label: "ขอใบเสนอราคา", href: "/#enterprise", primary: true },
+  ];
+
   return (
     <nav className="site-nav" aria-label="เมนูหลัก">
       <div className="container site-nav__inner">
         <Link className="brand" href="/"><NaiChangMooMark /><span>นายช่างหมู<small>{workspace ?? "CIVIL APPS ASSISTANT"}</small></span></Link>
         <div className="nav-links" aria-label="ทางลัดหน้า Landing">
-          <Link href="/#apps">แอปของเรา</Link>
-          <Link href="/#hermes">Hermes 24/7</Link>
-          <Link href="/roadmap">สถานะโครงการ</Link>
-          <Link className="nav-links__quote" href="/#enterprise">ขอใบเสนอราคา</Link>
+          {navItems.map((item) => {
+            const isActive = item.id === "roadmap" ? pathname === "/roadmap" : pathname === "/" && activeSection === item.id;
+            const className = ["nav-pill", item.primary ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
+            return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
+          })}
         </div>
         <div className="site-nav__account"><SignInButton /></div>
       </div>
