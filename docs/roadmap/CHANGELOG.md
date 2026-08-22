@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.11.1 — Vercel Private Git Commit Attribution Recovery — 2026-08-22
+
+Configured the repository-local Git author with the user-confirmed GitHub email after Vercel blocked the first private-repository preview for unrecognized commit attribution. This release triggers a replacement preview; no product behavior changes.
+
 ## v0.11.0 — ESTIMETR Guided Assistant and Strict Release Gates — 2026-08-22
 
 Added a deterministic in-workspace assistant for Beginner/Fast guidance and made the ESTIMETR demo enforce explicit project-path, scale, evidence, price-set and document-release gates. The release records provenance and form-baseline policy but does not create real prices or export files.

@@ -1,13 +1,13 @@
 {
-  "version": "0.11.0",
-  "title": "ESTIMETR Guided Assistant and Strict Release Gates",
-  "description": "เพิ่มผู้ช่วยการใช้งานแบบ contextual สำหรับผู้เริ่มต้น/ทำงานเร็ว และขยาย ESTIMETR mockup ให้ล็อกการข้าม project path, scale, evidence, approved price set และ document release อย่างชัดเจน.",
-  "scope": ["deterministic in-workspace Guided AI Assistant with beginner and fast modes", "strict project-path, drawing/scale, take-off, price-set and document-readiness gates", "workflow-policy unit tests, operating-policy documentation and official-source discovery record", "private repository hardening with SHA-pinned GitHub Actions and Dependabot security updates"],
-  "updatedAt": "2026-08-22T17:20:00+07:00",
-  "status": "ready_for_public_review",
-  "verification": ["eslint passes", "vitest passes 4 files / 11 tests", "TypeScript typecheck passes", "credential-less DEPLOY_TARGET=vercel production build passes", "desktop 1440×1400 and mobile 375×1200 visual review completed", "security preflight, roadmap validation and diff hygiene pass"],
-  "rollback": "Return to tag v0.10.2-estimeter-github-confirmed. No migration, customer data, price source or document artifact exists in this UI-only release.",
-  "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings.", "This workspace is a non-persistent demo: it must not present sample prices, quantities or export approval as a live business record.", "AI guidance is advisory only and has no write, price, approval or export authority."],
+  "version": "0.11.1",
+  "title": "Vercel Private Git Commit Attribution Recovery",
+  "description": "ตั้ง Git identity เฉพาะ repository ให้ใช้อีเมล GitHub ที่ผู้ใช้ยืนยัน เพื่อให้ Vercel จับคู่ commit author และสร้าง preview จาก private repository ได้.",
+  "scope": ["repository-local Git identity aligned to the verified GitHub account", "Vercel blocked-deployment evidence and documented recovery procedure", "retrigger Git preview using a versioned follow-up commit"],
+  "updatedAt": "2026-08-22T18:35:00+07:00",
+  "status": "deployment_pending",
+  "verification": ["repository-local Git author configured with the user-confirmed GitHub email", "prior v0.11.0 source quality gate passed lint, 4 Vitest files / 11 tests, typecheck, production build, security, roadmap and diff checks", "GitHub push and Vercel private-repository preview verification pending"],
+  "rollback": "Return to tag v0.11.0-estimeter-guided-assistant. This follow-up changes no application behavior, database schema or customer data.",
+  "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "This workspace is a non-persistent demo: it must not present sample prices, quantities or export approval as a live business record.", "AI guidance is advisory only and has no write, price, approval or export authority.", "Do not describe a Vercel preview as usable until its new deployment is READY."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -39,6 +39,7 @@
     { "id": "IP-027", "title": "Verify public Vercel pilot routes for ESTIMETR workspace release", "status": "done", "phase": "release" },
     { "id": "IP-028", "title": "Confirm GitHub commit, push, version and release tag for ESTIMETR", "status": "done", "phase": "release" },
     { "id": "IP-029", "title": "Deliver deterministic ESTIMETR Guided AI Assistant and strict gate UI", "status": "done", "phase": "implementation" },
-    { "id": "IP-030", "title": "Record price/document provenance policy and harden private source baseline", "status": "done", "phase": "release" }
+    { "id": "IP-030", "title": "Record price/document provenance policy and harden private source baseline", "status": "done", "phase": "release" },
+    { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "in_progress", "phase": "release" }
   ]
 }

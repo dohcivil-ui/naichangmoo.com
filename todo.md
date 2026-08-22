@@ -38,3 +38,7 @@
 - [ ] Validate the official DPT standard/form source for ปร.4, ปร.5 and ปร.6 before claiming Excel/PDF export compliance.
 - [ ] Make the source repository private and apply approved GitHub hardening: protected deploy branches, CI/review enforcement, Actions allowlist/SHA pinning and Dependabot security updates.
 - [x] Make the source repository private, enable Dependabot security updates and restrict GitHub Actions to GitHub-owned SHA-pinned actions; branch protection remains pending the approved GitHub plan upgrade.
+- [ ] Define the Civil Apps Market information architecture, app-discovery flow and conversion hierarchy for naichangmoo.com Landing.
+- [ ] Build the responsive Civil Apps Market Landing with app catalog, clear access/trial messaging, comparison/discovery controls and engineering-tool visual language.
+- [x] Configure the local Git commit identity with the verified GitHub email and trigger a Vercel private-repository preview follow-up release.
+- [ ] Verify that the Vercel preview generated from the corrected Git attribution reaches READY before sharing a review URL.

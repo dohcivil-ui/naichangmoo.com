@@ -1,0 +1,21 @@
+{
+  "version": "0.11.1",
+  "title": "Vercel Private Git Commit Attribution Recovery",
+  "description": "ตั้ง Git identity เฉพาะ repository ให้ใช้อีเมล GitHub ที่ผู้ใช้ยืนยัน เพื่อให้ Vercel จับคู่ commit author และสร้าง preview จาก private repository ได้.",
+  "updatedAt": "2026-08-22T18:35:00+07:00",
+  "status": "deployment_pending",
+  "scope": [
+    "repository-local Git identity aligned to the verified GitHub account",
+    "Vercel blocked-deployment evidence and documented recovery procedure",
+    "retrigger Git preview using a versioned follow-up commit"
+  ],
+  "verification": [
+    "repository-local Git author configured with the user-confirmed GitHub email",
+    "prior v0.11.0 source quality gate passed lint, 4 Vitest files / 11 tests, typecheck, production build, security, roadmap and diff checks",
+    "GitHub push and Vercel private-repository preview verification pending"
+  ],
+  "rollback": "Return to tag v0.11.0-estimeter-guided-assistant. This follow-up changes no application behavior, database schema or customer data.",
+  "items": [
+    { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "in_progress", "phase": "release" }
+  ]
+}
