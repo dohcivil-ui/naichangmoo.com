@@ -6,6 +6,8 @@ After `feature/estimeter-guided-assistant` commit `7f6287f4128a1a3c9c9c6eaac1076
 
 The Vercel deployment listing reports the state as **`BLOCKED`**. Its metadata correctly identifies the branch, commit and repository visibility as `private`. No causal build log has been reviewed yet, so this record does not attribute the block to a specific configuration or permission issue.
 
-## Required follow-up
+## Recovery outcome
 
-Inspect Vercel deployment details/logs and Git integration access before presenting a new public review URL. The already-existing public pilot deployment must not be described as containing `v0.11.0`.
+The replacement deployment `dpl_AHqJaJbZAJNt38LwKCzh7FFp4BxV` reached **`READY`** after the follow-up commit `285abcb` used the user-confirmed GitHub email. Its preview URL is `https://naichangmoo-liq29gbpn-suriya-patchotchais-projects.vercel.app` and its metadata identifies GitHub login `dohcivil-ui`.
+
+The originally blocked deployment remains a historical failure record. The `READY` preview is the only Vercel link that may be described as containing the Guided AI Assistant source.

@@ -1,12 +1,12 @@
 {
-  "version": "0.11.1",
-  "title": "Vercel Private Git Commit Attribution Recovery",
-  "description": "ตั้ง Git identity เฉพาะ repository ให้ใช้อีเมล GitHub ที่ผู้ใช้ยืนยัน เพื่อให้ Vercel จับคู่ commit author และสร้าง preview จาก private repository ได้.",
-  "scope": ["repository-local Git identity aligned to the verified GitHub account", "Vercel blocked-deployment evidence and documented recovery procedure", "retrigger Git preview using a versioned follow-up commit"],
-  "updatedAt": "2026-08-22T18:35:00+07:00",
-  "status": "deployment_pending",
-  "verification": ["repository-local Git author configured with the user-confirmed GitHub email", "prior v0.11.0 source quality gate passed lint, 4 Vitest files / 11 tests, typecheck, production build, security, roadmap and diff checks", "GitHub push and Vercel private-repository preview verification pending"],
-  "rollback": "Return to tag v0.11.0-estimeter-guided-assistant. This follow-up changes no application behavior, database schema or customer data.",
+  "version": "0.11.2",
+  "title": "Vercel Private Preview Verified",
+  "description": "ยืนยันว่า Vercel preview จาก private repository ผ่าน READY หลังใช้ commit author ที่จับคู่กับบัญชี GitHub/Vercel ได้สำเร็จ.",
+  "scope": ["verify corrected commit attribution on the private Git repository", "record Vercel READY preview URL for v0.11.1 source", "close deployment verification TODO without changing product behavior"],
+  "updatedAt": "2026-08-22T18:45:00+07:00",
+  "status": "preview_verified",
+  "verification": ["Vercel deployment dpl_AHqJaJbZAJNt38LwKCzh7FFp4BxV is READY", "deployment is sourced from feature/estimeter-guided-assistant commit 285abcb", "GitHub commit metadata reports verified GitHub login and the user-confirmed email", "v0.11.1 quality gate passed lint, 4 Vitest files / 11 tests, typecheck, production build, security, roadmap and diff checks"],
+  "rollback": "Return to tag v0.11.1-vercel-attribution-recovery. This verification release changes no application behavior, schema or customer data.",
   "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "This workspace is a non-persistent demo: it must not present sample prices, quantities or export approval as a live business record.", "AI guidance is advisory only and has no write, price, approval or export authority.", "Do not describe a Vercel preview as usable until its new deployment is READY."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
@@ -40,6 +40,7 @@
     { "id": "IP-028", "title": "Confirm GitHub commit, push, version and release tag for ESTIMETR", "status": "done", "phase": "release" },
     { "id": "IP-029", "title": "Deliver deterministic ESTIMETR Guided AI Assistant and strict gate UI", "status": "done", "phase": "implementation" },
     { "id": "IP-030", "title": "Record price/document provenance policy and harden private source baseline", "status": "done", "phase": "release" },
-    { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "in_progress", "phase": "release" }
+    { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "done", "phase": "release" },
+    { "id": "IP-032", "title": "Verify private-repository preview is READY before sharing review URL", "status": "done", "phase": "release" }
   ]
 }

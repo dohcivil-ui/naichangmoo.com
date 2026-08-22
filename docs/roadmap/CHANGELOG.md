@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.11.2 — Vercel Private Preview Verified — 2026-08-22
+
+Verified that the private-repository preview is READY after commit attribution was aligned with the confirmed GitHub account. No product behavior changed in this release.
+
 ## v0.11.1 — Vercel Private Git Commit Attribution Recovery — 2026-08-22
 
 Configured the repository-local Git author with the user-confirmed GitHub email after Vercel blocked the first private-repository preview for unrecognized commit attribution. This release triggers a replacement preview; no product behavior changes.

@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.11.2",
+    "title": "Vercel Private Preview Verified",
+    "description": "บันทึกผล Vercel READY ของ private-repository preview หลังแก้ commit attribution สำเร็จ.",
+    "scope": ["READY deployment verification", "verified GitHub commit attribution", "TODO closure"],
+    "verification": ["Vercel READY", "commit 285abcb", "v0.11.1 quality gate previously passed"],
+    "rollback": "Return to tag v0.11.1-vercel-attribution-recovery; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-vercel-private-preview-verified.md"
+  },
+  {
     "version": "0.11.1",
     "title": "Vercel Private Git Commit Attribution Recovery",
     "description": "แก้ Git commit attribution เพื่อให้ Vercel จับคู่ author ของ private-repository preview ได้.",

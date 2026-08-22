@@ -41,4 +41,4 @@
 - [ ] Define the Civil Apps Market information architecture, app-discovery flow and conversion hierarchy for naichangmoo.com Landing.
 - [ ] Build the responsive Civil Apps Market Landing with app catalog, clear access/trial messaging, comparison/discovery controls and engineering-tool visual language.
 - [x] Configure the local Git commit identity with the verified GitHub email and trigger a Vercel private-repository preview follow-up release.
-- [ ] Verify that the Vercel preview generated from the corrected Git attribution reaches READY before sharing a review URL.
+- [x] Verify that the Vercel preview generated from the corrected Git attribution reaches READY before sharing a review URL.
