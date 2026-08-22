@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.12.3 — Full Source Repository Verification — 2026-08-22
+
+Verified that the private GitHub repository tracks editable source only, excludes build artifacts and provides a source-map/continuation guide for future development.
+
 ## v0.12.2 — Landing Interaction Contracts and Button Audit — 2026-08-22
 
 Added a single tested interaction contract for Landing buttons/links and manually audited navigation, app entry locks, Login preview feedback, Roadmap refresh and enterprise form availability.

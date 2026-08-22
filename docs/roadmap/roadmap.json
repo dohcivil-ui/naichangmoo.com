@@ -1,13 +1,13 @@
 {
-  "version": "0.12.2",
-  "title": "Landing Interaction Contracts and Button Audit",
-  "description": "ตรวจปุ่มและลิงก์ Landing แบบใช้งานจริง พร้อมรวม navigation, app entry และ Login behavior ไว้ใน interaction contract ที่มี unit tests ป้องกัน regression.",
-  "scope": ["single interaction contract for Landing navigation, hero action, app details, app entry, footer and Login", "manual audit of public navigation, app readiness locks, Roadmap refresh and enterprise form availability", "preview-safe Login status behavior and configured Google-login callback contract", "regression tests to prevent route/readiness drift"],
-  "updatedAt": "2026-08-22T21:55:00+07:00",
+  "version": "0.12.3",
+  "title": "Full Source Repository Verification",
+  "description": "ยืนยันว่า GitHub private repository เก็บ full editable source code และไม่มี Next.js build artifacts พร้อมเพิ่มคู่มือแก้ไข/พัฒนาต่อจาก source.",
+  "scope": ["audit tracked files and ignore rules for build artifact exclusion", "document editable source map and continuation commands", "clarify that build is release validation and not a Git deliverable"],
+  "updatedAt": "2026-08-22T22:10:00+07:00",
   "status": "release_validation_pending",
-  "verification": ["manual audit passes for brand, apps, Hermes, Roadmap, enterprise, Login, all four app detail cards, ESTIMETR entry and locked app states", "eslint, 6 Vitest files / 16 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass", "GitHub push and private preview verification pending"],
-  "rollback": "Return to tag v0.12.1-concise-landing. No schema, customer data, price source, payment or export artifact changes.",
-  "constraints": ["All four categories must render their related application card immediately beneath the heading; no filter, launcher or hidden catalog state is allowed.", "No numeric package price may appear before the commercial package is approved.", "Landing must not expose internal trial capability, AI, BOQ, export or technical preview details that belong inside an application.", "Coming-soon and restricted applications must not link users into an unready workspace.", "Every public Landing interaction must have an explicit destination or a user-visible safe status."],
+  "verification": ["Git tracked-file scan finds no .next, dist, build, node_modules, coverage or TypeScript build artifacts", ".gitignore excludes Next.js outputs, dependencies, coverage, environment files, uploads, exports and local data", "SOURCE_CONTINUATION.md maps editable source locations and source-only development workflow", "GitHub push pending"],
+  "rollback": "Return to tag v0.12.2-landing-interactions. This documentation-only release changes no application behavior, schema or customer data.",
+  "constraints": ["GitHub stores editable source, tests, documentation, schemas and release metadata; never generated build output.", "No real secret, customer data, uploaded drawing, price export or environment file may enter Git history."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -45,6 +45,7 @@
     { "id": "IP-033", "title": "Build Civil Apps Market with direct category-to-app card flow", "status": "done", "phase": "implementation" },
     { "id": "IP-034", "title": "Add honest pre-entry app detail routes and catalog validation", "status": "done", "phase": "implementation" },
     { "id": "IP-035", "title": "Tighten public Landing copy and move internal trial details into ESTIMETR", "status": "done", "phase": "implementation" },
-    { "id": "IP-036", "title": "Lock Landing button behavior with interaction contracts and regression tests", "status": "done", "phase": "implementation" }
+    { "id": "IP-036", "title": "Lock Landing button behavior with interaction contracts and regression tests", "status": "done", "phase": "implementation" },
+    { "id": "IP-037", "title": "Verify full editable source repository and document continuation workflow", "status": "done", "phase": "release" }
   ]
 }

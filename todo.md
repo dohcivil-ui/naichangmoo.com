@@ -54,3 +54,4 @@
 - [x] Inventory every Landing button/link and define its expected destination, access rule and fallback behavior.
 - [x] Verify navigation, app-detail, app-entry, enterprise, roadmap, Hermes and Login interactions on private preview.
 - [x] Add automated regression tests for the Landing interaction contracts and repair any broken behavior before release.
+- [x] Verify that Git tracks full editable source and excludes all Next.js build artifacts, then document how to continue editing from the private repository.

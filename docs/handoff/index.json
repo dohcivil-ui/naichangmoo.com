@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.12.3",
+    "title": "Full Source Repository Verification",
+    "description": "ยืนยันว่า repository private เก็บ full source ที่แก้ไขต่อได้ และไม่เก็บ build artifacts.",
+    "scope": ["tracked-file audit", "gitignore verification", "source continuation guide"],
+    "verification": ["no tracked build artifacts", "source map documented", "GitHub push pending"],
+    "rollback": "Return to tag v0.12.2-landing-interactions; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-full-source-verification.md"
+  },
+  {
     "version": "0.12.2",
     "title": "Landing Interaction Contracts and Button Audit",
     "description": "ล็อก behavior ของปุ่ม Landing ด้วย interaction contract และบันทึกผลตรวจการกดใช้งานจริง.",
