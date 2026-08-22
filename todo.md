@@ -12,3 +12,5 @@
 - [ ] Verify public Landing, app routes, Roadmap/Handoff and safe asset handling on the Vercel review URL.
 - [x] Fix Vercel build failure caused by eager Better Auth database initialization when DATABASE_URL is absent in pilot preview.
 - [ ] Add safe preview sign-in state, run quality gate, version the fix, deploy to Vercel and verify all review routes.
+- [ ] Remove or bypass Vercel Authentication for the credential-less pilot preview and verify public review access without a Vercel login.
+- [ ] Replace the sandbox-only visual asset origin with a public pilot-safe asset origin, then verify all app-card and Hermes icon graphics on Vercel.

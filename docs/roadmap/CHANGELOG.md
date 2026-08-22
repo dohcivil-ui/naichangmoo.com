@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.4.3 — Public Pilot Visual Asset Availability — 2026-08-22
+
+Fixed Vercel pilot icon rendering by making the visual asset proxy use public presentation CDN URLs until the production Cloudflare R2/CDN origin is configured. The production switch remains controlled by `VISUAL_ASSET_ORIGIN`.
+
 ## v0.4.2 — Vercel Native Output Compatibility — 2026-08-22
 
 Fixed Vercel deployment compatibility by making `output: standalone` conditional on `DEPLOY_TARGET=hostinger`. Vercel pilot deployments now use the framework-native Next.js output while the same source remains ready for a standalone Hostinger Docker build.

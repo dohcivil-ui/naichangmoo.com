@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.4.3",
+    "title": "Public Pilot Visual Asset Availability",
+    "description": "ทำให้ Landing icon graphics แสดงบน Vercel pilot ได้ผ่าน public presentation CDN และเตรียม Cloudflare R2/CDN origin สำหรับ production.",
+    "scope": ["allowlisted pilot CDN icon URLs", "asset proxy fallback", "VISUAL_ASSET_ORIGIN production contract", "credential-less Vercel verification"],
+    "verification": ["public CDN response image/png", "lint", "6 unit tests", "typecheck", "credential-less Vercel build", "security preflight", "roadmap validation"],
+    "rollback": "Return to tag v0.4.2-vercel-native-output; pilot icons will no longer resolve.",
+    "path": "docs/handoff/2026-08-22-public-pilot-visual-asset-availability.md"
+  },
+  {
     "version": "0.4.2",
     "title": "Vercel Native Output Compatibility",
     "description": "ใช้ native Next.js output บน Vercel pilot และสงวน standalone output สำหรับ Hostinger Docker build.",

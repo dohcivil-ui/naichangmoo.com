@@ -1,12 +1,12 @@
-export const visualAssetFiles = {
-  estimeter: "naichangmoo-estimetr-icon_e5f58d86.png",
-  retaining_wall: "naichangmoo-retaining-wall-icon_d603dc49.png",
-  traffic_sign: "naichangmoo-traffic-sign-icon_1faaa77b.png",
-  land_acquisition: "naichangmoo-land-icon_4ac3b8b8.png",
-  hermes: "naichangmoo-hermes-icon_b78a26b9.png"
+export const visualAssets = {
+  estimeter: { file: "naichangmoo-estimetr-icon.png", pilotUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030011961/anyLQrgyQxXqziRD.png" },
+  retaining_wall: { file: "naichangmoo-retaining-wall-icon.png", pilotUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030011961/HwPGXWPGwimBtvTU.png" },
+  traffic_sign: { file: "naichangmoo-traffic-sign-icon.png", pilotUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030011961/noMHQAjpHWQenSVC.png" },
+  land_acquisition: { file: "naichangmoo-land-icon.png", pilotUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030011961/XMobrYucpKXqaQeW.png" },
+  hermes: { file: "naichangmoo-hermes-icon.png", pilotUrl: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030011961/SxNtnIKmDZzclTCY.png" }
 } as const;
 
-export type VisualAssetKey = keyof typeof visualAssetFiles;
+export type VisualAssetKey = keyof typeof visualAssets;
 
 export function visualAssetUrl(key: VisualAssetKey) {
   return `/api/visual-assets/${key}`;

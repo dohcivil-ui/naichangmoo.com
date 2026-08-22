@@ -10,6 +10,7 @@
 |---|---|---|
 | Deployment output | `next.config.ts` | ตั้ง `output: standalone` เฉพาะ `DEPLOY_TARGET=hostinger`; Vercel ใช้ Next.js native output |
 | Environment contract | `.env.example` | เพิ่ม `DEPLOY_TARGET=vercel` เป็น default สำหรับ review/pilot; Hostinger ต้อง override เป็น `hostinger` |
+| Pilot visual assets | `src/lib/visual-assets.ts`, `src/app/api/visual-assets/[key]/route.ts` | ใช้ public CDN URLs สำหรับ pilot และเตรียม `VISUAL_ASSET_ORIGIN` เป็น Cloudflare R2/CDN origin เมื่อ production พร้อม |
 | Version governance | `package.json`, `docs/roadmap/roadmap.v0.4.2.json`, `docs/roadmap/roadmap.json`, `docs/roadmap/CHANGELOG.md` | บันทึก title, scope, verification, constraints และ rollback ของ output compatibility fix |
 
 ## Verification
