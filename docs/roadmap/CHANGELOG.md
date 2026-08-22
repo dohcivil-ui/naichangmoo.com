@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.8.0 — Dedicated Enterprise Quotation Page — 2026-08-22
+
+Moved the enterprise quotation form out of Landing to `/enterprise`, leaving Landing focused on product discovery and platform workflow.
+
 ## v0.7.1 — Light Teal Active Navigation — 2026-08-22
 
 Restored the active navigation treatment to a light translucent teal surface while preserving the restrained tactile press/release behavior.

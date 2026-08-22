@@ -22,3 +22,4 @@
 - [x] Restyle every sticky navigation link as a button/pill while preserving the enterprise quotation action as the strongest visual emphasis.
 - [x] Add restrained press/release feedback and anchor-aware active tones to navigation buttons without decorative AI-style motion.
 - [x] Restore the navigation active state to a light translucent teal treatment while retaining tactile press/release feedback.
+- [x] Move the enterprise quotation form from Landing to a dedicated quotation page and update primary navigation accordingly.

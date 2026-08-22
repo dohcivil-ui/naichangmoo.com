@@ -1,12 +1,12 @@
 {
-  "version": "0.7.1",
-  "title": "Light Teal Active Navigation",
-  "description": "คืน active state ของ navigation เป็นพื้นเขียวอ่อนใสตาม feedback โดยคง tactile press/release feedback และ active context ที่อ่านง่าย.",
-  "scope": ["เปลี่ยน active pill จาก navy เข้มเป็น translucent teal", "ปรับ active hover/focus ให้ teal เข้มขึ้นเล็กน้อย", "เปลี่ยน active quote action เป็น peach light treatment", "คง press/release animation และ reduced-motion policy"],
-  "updatedAt": "2026-08-22T10:30:00+07:00",
-  "status": "ready_for_light_teal_navigation_review",
-  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public review"],
-  "rollback": "Return to tag v0.7.0-tactile-navigation to restore dark active navigation tones.",
+  "version": "0.8.0",
+  "title": "Dedicated Enterprise Quotation Page",
+  "description": "ย้ายแบบฟอร์มขอใบเสนอราคาสำหรับองค์กร/หน่วยงานออกจาก Landing ไปยังหน้า `/enterprise` เพื่อให้ Landing เน้น app cards, workflow และ platform functions.",
+  "scope": ["เพิ่ม dedicated route `/enterprise`", "ย้าย enterprise form และ explanatory content ออกจาก Landing", "เปลี่ยน primary quote navigation ให้ชี้หน้าใหม่", "ปรับ anchor observer ให้เฝ้าเฉพาะ sections ที่ยังอยู่บน Landing"],
+  "updatedAt": "2026-08-22T10:45:00+07:00",
+  "status": "ready_for_enterprise_route_review",
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public route review"],
+  "rollback": "Return to tag v0.7.1-light-teal-active to restore the enterprise form inline on Landing.",
   "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
@@ -29,6 +29,7 @@
     { "id": "IP-017", "title": "Refine Retaining Wall Cantilever card copy for Bisection Algorithm", "status": "done", "phase": "release" },
     { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" },
     { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" },
-    { "id": "IP-020", "title": "Restore active state as a light translucent teal treatment", "status": "done", "phase": "release" }
+    { "id": "IP-020", "title": "Restore active state as a light translucent teal treatment", "status": "done", "phase": "release" },
+    { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" }
   ]
 }

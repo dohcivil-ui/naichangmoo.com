@@ -13,7 +13,7 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
   useEffect(() => {
     if (pathname !== "/") return;
 
-    const sections = ["apps", "hermes", "enterprise"]
+    const sections = ["apps", "hermes"]
       .map((id) => document.getElementById(id))
       .filter((section): section is HTMLElement => Boolean(section));
     if (!sections.length || typeof IntersectionObserver === "undefined") return;
@@ -33,16 +33,16 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
     { id: "apps", label: "แอปของเรา", href: "/#apps" },
     { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
     { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
-    { id: "enterprise", label: "ขอใบเสนอราคา", href: "/#enterprise", primary: true },
+    { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise", primary: true },
   ];
 
   return (
     <nav className="site-nav" aria-label="เมนูหลัก">
       <div className="container site-nav__inner">
         <Link className="brand" href="/"><NaiChangMooMark /><span>นายช่างหมู<small>{workspace ?? "CIVIL APPS ASSISTANT"}</small></span></Link>
-        <div className="nav-links" aria-label="ทางลัดหน้า Landing">
+        <div className="nav-links" aria-label="ทางลัด platform">
           {navItems.map((item) => {
-            const isActive = item.id === "roadmap" ? pathname === "/roadmap" : pathname === "/" && activeSection === item.id;
+            const isActive = ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
             const className = ["nav-pill", item.primary ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
           })}
