@@ -29,3 +29,12 @@
 - [x] Research BOQ principles from the supplied reference and synthesize a traceable ESTIMETR flow: review drawings, quantity take-off, unit cost estimation and BOQ compilation.
 - [x] Replace the ESTIMETR placeholder with an interactive estimation workspace that shows quantities, material/labor unit costs, direct cost, OH&P/VAT treatment and document readiness.
 - [x] Verify the ESTIMETR release commit, GitHub push, semantic version and annotated tag requested by the user.
+- [x] Define the bounded AI guidance journey for ESTIMETR from project setup through ปร.4, ปร.5, ปร.6 and PDF readiness.
+- [x] Implement the guided AI assistant experience with explicit review and document-readiness gates.
+- [x] Audit public-source exposure, server-side secret boundaries, data access and AI endpoint controls before enabling real AI assistance.
+- [x] Inspect the existing ปร.4, ปร.5 and ปร.6 implementation/data in doh-thai.com/estimate as a user-authorized internal reference without copying source or protected data.
+- [x] Define enforceable strict workflow gates so users cannot progress or release output until prerequisite review states pass.
+- [x] Define authoritative price-source provenance and review policy for real material/labor reference prices before production activation.
+- [ ] Validate the official DPT standard/form source for ปร.4, ปร.5 and ปร.6 before claiming Excel/PDF export compliance.
+- [ ] Make the source repository private and apply approved GitHub hardening: protected deploy branches, CI/review enforcement, Actions allowlist/SHA pinning and Dependabot security updates.
+- [x] Make the source repository private, enable Dependabot security updates and restrict GitHub Actions to GitHub-owned SHA-pinned actions; branch protection remains pending the approved GitHub plan upgrade.

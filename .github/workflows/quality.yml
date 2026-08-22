@@ -1,0 +1,44 @@
+name: Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - initial-project/nextjs-foundation
+      - initial-project/nextjs-scaffold
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Lint, test, typecheck, build and security
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_TARGET: vercel
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Enable pnpm from the committed package manager version
+        run: corepack enable && corepack prepare pnpm@10.20.0 --activate
+
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run quality gate
+        run: |
+          env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm lint
+          env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm test
+          env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm typecheck
+          env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED NODE_ENV=production pnpm build
+          pnpm security:check
+          node scripts/check-roadmap.mjs
+          git diff --check

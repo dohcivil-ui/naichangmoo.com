@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.11.0 — ESTIMETR Guided Assistant and Strict Release Gates — 2026-08-22
+
+Added a deterministic in-workspace assistant for Beginner/Fast guidance and made the ESTIMETR demo enforce explicit project-path, scale, evidence, price-set and document-release gates. The release records provenance and form-baseline policy but does not create real prices or export files.
+
 ## v0.10.2 — ESTIMETR GitHub Release Confirmation — 2026-08-22
 
 Confirmed the ESTIMETR workspace source has been committed, pushed to GitHub and tagged under the project’s release rules. No product behavior changed.

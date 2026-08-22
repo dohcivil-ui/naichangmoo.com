@@ -1,33 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { canOpenWorkflowStage, resolveDemoWorkflowStage, type EstimationStage } from "@/lib/estimation-workflow";
+import {
+  canOpenWorkflowStage,
+  getWorkflowBlocker,
+  resolveGuidedWorkflowStage,
+  type EstimationStage,
+  type ProjectPath,
+} from "@/lib/estimation-workflow";
 
 const stages = [
-  {
-    id: 1 as EstimationStage,
-    label: "ตรวจแบบ",
-    english: "Review drawings",
-    note: "แบบ สเปก และข้อขัดแย้ง",
-  },
-  {
-    id: 2 as EstimationStage,
-    label: "ถอดปริมาณ",
-    english: "Quantity take-off",
-    note: "หน่วย สูตร และหลักฐาน",
-  },
-  {
-    id: 3 as EstimationStage,
-    label: "ประมาณราคา",
-    english: "Unit cost estimation",
-    note: "วัสดุ ค่าแรง และแหล่งราคา",
-  },
-  {
-    id: 4 as EstimationStage,
-    label: "สรุป BOQ",
-    english: "BOQ compilation",
-    note: "ต้นทุน เอกสาร และ readiness",
-  },
+  { id: 1 as EstimationStage, label: "ตั้งโครงการและตรวจแบบ", english: "Project & drawing review", note: "สายงาน แบบ revision และสเกล" },
+  { id: 2 as EstimationStage, label: "ถอดปริมาณ", english: "Quantity take-off", note: "หน่วย สูตร และหลักฐาน" },
+  { id: 3 as EstimationStage, label: "ประมาณราคา", english: "Approved price set", note: "วัสดุ ค่าแรง และแหล่งราคา" },
+  { id: 4 as EstimationStage, label: "สรุป BOQ และเอกสาร", english: "BOQ & documents", note: "review, baseline และ approval" },
 ];
 
 const takeoffRows = [
@@ -36,34 +22,73 @@ const takeoffRows = [
   { code: "AR-01", item: "ผนังก่ออิฐฉาบปูน", unit: "ตร.ม.", quantity: "286.75", evidence: "A-201 / Wall Schedule" },
 ];
 
-export function EstimationWorkspace() {
-  const [completed, setCompleted] = useState<EstimationStage>(1);
-  const [activeStage, setActiveStage] = useState<EstimationStage>(1);
-  const [reviewed, setReviewed] = useState(false);
-  const [takeoffReviewed, setTakeoffReviewed] = useState(false);
-  const [costReviewed, setCostReviewed] = useState(false);
+type GuideMode = "beginner" | "fast";
 
-  const progress = resolveDemoWorkflowStage({ reviewed, takeoffReviewed, costReviewed });
+const guidanceByStage: Record<EstimationStage, { title: string; beginner: string; fast: string; checks: string[] }> = {
+  1: {
+    title: "เริ่มต้นจากข้อมูลที่เชื่อถือได้",
+    beginner: "เลือกสายงานก่อน เพราะเอกชนและราชการใช้กติกาการสรุปเอกสารคนละชุด จากนั้นยืนยัน revision แบบและตั้งสเกลจากระยะที่ทราบจริง 1 จุดก่อนวัดสิ่งใด",
+    fast: "เลือกสายงาน · ยืนยัน revision · ยืนยัน Scale",
+    checks: ["เลือกเอกชนหรือราชการ", "ยืนยันแบบ/สเปก revision เดียวกัน", "ยืนยัน scale พร้อมจุดอ้างอิง"],
+  },
+  2: {
+    title: "ถอดแบบพร้อมหลักฐาน ไม่ใช่แค่ตัวเลข",
+    beginner: "แต่ละรายการต้องบอกได้ว่าวัดจากหน้าไหน ใช้หน่วยอะไร และคำนวณด้วยสูตรใด หาก AI เสนอรายการ ให้ตรวจหลักฐานก่อนยืนยันเสมอ",
+    fast: "หน่วย · สูตร · page/geometry evidence · review",
+    checks: ["ใช้หน่วยตรงกับรายการ", "ผูกสูตรและตำแหน่งอ้างอิง", "ยืนยันหรือระบุเหตุผลที่ไม่รับรายการ"],
+  },
+  3: {
+    title: "ราคาอ้างอิงต้องมีที่มาและ revision",
+    beginner: "อย่าใช้ราคาในความจำ เลือก source, จังหวัด และเดือน แล้วแยกค่าวัสดุ/ค่าแรงให้ตรวจได้ Price set ที่อนุมัติแล้วจึงผูกกับ revision นี้ได้",
+    fast: "source · province/month · material/labor · VAT/transport · approve set",
+    checks: ["เลือก price source และเดือนราคา", "ตรวจ treatment ของ VAT/ขนส่ง", "ล็อก price set ที่ผ่าน review"],
+  },
+  4: {
+    title: "เอกสารคือผลลัพธ์ของ BOQ ที่ตรวจแล้ว",
+    beginner: "ปร.4/ปร.5/ปร.6 หรือเอกสารเอกชนต้องดึงจาก BOQ revision เดียวกันเท่านั้น หาก baseline แบบฟอร์ม, Factor F, rounding หรือ approval ยังไม่ครบ ระบบต้องห้ามส่งออก",
+    fast: "BOQ revision · baseline · Factor F/rules · approval · export checksum",
+    checks: ["ทบทวน BOQ revision", "ตรวจ baseline และกติกาเอกสาร", "รอ approval ก่อน Excel/PDF"],
+  },
+};
+
+export function EstimationWorkspace() {
+  const [activeStage, setActiveStage] = useState<EstimationStage>(1);
+  const [projectPath, setProjectPath] = useState<ProjectPath | null>(null);
+  const [scaleConfirmed, setScaleConfirmed] = useState(false);
+  const [drawingReviewed, setDrawingReviewed] = useState(false);
+  const [takeoffReviewed, setTakeoffReviewed] = useState(false);
+  const [priceSetApproved, setPriceSetApproved] = useState(false);
+  const [costReviewed, setCostReviewed] = useState(false);
+  const [guideMode, setGuideMode] = useState<GuideMode>("beginner");
+  const [guideOpen, setGuideOpen] = useState(true);
+
+  const workflowState = { projectPath, scaleConfirmed, drawingReviewed, takeoffReviewed, priceSetApproved, costReviewed };
+  const progress = resolveGuidedWorkflowStage(workflowState);
+  const blocker = getWorkflowBlocker(workflowState);
+  const guide = guidanceByStage[activeStage];
 
   function selectStage(id: EstimationStage) {
-    if (canOpenWorkflowStage(id, completed)) setActiveStage(id);
+    if (canOpenWorkflowStage(id, progress)) setActiveStage(id);
   }
 
-  function completeReview() {
-    setReviewed(true);
-    setCompleted(2);
+  function completeDrawingReview() {
+    if (!projectPath || !scaleConfirmed) return;
+    setDrawingReviewed(true);
     setActiveStage(2);
   }
 
   function completeTakeoff() {
     setTakeoffReviewed(true);
-    setCompleted(3);
     setActiveStage(3);
   }
 
+  function approvePriceSet() {
+    setPriceSetApproved(true);
+  }
+
   function completeCostReview() {
+    if (!priceSetApproved) return;
     setCostReviewed(true);
-    setCompleted(4);
     setActiveStage(4);
   }
 
@@ -72,92 +97,74 @@ export function EstimationWorkspace() {
       <div className="container">
         <header className="estimation-workspace__head">
           <div>
-            <p className="eyebrow">ESTIMETR · COST WORKSPACE</p>
-            <h1>ประมาณราคาที่ตรวจย้อนกลับได้</h1>
+            <p className="eyebrow">ESTIMETR · GUIDED COST WORKSPACE</p>
+            <h1>ประมาณราคาแบบมีผู้ช่วย และห้ามข้ามหลักฐาน</h1>
             <p className="estimation-workspace__lead">
-              เปลี่ยนแบบก่อสร้างเป็นปริมาณงานและ BOQ โดยแยกหลักฐาน ปริมาณ วัสดุ ค่าแรง และสถานะการตรวจให้เห็นในลำดับเดียวกัน
+              ผู้เริ่มต้นเรียนรู้ทีละขั้น ผู้มีประสบการณ์ข้ามคำอธิบายได้ แต่ทุกคนต้องผ่าน gate เดียวกันก่อนเปลี่ยน BOQ revision หรือเตรียมเอกสาร
             </p>
           </div>
           <div className="estimation-workspace__progress" aria-label={`ความคืบหน้า ${progress} จาก 4 ขั้นตอน`}>
-            <span>WORKFLOW</span>
-            <strong>{progress} / 4</strong>
-            <small>{stages[progress - 1].label}</small>
+            <span>WORKFLOW</span><strong>{progress} / 4</strong><small>{stages[progress - 1].label}</small>
           </div>
         </header>
 
-        <p className="workspace-notice"><strong>พื้นที่สาธิต:</strong> ตัวเลขและรายการด้านล่างใช้สำหรับแสดงโครงสร้างการทำงานเท่านั้น ยังไม่ใช่ราคาอ้างอิงหรือเอกสารพร้อมส่งออก</p>
+        <p className="workspace-notice"><strong>พื้นที่สาธิตแบบมี guardrail:</strong> ไม่มีราคา TPSO, Factor F, แบบฟอร์ม baseline หรือ Excel/PDF จริงในหน้านี้ จึงไม่มีปุ่มส่งออกและไม่อ้างว่าข้อมูลพร้อมใช้จัดซื้อจัดจ้าง</p>
 
         <nav className="estimation-steps" aria-label="ขั้นตอนประมาณราคา">
           {stages.map((stage) => {
             const isComplete = stage.id < progress;
             const isActive = stage.id === activeStage;
-            const isLocked = stage.id > completed;
-            return (
-              <button
-                className={`estimation-step ${isActive ? "is-active" : ""} ${isComplete ? "is-complete" : ""}`}
-                disabled={isLocked}
-                key={stage.id}
-                onClick={() => selectStage(stage.id)}
-                type="button"
-              >
-                <span className="estimation-step__number">{isComplete ? "✓" : `0${stage.id}`}</span>
-                <span><strong>{stage.label}</strong><small>{stage.english}</small></span>
-                <em>{stage.note}</em>
-              </button>
-            );
+            const isLocked = stage.id > progress;
+            return <button className={`estimation-step ${isActive ? "is-active" : ""} ${isComplete ? "is-complete" : ""}`} disabled={isLocked} key={stage.id} onClick={() => selectStage(stage.id)} type="button"><span className="estimation-step__number">{isComplete ? "✓" : `0${stage.id}`}</span><span><strong>{stage.label}</strong><small>{stage.english}</small></span><em>{stage.note}</em></button>;
           })}
         </nav>
 
-        <div className="estimation-board">
+        <div className="estimation-board estimation-board--guided">
           <section className="estimation-main" aria-live="polite">
             {activeStage === 1 && (
               <div className="workspace-panel">
-                <div className="workspace-panel__title"><div><p className="eyebrow">01 · REVIEW & STUDY DRAWINGS</p><h2>ศึกษาและตรวจสอบแบบ</h2></div><span className={reviewed ? "status-chip status-chip--ready" : "status-chip"}>{reviewed ? "ตรวจแล้ว" : "รอการตรวจ"}</span></div>
-                <div className="review-grid">
-                  <article><span className="review-grid__icon">A</span><div><h3>แบบสถาปัตยกรรม</h3><p>ตรวจผัง, ระดับ, ผนัง, ช่องเปิด และตารางวัสดุ</p><small>A-101 ถึง A-301 · 6 แผ่น</small></div></article>
-                  <article><span className="review-grid__icon">S</span><div><h3>แบบโครงสร้าง</h3><p>ตรวจฐานราก, เสา, คาน, เหล็กเสริม และรายละเอียดประกอบ</p><small>S-101 ถึง S-205 · 5 แผ่น</small></div></article>
-                  <article><span className="review-grid__icon">M</span><div><h3>สเปกและข้อสังเกต</h3><p>ระบุวัสดุ, method statement และความขัดแย้งที่ต้องปิดก่อนถอดปริมาณ</p><small>2 ประเด็นต้องทบทวน</small></div></article>
+                <div className="workspace-panel__title"><div><p className="eyebrow">01 · PROJECT PATH, DRAWING & SCALE</p><h2>ตั้งโครงการ ตรวจแบบ และยืนยันสเกล</h2></div><span className={drawingReviewed ? "status-chip status-chip--ready" : "status-chip"}>{drawingReviewed ? "ผ่าน gate แล้ว" : "ต้องยืนยัน 3 จุด"}</span></div>
+                <div className="project-path-control" role="group" aria-label="เลือกสายงานโครงการ"><span>สายงานของโครงการ</span><div><button className={projectPath === "private" ? "is-selected" : ""} onClick={() => setProjectPath("private")} type="button">เอกชน<small>OH&P · กำไร · VAT</small></button><button className={projectPath === "government" ? "is-selected" : ""} onClick={() => setProjectPath("government")} type="button">ราชการ<small>Baseline · Factor F · เอกสาร</small></button></div></div>
+                <div className="preflight-grid">
+                  <article><span className="review-grid__icon">R</span><div><h3>Drawing revision</h3><p>ยืนยันว่าแบบและ specification เป็นชุดเดียวกันก่อนเริ่มงาน</p><small>{drawingReviewed ? "ยืนยันแล้ว" : "รอการยืนยัน"}</small></div></article>
+                  <article><span className="review-grid__icon">S</span><div><h3>Scale reference</h3><p>ตั้ง scale จากระยะจริงที่ตรวจสอบได้ ไม่อนุญาตให้เดา scale</p><button className={`calibration-check ${scaleConfirmed ? "is-confirmed" : ""}`} onClick={() => setScaleConfirmed((value) => !value)} type="button">{scaleConfirmed ? "ยืนยันจุดอ้างอิงแล้ว" : "ยืนยันจุดอ้างอิงสเกล"}</button></div></article>
+                  <article><span className="review-grid__icon">Q</span><div><h3>Open issues</h3><p>บันทึกข้อขัดแย้งก่อนถอดปริมาณ เพื่อไม่ให้ตัวเลขปิดบังความไม่แน่นอน</p><small>ไม่มีการปิด issue อัตโนมัติ</small></div></article>
                 </div>
-                <div className="workspace-callout"><div><strong>QA gate: ก่อนเริ่มถอดปริมาณ</strong><p>ยืนยันว่าแบบและสเปกที่ใช้เป็น revision เดียวกัน พร้อมบันทึกข้อสังเกตที่ยังเปิดอยู่</p></div><button className="button button--orange micro-button" onClick={completeReview} type="button">ยืนยันการตรวจแบบ <span>→</span></button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ปลดล็อกการถอดปริมาณ</strong><p>{blocker}</p></div><button className="button button--orange micro-button" disabled={!projectPath || !scaleConfirmed} onClick={completeDrawingReview} type="button">ยืนยัน project, แบบ และสเกล <span>→</span></button></div>
               </div>
             )}
 
             {activeStage === 2 && (
               <div className="workspace-panel">
-                <div className="workspace-panel__title"><div><p className="eyebrow">02 · QUANTITY TAKE-OFF</p><h2>ถอดปริมาณงานพร้อมหลักฐาน</h2></div><span className={takeoffReviewed ? "status-chip status-chip--ready" : "status-chip"}>{takeoffReviewed ? "ปริมาณตรวจแล้ว" : "3 รายการสาธิต"}</span></div>
+                <div className="workspace-panel__title"><div><p className="eyebrow">02 · AI TAKE-OFF WITH HUMAN EVIDENCE REVIEW</p><h2>ถอดปริมาณงานพร้อมหลักฐาน</h2></div><span className={takeoffReviewed ? "status-chip status-chip--ready" : "status-chip"}>{takeoffReviewed ? "ปริมาณตรวจแล้ว" : "รอ review รายการ"}</span></div>
                 <div className="takeoff-table-wrap"><table className="takeoff-table"><thead><tr><th>รหัส</th><th>รายการงาน</th><th>หน่วย</th><th>ปริมาณ</th><th>หลักฐานจากแบบ</th></tr></thead><tbody>{takeoffRows.map((row) => <tr key={row.code}><td><code>{row.code}</code></td><td>{row.item}</td><td>{row.unit}</td><td className="number-cell">{row.quantity}</td><td><span className="evidence-link">{row.evidence}</span></td></tr>)}</tbody></table></div>
-                <div className="workspace-split"><div><strong>หลักการวัดที่ต้องระบุ</strong><p>ระบุหน่วยที่สัมพันธ์กับรายการ เช่น นับหน่วย, ความยาว, พื้นที่, น้ำหนัก หรือปริมาตร และเก็บสูตร/จุดอ้างอิงไว้กับรายการ</p></div><button className="button button--orange micro-button" onClick={completeTakeoff} type="button">ยืนยันปริมาณงาน <span>→</span></button></div>
+                <div className="prelim-boq-note"><strong>Prelim BOQ ยังไม่ใช่เอกสารปล่อยออก</strong><p>AI อาจเสนอรายการได้ แต่ผู้ใช้ต้องยืนยันหน่วย สูตร และ evidence ก่อนสร้าง estimate revision</p></div>
+                <div className="workspace-split"><div><strong>QA gate: ก่อนเลือก Price Set</strong><p>{blocker}</p></div><button className="button button--orange micro-button" onClick={completeTakeoff} type="button">ยืนยันปริมาณและหลักฐาน <span>→</span></button></div>
               </div>
             )}
 
             {activeStage === 3 && (
               <div className="workspace-panel">
-                <div className="workspace-panel__title"><div><p className="eyebrow">03 · UNIT COST ESTIMATION</p><h2>ประมาณราคาต่อหน่วย</h2></div><span className={costReviewed ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>{costReviewed ? "ตรวจราคาแล้ว" : "ต้องเลือกแหล่งราคา"}</span></div>
-                <div className="cost-source-card"><div><span className="cost-source-card__signal">PRICE SOURCE</span><h3>ราคาอ้างอิงยังไม่ถูกเลือก</h3><p>เลือกจังหวัดและเดือนราคา หรือใช้ price set ที่ผ่านการทบทวนก่อนนำไปคำนวณต้นทุน วัสดุและค่าแรงต้องแยกให้ตรวจได้</p></div><div className="cost-source-card__meta"><span>จังหวัด</span><strong>รอเลือก</strong><span>เดือนราคา</span><strong>รอเลือก</strong></div></div>
-                <div className="cost-breakdown"><article><span>วัสดุ</span><strong>รอราคาอ้างอิง</strong><small>ผูกกับแหล่งราคาและ revision</small></article><article><span>ค่าแรง</span><strong>รอระบุอัตรา</strong><small>แยกจากค่าวัสดุทุก BOQ row</small></article><article><span>ต้นทุนต่อรายการ</span><strong>รอคำนวณ</strong><small>ปริมาณ × (วัสดุ + ค่าแรง)</small></article></div>
-                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>ยืนยันแหล่งราคา, จังหวัด/เดือน, วิธีจัดการ VAT และรายการที่ต้องทบทวน เพื่อป้องกันการส่งออกตัวเลขที่ยังไม่มีที่มา</p></div><button className="button button--orange micro-button" onClick={completeCostReview} type="button">ยืนยันการประมาณราคา <span>→</span></button></div>
+                <div className="workspace-panel__title"><div><p className="eyebrow">03 · PROVENANCE-BOUND UNIT COST</p><h2>ประมาณราคาจาก Price Set ที่อนุมัติ</h2></div><span className={costReviewed ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>{costReviewed ? "ตรวจราคาแล้ว" : "ยังไม่พร้อมคำนวณ"}</span></div>
+                <div className="cost-source-card"><div><span className="cost-source-card__signal">REFERENCE PRICE POLICY</span><h3>{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยังไม่มี price set ที่อนุมัติ"}</h3><p>Production จะต้องระบุ source, จังหวัด, เดือน, revision, price excluding VAT, treatment ค่าขนส่ง และ raw payload hash ก่อนผูกราคากับ BOQ</p></div><div className="cost-source-card__meta"><span>สายงาน</span><strong>{projectPath === "government" ? "ราชการ" : "เอกชน"}</strong><span>Baseline</span><strong>{projectPath === "government" ? "versioned / รอยืนยัน" : "policy รออนุมัติ"}</strong></div></div>
+                <div className="cost-breakdown"><article><span>วัสดุ</span><strong>ห้ามใช้ราคาไม่มีที่มา</strong><small>source + province/month + revision</small></article><article><span>ค่าแรง</span><strong>แยกจากค่าวัสดุ</strong><small>ทุกแถวต้อง review ได้</small></article><article><span>VAT / ขนส่ง</span><strong>ห้ามเดาสถานะ</strong><small>ต้องระบุ policy ใน price set</small></article></div>
+                <div className="price-set-gate"><div><strong>Gate A: price set revision</strong><p>คลิกเพื่อจำลองการอนุมัติ price set เท่านั้น ไม่ได้ดึงหรือสร้างราคาจริง</p></div><button className={`button ${priceSetApproved ? "button--primary" : "button--orange"} micro-button`} onClick={approvePriceSet} type="button">{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยืนยัน price set สาธิต"}</button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>{blocker}</p></div><button className="button button--orange micro-button" disabled={!priceSetApproved} onClick={completeCostReview} type="button">ยืนยันการประมาณราคา <span>→</span></button></div>
               </div>
             )}
 
             {activeStage === 4 && (
               <div className="workspace-panel">
-                <div className="workspace-panel__title"><div><p className="eyebrow">04 · BOQ COMPILATION</p><h2>สรุป BOQ และความพร้อมเอกสาร</h2></div><span className="status-chip status-chip--ready">พร้อมทบทวน</span></div>
-                <div className="boq-summary-grid"><article><span>ต้นทุนตรง</span><strong>รวมจากรายการที่ตรวจแล้ว</strong><small>วัสดุ + ค่าแรง แยกตามหมวดงาน</small></article><article><span>OH&P / กำไร</span><strong>กำหนดตามโหมดโครงการ</strong><small>เอกชน: ต้นทุน/กำไร · ราชการ: workflow เอกสารที่เกี่ยวข้อง</small></article><article><span>VAT / ค่าใช้จ่ายพิเศษ</span><strong>ทบทวนก่อนออกเอกสาร</strong><small>ไม่คาดเดาสถานะ VAT จากข้อมูลที่ไม่ครบ</small></article></div>
-                <div className="document-readiness"><div><p className="eyebrow">DOCUMENT READINESS</p><h3>BOQ พร้อมสำหรับ review รอบถัดไป</h3><p>ก่อน export หรือ print ต้องยืนยันรายการปริมาณ แหล่งราคา และ rule ตามโหมดโครงการอีกครั้ง</p></div><div className="readiness-list"><span>✓ Drawing review</span><span>✓ Quantity evidence</span><span>✓ Unit cost review</span><span>○ Export approval</span></div></div>
+                <div className="workspace-panel__title"><div><p className="eyebrow">04 · BOQ REVISION & DOCUMENT READINESS</p><h2>สรุป BOQ โดยยังล็อกเอกสารไว้</h2></div><span className="status-chip status-chip--attention">ห้ามส่งออก</span></div>
+                <div className="boq-summary-grid"><article><span>ต้นทุนตรง</span><strong>ต้องมาจาก BOQ revision เดียวกัน</strong><small>ปริมาณ × ราคาที่อนุมัติ</small></article><article><span>{projectPath === "government" ? "Government path" : "Private path"}</span><strong>{projectPath === "government" ? "Baseline · Factor F · rounding" : "OH&P · กำไร · VAT"}</strong><small>กติกาเป็น versioned policy</small></article><article><span>เอกสาร</span><strong>สร้างจาก mapping ที่ผ่าน test เท่านั้น</strong><small>ไม่แก้ยอดในเอกสารปลายทาง</small></article></div>
+                <div className="document-readiness document-readiness--locked"><div><p className="eyebrow">DOCUMENT RELEASE GATE</p><h3>{projectPath === "government" ? "ปิดล็อก ปร.4 / ปร.5 / ปร.6 และ PDF" : "ปิดล็อก Excel / PDF ใบเสนอราคา"}</h3><p>หน้านี้ยังไม่มี document baseline ที่อนุมัติ, calculation fixture, Factor F/rounding validation, user approval หรือ export artifact checksum จึงห้ามสร้างไฟล์หรือกล่าวอ้างความถูกต้องตามมาตรฐาน</p></div><div className="readiness-list"><span>✓ Drawing review</span><span>✓ Take-off evidence</span><span>✓ Price-set review</span><span>○ Baseline validation</span><span>○ Release approval</span></div></div>
               </div>
             )}
           </section>
 
-          <aside className="estimation-evidence">
-            <p className="eyebrow">EVIDENCE LEDGER</p>
-            <h2>หลักฐานที่ต้องเห็นก่อนสรุป</h2>
-            <ol>
-              <li><span>01</span><div><strong>Drawing revision</strong><p>แบบและ specification ชุดเดียวกัน</p></div></li>
-              <li><span>02</span><div><strong>Take-off formula</strong><p>หน่วย ปริมาณ และจุดอ้างอิง</p></div></li>
-              <li><span>03</span><div><strong>Price source</strong><p>จังหวัด เดือน และ revision ราคา</p></div></li>
-              <li><span>04</span><div><strong>Approval gate</strong><p>ทบทวนก่อน BOQ / Excel / print</p></div></li>
-            </ol>
-            <div className="estimation-evidence__note"><strong>หลักการทำงาน</strong><p>AI ช่วยอ่านแบบและเสนอหลักฐาน แต่ผู้ใช้เป็นผู้ยืนยันปริมาณและราคาอ้างอิงเสมอ</p></div>
+          <aside className={`guidance-assistant ${guideOpen ? "" : "guidance-assistant--collapsed"}`} aria-label="ผู้ช่วยการใช้งาน ESTIMETR">
+            <div className="guidance-assistant__head"><div><p className="eyebrow">GUIDED AI ASSISTANT</p><h2>{guideOpen ? "ทำตามทีละขั้น" : "ผู้ช่วย"}</h2></div><button aria-expanded={guideOpen} className="assistant-toggle" onClick={() => setGuideOpen((value) => !value)} type="button">{guideOpen ? "ย่อ" : "เปิด"}</button></div>
+            {guideOpen && <><div className="assistant-mode" role="group" aria-label="โหมดคำแนะนำ"><button className={guideMode === "beginner" ? "is-active" : ""} onClick={() => setGuideMode("beginner")} type="button">โหมดเริ่มต้น</button><button className={guideMode === "fast" ? "is-active" : ""} onClick={() => setGuideMode("fast")} type="button">ทำงานเร็ว</button></div><section className="assistant-next"><span>ขั้นตอนปัจจุบัน 0{activeStage}</span><h3>{guide.title}</h3><p>{guideMode === "beginner" ? guide.beginner : guide.fast}</p></section><ol className="assistant-checks">{guide.checks.map((check, index) => <li key={check}><span>0{index + 1}</span>{check}</li>)}</ol><div className="assistant-boundary"><strong>ขอบเขตผู้ช่วย</strong><p>สอนการใช้ระบบและชี้ข้อมูลที่ขาดได้ แต่ไม่สร้างราคา ยืนยัน scale อนุมัติ BOQ หรือส่งออกเอกสารแทนผู้ใช้</p></div></>}
           </aside>
         </div>
       </div>

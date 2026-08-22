@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.11.0",
+    "title": "ESTIMETR Guided Assistant and Strict Release Gates",
+    "description": "เพิ่ม Guided AI Assistant แบบ deterministic และล็อก ESTIMETR flow ตาม project path, scale, evidence, approved price set และ document readiness.",
+    "scope": ["beginner/fast contextual guidance", "strict workflow gates", "workflow tests and responsive validation", "private source baseline hardening"],
+    "verification": ["lint/typecheck/build pass", "vitest 4 files / 11 tests pass", "desktop/mobile visual review", "security, roadmap and diff checks pass"],
+    "rollback": "Return to tag v0.10.2-estimeter-github-confirmed; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-guided-assistant-and-strict-gates.md"
+  },
+  {
     "version": "0.10.2",
     "title": "ESTIMETR GitHub Release Confirmation",
     "description": "บันทึกการยืนยัน commit, GitHub push, version และ release tag ของ ESTIMETR workspace ตามคำขอผู้ใช้.",

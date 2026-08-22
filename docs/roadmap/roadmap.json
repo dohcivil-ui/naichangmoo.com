@@ -1,13 +1,13 @@
 {
-  "version": "0.10.2",
-  "title": "ESTIMETR GitHub Release Confirmation",
-  "description": "ยืนยันการ commit, push ขึ้น GitHub, semantic version และ annotated tag ของ ESTIMETR workspace ตามคำขอผู้ใช้ โดยไม่เปลี่ยนพฤติกรรมของ product.",
-  "scope": ["confirm source branch matches GitHub remote revision", "confirm ESTIMETR workspace release tags v0.10.0 and v0.10.1", "record release confirmation in the project TODO and handoff"],
-  "updatedAt": "2026-08-22T14:55:00+07:00",
-  "status": "release_confirmed",
-  "verification": ["origin/initial-project/nextjs-scaffold matches commit dad3083", "v0.10.1-estimeter-pilot-verified annotated tag exists", "Vercel public pilot is READY and serves the ESTIMETR workspace", "quality gate for v0.10.1 passed lint, 4 Vitest files / 8 tests, typecheck, build, security, roadmap and diff checks"],
-  "rollback": "Return to tag v0.10.1-estimeter-pilot-verified. This confirmation release changes documentation/version metadata only and has no migration or user data.",
-  "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings.", "This workspace is a non-persistent demo: it must not present sample prices, quantities or export approval as a live business record."],
+  "version": "0.11.0",
+  "title": "ESTIMETR Guided Assistant and Strict Release Gates",
+  "description": "เพิ่มผู้ช่วยการใช้งานแบบ contextual สำหรับผู้เริ่มต้น/ทำงานเร็ว และขยาย ESTIMETR mockup ให้ล็อกการข้าม project path, scale, evidence, approved price set และ document release อย่างชัดเจน.",
+  "scope": ["deterministic in-workspace Guided AI Assistant with beginner and fast modes", "strict project-path, drawing/scale, take-off, price-set and document-readiness gates", "workflow-policy unit tests, operating-policy documentation and official-source discovery record", "private repository hardening with SHA-pinned GitHub Actions and Dependabot security updates"],
+  "updatedAt": "2026-08-22T17:20:00+07:00",
+  "status": "ready_for_public_review",
+  "verification": ["eslint passes", "vitest passes 4 files / 11 tests", "TypeScript typecheck passes", "credential-less DEPLOY_TARGET=vercel production build passes", "desktop 1440×1400 and mobile 375×1200 visual review completed", "security preflight, roadmap validation and diff hygiene pass"],
+  "rollback": "Return to tag v0.10.2-estimeter-github-confirmed. No migration, customer data, price source or document artifact exists in this UI-only release.",
+  "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings.", "This workspace is a non-persistent demo: it must not present sample prices, quantities or export approval as a live business record.", "AI guidance is advisory only and has no write, price, approval or export authority."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -37,6 +37,8 @@
     { "id": "IP-025", "title": "Standardize ESTIMETR workflow wording as ประมาณราคา", "status": "done", "phase": "release" },
     { "id": "IP-026", "title": "Implement traceable BOQ estimation workflow and validation record", "status": "done", "phase": "release" },
     { "id": "IP-027", "title": "Verify public Vercel pilot routes for ESTIMETR workspace release", "status": "done", "phase": "release" },
-    { "id": "IP-028", "title": "Confirm GitHub commit, push, version and release tag for ESTIMETR", "status": "done", "phase": "release" }
+    { "id": "IP-028", "title": "Confirm GitHub commit, push, version and release tag for ESTIMETR", "status": "done", "phase": "release" },
+    { "id": "IP-029", "title": "Deliver deterministic ESTIMETR Guided AI Assistant and strict gate UI", "status": "done", "phase": "implementation" },
+    { "id": "IP-030", "title": "Record price/document provenance policy and harden private source baseline", "status": "done", "phase": "release" }
   ]
 }
