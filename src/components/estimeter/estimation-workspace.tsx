@@ -8,6 +8,7 @@ import {
   type EstimationStage,
   type ProjectPath,
 } from "@/lib/estimation-workflow";
+import { TrialPolicyPreview } from "@/components/landing/trial-policy-preview";
 
 const stages = [
   { id: 1 as EstimationStage, label: "ตั้งโครงการและตรวจแบบ", english: "Project & drawing review", note: "สายงาน แบบ revision และสเกล" },
@@ -108,7 +109,8 @@ export function EstimationWorkspace() {
           </div>
         </header>
 
-        <p className="workspace-notice"><strong>พื้นที่สาธิตแบบมี guardrail:</strong> ไม่มีราคา TPSO, Factor F, แบบฟอร์ม baseline หรือ Excel/PDF จริงในหน้านี้ จึงไม่มีปุ่มส่งออกและไม่อ้างว่าข้อมูลพร้อมใช้จัดซื้อจัดจ้าง</p>
+        <p className="workspace-notice"><strong>พื้นที่สาธิต:</strong> ตรวจขั้นตอนการทำงานได้จากหน้านี้</p>
+        <TrialPolicyPreview />
 
         <nav className="estimation-steps" aria-label="ขั้นตอนประมาณราคา">
           {stages.map((stage) => {

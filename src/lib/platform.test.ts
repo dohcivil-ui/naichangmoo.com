@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { marketCategories, platformApps } from "@/lib/platform";
+import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 
 describe("Civil Apps Market registry", () => {
   it("maps every marketplace app to one approved work category", () => {
     const categoryIds = new Set(marketCategories.map((category) => category.id));
 
     expect(marketCategories.map((category) => category.label)).toEqual([
-      "ประมาณราคางานอาคาร",
+      "หมวดประมาณราคา",
       "หมวดงานออกแบบวิศวกรรมโยธา",
       "หมวดงานอุปกรณ์อำนวยความปลอดภัย",
       "หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน"
     ]);
     expect(platformApps).toHaveLength(4);
     expect(platformApps.every((app) => categoryIds.has(app.categoryId))).toBe(true);
+    expect(accessLabel.paid_trial).toBe("ฟรี ทดลองใช้งาน 5 วัน");
   });
 
   it("keeps a truthful pre-entry detail route and readiness content for every app", () => {

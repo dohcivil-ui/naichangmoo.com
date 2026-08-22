@@ -6,12 +6,12 @@ type Mode = "trial" | "read_only";
 
 const policy = {
   trial: {
-    label: "สมาชิกใหม่ · Trial วันที 1–5",
+    label: "ฟรี ทดลองใช้งาน 5 วัน",
     detail: "ใช้งาน ESTIMETR ได้ 1 โครงการ และตรวจ workflow ได้ครบตามสิทธิ์ทดลอง",
     capabilities: [["สร้างโครงการ", true], ["AI Takeoff และตรวจหลักฐาน", true], ["แก้ไข BOQ", true], ["Export / Print", false]]
   },
   read_only: {
-    label: "หลังหมดอายุ · Read-only retention",
+    label: "หลังหมดอายุ",
     detail: "ข้อมูลเดิมยังเปิดดูได้เพื่อไม่ให้เสียงาน แต่การเปลี่ยนแปลงและ output ถูก lock",
     capabilities: [["เปิดดูโครงการเดิม", true], ["สร้างหรือแก้ไขข้อมูล", false], ["AI Takeoff", false], ["Export / Print", false]]
   }
@@ -23,7 +23,7 @@ export function TrialPolicyPreview() {
 
   return (
     <section className="policy-preview" aria-live="polite">
-      <div><div className="eyebrow" style={{ color: "var(--teal)" }}>INTERACTION PREVIEW</div><h3>สิทธิ์ใช้งานต้องอธิบายได้ก่อนเริ่มงาน</h3><p>{current.detail}</p></div>
+      <div><div className="eyebrow" style={{ color: "var(--teal)" }}>สิทธิ์การใช้งาน</div><h3>ข้อมูลการใช้งาน</h3><p>{current.detail}</p></div>
       <div className="policy-preview__panel">
         <div className="segment-control"><button type="button" className={mode === "trial" ? "is-active" : ""} onClick={(event) => { event.preventDefault(); setMode("trial"); }}>ช่วงทดลอง</button><button type="button" className={mode === "read_only" ? "is-active" : ""} onClick={(event) => { event.preventDefault(); setMode("read_only"); }}>หลังหมดอายุ</button></div>
         <strong>{current.label}</strong>

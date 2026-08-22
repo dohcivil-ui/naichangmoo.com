@@ -1,13 +1,13 @@
 {
-  "version": "0.12.0",
-  "title": "Civil Apps Market and App Detail Routes",
-  "description": "ปรับ Landing เป็น Civil Apps Market ที่แสดง app card ใต้หมวดงานทันที และเพิ่มหน้ารายละเอียดแอปก่อนเข้าสู่ workspace โดยสื่อสารทดลองใช้ฟรี 5 วันอย่างตรงไปตรงมา.",
-  "scope": ["four user-approved work-category sections with related app cards rendered immediately", "market detail routes for each app that show outcome, preparation, flow, access and honest readiness state", "truthful five-day ESTIMETR trial messaging with no numeric package pricing", "catalog mapping tests, desktop/mobile validation evidence and shared navigation awareness"],
-  "updatedAt": "2026-08-22T19:10:00+07:00",
+  "version": "0.12.1",
+  "title": "Concise Landing Copy and In-App Trial Details",
+  "description": "ลดข้อความหน้า Landing, เอาคำ Market และรายละเอียดความสามารถภายในออกจากหน้าสาธารณะ พร้อมย้ายข้อมูลสิทธิ์ทดลองใช้เข้า ESTIMETR.",
+  "scope": ["Landing copy reduced to app discovery and clear start actions", "first category renamed หมวดประมาณราคา and public trial label changed to ฟรี ทดลองใช้งาน 5 วัน", "trial entitlement/AI Takeoff/BOQ capability preview moved from Landing into ESTIMETR", "land-acquisition category context identifies the Department of Highways land-acquisition mission"],
+  "updatedAt": "2026-08-22T21:25:00+07:00",
   "status": "release_validation_pending",
-  "verification": ["eslint, 5 Vitest files / 13 tests and TypeScript typecheck pass", "desktop and mobile Landing visual review completed", "available and coming-soon app-detail routes reviewed locally", "credential-less DEPLOY_TARGET=vercel production build, security preflight, roadmap validation and diff hygiene pass", "GitHub push and private preview review pending"],
-  "rollback": "Return to tag v0.11.2-vercel-private-preview-verified. This release has no migration, member data, price-source, payment or export artifact to reverse.",
-  "constraints": ["All four market categories must render their related application card immediately beneath the heading; no filter, launcher or hidden catalog state is allowed.", "No numeric package price may appear before the commercial package is approved.", "Coming-soon and restricted applications must not link users into an unready workspace.", "No new auth/payment behavior is enabled."],
+  "verification": ["local Landing review confirms no visible Market terminology, no public trial policy panel and no public technical preview notice", "ESTIMETR review confirms trial entitlement information appears inside the app", "eslint, 5 Vitest files / 13 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass", "GitHub push and private preview review pending"],
+  "rollback": "Return to tag v0.12.0-civil-apps-market. No schema, customer data, price source, payment or export artifact changes.",
+  "constraints": ["All four market categories must render their related application card immediately beneath the heading; no filter, launcher or hidden catalog state is allowed.", "No numeric package price may appear before the commercial package is approved.", "Landing must not expose internal trial capability, AI, BOQ, export or technical preview details that belong inside an application.", "Coming-soon and restricted applications must not link users into an unready workspace."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -43,6 +43,7 @@
     { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "done", "phase": "release" },
     { "id": "IP-032", "title": "Verify private-repository preview is READY before sharing review URL", "status": "done", "phase": "release" },
     { "id": "IP-033", "title": "Build Civil Apps Market with direct category-to-app card flow", "status": "done", "phase": "implementation" },
-    { "id": "IP-034", "title": "Add honest pre-entry app detail routes and catalog validation", "status": "done", "phase": "implementation" }
+    { "id": "IP-034", "title": "Add honest pre-entry app detail routes and catalog validation", "status": "done", "phase": "implementation" },
+    { "id": "IP-035", "title": "Tighten public Landing copy and move internal trial details into ESTIMETR", "status": "done", "phase": "implementation" }
   ]
 }

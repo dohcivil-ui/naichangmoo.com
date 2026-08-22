@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.12.1 — Concise Landing Copy and In-App Trial Details — 2026-08-22
+
+Reduced public Landing copy, removed Market/internal capability wording, renamed the first category to หมวดประมาณราคา and moved trial entitlement information into ESTIMETR.
+
 ## v0.12.0 — Civil Apps Market and App Detail Routes — 2026-08-22
 
 Reworked the Landing into a direct category-to-app marketplace: each approved work category immediately shows its related app card. Added an honest detail route before workspace entry, with five-day ESTIMETR trial messaging and no numeric commercial price.

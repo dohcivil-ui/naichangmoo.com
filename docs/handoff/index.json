@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.12.1",
+    "title": "Concise Landing Copy and In-App Trial Details",
+    "description": "ลดข้อความหน้า Landing และย้ายข้อมูลสิทธิ์ทดลองใช้จากหน้าสาธารณะเข้า ESTIMETR.",
+    "scope": ["concise public copy", "หมวดประมาณราคา", "ฟรี ทดลองใช้งาน 5 วัน", "in-app trial detail placement"],
+    "verification": ["local Landing/ESTIMETR review passed", "lint/typecheck/build/security/roadmap/diff passed", "vitest 5 files / 13 tests passed", "GitHub push and private preview pending"],
+    "rollback": "Return to tag v0.12.0-civil-apps-market; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-concise-landing-copy.md"
+  },
+  {
     "version": "0.12.0",
     "title": "Civil Apps Market and App Detail Routes",
     "description": "Landing แสดง app card ใต้ 4 หมวดงานที่ผู้ใช้ยืนยันโดยตรง พร้อมหน้า detail ก่อนเข้าสู่ workspace.",

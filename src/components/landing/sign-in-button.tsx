@@ -10,7 +10,7 @@ export function SignInButton() {
   if (!authEnabled) {
     return (
       <div className="sign-in-preview">
-        <button className="button button--primary" type="button" onClick={() => setNotice("Preview นี้ยังไม่เปิด Google Login จนกว่าจะตั้งค่า PostgreSQL และ OAuth credentials")}>ดูสถานะ Google Login</button>
+        <button className="button button--primary" type="button" onClick={() => setNotice("กำลังเตรียมระบบเข้าสู่ระบบ")}>เข้าสู่ระบบ</button>
         {notice ? <span role="status">{notice}</span> : null}
       </div>
     );

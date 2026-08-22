@@ -21,7 +21,7 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
           <Link className="market-detail__back" href="/#apps">← กลับไปดูทุกแอป</Link>
           <div className="market-detail__lead">
             <div>
-              <div className="eyebrow">{category?.label ?? "CIVIL APPS MARKET"}</div>
+              <div className="eyebrow">{category?.label ?? "แอปงานโยธา"}</div>
               <h1>{app.name}</h1>
               <p>{app.marketDetail.outcome}</p>
               <div className="market-detail__badges">
@@ -41,8 +41,8 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
             <article className="market-detail__card"><div className="eyebrow">GUIDED FLOW</div><h2>ลำดับการทำงาน</h2><ol>{app.marketDetail.flow.map((item) => <li key={item}>{item}</li>)}</ol></article>
           </div>
           <section className="market-entry-panel">
-            <div><div className="eyebrow">ACCESS STATUS</div><h2>{canEnter ? "เริ่มจาก workspace แบบมีขั้นตอนได้" : "สถานะการเปิดใช้ต้องชัดเจนก่อนเริ่มงาน"}</h2><p>{app.marketDetail.availabilityNote}</p></div>
-            {canEnter ? <Link className="button button--orange micro-button" href={app.href}>เริ่มทดลองใช้ฟรี 5 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>อ่านรายละเอียดนี้ได้ก่อน ระบบจะไม่พาเข้า workspace ที่ยังไม่พร้อม</span></div>}
+            <div><div className="eyebrow">การเข้าใช้งาน</div><h2>{canEnter ? "เริ่มใช้งาน" : "กำลังเตรียมระบบ"}</h2><p>{app.marketDetail.availabilityNote}</p></div>
+            {canEnter ? <Link className="button button--orange micro-button" href={app.href}>ฟรี ทดลองใช้งาน 5 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>ดูรายละเอียดแอปได้</span></div>}
           </section>
         </div>
       </section>

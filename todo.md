@@ -47,3 +47,7 @@
 - [x] Use the approved market categories: ประมาณราคางานอาคาร, หมวดงานออกแบบวิศวกรรมโยธา, หมวดงานอุปกรณ์อำนวยความปลอดภัย, and หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน.
 - [x] Configure the local Git commit identity with the verified GitHub email and trigger a Vercel private-repository preview follow-up release.
 - [x] Verify that the Vercel preview generated from the corrected Git attribution reaches READY before sharing a review URL.
+- [x] Reduce Landing copy, remove “Market” terminology, and avoid publicly describing confidential/internal capability details.
+- [x] Rename the first category to หมวดประมาณราคา and change the ESTIMETR trial label to ฟรี ทดลองใช้งาน 5 วัน.
+- [x] Remove the circled market-explanation paragraph and move the trial entitlement/AI Takeoff/BOQ preview from Landing into ESTIMETR.
+- [x] Update the land-acquisition category context to refer to ภารกิจจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง.

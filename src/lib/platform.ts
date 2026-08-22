@@ -5,23 +5,23 @@ export type AppAccess = "paid_trial" | "member_free" | "doh_staff_only" | "agent
 export const marketCategories = [
   {
     id: "building-cost",
-    label: "ประมาณราคางานอาคาร",
-    description: "ตั้งต้นจากแบบ ปริมาณ ราคา และเอกสารอย่างเป็นลำดับ"
+    label: "หมวดประมาณราคา",
+    description: "งานประมาณราคาอาคาร"
   },
   {
     id: "civil-design",
     label: "หมวดงานออกแบบวิศวกรรมโยธา",
-    description: "คำนวณ ตรวจทาน และทบทวนร่องรอยการออกแบบ"
+    description: "คำนวณและตรวจทานงานออกแบบ"
   },
   {
     id: "safety-equipment",
     label: "หมวดงานอุปกรณ์อำนวยความปลอดภัย",
-    description: "คำนวณรายการและวัสดุประกอบงานความปลอดภัยทางถนน"
+    description: "งานอุปกรณ์ความปลอดภัยทางถนน"
   },
   {
     id: "land-acquisition",
     label: "หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน",
-    description: "พื้นที่ทำงานตามสิทธิ์สำหรับภารกิจจัดกรรมสิทธิ์ที่ดิน"
+    description: "ภารกิจจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง"
   }
 ] as const;
 
@@ -50,8 +50,8 @@ export const platformApps: PlatformApp[] = [
   {
     slug: "estimeter",
     name: "ESTIMETR",
-    eyebrow: "COST WORKSPACE",
-    description: "ประมาณราคางานอาคารแบบมีหลักฐาน ตั้งโครงการ → ถอดแบบ → ประมาณราคา → ตรวจเอกสาร",
+    eyebrow: "ประมาณราคา",
+    description: "ประมาณราคางานอาคาร",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
     access: "paid_trial",
@@ -59,10 +59,10 @@ export const platformApps: PlatformApp[] = [
     status: "available",
     categoryId: "building-cost",
     marketDetail: {
-      outcome: "จัดลำดับการประมาณราคางานอาคารจากการตรวจแบบ ถอดปริมาณ ประมาณราคา และทบทวนความพร้อมของ BOQ",
+      outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
-      flow: ["ตั้งโครงการและเลือกสายงาน", "ตรวจแบบ/กำหนดสเกล/เก็บหลักฐาน", "ถอดปริมาณและทบทวน", "ใช้ price set ที่อนุมัติแล้วก่อนจัดทำเอกสาร"],
-      availabilityNote: "เริ่มทดลองใช้งานฟรี 5 วันได้จาก workspace ปัจจุบัน การใช้ราคาอ้างอิงจริงและการปล่อยเอกสารยังต้องผ่าน data และ approval gates ของโครงการ"
+      flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
+      availabilityNote: "เริ่มใช้งานใน ESTIMETR"
     }
   },
   {
@@ -77,9 +77,9 @@ export const platformApps: PlatformApp[] = [
     status: "coming_soon",
     categoryId: "civil-design",
     marketDetail: {
-      outcome: "ช่วยทบทวนทางเลือกมิติกำแพงกันดินแบบ cantilever ด้วย bounded bisection search และร่องรอยการคำนวณ",
+      outcome: "คำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
       preparation: ["ข้อมูลดินและแรงกระทำที่ตรวจสอบแล้ว", "เงื่อนไขออกแบบและข้อจำกัดพื้นที่", "ค่าตั้งต้นที่วิศวกรรับผิดชอบการยืนยัน"],
-      flow: ["ระบุเงื่อนไขออกแบบ", "คำนวณตัวเลือกภายใต้ขอบเขต", "ทบทวน stability checks", "ยืนยันผลโดยวิศวกร"],
+      flow: ["ระบุเงื่อนไข", "คำนวณ", "ตรวจทาน", "ยืนยันผล"],
       availabilityNote: "สมาชิกใช้ได้ฟรีเมื่อแอปที่ปรับโครงสร้างใหม่พร้อมเปิดใช้งาน"
     }
   },
@@ -95,9 +95,9 @@ export const platformApps: PlatformApp[] = [
     status: "coming_soon",
     categoryId: "safety-equipment",
     marketDetail: {
-      outcome: "สร้างรายการวัสดุป้ายจราจรจากแบบฟอร์มงานไปยังรายการคำนวณที่ตรวจทานได้",
+      outcome: "จัดทำรายการวัสดุป้ายจราจร",
       preparation: ["ชนิดป้ายและตำแหน่งติดตั้ง", "ขนาด/วัสดุ/อุปกรณ์ประกอบ", "ข้อกำหนดหน้างานที่เกี่ยวข้อง"],
-      flow: ["กรอกลักษณะงาน", "เลือกวัสดุและขนาด", "ตรวจรายการคำนวณ", "จัดรายการเพื่อทบทวน"],
+      flow: ["ระบุลักษณะงาน", "เลือกวัสดุ", "ตรวจรายการ", "ทบทวน"],
       availabilityNote: "สมาชิกใช้ได้ฟรีเมื่อแอปที่ปรับโครงสร้างใหม่พร้อมเปิดใช้งาน"
     }
   },
@@ -113,16 +113,16 @@ export const platformApps: PlatformApp[] = [
     status: "restricted",
     categoryId: "land-acquisition",
     marketDetail: {
-      outcome: "รองรับพื้นที่ทำงานจัดกรรมสิทธิ์ที่ดินตามบทบาทและสิทธิ์ของบุคลากรที่ได้รับอนุญาต",
+      outcome: "ระบบงานจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง",
       preparation: ["บัญชีผู้ใช้ที่หน่วยงานอนุมัติ", "สิทธิ์ตามบทบาทงาน", "ข้อมูลโครงการที่อนุญาตให้เข้าถึง"],
-      flow: ["ยืนยันสิทธิ์บุคลากร", "เลือกงานที่ได้รับมอบหมาย", "ทำงานภายในขอบเขตสิทธิ์", "เก็บร่องรอยการดำเนินงาน"],
-      availabilityNote: "สงวนสิทธิ์สำหรับบุคลากรกรมทางหลวงที่ได้รับอนุญาต และยังไม่มีแผนย้ายข้อมูลเดิมใน marketplace release นี้"
+      flow: ["ยืนยันสิทธิ์", "เลือกงาน", "ดำเนินงาน", "ทบทวน"],
+      availabilityNote: "สำหรับบุคลากรกรมทางหลวง"
     }
   }
 ];
 
 export const accessLabel: Record<AppAccess, string> = {
-  paid_trial: "ทดลองใช้ 5 วัน · 1 โครงการ",
+  paid_trial: "ฟรี ทดลองใช้งาน 5 วัน",
   member_free: "สมาชิกใช้ฟรี",
   doh_staff_only: "เฉพาะบุคลากรกรมทางหลวง",
   agent_service: "ผู้ช่วยทำงาน 24/7"
