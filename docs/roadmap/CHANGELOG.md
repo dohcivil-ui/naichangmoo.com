@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.6.1 — Navigation Button Hierarchy — 2026-08-22
+
+Restyled every sticky navigation item as an accessible pill button. The enterprise quotation shortcut remains the orange primary action.
+
 ## v0.6.0 — Sticky Enterprise Navigation — 2026-08-22
 
 Made platform navigation sticky and added direct routes to apps, Hermes, Roadmap/Handoff and the enterprise quotation section. Mobile now retains these links in a horizontally scrollable navigation row. Updated the retaining-wall card as **Retaining Wall Cantilever** with a concise Bisection Algorithm optimization description.

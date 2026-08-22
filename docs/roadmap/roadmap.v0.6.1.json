@@ -1,0 +1,15 @@
+{
+  "version": "0.6.1",
+  "title": "Navigation Button Hierarchy",
+  "description": "เปลี่ยน sticky navigation ให้เมนูหลักทุกตัวเป็นปุ่ม pill ที่กดได้ชัดเจน และคงปุ่มขอใบเสนอราคาเป็น primary action ที่เด่นที่สุด.",
+  "updatedAt": "2026-08-22T10:10:00+07:00",
+  "status": "ready_for_navigation_button_review",
+  "scope": ["ทำแอปของเรา, Hermes 24/7 และสถานะโครงการเป็น pill buttons", "เพิ่ม hover, focus-visible, active press และ contrast states", "ยืนยันให้ขอใบเสนอราคาเป็น orange primary pill", "รักษา mobile horizontal pill navigation"],
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending production build/security/roadmap validation and Vercel review"],
+  "rollback": "Return to tag v0.6.0-sticky-enterprise-nav to restore the earlier mixed text-link and quote-pill navigation.",
+  "items": [
+    { "id": "IP-016", "title": "Add sticky platform navigation with enterprise quote shortcut", "status": "done", "phase": "release" },
+    { "id": "IP-017", "title": "Refine Retaining Wall Cantilever card copy for Bisection Algorithm", "status": "done", "phase": "release" },
+    { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" }
+  ]
+}

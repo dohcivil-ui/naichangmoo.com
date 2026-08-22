@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.6.1",
+    "title": "Navigation Button Hierarchy",
+    "description": "ปรับ sticky navigation ทุกตัวเป็น pill button และรักษาปุ่มขอใบเสนอราคาเป็น primary action.",
+    "scope": ["neutral nav pills", "orange quote primary action", "focus/hover/active states", "mobile horizontal pill navigation"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "pending Vercel public review"],
+    "rollback": "Return to tag v0.6.0-sticky-enterprise-nav; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-navigation-button-hierarchy.md"
+  },
+  {
     "version": "0.6.0",
     "title": "Sticky Enterprise Navigation",
     "description": "เพิ่ม sticky top navigation พร้อมทางลัดแอป, Hermes, Roadmap/Handoff และขอใบเสนอราคาสำหรับองค์กร; มือถือใช้ horizontal navigation row.",
