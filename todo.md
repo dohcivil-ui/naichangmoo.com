@@ -17,3 +17,5 @@
 - [x] Define and implement the next micro-interaction system for hero, app cards, workflow, Hermes and enterprise quotation controls.
 - [x] Improve original engineering icon treatment without copying third-party artwork or UI.
 - [x] Deploy the updated Landing and verify public URLs for Landing, all app routes and Roadmap/Handoff before sharing the complete link set.
+- [x] Make the Landing top navigation sticky and add the enterprise quotation shortcut alongside primary platform navigation with responsive mobile behavior.
+- [x] Rename the retaining-wall card to “Retaining Wall Cantilever” and present Bisection Algorithm optimization in concise, readable English copy.

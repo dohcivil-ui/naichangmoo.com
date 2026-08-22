@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.6.0",
+    "title": "Sticky Enterprise Navigation",
+    "description": "เพิ่ม sticky top navigation พร้อมทางลัดแอป, Hermes, Roadmap/Handoff และขอใบเสนอราคาสำหรับองค์กร; มือถือใช้ horizontal navigation row.",
+    "scope": ["sticky navigation layer", "Roadmap/Handoff link", "enterprise quote shortcut", "mobile horizontal navigation", "anchor scroll offsets"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "pending Vercel public sticky/mobile review"],
+    "rollback": "Return to tag v0.5.1-public-motion-review; no database rollback is needed.",
+    "path": "docs/handoff/2026-08-22-sticky-enterprise-navigation.md"
+  },
+  {
     "version": "0.5.1",
     "title": "Public Motion Review Verified",
     "description": "บันทึกผลตรวจ Landing, ESTIMETR app shell และ Roadmap/Handoff บน Vercel public deployment หลัง motion release.",

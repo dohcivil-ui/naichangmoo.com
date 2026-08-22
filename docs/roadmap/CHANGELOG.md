@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.6.0 — Sticky Enterprise Navigation — 2026-08-22
+
+Made platform navigation sticky and added direct routes to apps, Hermes, Roadmap/Handoff and the enterprise quotation section. Mobile now retains these links in a horizontally scrollable navigation row. Updated the retaining-wall card as **Retaining Wall Cantilever** with a concise Bisection Algorithm optimization description.
+
 ## v0.5.1 — Public Motion Review Verified — 2026-08-22
 
 Recorded successful public Vercel review of the Landing motion release, ESTIMETR app shell and Roadmap/Handoff route. No runtime behavior changed in this verification release.

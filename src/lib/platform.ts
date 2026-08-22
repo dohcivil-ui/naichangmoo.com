@@ -28,11 +28,11 @@ export const platformApps: PlatformApp[] = [
   },
   {
     slug: "rcopt",
-    name: "กำแพงกันดิน",
-    eyebrow: "RC RETAINING WALL",
-    description: "ตรวจและออกแบบกำแพงกันดิน คสล. สำหรับสมาชิก โดยแยก workflow ตรวจและอธิบายผล",
+    name: "Retaining Wall Cantilever",
+    eyebrow: "OPTIMIZE BY BISECTION ALGORITHM",
+    description: "Optimize cantilever dimensions with a bounded bisection search, then review stability checks and the calculation trail before confirmation.",
     iconSrc: visualAssetUrl("retaining_wall"),
-    iconAlt: "สัญลักษณ์กำแพงกันดิน คสล.",
+    iconAlt: "Retaining Wall Cantilever optimization icon",
     access: "member_free",
     href: "/apps/rcopt",
     status: "coming_soon"
