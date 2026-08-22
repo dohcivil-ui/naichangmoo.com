@@ -7,10 +7,13 @@
 - [x] Update roadmap v0.4.0, handoff, verification and rollback metadata before committing the visual interaction milestone.
 - [x] Run lint, tests, typecheck, production build, security preflight and browser verification.
 - [x] Commit, annotate a semantic Git tag, and push the full source milestone to GitHub.
-- [ ] Diagnose inaccessible temporary preview and provide a user-accessible review channel with a verified URL.
-- [ ] Inspect Vercel integration and prepare a Vercel pilot deployment for the source branch with no production secrets.
-- [ ] Verify public Landing, app routes, Roadmap/Handoff and safe asset handling on the Vercel review URL.
+- [x] Diagnose inaccessible temporary preview and provide a user-accessible review channel with a verified URL.
+- [x] Inspect Vercel integration and prepare a Vercel pilot deployment for the source branch with no production secrets.
+- [x] Verify public Landing, app routes, Roadmap/Handoff and safe asset handling on the Vercel review URL.
 - [x] Fix Vercel build failure caused by eager Better Auth database initialization when DATABASE_URL is absent in pilot preview.
-- [ ] Add safe preview sign-in state, run quality gate, version the fix, deploy to Vercel and verify all review routes.
-- [ ] Remove or bypass Vercel Authentication for the credential-less pilot preview and verify public review access without a Vercel login.
-- [ ] Replace the sandbox-only visual asset origin with a public pilot-safe asset origin, then verify all app-card and Hermes icon graphics on Vercel.
+- [x] Add safe preview sign-in state, run quality gate, version the fix, deploy to Vercel and verify all review routes.
+- [x] Remove or bypass Vercel Authentication for the credential-less pilot preview and verify public review access without a Vercel login.
+- [x] Replace the sandbox-only visual asset origin with a public pilot-safe asset origin, then verify all app-card and Hermes icon graphics on Vercel.
+- [x] Define and implement the next micro-interaction system for hero, app cards, workflow, Hermes and enterprise quotation controls.
+- [x] Improve original engineering icon treatment without copying third-party artwork or UI.
+- [ ] Deploy the updated Landing and verify public URLs for Landing, all app routes and Roadmap/Handoff before sharing the complete link set.

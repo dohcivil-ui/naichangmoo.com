@@ -11,10 +11,27 @@
   ],
   "updatedAt": "2026-08-22T09:42:00+07:00",
   "status": "ready_for_vercel_motion_review",
-  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "credential-less DEPLOY_TARGET=vercel production build", "pnpm security:check", "node scripts/check-roadmap.mjs", "pending public Vercel motion and responsive review"],
+  "verification": [
+    "pnpm lint",
+    "pnpm test (6 passed)",
+    "pnpm typecheck",
+    "credential-less DEPLOY_TARGET=vercel production build",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs",
+    "pending public Vercel motion and responsive review"
+  ],
   "rollback": "Return to tag v0.4.3-public-pilot-assets to remove the LandingMotion controller and v0.5.0 motion CSS. No database migration is involved.",
-  "constraints": ["Motion is decorative feedback only; no pricing, entitlement, project state or document decision depends on animation.", "Pointer tilt is limited to mouse input and disabled on touch/coarse pointers.", "Reduced-motion users receive immediate content without animated transforms.", "No production identity, database, payment or Hermes worker service is enabled."],
-  "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0004-hermes-pilot-review-boundary"],
+  "constraints": [
+    "Motion is decorative feedback only; no pricing, entitlement, project state or document decision depends on animation.",
+    "Pointer tilt is limited to mouse input and disabled on touch/coarse pointers.",
+    "Reduced-motion users receive immediate content without animated transforms.",
+    "No production identity, database, payment or Hermes worker service is enabled."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0003-platform-membership-entitlement-and-trial",
+    "0004-hermes-pilot-review-boundary"
+  ],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
     { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },

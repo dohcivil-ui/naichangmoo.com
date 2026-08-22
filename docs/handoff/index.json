@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.0",
+    "title": "Responsive Engineering Motion System",
+    "description": "เพิ่ม hero signal, reveal-on-scroll, mouse-only app-card spotlight/tilt, Hermes attention response และ form focus feedback ที่เคารพ reduced motion.",
+    "scope": ["LandingMotion controller", "hero blueprint signals", "app card pointer response", "Hermes/form feedback", "responsive and reduced-motion guards"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "credential-less Vercel production build", "pending public Vercel review"],
+    "rollback": "Return to tag v0.4.3-public-pilot-assets; no database rollback is needed.",
+    "path": "docs/handoff/2026-08-22-responsive-engineering-motion-system.md"
+  },
+  {
     "version": "0.4.3",
     "title": "Public Pilot Visual Asset Availability",
     "description": "ทำให้ Landing icon graphics แสดงบน Vercel pilot ได้ผ่าน public presentation CDN และเตรียม Cloudflare R2/CDN origin สำหรับ production.",

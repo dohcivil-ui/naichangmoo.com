@@ -29,12 +29,20 @@ export function AppCard({ app }: AppCardProps) {
     <article
       ref={cardRef}
       className={className}
+      data-reveal
       onPointerMove={(event) => {
+        if (event.pointerType !== "mouse") return;
         const bounds = event.currentTarget.getBoundingClientRect();
-        event.currentTarget.style.setProperty("--pointer-x", `${event.clientX - bounds.left}px`);
-        event.currentTarget.style.setProperty("--pointer-y", `${event.clientY - bounds.top}px`);
+        const relativeX = event.clientX - bounds.left;
+        const relativeY = event.clientY - bounds.top;
+        event.currentTarget.style.setProperty("--pointer-x", `${relativeX}px`);
+        event.currentTarget.style.setProperty("--pointer-y", `${relativeY}px`);
+        event.currentTarget.style.setProperty("--tilt-x", `${((relativeY / bounds.height) - 0.5) * -3}deg`);
+        event.currentTarget.style.setProperty("--tilt-y", `${((relativeX / bounds.width) - 0.5) * 3}deg`);
       }}
-      onPointerLeave={(event) => event.currentTarget.style.removeProperty("--pointer-x")}
+      onPointerLeave={(event) => {
+        ["--pointer-x", "--pointer-y", "--tilt-x", "--tilt-y"].forEach((property) => event.currentTarget.style.removeProperty(property));
+      }}
     >
       <div className="app-card__topline">
         <span>{app.eyebrow}</span>

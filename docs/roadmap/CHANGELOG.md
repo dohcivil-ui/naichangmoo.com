@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.5.0 — Responsive Engineering Motion System — 2026-08-22
+
+Added purposeful Landing feedback: hero blueprint signals, reveal-on-scroll, mouse-only card spotlight/tilt, Hermes attention response and form focus lift. The implementation honors reduced-motion and touch constraints.
+
 ## v0.4.3 — Public Pilot Visual Asset Availability — 2026-08-22
 
 Fixed Vercel pilot icon rendering by making the visual asset proxy use public presentation CDN URLs until the production Cloudflare R2/CDN origin is configured. The production switch remains controlled by `VISUAL_ASSET_ORIGIN`.
