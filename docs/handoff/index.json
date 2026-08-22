@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.10.2",
+    "title": "ESTIMETR GitHub Release Confirmation",
+    "description": "บันทึกการยืนยัน commit, GitHub push, version และ release tag ของ ESTIMETR workspace ตามคำขอผู้ใช้.",
+    "scope": ["branch/remote confirmation", "release tag confirmation", "TODO and handoff audit"],
+    "verification": ["GitHub remote revision matches local branch", "annotated version tag exists", "public Vercel pilot READY"],
+    "rollback": "Return to tag v0.10.1-estimeter-pilot-verified; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-github-release-confirmation.md"
+  },
+  {
     "version": "0.10.1",
     "title": "ESTIMETR Public Pilot Verification",
     "description": "บันทึกผลตรวจ Vercel public pilot ของ ESTIMETR workspace, Landing และ Roadmap/Handoff โดยไม่เปลี่ยน product behavior.",

@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.10.2 — ESTIMETR GitHub Release Confirmation — 2026-08-22
+
+Confirmed the ESTIMETR workspace source has been committed, pushed to GitHub and tagged under the project’s release rules. No product behavior changed.
+
 ## v0.10.1 — ESTIMETR Public Pilot Verification — 2026-08-22
 
 Recorded a successful public Vercel review of the ESTIMETR workspace, Landing and Roadmap/Handoff routes after the v0.10.0 workspace release. This release changes no product behavior.

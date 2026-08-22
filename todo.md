@@ -28,3 +28,4 @@
 - [x] Replace ESTIMETR user-facing wording “ผูกราคา” with “ประมาณราคา” across workflow, app shell and relevant release documentation.
 - [x] Research BOQ principles from the supplied reference and synthesize a traceable ESTIMETR flow: review drawings, quantity take-off, unit cost estimation and BOQ compilation.
 - [x] Replace the ESTIMETR placeholder with an interactive estimation workspace that shows quantities, material/labor unit costs, direct cost, OH&P/VAT treatment and document readiness.
+- [x] Verify the ESTIMETR release commit, GitHub push, semantic version and annotated tag requested by the user.
