@@ -16,6 +16,7 @@
 | Auth route | `src/app/api/auth/[...all]/route.ts` | เปลี่ยนเป็น dynamic import เมื่อ runtime พร้อม; preview ที่ไม่พร้อมตอบ 503 แบบอธิบายได้ |
 | Landing login behavior | `src/components/landing/sign-in-button.tsx`, `src/app/globals.css` | เพิ่ม safe preview state; ปุ่มแจ้งว่า OAuth จะเปิดเมื่อ infrastructure พร้อม แทนการส่ง user ไป auth endpoint ที่ใช้ไม่ได้ |
 | Environment contract | `.env.example` | เพิ่ม `NEXT_PUBLIC_AUTH_ENABLED=false` เพื่อแยก review mode ออกจาก production auth |
+| Deployment output | `next.config.ts` | เปิด `output: standalone` เฉพาะเมื่อ `DEPLOY_TARGET=hostinger`; Vercel ใช้ native output เพื่อไม่ต้องค้นหา standalone trace artifact |
 | Version record | `docs/roadmap/roadmap.v0.4.1.json`, `docs/roadmap/roadmap.json`, `docs/roadmap/CHANGELOG.md` | บันทึก scope, verification, constraint และ rollback ของ bugfix |
 
 ## Verification

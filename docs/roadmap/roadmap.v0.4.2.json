@@ -16,8 +16,7 @@
     "pnpm test",
     "pnpm typecheck",
     "pnpm security:check",
-    "node scripts/check-roadmap.mjs",
-    "browser verification of Landing and shared app shell"
+    "node scripts/check-roadmap.mjs"
   ],
   "rollback": "Return to tag v0.4.1-vercel-auth-safe. Note that v0.4.1 may recreate the missing standalone trace artifact issue on Vercel.",
   "constraints": [
@@ -26,7 +25,6 @@
     "No database migration, real authentication, billing or Hermes worker deployment is included in this version."
   ],
   "adrReferences": [
-    "0001-portable-pilot-and-production-deployment",
     "0001-portable-pilot-and-production-deployment",
     "0002-postgresql-drizzle-and-r2-data-boundary"
   ],

@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.4.2",
+    "title": "Vercel Native Output Compatibility",
+    "description": "ใช้ native Next.js output บน Vercel pilot และสงวน standalone output สำหรับ Hostinger Docker build.",
+    "scope": ["conditional DEPLOY_TARGET output", "Vercel-native build", "Hostinger standalone portability", "credential-less pilot contract"],
+    "verification": ["credential-less DEPLOY_TARGET=vercel production build", "pending final quality gate and Vercel public-route verification"],
+    "rollback": "Return to tag v0.4.1-vercel-auth-safe; this may restore the Vercel trace-file error.",
+    "path": "docs/handoff/2026-08-22-vercel-native-output-compatibility.md"
+  },
+  {
     "version": "0.4.1",
     "title": "Vercel Auth-Safe Pilot Build",
     "description": "แก้ Better Auth build boundary เพื่อให้ pilot preview build ได้แม้ยังไม่มี PostgreSQL หรือ OAuth credentials.",
