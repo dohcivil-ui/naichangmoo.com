@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.9.1",
+    "title": "NM Brand and Badge Public Review Verification",
+    "description": "บันทึกผลตรวจ Vercel public review ของ NM wordmark, hero line-art และ product badges.",
+    "scope": ["public desktop review", "asset proxy 200 verification", "mobile and R2 follow-up"],
+    "verification": ["Vercel READY", "Landing visual review", "asset proxy HTTP 200"],
+    "rollback": "Return to tag v0.9.0-nm-brand-badges; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-nm-brand-badge-public-review.md"
+  },
+  {
     "version": "0.9.0",
     "title": "NM Brand Composition and Engineering App Badges",
     "description": "นำ NM wordmark, engineering line-art และชุด product-grade app badges มาใช้กับ shared platform.",

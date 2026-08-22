@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.9.1 — NM Brand and Badge Public Review Verification — 2026-08-22
+
+Recorded a public Vercel desktop review confirming the wordmark, hero line-art and visible product badges render through the visual asset proxy.
+
 ## v0.9.0 — NM Brand Composition and Engineering App Badges — 2026-08-22
 
 Applied the approved NM wordmark and engineering line-art layout to the shared platform, and replaced generic-looking icon treatments with a coherent set of civil-engineering product badges.
