@@ -42,7 +42,9 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
         <Link className="brand" href="/" aria-label="นายช่างหมู — CIVIL APPS ASSISTANT"><BrandLogo />{workspace ? <span className="brand__workspace">{workspace}</span> : null}</Link>
         <div className="nav-links" aria-label="ทางลัด platform">
           {navItems.map((item) => {
-            const isActive = ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
+          const isActive = item.id === "apps"
+            ? (pathname === "/" ? activeSection === item.id : pathname.startsWith("/market"))
+            : ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
             const className = ["nav-pill", item.primary ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
           })}

@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.12.0 — Civil Apps Market and App Detail Routes — 2026-08-22
+
+Reworked the Landing into a direct category-to-app marketplace: each approved work category immediately shows its related app card. Added an honest detail route before workspace entry, with five-day ESTIMETR trial messaging and no numeric commercial price.
+
 ## v0.11.2 — Vercel Private Preview Verified — 2026-08-22
 
 Verified that the private-repository preview is READY after commit attribution was aligned with the confirmed GitHub account. No product behavior changed in this release.

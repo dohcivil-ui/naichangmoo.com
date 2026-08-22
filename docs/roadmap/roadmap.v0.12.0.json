@@ -1,0 +1,25 @@
+{
+  "version": "0.12.0",
+  "title": "Civil Apps Market and App Detail Routes",
+  "description": "ปรับ Landing เป็น Civil Apps Market ที่แสดง app card ใต้หมวดงานทันที และเพิ่มหน้ารายละเอียดแอปก่อนเข้าสู่ workspace โดยสื่อสารทดลองใช้ฟรี 5 วันอย่างตรงไปตรงมา.",
+  "updatedAt": "2026-08-22T19:10:00+07:00",
+  "status": "release_validation_pending",
+  "scope": [
+    "four user-approved work-category sections with related app cards rendered immediately",
+    "market detail routes for each app that show outcome, preparation, flow, access and honest readiness state",
+    "truthful five-day ESTIMETR trial messaging with no numeric package pricing",
+    "catalog mapping tests, desktop/mobile validation evidence and shared navigation awareness"
+  ],
+  "verification": [
+    "eslint, 5 Vitest files / 13 tests and TypeScript typecheck pass",
+    "desktop and mobile Landing visual review completed",
+    "available and coming-soon app-detail routes reviewed locally",
+    "credential-less DEPLOY_TARGET=vercel production build, security preflight, roadmap validation and diff hygiene pass",
+    "GitHub push and private preview review pending"
+  ],
+  "rollback": "Return to tag v0.11.2-vercel-private-preview-verified. This release has no migration, member data, price-source, payment or export artifact to reverse.",
+  "items": [
+    { "id": "IP-033", "title": "Build Civil Apps Market with direct category-to-app card flow", "status": "done", "phase": "implementation" },
+    { "id": "IP-034", "title": "Add honest pre-entry app detail routes and catalog validation", "status": "done", "phase": "implementation" }
+  ]
+}

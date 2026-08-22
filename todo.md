@@ -38,7 +38,12 @@
 - [ ] Validate the official DPT standard/form source for ปร.4, ปร.5 and ปร.6 before claiming Excel/PDF export compliance.
 - [ ] Make the source repository private and apply approved GitHub hardening: protected deploy branches, CI/review enforcement, Actions allowlist/SHA pinning and Dependabot security updates.
 - [x] Make the source repository private, enable Dependabot security updates and restrict GitHub Actions to GitHub-owned SHA-pinned actions; branch protection remains pending the approved GitHub plan upgrade.
-- [ ] Define the Civil Apps Market information architecture, app-discovery flow and conversion hierarchy for naichangmoo.com Landing.
-- [ ] Build the responsive Civil Apps Market Landing with app catalog, clear access/trial messaging, comparison/discovery controls and engineering-tool visual language.
+- [x] Define the Civil Apps Market information architecture, app-discovery flow and conversion hierarchy for naichangmoo.com Landing.
+- [x] Build the responsive Civil Apps Market Landing with app catalog, clear access/trial messaging, comparison/discovery controls and engineering-tool visual language.
+- [x] Group all four marketplace apps by the related engineering work category while retaining each app name and truthful availability state.
+- [x] Add an app-detail experience for every marketplace card before a user enters an application.
+- [x] Show only “ทดลองใช้ฟรี 5 วัน” in marketplace conversion copy until commercial package pricing is finalized.
+- [x] Render every work category with its related app card immediately beneath it; do not require a filter, launcher or additional discovery step.
+- [x] Use the approved market categories: ประมาณราคางานอาคาร, หมวดงานออกแบบวิศวกรรมโยธา, หมวดงานอุปกรณ์อำนวยความปลอดภัย, and หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน.
 - [x] Configure the local Git commit identity with the verified GitHub email and trigger a Vercel private-repository preview follow-up release.
 - [x] Verify that the Vercel preview generated from the corrected Git attribution reaches READY before sharing a review URL.

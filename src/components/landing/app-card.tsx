@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import type { PlatformApp } from "@/lib/platform";
-import { accessLabel } from "@/lib/platform";
+import { accessLabel, appStatusLabel } from "@/lib/platform";
 
 type AppCardProps = {
   app: PlatformApp;
@@ -12,7 +12,7 @@ type AppCardProps = {
 
 export function AppCard({ app }: AppCardProps) {
   const cardRef = useRef<HTMLElement>(null);
-  const cta = app.status === "available" ? "ดู workflow" : app.status === "restricted" ? "ขอสิทธิ์ใช้งาน" : "กำลังเตรียมระบบ";
+  const cta = app.status === "available" ? "ดูรายละเอียดและเริ่มใช้" : "ดูรายละเอียดแอป";
   const className = ["app-card", `app-card--${app.slug}`, app.status === "available" ? "app-card--available" : ""].filter(Boolean).join(" ");
 
   useEffect(() => {
@@ -44,14 +44,19 @@ export function AppCard({ app }: AppCardProps) {
         ["--pointer-x", "--pointer-y", "--tilt-x", "--tilt-y"].forEach((property) => event.currentTarget.style.removeProperty(property));
       }}
     >
-      <div className="app-card__topline">
-        <span>{app.eyebrow}</span>
-        <span className={`access access--${app.access}`}>{accessLabel[app.access]}</span>
-      </div>
       <div className="app-card__icon-wrap"><Image className="app-card__icon" src={app.iconSrc} alt={app.iconAlt} width={65} height={65} /></div>
-      <h3>{app.name}</h3>
-      <p>{app.description}</p>
-      {app.status === "available" ? <Link className="text-link" href={app.href}>{cta}<span aria-hidden="true">→</span></Link> : <span className="text-link text-link--muted">{cta}</span>}
+      <div className="app-card__body">
+        <div className="app-card__topline">
+          <span>{app.eyebrow}</span>
+          <span className={`access access--${app.access}`}>{accessLabel[app.access]}</span>
+        </div>
+        <h3>{app.name}</h3>
+        <p>{app.description}</p>
+      </div>
+      <div className="app-card__actions">
+        <span className={`app-status app-status--${app.status}`}>{appStatusLabel[app.status]}</span>
+        <Link className="text-link" href={`/market/${app.slug}`}>{cta}<span aria-hidden="true">→</span></Link>
+      </div>
     </article>
   );
 }

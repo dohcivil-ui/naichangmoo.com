@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.12.0",
+    "title": "Civil Apps Market and App Detail Routes",
+    "description": "Landing แสดง app card ใต้ 4 หมวดงานที่ผู้ใช้ยืนยันโดยตรง พร้อมหน้า detail ก่อนเข้าสู่ workspace.",
+    "scope": ["direct category-to-card marketplace", "four honest app detail routes", "free 5-day ESTIMETR message", "responsive validation and registry tests"],
+    "verification": ["lint/typecheck/build/security/roadmap/diff passed", "vitest 5 files / 13 tests passed", "local visual/browser review passed", "GitHub push and private preview pending"],
+    "rollback": "Return to tag v0.11.2-vercel-private-preview-verified; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-civil-apps-market.md"
+  },
+  {
     "version": "0.11.2",
     "title": "Vercel Private Preview Verified",
     "description": "บันทึกผล Vercel READY ของ private-repository preview หลังแก้ commit attribution สำเร็จ.",
