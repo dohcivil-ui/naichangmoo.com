@@ -19,7 +19,7 @@ export const platformApps: PlatformApp[] = [
     slug: "estimeter",
     name: "ESTIMETR",
     eyebrow: "COST WORKSPACE",
-    description: "ประมาณราคางานอาคารแบบมีหลักฐาน ตั้งโครงการ → ถอดแบบ → ผูกราคา → ตรวจเอกสาร",
+    description: "ประมาณราคางานอาคารแบบมีหลักฐาน ตั้งโครงการ → ถอดแบบ → ประมาณราคา → ตรวจเอกสาร",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
     access: "paid_trial",

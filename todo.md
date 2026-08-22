@@ -25,3 +25,4 @@
 - [x] Move the enterprise quotation form from Landing to a dedicated quotation page and update primary navigation accordingly.
 - [x] Apply the NM logo/wordmark and engineering line-art hero composition from the approved reference to navigation and Landing without copying unrelated UI.
 - [x] Replace current app icon treatments with original engineering app badges that have clear subject composition, per-app color cues and consistent product-grade framing.
+- [x] Replace ESTIMETR user-facing wording “ผูกราคา” with “ประมาณราคา” across workflow, app shell and relevant release documentation.

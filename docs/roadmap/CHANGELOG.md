@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.9.2 — ESTIMETR Estimation Terminology — 2026-08-22
+
+Replaced the user-facing term “ผูกราคา” with “ประมาณราคา” across the ESTIMETR workflow and app registry.
+
 ## v0.9.1 — NM Brand and Badge Public Review Verification — 2026-08-22
 
 Recorded a public Vercel desktop review confirming the wordmark, hero line-art and visible product badges render through the visual asset proxy.

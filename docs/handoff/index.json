@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.9.2",
+    "title": "ESTIMETR Estimation Terminology",
+    "description": "แก้คำ workflow ของ ESTIMETR จาก “ผูกราคา” เป็น “ประมาณราคา” ให้ตรงกับศัพท์งานประมาณราคา.",
+    "scope": ["app registry workflow copy", "hero workflow step 04", "terminology search"],
+    "verification": ["no remaining ผูกราคา string", "pending quality gate and Vercel review"],
+    "rollback": "Return to tag v0.9.1-brand-badge-review; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimetr-estimation-terminology.md"
+  },
+  {
     "version": "0.9.1",
     "title": "NM Brand and Badge Public Review Verification",
     "description": "บันทึกผลตรวจ Vercel public review ของ NM wordmark, hero line-art และ product badges.",

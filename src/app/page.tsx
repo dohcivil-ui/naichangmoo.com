@@ -27,7 +27,7 @@ export default function LandingPage() {
           </div>
           <div className="hero__side" data-reveal data-reveal-delay="1">
             <HeroEngineeringArt />
-            <aside className="workflow-rail" aria-label="ลำดับงาน ESTIMETR"><h2>ESTIMETR WORKFLOW</h2>{["ตั้งโครงการและแบบ", "กำหนดสเกลและตรวจหลักฐาน", "ถอดปริมาณและทบทวน", "ผูกราคาและจัดทำเอกสาร"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+            <aside className="workflow-rail" aria-label="ลำดับงาน ESTIMETR"><h2>ESTIMETR WORKFLOW</h2>{["ตั้งโครงการและแบบ", "กำหนดสเกลและตรวจหลักฐาน", "ถอดปริมาณและทบทวน", "ประมาณราคาและจัดทำเอกสาร"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
           </div>
         </div>
       </section>

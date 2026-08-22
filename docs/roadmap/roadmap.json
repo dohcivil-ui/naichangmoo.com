@@ -1,12 +1,12 @@
 {
-  "version": "0.9.1",
-  "title": "NM Brand and Badge Public Review Verification",
-  "description": "บันทึกผลตรวจ Vercel ของ NM wordmark, engineering hero line-art และ app product badges เพื่อให้ release trail ระบุผลการแสดงบน public deployment ได้ชัดเจน.",
-  "scope": ["ตรวจ NM wordmark ใน sticky navigation", "ตรวจ hero engineering line-art", "ตรวจ visible app badges และ Hermes asset pipeline", "บันทึก HTTP asset proxy verification", "ระบุ follow-up สำหรับ manual mobile review และ Cloudflare R2 handoff"],
-  "updatedAt": "2026-08-22T11:20:00+07:00",
-  "status": "public_desktop_review_verified",
-  "verification": ["Vercel deployment READY", "public desktop Landing review", "visual asset proxy returns 200 image/png", "pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "credential-less production build", "pnpm security:check", "node scripts/check-roadmap.mjs"],
-  "rollback": "Return to tag v0.9.0-nm-brand-badges to remove only public review documentation; product source remains identical.",
+  "version": "0.9.2",
+  "title": "ESTIMETR Estimation Terminology",
+  "description": "แก้ข้อความ user-facing ของ ESTIMETR จาก “ผูกราคา” เป็น “ประมาณราคา” เพื่อให้ใช้ศัพท์งานประมาณราคาที่ถูกต้องและสอดคล้องกัน.",
+  "scope": ["เปลี่ยน ESTIMETR app-card workflow summary", "เปลี่ยน hero workflow step 04 เป็น “ประมาณราคาและจัดทำเอกสาร”", "ตรวจ source/docs ไม่ให้มีคำว่า “ผูกราคา” คงเหลือ"],
+  "updatedAt": "2026-08-22T11:35:00+07:00",
+  "status": "ready_for_terminology_review",
+  "verification": ["grep confirms no remaining user-facing “ผูกราคา” string", "pending lint/test/typecheck/build/security/roadmap and public Vercel review"],
+  "rollback": "Return to tag v0.9.1-brand-badge-review to restore the previous copy only.",
   "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
@@ -33,6 +33,7 @@
     { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" },
     { "id": "IP-022", "title": "Apply approved NM wordmark and engineering line-art composition", "status": "done", "phase": "release" },
     { "id": "IP-023", "title": "Replace generic icon treatments with product-grade engineering app badges", "status": "done", "phase": "release" },
-    { "id": "IP-024", "title": "Record public brand and badge verification", "status": "done", "phase": "release" }
+    { "id": "IP-024", "title": "Record public brand and badge verification", "status": "done", "phase": "release" },
+    { "id": "IP-025", "title": "Standardize ESTIMETR workflow wording as ประมาณราคา", "status": "done", "phase": "release" }
   ]
 }
