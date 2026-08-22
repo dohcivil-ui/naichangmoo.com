@@ -21,3 +21,4 @@
 - [x] Rename the retaining-wall card to “Retaining Wall Cantilever” and present Bisection Algorithm optimization in concise, readable English copy.
 - [x] Restyle every sticky navigation link as a button/pill while preserving the enterprise quotation action as the strongest visual emphasis.
 - [x] Add restrained press/release feedback and anchor-aware active tones to navigation buttons without decorative AI-style motion.
+- [x] Restore the navigation active state to a light translucent teal treatment while retaining tactile press/release feedback.

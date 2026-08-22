@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.7.1",
+    "title": "Light Teal Active Navigation",
+    "description": "คืน active navigation เป็นพื้นเขียวอ่อนใส โดยคง tactile feedback และ active context.",
+    "scope": ["translucent teal active state", "light peach quote active state", "tactile motion retained"],
+    "verification": ["pnpm lint", "6 unit tests", "pnpm typecheck", "pending Vercel public review"],
+    "rollback": "Return to tag v0.7.0-tactile-navigation; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-light-teal-active-navigation.md"
+  },
+  {
     "version": "0.7.0",
     "title": "Tactile Engineering Navigation",
     "description": "เพิ่ม press/release feedback และ anchor-aware active states ให้ navigation pills อย่างสุขุมแบบเครื่องมือวิศวกรรม.",

@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.7.1 — Light Teal Active Navigation — 2026-08-22
+
+Restored the active navigation treatment to a light translucent teal surface while preserving the restrained tactile press/release behavior.
+
 ## v0.7.0 — Tactile Engineering Navigation — 2026-08-22
 
 Added restrained press/release feedback and anchor-aware active tones for navigation pills. Active state now communicates the selected work context without decorative motion.
