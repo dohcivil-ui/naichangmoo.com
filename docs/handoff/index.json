@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.5.1",
+    "title": "Public Motion Review Verified",
+    "description": "บันทึกผลตรวจ Landing, ESTIMETR app shell และ Roadmap/Handoff บน Vercel public deployment หลัง motion release.",
+    "scope": ["public Landing review", "ESTIMETR app shell review", "Roadmap/Handoff review", "verified link set"],
+    "verification": ["Vercel READY", "public browser verification", "v0.5.0 quality gate"],
+    "rollback": "Return to tag v0.5.0-responsive-motion; no runtime rollback is required.",
+    "path": "docs/handoff/2026-08-22-public-motion-review-verified.md"
+  },
+  {
     "version": "0.5.0",
     "title": "Responsive Engineering Motion System",
     "description": "เพิ่ม hero signal, reveal-on-scroll, mouse-only app-card spotlight/tilt, Hermes attention response และ form focus feedback ที่เคารพ reduced motion.",

@@ -16,4 +16,4 @@
 - [x] Replace the sandbox-only visual asset origin with a public pilot-safe asset origin, then verify all app-card and Hermes icon graphics on Vercel.
 - [x] Define and implement the next micro-interaction system for hero, app cards, workflow, Hermes and enterprise quotation controls.
 - [x] Improve original engineering icon treatment without copying third-party artwork or UI.
-- [ ] Deploy the updated Landing and verify public URLs for Landing, all app routes and Roadmap/Handoff before sharing the complete link set.
+- [x] Deploy the updated Landing and verify public URLs for Landing, all app routes and Roadmap/Handoff before sharing the complete link set.
