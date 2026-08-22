@@ -1,0 +1,22 @@
+{
+  "version": "0.12.2",
+  "title": "Landing Interaction Contracts and Button Audit",
+  "description": "ตรวจปุ่มและลิงก์ Landing แบบใช้งานจริง พร้อมรวม navigation, app entry และ Login behavior ไว้ใน interaction contract ที่มี unit tests ป้องกัน regression.",
+  "updatedAt": "2026-08-22T21:55:00+07:00",
+  "status": "release_validation_pending",
+  "scope": [
+    "single interaction contract for Landing navigation, hero action, app details, app entry, footer and Login",
+    "manual audit of public navigation, app readiness locks, Roadmap refresh and enterprise form availability",
+    "preview-safe Login status behavior and configured Google-login callback contract",
+    "regression tests to prevent route/readiness drift"
+  ],
+  "verification": [
+    "manual audit passes for brand, apps, Hermes, Roadmap, enterprise, Login, all four app detail cards, ESTIMETR entry and locked app states",
+    "eslint, 6 Vitest files / 16 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass",
+    "GitHub push and private preview verification pending"
+  ],
+  "rollback": "Return to tag v0.12.1-concise-landing. No schema, customer data, price source, payment or export artifact changes.",
+  "items": [
+    { "id": "IP-036", "title": "Lock Landing button behavior with interaction contracts and regression tests", "status": "done", "phase": "implementation" }
+  ]
+}

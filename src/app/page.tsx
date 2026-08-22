@@ -7,6 +7,7 @@ import { PlatformFooter } from "@/components/platform/platform-footer";
 import { PlatformNav } from "@/components/platform/platform-nav";
 import { marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
+import { landingActionContract } from "@/lib/landing-interactions";
 
 export default function LandingPage() {
   return (
@@ -21,7 +22,7 @@ export default function LandingPage() {
             <div className="eyebrow">นายช่างหมู · แอปงานโยธา</div>
             <h1>แอปงานโยธา ใช้งานง่าย</h1>
             <p>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
-          <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href="#apps">ดูแอปทั้งหมด</a></div>
+          <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
             <p className="hero__note">ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
           </div>
           <div className="hero__side" data-reveal data-reveal-delay="1">

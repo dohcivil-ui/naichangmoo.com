@@ -51,3 +51,6 @@
 - [x] Rename the first category to หมวดประมาณราคา and change the ESTIMETR trial label to ฟรี ทดลองใช้งาน 5 วัน.
 - [x] Remove the circled market-explanation paragraph and move the trial entitlement/AI Takeoff/BOQ preview from Landing into ESTIMETR.
 - [x] Update the land-acquisition category context to refer to ภารกิจจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง.
+- [x] Inventory every Landing button/link and define its expected destination, access rule and fallback behavior.
+- [x] Verify navigation, app-detail, app-entry, enterprise, roadmap, Hermes and Login interactions on private preview.
+- [x] Add automated regression tests for the Landing interaction contracts and repair any broken behavior before release.

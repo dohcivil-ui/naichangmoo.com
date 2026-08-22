@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.12.2 — Landing Interaction Contracts and Button Audit — 2026-08-22
+
+Added a single tested interaction contract for Landing buttons/links and manually audited navigation, app entry locks, Login preview feedback, Roadmap refresh and enterprise form availability.
+
 ## v0.12.1 — Concise Landing Copy and In-App Trial Details — 2026-08-22
 
 Reduced public Landing copy, removed Market/internal capability wording, renamed the first category to หมวดประมาณราคา and moved trial entitlement information into ESTIMETR.

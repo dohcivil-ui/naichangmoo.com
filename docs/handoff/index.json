@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.12.2",
+    "title": "Landing Interaction Contracts and Button Audit",
+    "description": "ล็อก behavior ของปุ่ม Landing ด้วย interaction contract และบันทึกผลตรวจการกดใช้งานจริง.",
+    "scope": ["navigation/app-entry/Login contract", "manual button audit", "regression tests"],
+    "verification": ["manual button audit passed", "lint/typecheck/build/security/roadmap/diff passed", "vitest 6 files / 16 tests passed", "GitHub push and private preview pending"],
+    "rollback": "Return to tag v0.12.1-concise-landing; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-landing-interaction-contracts.md"
+  },
+  {
     "version": "0.12.1",
     "title": "Concise Landing Copy and In-App Trial Details",
     "description": "ลดข้อความหน้า Landing และย้ายข้อมูลสิทธิ์ทดลองใช้จากหน้าสาธารณะเข้า ESTIMETR.",

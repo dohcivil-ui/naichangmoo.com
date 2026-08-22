@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { PlatformNav } from "@/components/platform/platform-nav";
 import { accessLabel, appStatusLabel, marketCategories, platformApps } from "@/lib/platform";
+import { getAppInteractionContract } from "@/lib/landing-interactions";
 
 export default async function MarketAppDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -11,7 +12,7 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
   if (!app) notFound();
 
   const category = marketCategories.find((item) => item.id === app.categoryId);
-  const canEnter = app.status === "available";
+  const interaction = getAppInteractionContract(app);
 
   return (
     <main className="site-shell market-detail">
@@ -41,8 +42,8 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
             <article className="market-detail__card"><div className="eyebrow">GUIDED FLOW</div><h2>ลำดับการทำงาน</h2><ol>{app.marketDetail.flow.map((item) => <li key={item}>{item}</li>)}</ol></article>
           </div>
           <section className="market-entry-panel">
-            <div><div className="eyebrow">การเข้าใช้งาน</div><h2>{canEnter ? "เริ่มใช้งาน" : "กำลังเตรียมระบบ"}</h2><p>{app.marketDetail.availabilityNote}</p></div>
-            {canEnter ? <Link className="button button--orange micro-button" href={app.href}>ฟรี ทดลองใช้งาน 5 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>ดูรายละเอียดแอปได้</span></div>}
+            <div><div className="eyebrow">การเข้าใช้งาน</div><h2>{interaction.canEnter ? "เริ่มใช้งาน" : "กำลังเตรียมระบบ"}</h2><p>{app.marketDetail.availabilityNote}</p></div>
+            {interaction.canEnter && interaction.entryHref ? <Link className="button button--orange micro-button" href={interaction.entryHref}>ฟรี ทดลองใช้งาน 5 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>ดูรายละเอียดแอปได้</span></div>}
           </section>
         </div>
       </section>

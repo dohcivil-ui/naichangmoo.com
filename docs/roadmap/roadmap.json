@@ -1,13 +1,13 @@
 {
-  "version": "0.12.1",
-  "title": "Concise Landing Copy and In-App Trial Details",
-  "description": "ลดข้อความหน้า Landing, เอาคำ Market และรายละเอียดความสามารถภายในออกจากหน้าสาธารณะ พร้อมย้ายข้อมูลสิทธิ์ทดลองใช้เข้า ESTIMETR.",
-  "scope": ["Landing copy reduced to app discovery and clear start actions", "first category renamed หมวดประมาณราคา and public trial label changed to ฟรี ทดลองใช้งาน 5 วัน", "trial entitlement/AI Takeoff/BOQ capability preview moved from Landing into ESTIMETR", "land-acquisition category context identifies the Department of Highways land-acquisition mission"],
-  "updatedAt": "2026-08-22T21:25:00+07:00",
+  "version": "0.12.2",
+  "title": "Landing Interaction Contracts and Button Audit",
+  "description": "ตรวจปุ่มและลิงก์ Landing แบบใช้งานจริง พร้อมรวม navigation, app entry และ Login behavior ไว้ใน interaction contract ที่มี unit tests ป้องกัน regression.",
+  "scope": ["single interaction contract for Landing navigation, hero action, app details, app entry, footer and Login", "manual audit of public navigation, app readiness locks, Roadmap refresh and enterprise form availability", "preview-safe Login status behavior and configured Google-login callback contract", "regression tests to prevent route/readiness drift"],
+  "updatedAt": "2026-08-22T21:55:00+07:00",
   "status": "release_validation_pending",
-  "verification": ["local Landing review confirms no visible Market terminology, no public trial policy panel and no public technical preview notice", "ESTIMETR review confirms trial entitlement information appears inside the app", "eslint, 5 Vitest files / 13 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass", "GitHub push and private preview review pending"],
-  "rollback": "Return to tag v0.12.0-civil-apps-market. No schema, customer data, price source, payment or export artifact changes.",
-  "constraints": ["All four market categories must render their related application card immediately beneath the heading; no filter, launcher or hidden catalog state is allowed.", "No numeric package price may appear before the commercial package is approved.", "Landing must not expose internal trial capability, AI, BOQ, export or technical preview details that belong inside an application.", "Coming-soon and restricted applications must not link users into an unready workspace."],
+  "verification": ["manual audit passes for brand, apps, Hermes, Roadmap, enterprise, Login, all four app detail cards, ESTIMETR entry and locked app states", "eslint, 6 Vitest files / 16 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass", "GitHub push and private preview verification pending"],
+  "rollback": "Return to tag v0.12.1-concise-landing. No schema, customer data, price source, payment or export artifact changes.",
+  "constraints": ["All four categories must render their related application card immediately beneath the heading; no filter, launcher or hidden catalog state is allowed.", "No numeric package price may appear before the commercial package is approved.", "Landing must not expose internal trial capability, AI, BOQ, export or technical preview details that belong inside an application.", "Coming-soon and restricted applications must not link users into an unready workspace.", "Every public Landing interaction must have an explicit destination or a user-visible safe status."],
   "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -44,6 +44,7 @@
     { "id": "IP-032", "title": "Verify private-repository preview is READY before sharing review URL", "status": "done", "phase": "release" },
     { "id": "IP-033", "title": "Build Civil Apps Market with direct category-to-app card flow", "status": "done", "phase": "implementation" },
     { "id": "IP-034", "title": "Add honest pre-entry app detail routes and catalog validation", "status": "done", "phase": "implementation" },
-    { "id": "IP-035", "title": "Tighten public Landing copy and move internal trial details into ESTIMETR", "status": "done", "phase": "implementation" }
+    { "id": "IP-035", "title": "Tighten public Landing copy and move internal trial details into ESTIMETR", "status": "done", "phase": "implementation" },
+    { "id": "IP-036", "title": "Lock Landing button behavior with interaction contracts and regression tests", "status": "done", "phase": "implementation" }
   ]
 }

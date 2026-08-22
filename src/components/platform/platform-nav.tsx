@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { BrandLogo } from "@/components/platform/brand-logo";
+import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 
 export function PlatformNav({ workspace }: { workspace?: string }) {
   const pathname = usePathname();
@@ -29,23 +30,16 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
     return () => observer.disconnect();
   }, [pathname]);
 
-  const navItems = [
-    { id: "apps", label: "แอปของเรา", href: "/#apps" },
-    { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
-    { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
-    { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise", primary: true },
-  ];
-
   return (
     <nav className="site-nav" aria-label="เมนูหลัก">
       <div className="container site-nav__inner">
-        <Link className="brand" href="/" aria-label="นายช่างหมู — CIVIL APPS ASSISTANT"><BrandLogo />{workspace ? <span className="brand__workspace">{workspace}</span> : null}</Link>
+        <Link className="brand" href={landingActionContract.homeHref} aria-label="นายช่างหมู — CIVIL APPS ASSISTANT"><BrandLogo />{workspace ? <span className="brand__workspace">{workspace}</span> : null}</Link>
         <div className="nav-links" aria-label="ทางลัด platform">
-          {navItems.map((item) => {
+          {landingNavigationContract.map((item) => {
           const isActive = item.id === "apps"
             ? (pathname === "/" ? activeSection === item.id : pathname.startsWith("/market"))
             : ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
-            const className = ["nav-pill", item.primary ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
+            const className = ["nav-pill", item.id === "enterprise" ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
           })}
         </div>

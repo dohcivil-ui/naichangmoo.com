@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import type { PlatformApp } from "@/lib/platform";
 import { accessLabel, appStatusLabel } from "@/lib/platform";
+import { getAppInteractionContract } from "@/lib/landing-interactions";
 
 type AppCardProps = {
   app: PlatformApp;
@@ -12,6 +13,7 @@ type AppCardProps = {
 
 export function AppCard({ app }: AppCardProps) {
   const cardRef = useRef<HTMLElement>(null);
+  const interaction = getAppInteractionContract(app);
   const cta = app.status === "available" ? "ดูรายละเอียดและเริ่มใช้" : "ดูรายละเอียดแอป";
   const className = ["app-card", `app-card--${app.slug}`, app.status === "available" ? "app-card--available" : ""].filter(Boolean).join(" ");
 
@@ -55,7 +57,7 @@ export function AppCard({ app }: AppCardProps) {
       </div>
       <div className="app-card__actions">
         <span className={`app-status app-status--${app.status}`}>{appStatusLabel[app.status]}</span>
-        <Link className="text-link" href={`/market/${app.slug}`}>{cta}<span aria-hidden="true">→</span></Link>
+        <Link className="text-link" href={interaction.detailHref}>{cta}<span aria-hidden="true">→</span></Link>
       </div>
     </article>
   );
