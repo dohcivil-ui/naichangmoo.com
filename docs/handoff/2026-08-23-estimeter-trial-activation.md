@@ -42,4 +42,4 @@ DELETE FROM app_entitlements;
 
 ## Next action
 
-รออนุมัติ push `feature/estimeter-trial-activation` และ annotated tag `v0.16.0-estimeter-trial-activation` สไลซ์ถัดไปคืออัปโหลดแบบ (ยังไม่ต้อง migration แต่ต้องตัดสิน R2/checksum/สแกนไฟล์) หรือประมาณราคา (ต้องขยาย schema + เอกสารราคากลาง/Factor F)
+Push และ tag v0.16.0 เสร็จแล้ว PR #6 CI เขียว ดู handoff ต่อ VS Code: `docs/handoff/2026-08-23-vscode-continuation-estimeter.md`

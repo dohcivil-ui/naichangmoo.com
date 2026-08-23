@@ -1,5 +1,14 @@
 [
   {
+    "version": "vscode-continuation",
+    "title": "VS Code Continuation — ESTIMETR through v0.16.0",
+    "description": "Handoff สำหรับเปิด VS Code ต่อ: branch, tags, PRs, โมเดล 2 ด่าน, คำสั่ง และ slice ถัดไป.",
+    "scope": ["feature/estimeter-trial-activation at ea0974e", "tags v0.13.0–v0.16.0", "PR #6 green", "next slice drawing upload or pricing"],
+    "verification": ["PR #6 Quality Gate pass", "local quality gate commands documented"],
+    "rollback": "See docs/handoff/2026-08-23-vscode-continuation-estimeter.md",
+    "path": "docs/handoff/2026-08-23-vscode-continuation-estimeter.md"
+  },
+  {
     "version": "0.16.0",
     "title": "ESTIMETR Trial Starts at Explicit Activation",
     "description": "แยกด่านสมาชิกเว็บออกจากด่านสิทธิ์ทดลองใช้แอป นาฬิกา 5 วันเริ่มนับเมื่อกดเริ่มทดลองใช้อย่างชัดแจ้ง การอ่านสิทธิ์ไม่เขียนฐานข้อมูล.",
