@@ -10,14 +10,15 @@
     "record that no qualified person has certified the dataset yet, rather than leaving the field absent",
     "reproduce the ปร.4 of the ปุญโญภาส dialysis building to the satang as a test"
   ],
-  "updatedAt": "2026-08-24T00:05:00+07:00",
-  "status": "implementation_in_progress",
+  "updatedAt": "2026-08-24T00:20:00+07:00",
+  "status": "pushed_tagged_and_released",
   "verification": [
     "the extractor verifies that every VAT column equals its factor column times 1.07 within 0.0002, that each work type has exactly twelve tables with distinct advance/retention pairs, one interest rate and one row count, and that irrigation heavy-rain columns increase",
     "unit tests re-check the same invariants through the public module, in every quality gate",
     "unit tests reproduce the real ปร.4: cost of work 2,529,230.20 x 1.3034 = 3,296,598.64, floored to 3,296,500",
     "unit tests confirm the module refuses a 7% project, a 10% VAT project and an advance/retention pair the circular does not publish",
-    "pnpm typecheck, pnpm lint and pnpm test pass (161 passed, 33 skipped)"
+    "pnpm typecheck, pnpm lint and pnpm test pass (161 passed, 33 skipped)",
+    "pushed on feature/estimeter-measurement-breakdown and tagged v0.22.0-factor-f-dataset; the Quality Gate run for 069e2aa, which contains this work, passed including the opt-in PostgreSQL suites"
   ],
   "rollback": "Revert the v0.22.0 commit. The dataset, its module and its tests are additive; nothing reads Factor F yet, so no existing behaviour changes.",
   "constraints": [
