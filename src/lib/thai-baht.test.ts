@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   bahtText,
-  floorToHundredBaht,
   floorToThousandBaht,
   formatBaht,
   formatSatang,
@@ -13,44 +12,6 @@ function satang(value: string): bigint {
   if (!parsed.ok) throw new Error(`expected ${value} to parse: ${parsed.reason}`);
   return parsed.satang;
 }
-
-/**
- * The priced set for อาคารฟอกไต ปุญโญภาส, 20 มิถุนายน 2569. These are figures printed on a real
- * ปร.5(ก) and ปร.6, which is the only reason they are worth asserting.
- */
-describe("reference estimate: อาคารฟอกไต ปุญโญภาส", () => {
-  it("floors the computed construction cost the way the sheet prints it", () => {
-    // ค่างานต้นทุน 2,529,230.20 x Factor F 1.3034 = 3,296,598.64
-    const computed = satang("3296598.64");
-
-    expect(formatSatang(floorToHundredBaht(computed))).toBe("3296500.00");
-    expect(formatBaht(floorToHundredBaht(computed))).toBe("3,296,500.00");
-  });
-
-  it("spells the printed total exactly as the sheet does", () => {
-    expect(bahtText(satang("3296500"))).toBe("สามล้านสองแสนเก้าหมื่นหกพันห้าร้อยบาทถ้วน");
-  });
-
-  it("keeps the material and labour totals adding to the cost of work", () => {
-    const material = satang("2063850.95");
-    const labour = satang("465379.25");
-
-    expect(formatSatang(material + labour)).toBe("2529230.20");
-  });
-});
-
-describe("flooring to the hundred baht", () => {
-  it("drops the remainder rather than rounding it", () => {
-    expect(formatSatang(floorToHundredBaht(satang("199.99")))).toBe("100.00");
-    expect(formatSatang(floorToHundredBaht(satang("150")))).toBe("100.00");
-    expect(formatSatang(floorToHundredBaht(satang("99.99")))).toBe("0.00");
-  });
-
-  it("leaves a figure that is already a round hundred alone", () => {
-    expect(formatSatang(floorToHundredBaht(satang("3296500")))).toBe("3296500.00");
-    expect(formatSatang(floorToHundredBaht(satang("0")))).toBe("0.00");
-  });
-});
 
 describe("reading an amount in Thai", () => {
   it("reads the single digits", () => {
@@ -112,10 +73,14 @@ describe("reference estimate: สตง. ภูมิภาคที่ 12", () 
     expect(bahtText(satang("15213000"))).toBe("สิบห้าล้านสองแสนหนึ่งหมื่นสามพันบาทถ้วน");
   });
 
-  it("floors ปร.5 and ปร.6 to different units, because the two sheets do", () => {
-    const summed = satang("15213876.48");
+  it("leaves the ปร.5 figures alone, because only ปร.6 floors", () => {
+    // ปร.5(ก) รวมค่าก่อสร้าง and ปร.5(ข) รวมค่างาน are printed as computed, satang and all.
+    expect(formatBaht(satang("9534946.00"))).toBe("9,534,946.00");
+    expect(formatBaht(satang("5613930.48"))).toBe("5,613,930.48");
 
-    expect(formatBaht(floorToHundredBaht(summed))).toBe("15,213,800.00");
+    // Their sum plus ค่าใช้จ่ายพิเศษ is what ปร.6 floors, and nothing before it.
+    const summed = satang("9534946.00") + satang("5613930.48") + satang("65000.00");
+    expect(formatBaht(summed)).toBe("15,213,876.48");
     expect(formatBaht(floorToThousandBaht(summed))).toBe("15,213,000.00");
   });
 });

@@ -3,19 +3,13 @@
  *
  * Every rule here was read off a complete priced set, never inferred.
  *
- * อาคารฟอกไต ปุญโญภาส, priced 20 มิถุนายน 2569: ปร.5(ก) carries ค่างานต้นทุน 2,529,230.20 ×
- * Factor F 1.3034 = 3,296,598.64, prints ยอดสุทธิ 3,296,500.00 beneath it, and spells that
- * figure out as "(สามล้านสองแสนเก้าหมื่นหกพันห้าร้อยบาทถ้วน)". Neither the flooring nor the
- * wording is decoration: the form is read by people who check the words against the digits.
+ * โครงการ สตง. ภูมิภาคที่ 12 (เพชรบุรี), `km/4.แบบ ปร.4 ปร.5 ปร.6.pdf`, is the reference set.
+ * ปร.5(ก) prints รวมค่าก่อสร้าง 9,534,946.00 and ปร.5(ข) prints รวมค่างาน 5,613,930.48, both as
+ * computed and neither rounded. ปร.6 adds those to ค่าใช้จ่ายพิเศษ 65,000.00 for 15,213,876.48
+ * and prints คิดเป็น 15,213,000.00 underneath.
  *
- * โครงการ สตง. ภูมิภาคที่ 12 (เพชรบุรี), `km/4.แบบ ปร.4 ปร.5 ปร.6.pdf`: ปร.6 adds หมวด 1 อาคาร
- * 9,534,946.00, หมวด 2 ครุภัณฑ์จัดซื้อ 5,613,930.48 and หมวด 3 ค่าใช้จ่ายพิเศษ 65,000.00 to
- * 15,213,876.48, then prints คิดเป็น 15,213,000.00.
- *
- * The two sheets floor at different places and to different units, so neither unit is "the"
- * rounding rule of a ราคากลาง. ปร.5 gives up satang down to the hundred; ปร.6 gives up the whole
- * remainder down to the thousand. Which sheet is being printed decides which applies, and a
- * document baseline that says otherwise overrides both.
+ * So a ราคากลาง is floored once, at the last line of ปร.6, down to the thousand baht, and the
+ * remainder is dropped rather than rounded. Nothing before that line is adjusted.
  *
  * Money is handled as satang in bigint, never as a JavaScript number. A price is the one figure
  * in this system nobody will forgive being off by a rounding error.
@@ -26,9 +20,7 @@ const PLACE_WORDS = ["", "สิบ", "ร้อย", "พัน", "หมื่
 
 export const SATANG_SCALE = 2;
 const SATANG_FACTOR = 100n;
-/** ปร.5 prints its net figure floored to the hundred baht; the remainder is dropped, not rounded. */
-const HUNDRED_BAHT_SATANG = 100n * SATANG_FACTOR;
-/** ปร.6 prints คิดเป็น floored to the thousand baht, again dropped rather than rounded. */
+/** ปร.6 prints คิดเป็น floored to the thousand baht; the remainder is dropped, not rounded. */
 const THOUSAND_BAHT_SATANG = 1000n * SATANG_FACTOR;
 
 export type BahtRejection = "empty" | "not_a_number" | "negative" | "too_many_decimals" | "too_large";
@@ -67,24 +59,13 @@ export function formatBaht(satang: bigint): string {
 }
 
 /**
- * Drops everything below the hundred baht.
- *
- * This is a presentation rule of the ราคากลาง sheet, not arithmetic: the computed figure stays
- * on ปร.5 as ค่าก่อสร้าง and the floored one is printed beneath it as ยอดสุทธิ, so a reader can
- * see exactly what was given up. Applying it silently in place of the computed figure would hide
- * the adjustment the form is designed to show.
- */
-export function floorToHundredBaht(satang: bigint): bigint {
-  return (satang / HUNDRED_BAHT_SATANG) * HUNDRED_BAHT_SATANG;
-}
-
-/**
  * The ราคากลาง as ปร.6 prints it on its คิดเป็น line, floored to the thousand baht.
  *
- * This is the last figure in the whole estimate and the one a procurement notice quotes, so the
- * amount given up here is larger than anywhere else: โครงการ สตง. ภูมิภาคที่ 12 drops 876.48 baht
- * between รวม and คิดเป็น. Like the ปร.5 rule it is presentation, not arithmetic — the summed
- * figure stays on the sheet above so a reader can see what was dropped.
+ * This is the only place a ราคากลาง is rounded. ปร.4 and ปร.5 carry their figures as computed,
+ * satang included, and the floor applies once to their sum. It is presentation, not arithmetic:
+ * the summed figure stays printed above so a reader can see what was given up — 876.48 baht on
+ * the reference set. Putting the floored value in its place would hide the adjustment the form
+ * exists to show, and it is the figure a procurement notice quotes, so the difference is real.
  */
 export function floorToThousandBaht(satang: bigint): bigint {
   return (satang / THOUSAND_BAHT_SATANG) * THOUSAND_BAHT_SATANG;
