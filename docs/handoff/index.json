@@ -1,5 +1,27 @@
 [
   {
+    "version": "0.18.0",
+    "title": "The Quality Gate Becomes Something That Actually Runs",
+    "description": "hook ติดตั้งตัวเองตอน pnpm install, CI รันบน feature branch พร้อม PostgreSQL 16 service และเปิดชุดทดสอบฐานข้อมูลที่เคยถูก skip, และ check-roadmap ปฏิเสธ pointer ที่แตกจากไฟล์เวอร์ชัน.",
+    "scope": [
+      "prepare lifecycle sets core.hooksPath",
+      "CI on feature/**",
+      "digest-pinned PostgreSQL 16 service with migrations",
+      "ESTIMETR_DB_TESTS enabled in CI",
+      "check-roadmap compares pointer with versioned file",
+      "tests covering the workflow contract and the checker"
+    ],
+    "verification": [
+      "typecheck/lint/security:check passed",
+      "vitest 21 files / 149 tests: 120 passed, 29 skipped locally without a database",
+      "pnpm install proved to set core.hooksPath from an unset value",
+      "check-roadmap reports the pointer matches roadmap.v0.18.0.json",
+      "the CI database suites are unverified until this branch is pushed"
+    ],
+    "rollback": "Revert the v0.18.0 commit and run git config --unset core.hooksPath. No schema or product behaviour changed.",
+    "path": "docs/handoff/2026-08-23-quality-gate-enforced.md"
+  },
+  {
     "version": "0.17.0",
     "title": "ESTIMETR Take-off Quantities Become Re-checkable",
     "description": "ปริมาณกลายเป็นผลรวมของบรรทัดวัด จำนวน × ระยะ ค่าเผื่อแยกออกมาและต้องอ้างอิงหลักเกณฑ์ พร้อมวางรอยต่อของสองชั้นราคาไว้ที่ projects.project_path ตาม ADR 0007.",
@@ -20,6 +42,23 @@
     ],
     "rollback": "Return to tag v0.16.0-estimeter-trial-activation and drop migrations 0003 and 0002, which are additive only.",
     "path": "docs/handoff/2026-08-23-estimeter-measurement-breakdown.md"
+  },
+  {
+    "version": "planning-harness",
+    "title": "A Planning Gate Before the First Line of Code",
+    "description": "ติดตั้ง grill-with-docs พร้อม dependency เป็นด่านวางแผนก่อนแตะ source code และบันทึกผลตรวจว่ากฎที่ประกาศไว้ถูกบังคับจริงแค่ไหน.",
+    "scope": [
+      "grill-with-docs, grilling, domain-modeling installed as copies",
+      "AGENTS.md planning gate and ADR override",
+      "harness audit S1-S14"
+    ],
+    "verification": [
+      "typecheck/lint/test passed at the time of the change",
+      "skills installed as real files, not symlinks",
+      "npx skills list shows all three"
+    ],
+    "rollback": "Revert commit 2727ac7 and remove .claude/skills, .agents/skills and skills-lock.json.",
+    "path": "docs/handoff/2026-08-23-planning-harness.md"
   },
   {
     "version": "vscode-continuation",

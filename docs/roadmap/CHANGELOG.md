@@ -1,5 +1,13 @@
 # Roadmap Changelog
 
+## v0.18.0 — The Quality Gate Becomes Something That Actually Runs — 2026-08-23
+
+Made the rules the project already declared enforceable by machine. The pre-commit hook now installs itself from the prepare lifecycle, because core.hooksPath lives in .git/config and cannot travel with a commit; CI runs on feature branches, where the work actually happens; the opt-in PostgreSQL suites that handoff notes have been citing as verification now run in CI against a digest-pinned PostgreSQL 16 service with migrations applied first; and check-roadmap refuses a pointer that has drifted from its versioned file, which is how a roadmap edit slipped through unnoticed in fae066b.
+
+## v0.17.0 — ESTIMETR Take-off Quantities Become Re-checkable — 2026-08-23
+
+ปริมาณกลายเป็นผลรวมของบรรทัดวัด จำนวน × ระยะ แทนตัวเลขที่พิมพ์เข้ามาตัวเดียว จำนวนมิติที่ต้องกรอกถูกบังคับโดยหน่วยที่เลือก งานน้ำหนักแปลงจากความยาวด้วยตัวคูณที่ต้องอ้างที่มา ค่าเผื่อวัสดุแยกออกจากปริมาณและใช้ไม่ได้ถ้าไม่ระบุหลักเกณฑ์ และกฎระดับแถวทั้งชุดถูกบังคับซ้ำด้วย CHECK constraint ในฐานข้อมูล พร้อมวางรอยต่อของสองชั้นราคาไว้ที่ projects.project_path ตาม ADR 0007 (entry นี้ถูกเพิ่มย้อนหลังในรอบ v0.18.0 เพราะ release v0.17.0 ไม่ได้เขียนไว้)
+
 ## v0.16.0 — ESTIMETR Trial Starts at Explicit Activation — 2026-08-23
 
 Separated the two access gates. Authentication still creates platform membership; the ESTIMETR five-day clock now starts only when the member presses "เริ่มทดลองใช้" after seeing the trial terms. Reading entitlement no longer writes the database. ADR 0006 supersedes the start point in ADR 0003; the five-day, one-project, export/print lock and read-only retention terms stand.

@@ -1,6 +1,6 @@
 {
   "name": "naichangmoo-com",
-  "version": "0.16.0",
+  "version": "0.18.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.20.0",
@@ -13,6 +13,7 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "prepare": "node scripts/setup-git-hooks.mjs",
     "hooks:setup": "node scripts/setup-git-hooks.mjs",
     "security:check": "node scripts/security-check.mjs"
   },
