@@ -10,12 +10,13 @@
     "record note 2: work that pays no VAT reads the รวมในรูป Factor column"
   ],
   "updatedAt": "2026-08-24T01:20:00+07:00",
-  "status": "implementation_in_progress",
+  "status": "pushed_tagged_and_released",
   "verification": [
     "docs/rules/engineering.md carries both notes as rules, with the reason each one exists",
     "resolveFactorF in src/lib/factor-f.ts already implements them, committed as 26fd55a",
     "running the resolver against the audited project returns factor 1.3028 on basis interpolated, giving 3,295,081.10 and a net of 3,295,000",
-    "node scripts/check-roadmap.mjs passes with the pointer matching the versioned file"
+    "node scripts/check-roadmap.mjs passes with the pointer matching the versioned file",
+    "pushed and tagged v0.24.0-factor-f-interpolation-rule"
   ],
   "rollback": "Revert the v0.24.0 commit. The rule text is removed; the resolver that implements it is a separate commit and is unaffected.",
   "constraints": [

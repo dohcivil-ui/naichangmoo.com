@@ -1,5 +1,23 @@
 [
   {
+    "version": "0.25.0",
+    "title": "The Tools That Read a Circular Live in the Repository",
+    "description": "สคริปต์ดึงตาราง Factor F รันได้จาก clone ใหม่แล้ว และมีเครื่องมืออ่านหนังสือเวียนทั้งแบบตารางและแบบหน้าสแกน พร้อมสภาพ ณ เวลาปิด session.",
+    "scope": [
+      "pdfjs-dist declared as a devDependency",
+      "scripts/read-circular.mjs with text, image and hash modes",
+      "hand-written PNG encoder because the canvas backend segfaults",
+      "session close: work delivered, work outstanding, open questions"
+    ],
+    "verification": [
+      "the committed extractor now runs and reports 48 tables, 1,644 rows",
+      "read-circular hash matches the checksum recorded in the Factor F dataset",
+      "typecheck/lint pass; vitest 168 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.25.0 commit and remove pdfjs-dist. The dataset already committed is unaffected.",
+    "path": "docs/handoff/2026-08-24-circular-readers-and-session-close.md"
+  },
+  {
     "version": "0.24.0",
     "title": "A Factor Between Two Steps Is Now a Rule, Not a Habit",
     "description": "ค่างานที่ตกระหว่างขั้นของตาราง Factor F ให้เทียบอัตราส่วนตามหมายเหตุข้อ 1 ของ ว481 ปัดสี่ตำแหน่งก่อนคูณ และผลลัพธ์ต้องบอกที่มาของตัวคูณได้.",
