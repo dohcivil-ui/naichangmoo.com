@@ -25,4 +25,33 @@ describe("ESTIMETR trial entitlement", () => {
     expect(canUseCapability(trial, "edit", expired)).toBe(false);
     expect(canUseCapability(trial, "run_ai", expired)).toBe(false);
   });
+
+  it("expires a paid active entitlement to read-only once endsAt passes", () => {
+    const active: Entitlement = {
+      state: "active",
+      startsAt: new Date("2026-08-01T00:00:00.000Z"),
+      endsAt: new Date("2026-09-01T00:00:00.000Z"),
+      limits: { exportEnabled: true, printEnabled: true, aiEnabled: true }
+    };
+    const beforeExpiry = new Date("2026-08-31T00:00:00.000Z");
+    const afterExpiry = new Date("2026-09-01T00:00:00.000Z");
+
+    expect(resolveEntitlement(active, beforeExpiry)).toBe("active");
+    expect(canUseCapability(active, "export", beforeExpiry)).toBe(true);
+    expect(resolveEntitlement(active, afterExpiry)).toBe("expired_read_only");
+    expect(canUseCapability(active, "export", afterExpiry)).toBe(false);
+    expect(canUseCapability(active, "read", afterExpiry)).toBe(true);
+  });
+
+  it("keeps free membership usable without an end date", () => {
+    const memberFree: Entitlement = {
+      state: "member_free",
+      startsAt: new Date("2026-08-01T00:00:00.000Z"),
+      endsAt: null,
+      limits: {}
+    };
+    const later = new Date("2030-01-01T00:00:00.000Z");
+    expect(resolveEntitlement(memberFree, later)).toBe("member_free");
+    expect(canUseCapability(memberFree, "edit", later)).toBe(true);
+  });
 });

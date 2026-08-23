@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { requestEnterpriseQuotation, type QuotationActionResult } from "@/server/actions/enterprise-quotation";
+import { requestEnterpriseQuotation } from "@/server/actions/enterprise-quotation";
+import type { QuotationActionResult } from "@/server/actions/quotation-schema";
 
 const initialState: QuotationActionResult = { ok: false, message: "" };
 
@@ -40,7 +41,8 @@ export function EnterpriseQuoteForm() {
           <label><input name="intendedApps" value="land-acquisition" type="checkbox" /> Land Acquisition V2</label>
         </div>
       </fieldset>
-      <label>ความต้องการหรือขั้นตอนจัดซื้อ<textarea name="requirementNote" required rows={4} placeholder="เช่น จำนวนผู้ใช้ รูปแบบการจัดซื้อ หรือวันที่ต้องการเริ่มใช้งาน" /></label>
+      <label>ความต้องการใช้งาน<textarea name="requirementNote" required rows={4} placeholder="เช่น ขอบเขตงาน จำนวนผู้ใช้ หรือวันที่ต้องการเริ่มใช้งาน" /></label>
+      <label>ขั้นตอนหรือเงื่อนไขการจัดซื้อ (ถ้ามี)<textarea name="procurementNote" rows={3} placeholder="เช่น รูปแบบการจัดซื้อจัดจ้าง งบประมาณ หรือเอกสารที่ต้องใช้" /></label>
       <label className="consent"><input name="consent" value="yes" required type="checkbox" /> ยินยอมให้ทีมงานติดต่อกลับตามข้อมูลข้างต้นเพื่อจัดทำข้อเสนอ</label>
       {state.message ? <p className={state.ok ? "form-success" : "form-error"} role="status" aria-live="polite">{state.message}</p> : null}
       <SubmitButton />

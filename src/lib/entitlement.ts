@@ -16,8 +16,10 @@ export type Entitlement = {
 
 export type Capability = "read" | "create_project" | "edit" | "run_ai" | "export" | "print";
 
+const EXPIRABLE_STATES: ReadonlySet<EntitlementState> = new Set(["trial", "active"]);
+
 export function resolveEntitlement(entitlement: Entitlement, now = new Date()): EntitlementState {
-  if (entitlement.state === "trial" && entitlement.endsAt && entitlement.endsAt <= now) {
+  if (EXPIRABLE_STATES.has(entitlement.state) && entitlement.endsAt && entitlement.endsAt <= now) {
     return "expired_read_only";
   }
   return entitlement.state;
