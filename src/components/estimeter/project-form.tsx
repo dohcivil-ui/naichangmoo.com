@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { PROJECT_NAME_MAX, PROJECT_NAME_MIN } from "@/lib/estimeter-project";
+import { PROJECT_NAME_MAX, PROJECT_NAME_MIN, PROJECT_PATHS } from "@/lib/estimeter-project";
 import { createEstimeterProject, type ProjectActionState } from "@/server/actions/estimeter-project";
 
 const initialState: ProjectActionState = { ok: false, message: "" };
@@ -41,12 +41,33 @@ export function ProjectForm() {
         <p className="form-note" id="project-name-hint">ใช้ชื่อที่ระบุงานได้ชัดเจน เพราะชื่อนี้จะไปปรากฏบนหัวเอกสาร BOQ</p>
       )}
 
-      {state.message && !state.errors?.name ? (
+      <fieldset className="project-path" aria-invalid={state.errors?.path ? true : undefined}>
+        <legend>สายงาน</legend>
+        {PROJECT_PATHS.map((path, index) => (
+          <label className="project-path__choice" key={path.code}>
+            <input name="path" type="radio" value={path.code} defaultChecked={index === 0} />
+            <span>
+              <strong>{path.label}</strong>
+              <em>{path.hint}</em>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      {state.errors?.path ? (
+        <p className="form-error" role="alert">{state.errors.path}</p>
+      ) : (
+        <p className="form-note">
+          สายงานกำหนดวิธีคิดราคาของโครงการนี้ และเลือกได้ครั้งเดียวตอนสร้าง เพราะราคากลางกับราคาเสนอของผู้รับเหมาคิดกันคนละวิธี
+          ตัวเลขที่ได้จึงเทียบกันตรง ๆ ไม่ได้
+        </p>
+      )}
+
+      {state.message && !state.errors?.name && !state.errors?.path ? (
         <p className="form-error" role="alert">{state.message}</p>
       ) : null}
 
       <SubmitButton />
-      <p className="form-note">สายงานเอกชนหรือราชการ จังหวัด และเดือนราคาอ้างอิง จะระบุในขั้นตอนถัดไปเมื่อระบบเปิดให้บันทึกข้อมูลเหล่านั้น</p>
+      <p className="form-note">จังหวัดและเดือนราคาอ้างอิงจะระบุในขั้นตอนราคา เมื่อระบบเปิดให้บันทึกข้อมูลเหล่านั้น</p>
     </form>
   );
 }

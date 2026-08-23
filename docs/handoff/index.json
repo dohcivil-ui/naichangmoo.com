@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.17.0",
+    "title": "ESTIMETR Take-off Quantities Become Re-checkable",
+    "description": "ปริมาณกลายเป็นผลรวมของบรรทัดวัด จำนวน × ระยะ ค่าเผื่อแยกออกมาและต้องอ้างอิงหลักเกณฑ์ พร้อมวางรอยต่อของสองชั้นราคาไว้ที่ projects.project_path ตาม ADR 0007.",
+    "scope": ["ADR 0007", "takeoff_measurements", "dimension rank enforced by unit", "sourced waste percentage", "project costing path"],
+    "verification": ["typecheck/lint/build/security:check passed", "vitest 20 files / 138 tests passed with the opt-in PostgreSQL suites enabled", "reference footing F1 reproduced: 0.7875 cu.m, 2.1 sq.m, 31.35528 kg"],
+    "rollback": "Return to tag v0.16.0-estimeter-trial-activation and drop migration 0002, which is additive only.",
+    "path": "docs/handoff/2026-08-23-estimeter-measurement-breakdown.md"
+  },
+  {
     "version": "vscode-continuation",
     "title": "VS Code Continuation — ESTIMETR through v0.16.0",
     "description": "Handoff สำหรับเปิด VS Code ต่อ: branch, tags, PRs, โมเดล 2 ด่าน, คำสั่ง และ slice ถัดไป.",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { itemConfirmationBlocker, parseEvidenceForm, parseTakeoffItemForm } from "@/lib/takeoff-item";
 
-function itemForm(values: Partial<Record<"category" | "description" | "unit" | "quantity", string>>): FormData {
+function itemForm(values: Partial<Record<"category" | "description" | "unit", string>>): FormData {
   const data = new FormData();
   for (const [key, value] of Object.entries(values)) if (value !== undefined) data.set(key, value);
   return data;
@@ -10,8 +10,7 @@ function itemForm(values: Partial<Record<"category" | "description" | "unit" | "
 const validItem = {
   category: "structure",
   description: "คอนกรีตโครงสร้างคาน B1 ชั้น 2",
-  unit: "cu_m",
-  quantity: "1.92"
+  unit: "cu_m"
 };
 
 describe("take-off item form", () => {
@@ -32,19 +31,21 @@ describe("take-off item form", () => {
   });
 
   it("reports every bad field at once instead of one at a time", () => {
-    const parsed = parseTakeoffItemForm(itemForm({ category: "x", description: "ก", unit: "y", quantity: "-1" }));
+    const parsed = parseTakeoffItemForm(itemForm({ category: "x", description: "ก", unit: "y" }));
 
     expect(parsed.ok).toBe(false);
     if (!parsed.ok) {
-      expect(Object.keys(parsed.errors).sort()).toEqual(["category", "description", "quantity", "unit"]);
+      expect(Object.keys(parsed.errors).sort()).toEqual(["category", "description", "unit"]);
     }
   });
 
-  it("explains a rejected quantity in the operator's terms", () => {
-    const tooPrecise = parseTakeoffItemForm(itemForm({ ...validItem, quantity: "1.1234567" }));
+  it("does not read a quantity, because the quantity is the total of the measurement lines", () => {
+    const data = itemForm(validItem);
+    data.set("quantity", "999");
 
-    expect(tooPrecise.ok).toBe(false);
-    if (!tooPrecise.ok) expect(tooPrecise.errors.quantity).toContain("6 ตำแหน่ง");
+    const parsed = parseTakeoffItemForm(data);
+
+    expect(parsed).toEqual({ ok: true, value: validItem });
   });
 });
 
@@ -82,15 +83,19 @@ describe("evidence form", () => {
 
 describe("confirmation gate", () => {
   it("blocks a quantity that has no stated source", () => {
-    expect(itemConfirmationBlocker({ reviewState: "proposed", evidenceCount: 0 })).toContain("หลักฐาน");
+    expect(itemConfirmationBlocker({ reviewState: "proposed", evidenceCount: 0, measurementCount: 1 })).toContain("หลักฐาน");
   });
 
-  it("allows confirmation once at least one evidence reference exists", () => {
-    expect(itemConfirmationBlocker({ reviewState: "proposed", evidenceCount: 1 })).toBeNull();
+  it("blocks a quantity whose arithmetic cannot be re-checked", () => {
+    expect(itemConfirmationBlocker({ reviewState: "proposed", evidenceCount: 1, measurementCount: 0 })).toContain("รายการคำนวณ");
+  });
+
+  it("allows confirmation once the quantity is both measured and sourced", () => {
+    expect(itemConfirmationBlocker({ reviewState: "proposed", evidenceCount: 1, measurementCount: 1 })).toBeNull();
   });
 
   it("does not re-confirm or silently accept a rejected line", () => {
-    expect(itemConfirmationBlocker({ reviewState: "confirmed", evidenceCount: 3 })).toBeTruthy();
-    expect(itemConfirmationBlocker({ reviewState: "rejected", evidenceCount: 3 })).toBeTruthy();
+    expect(itemConfirmationBlocker({ reviewState: "confirmed", evidenceCount: 3, measurementCount: 2 })).toBeTruthy();
+    expect(itemConfirmationBlocker({ reviewState: "rejected", evidenceCount: 3, measurementCount: 2 })).toBeTruthy();
   });
 });

@@ -13,3 +13,10 @@ uploads/
 exports/
 tmp/
 data/
+
+# Reference knowledge base: licensed textbooks, official price/labour circulars and
+# working screenshots. Read locally, never published with the source.
+km/
+
+# Unrelated design reference downloaded ad hoc. Move to km/ if it is worth keeping.
+skill/

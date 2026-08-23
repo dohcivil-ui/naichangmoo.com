@@ -26,7 +26,15 @@ function loadLocalEnv() {
  */
 const enabled = process.env.ESTIMETR_DB_TESTS === "1";
 
-const item = { category: "structure", description: "คอนกรีตคาน B1", unit: "cu_m", quantity: "1.92" };
+const item = { category: "structure", description: "คอนกรีตคาน B1", unit: "cu_m" };
+// 0.20 x 0.40 x 24.00 m of beam is 1.92 cu.m, the figure the earlier tests typed in by hand.
+const measurement = {
+  label: "B1 คานชั้น 2 ช่วง A-B",
+  count: 1,
+  dimensions: ["0.20", "0.40", "24.00"],
+  conversionFactor: null,
+  conversionNote: null
+};
 const evidence = { note: "แบบ S-05 ตารางคาน ช่วง A-B", pageNumber: 5 };
 
 describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
@@ -93,6 +101,21 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     return { ...fixture, runId: run.value.id, itemId: added.value.itemId };
   }
 
+  /** A measured item: the state every take-off line reaches before evidence is even discussed. */
+  async function measuredItem() {
+    const { addItemMeasurement } = await import("@/server/estimeter/takeoff-repository");
+    const fixture = await openRunWithItem();
+    const measured = await addItemMeasurement({
+      organizationId: fixture.organizationId,
+      itemId: fixture.itemId,
+      actorId: fixture.userId,
+      measurement
+    });
+    if (!measured.ok) throw new Error("expected the measurement to be recorded");
+
+    return fixture;
+  }
+
   it("keeps one open manual run per project however many times it is started", async () => {
     const { getOpenManualRun, listManualRuns, startManualRun } = await import(
       "@/server/estimeter/takeoff-repository"
@@ -117,7 +140,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { addItemEvidence, confirmManualItem, listRunItems } = await import(
       "@/server/estimeter/takeoff-repository"
     );
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
 
     const tooEarly = await confirmManualItem({
       organizationId: fixture.organizationId,
@@ -151,7 +174,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { addItemEvidence, confirmManualItem, removeManualItem } = await import(
       "@/server/estimeter/takeoff-repository"
     );
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
     const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
 
     await addItemEvidence({ ...scope, evidence });
@@ -172,7 +195,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { addItemEvidence, confirmManualItem } = await import("@/server/estimeter/takeoff-repository");
     const { getDb } = await import("@/db");
     const { auditEvents, takeoffItems } = await import("@/db/schema");
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
     const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
     await addItemEvidence({ ...scope, evidence });
 
@@ -220,7 +243,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { addManualItem, confirmManualItem, listRunItems, removeManualItem } = await import(
       "@/server/estimeter/takeoff-repository"
     );
-    const owner = await openRunWithItem();
+    const owner = await measuredItem();
     const outsider = await createProjectFixture();
     const asOutsider = { organizationId: outsider.organizationId, actorId: outsider.userId };
 
@@ -245,7 +268,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     );
     const { getDb } = await import("@/db");
     const { auditEvents } = await import("@/db/schema");
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
     const scope = { organizationId: fixture.organizationId, actorId: fixture.userId };
 
     const tooEarly = await closeManualRun({ ...scope, runId: fixture.runId });
@@ -273,6 +296,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
       "takeoff.item_added",
       "takeoff.item_added",
       "takeoff.item_confirmed",
+      "takeoff.measurement_added",
       "takeoff.run_closed",
       "takeoff.run_started"
     ]);
@@ -284,7 +308,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     );
     const { getDb } = await import("@/db");
     const { projects } = await import("@/db/schema");
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
 
     await getDb().update(projects).set({ state: "locked" }).where(eq(projects.id, fixture.projectId));
     const scope = { organizationId: fixture.organizationId, actorId: fixture.userId };
@@ -315,7 +339,7 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { addItemEvidence, confirmManualItem } = await import("@/server/estimeter/takeoff-repository");
     const { getDb } = await import("@/db");
     const { auditEvents } = await import("@/db/schema");
-    const fixture = await openRunWithItem();
+    const fixture = await measuredItem();
     const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
 
     await addItemEvidence({ ...scope, evidence });
@@ -334,5 +358,134 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.actorId).toBe(fixture.userId);
     expect(rows[0]?.metadata).toMatchObject({ unit: "cu_m", quantity: "1.920000", evidenceCount: 1 });
+  });
+  it("recomputes the item quantity from its measurement lines, in the same transaction", async () => {
+    const { addItemMeasurement, listMeasurementsForItems, listRunItems, removeItemMeasurement } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const fixture = await measuredItem();
+    const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
+
+    const second = await addItemMeasurement({
+      ...scope,
+      measurement: { ...measurement, label: "B1 ช่วง B-C", dimensions: ["0.20", "0.40", "6.00"] }
+    });
+    if (!second.ok) throw new Error("expected the second line to be recorded");
+    expect(second.value.quantity).toBe("2.4");
+
+    const items = await listRunItems(fixture.organizationId, fixture.runId);
+    expect(items[0]?.quantity).toBe("2.400000");
+    expect(items[0]?.quantityGross).toBe("2.400000");
+
+    const lines = await listMeasurementsForItems([fixture.itemId]);
+    expect(lines.map((line) => line.subtotal)).toEqual(["1.92", "0.48"]);
+
+    const removed = await removeItemMeasurement({
+      organizationId: fixture.organizationId,
+      measurementId: second.value.measurementId,
+      actorId: fixture.userId
+    });
+    if (!removed.ok) throw new Error("expected the line to be removed");
+    expect(removed.value.quantity).toBe("1.92");
+  });
+
+  it("applies a material allowance on top of the measured total and keeps both figures", async () => {
+    const { listRunItems, setItemWaste } = await import("@/server/estimeter/takeoff-repository");
+    const fixture = await measuredItem();
+
+    const applied = await setItemWaste({
+      organizationId: fixture.organizationId,
+      itemId: fixture.itemId,
+      actorId: fixture.userId,
+      percent: "3",
+      sourceNote: "หลักเกณฑ์การเผื่อวัสดุมวลรวม งานคอนกรีต 3%"
+    });
+    if (!applied.ok) throw new Error("expected the allowance to be recorded");
+    expect(applied.value.quantity).toBe("1.9776");
+
+    const items = await listRunItems(fixture.organizationId, fixture.runId);
+    expect(items[0]?.quantityGross).toBe("1.920000");
+    expect(items[0]?.quantity).toBe("1.977600");
+    expect(items[0]?.wasteSourceNote).toBe("หลักเกณฑ์การเผื่อวัสดุมวลรวม งานคอนกรีต 3%");
+  });
+
+  it("refuses to confirm a quantity whose arithmetic was never recorded", async () => {
+    const { addItemEvidence, confirmManualItem } = await import("@/server/estimeter/takeoff-repository");
+    const fixture = await openRunWithItem();
+    const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
+
+    await addItemEvidence({ ...scope, evidence });
+
+    expect(await confirmManualItem(scope)).toEqual({ ok: false, reason: "measurement_required" });
+  });
+
+  it("refuses a line whose dimension count does not match the unit stored on the item", async () => {
+    const { addItemMeasurement } = await import("@/server/estimeter/takeoff-repository");
+    const fixture = await openRunWithItem();
+
+    const flat = await addItemMeasurement({
+      organizationId: fixture.organizationId,
+      itemId: fixture.itemId,
+      actorId: fixture.userId,
+      // The item is measured in cubic metres, so two lengths cannot describe it.
+      measurement: { ...measurement, dimensions: ["0.20", "0.40"] }
+    });
+
+    expect(flat).toEqual({ ok: false, reason: "measurement_shape_mismatch" });
+  });
+
+  it("locks the arithmetic behind a confirmed quantity", async () => {
+    const { addItemEvidence, addItemMeasurement, confirmManualItem, setItemWaste } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const fixture = await measuredItem();
+    const scope = { organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId };
+
+    await addItemEvidence({ ...scope, evidence });
+    const confirmed = await confirmManualItem(scope);
+    expect(confirmed.ok).toBe(true);
+
+    expect(await addItemMeasurement({ ...scope, measurement })).toEqual({ ok: false, reason: "item_locked" });
+    expect(await setItemWaste({ ...scope, percent: "7", sourceNote: "เผื่อภายหลัง" })).toEqual({
+      ok: false,
+      reason: "item_locked"
+    });
+  });
+
+  it("hides another organization's measurement lines from every write", async () => {
+    const { addItemMeasurement, listMeasurementsForItems, removeItemMeasurement, setItemWaste } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const owner = await measuredItem();
+    const stranger = await createProjectFixture();
+    const lines = await listMeasurementsForItems([owner.itemId]);
+    const lineId = lines[0]!.id;
+
+    expect(
+      await addItemMeasurement({
+        organizationId: stranger.organizationId,
+        itemId: owner.itemId,
+        actorId: stranger.userId,
+        measurement
+      })
+    ).toEqual({ ok: false, reason: "item_not_found" });
+
+    expect(
+      await removeItemMeasurement({
+        organizationId: stranger.organizationId,
+        measurementId: lineId,
+        actorId: stranger.userId
+      })
+    ).toEqual({ ok: false, reason: "item_not_found" });
+
+    expect(
+      await setItemWaste({
+        organizationId: stranger.organizationId,
+        itemId: owner.itemId,
+        actorId: stranger.userId,
+        percent: "50",
+        sourceNote: "ไม่ควรเขียนได้"
+      })
+    ).toEqual({ ok: false, reason: "item_not_found" });
   });
 });

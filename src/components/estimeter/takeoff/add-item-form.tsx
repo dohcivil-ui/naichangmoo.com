@@ -21,6 +21,9 @@ function Submit() {
  * Built for someone entering lines all day: the field order matches the order a person reads
  * a drawing, every field is reachable by keyboard, and the form keeps its category and unit
  * choice after a submit so a run of similar lines does not need re-selecting.
+ *
+ * There is no quantity field. Since v0.17.0 the quantity is the total of the item's measurement
+ * lines, so this form names the item and the next step measures it.
  */
 export function AddItemForm({ runId }: { runId: string }) {
   const [state, formAction] = useActionState(addTakeoffItem, initialState);
@@ -60,18 +63,6 @@ export function AddItemForm({ runId }: { runId: string }) {
         </select>
       </label>
 
-      <label>
-        ปริมาณ
-        <input
-          name="quantity"
-          required
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder="เช่น 12.5"
-          aria-invalid={errors.quantity ? true : undefined}
-        />
-      </label>
-
       <div className="takeoff-form__submit"><Submit /></div>
 
       {Object.values(errors).filter(Boolean).length > 0 ? (
@@ -79,7 +70,6 @@ export function AddItemForm({ runId }: { runId: string }) {
           {errors.category ? <li>{errors.category}</li> : null}
           {errors.description ? <li>{errors.description}</li> : null}
           {errors.unit ? <li>{errors.unit}</li> : null}
-          {errors.quantity ? <li>{errors.quantity}</li> : null}
         </ul>
       ) : state.message ? (
         <p className={state.ok ? "form-success takeoff-form__errors" : "form-error takeoff-form__errors"} role="status">
@@ -87,7 +77,7 @@ export function AddItemForm({ runId }: { runId: string }) {
         </p>
       ) : (
         <p className="form-note takeoff-form__errors">
-          ปริมาณเก็บทศนิยมได้ถึง 6 ตำแหน่งและไม่ปัดค่า หน่วยเลือกจากรายการเท่านั้นเพื่อให้ยอดรวมเชื่อถือได้
+          หน่วยที่เลือกกำหนดว่าต้องวัดกี่ระยะ ปริมาณไม่ต้องกรอกเอง ระบบรวมให้จากรายการคำนวณที่บันทึกในขั้นถัดไป
         </p>
       )}
     </form>

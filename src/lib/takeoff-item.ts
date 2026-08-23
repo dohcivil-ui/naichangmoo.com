@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { parseQuantity, type QuantityRejection } from "@/lib/takeoff-quantity";
 import { isTakeoffCategory, isTakeoffUnit } from "@/lib/takeoff-units";
 
 export const DESCRIPTION_MIN = 3;
@@ -12,22 +11,13 @@ export type TakeoffItemInput = {
   category: string;
   description: string;
   unit: string;
-  quantity: string;
 };
 
-export type TakeoffItemFieldErrors = Partial<Record<"category" | "description" | "unit" | "quantity", string>>;
+export type TakeoffItemFieldErrors = Partial<Record<"category" | "description" | "unit", string>>;
 
 export type TakeoffItemParseResult =
   | { ok: true; value: TakeoffItemInput }
   | { ok: false; errors: TakeoffItemFieldErrors };
-
-const quantityMessage: Record<QuantityRejection, string> = {
-  empty: "กรอกปริมาณ",
-  not_a_number: "ปริมาณต้องเป็นตัวเลข เช่น 12.5",
-  not_positive: "ปริมาณต้องมากกว่าศูนย์",
-  too_many_decimals: "ปริมาณเก็บทศนิยมได้ไม่เกิน 6 ตำแหน่ง",
-  too_large: "ปริมาณเกินค่าที่ระบบเก็บได้ ตรวจหน่วยที่ใช้อีกครั้ง"
-};
 
 const descriptionSchema = z
   .string()
@@ -48,13 +38,12 @@ export function parseTakeoffItemForm(formData: FormData): TakeoffItemParseResult
   const description = descriptionSchema.safeParse(formData.get("description") ?? "");
   if (!description.success) errors.description = description.error.issues[0]?.message;
 
-  const quantity = parseQuantity(String(formData.get("quantity") ?? ""));
-  if (!quantity.ok) errors.quantity = quantityMessage[quantity.reason];
-
   if (Object.keys(errors).length > 0) return { ok: false, errors };
-  if (!description.success || !quantity.ok) return { ok: false, errors };
+  if (!description.success) return { ok: false, errors };
 
-  return { ok: true, value: { category, description: description.data, unit, quantity: quantity.canonical } };
+  // No quantity is read here. Since v0.17.0 an item's quantity is the total of its measurement
+  // lines, so a new item starts at zero and cannot be confirmed until it has been measured.
+  return { ok: true, value: { category, description: description.data, unit } };
 }
 
 export type EvidenceInput = { note: string; pageNumber: number | null };
@@ -91,13 +80,21 @@ export function parseEvidenceForm(formData: FormData): EvidenceParseResult {
 /**
  * Why an item cannot be confirmed, or null when it can.
  *
- * A quantity without a stated source cannot be defended in a review meeting, so at least one
- * evidence reference is required before an item counts as confirmed. This is the gate that
- * makes the take-off auditable rather than a typed-in number.
+ * Defending a quantity in a review meeting takes two different things, so both are required.
+ * Evidence answers "where did you read this off the drawing"; measurement lines answer "how did
+ * you arrive at the number". A line with only one of them can still be argued with: a cited
+ * quantity whose arithmetic is invisible cannot be re-checked, and arithmetic with no drawing
+ * reference cannot be located. Items measured before v0.17.0 carry no measurement lines and are
+ * measured again rather than confirmed on their typed-in figure.
  */
-export function itemConfirmationBlocker(item: { reviewState: string; evidenceCount: number }): string | null {
+export function itemConfirmationBlocker(item: {
+  reviewState: string;
+  evidenceCount: number;
+  measurementCount: number;
+}): string | null {
   if (item.reviewState === "confirmed") return "รายการนี้ยืนยันแล้ว";
   if (item.reviewState === "rejected") return "รายการนี้ถูกตีกลับ ต้องแก้ไขก่อนยืนยัน";
+  if (item.measurementCount < 1) return "ต้องบันทึกรายการคำนวณอย่างน้อยหนึ่งบรรทัดก่อนยืนยันปริมาณ";
   if (item.evidenceCount < 1) return "ต้องบันทึกหลักฐานอ้างอิงอย่างน้อยหนึ่งรายการก่อนยืนยันปริมาณ";
   return null;
 }

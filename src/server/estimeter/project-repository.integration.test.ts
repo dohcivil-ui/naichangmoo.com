@@ -67,7 +67,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
   it("accepts the first project on a trial and refuses the second at the write path", async () => {
     const { createProjectWithinLimit, listProjects } = await import("@/server/estimeter/project-repository");
     const { userId, organizationId } = await createOrganizationWithOwner();
-    const input = { organizationId, ownerId: userId, projectLimit: 1, entitlementState: "trial" as const };
+    const input = { organizationId, ownerId: userId, path: "government" as const, projectLimit: 1, entitlementState: "trial" as const };
 
     const first = await createProjectWithinLimit({ ...input, name: "อาคารสำนักงาน 3 ชั้น" });
     const second = await createProjectWithinLimit({ ...input, name: "อาคารเรียน 4 ชั้น" });
@@ -87,6 +87,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       organizationId,
       ownerId: userId,
       name: "อาคารพักอาศัย 2 ชั้น",
+      path: "government" as const,
       projectLimit: 1,
       entitlementState: "trial"
     });
@@ -142,6 +143,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       organizationId,
       ownerId: userId,
       name: "โครงการที่ยิงเข้ามาระหว่างถือ lock",
+      path: "government" as const,
       projectLimit: 1,
       entitlementState: "trial"
     });
@@ -167,6 +169,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       organizationId: owner.organizationId,
       ownerId: owner.userId,
       name: "โครงการขององค์กรแรก",
+      path: "government" as const,
       projectLimit: 1,
       entitlementState: "trial"
     });
@@ -186,6 +189,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       organizationId,
       ownerId: userId,
       name: "โครงการก่อนสิทธิ์หมดอายุ",
+      path: "government" as const,
       projectLimit: 1,
       entitlementState: "trial"
     });
@@ -195,6 +199,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       state: "expired_read_only" as const,
       capabilities: { read: true, create_project: false, edit: false, run_ai: false, export: false, print: false },
       projectCount: 1,
+      path: "government" as const,
       projectLimit: 0
     };
 
@@ -205,6 +210,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
         organizationId,
         ownerId: userId,
         name: "โครงการหลังหมดอายุ",
+        path: "government" as const,
         projectLimit: 0,
         entitlementState: "expired_read_only"
       })
@@ -220,6 +226,7 @@ describe.skipIf(!enabled)("ESTIMETR project writes against PostgreSQL", () => {
       organizationId: `org_missing_${randomUUID()}`,
       ownerId: userId,
       name: "โครงการไร้องค์กร",
+      path: "government" as const,
       projectLimit: 1,
       entitlementState: "trial"
     });

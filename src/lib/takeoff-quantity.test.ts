@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   formatQuantity,
   fromScaledUnits,
+  increaseByPercent,
+  multiplyQuantities,
   parseQuantity,
   sumQuantities,
   toScaledUnits
@@ -65,5 +67,40 @@ describe("quantity arithmetic", () => {
     expect(formatQuantity("1234567.5")).toBe("1,234,567.5");
     expect(formatQuantity("0.000001")).toBe("0.000001");
     expect(formatQuantity("1000")).toBe("1,000");
+  });
+});
+
+describe("quantity multiplication", () => {
+  it("keeps a product of measured lengths exact", () => {
+    expect(multiplyQuantities(["0.1", "0.2", "0.3"])).toBe("0.006");
+    expect(multiplyQuantities(["1", "1.50", "1.50", "0.35"])).toBe("0.7875");
+    expect(multiplyQuantities(["4", "1.50", "0.35"])).toBe("2.1");
+  });
+
+  it("rounds half-up once, at the end", () => {
+    // 0.000001 x 0.5 is 0.0000005, which the column cannot hold; it rounds up, not away.
+    expect(multiplyQuantities(["0.000001", "0.5"])).toBe("0.000001");
+    // 0.000001 x 0.4 is 0.0000004 and rounds down.
+    expect(multiplyQuantities(["0.000001", "0.4"])).toBe("0");
+  });
+
+  it("returns a single factor unchanged", () => {
+    expect(multiplyQuantities(["12.5"])).toBe("12.5");
+  });
+
+  it("refuses to multiply nothing", () => {
+    expect(() => multiplyQuantities([])).toThrow();
+  });
+});
+
+describe("percentage increase", () => {
+  it("applies a material allowance to a measured total", () => {
+    expect(increaseByPercent("29.304", "7")).toBe("31.35528");
+    expect(increaseByPercent("100", "3")).toBe("103");
+    expect(increaseByPercent("100", "2.5")).toBe("102.5");
+  });
+
+  it("changes nothing at zero", () => {
+    expect(increaseByPercent("0.7875", "0")).toBe("0.7875");
   });
 });

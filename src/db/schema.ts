@@ -19,6 +19,9 @@ export const memberRole = pgEnum("member_role", ["owner", "admin", "member", "vi
 export const entitlementState = pgEnum("entitlement_state", ["trial", "active", "expired_read_only", "suspended", "member_free", "doh_staff_only"]);
 export const quoteStatus = pgEnum("enterprise_quote_status", ["submitted", "triaged", "contacted", "proposal_prepared", "closed"]);
 export const projectState = pgEnum("project_state", ["draft", "active", "locked", "archived"]);
+// Which costing stack a project's quantities will be priced through. See ADR 0007: the two
+// stacks are not interchangeable, so a project declares one at creation instead of switching.
+export const projectPath = pgEnum("project_path", ["private", "government"]);
 export const reviewState = pgEnum("review_state", ["proposed", "review_required", "confirmed", "rejected"]);
 export const jobState = pgEnum("job_state", ["queued", "running", "succeeded", "failed", "cancelled", "dead_letter"]);
 export const approvalState = pgEnum("approval_state", ["pending", "approved", "rejected", "cancelled"]);
@@ -133,6 +136,7 @@ export const projects = pgTable("projects", {
   ownerId: text("owner_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   workType: text("work_type").notNull().default("building"),
+  path: projectPath("project_path").notNull().default("government"),
   state: projectState("state").notNull().default("draft"),
   createdAt,
   updatedAt
@@ -169,11 +173,45 @@ export const takeoffItems = pgTable("takeoff_items", {
   category: text("category").notNull(),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
+  // Net quantity: the sum of the measurement lines with the waste percentage applied. Items
+  // created before v0.17.0 carry a typed-in quantity and a null quantityGross, which is how a
+  // reader tells a measured quantity from one that was simply asserted.
   quantity: numeric("quantity", { precision: 18, scale: 6 }).notNull(),
+  quantityGross: numeric("quantity_gross", { precision: 18, scale: 6 }),
+  wastePercent: numeric("waste_percent", { precision: 9, scale: 6 }).notNull().default("0"),
+  wasteSourceNote: text("waste_source_note"),
   reviewState: reviewState("review_state").notNull().default("proposed"),
   createdAt,
   updatedAt
 });
+
+/**
+ * The arithmetic behind one take-off quantity, one measured element per row.
+ *
+ * A quantity that arrives as a single typed number cannot be re-checked in a review meeting:
+ * nobody can tell whether 12.5 cu.m came from the right footing or from a slipped decimal.
+ * Each row therefore keeps the factors a person actually read off the drawing, and the item
+ * quantity is their sum rather than an independent number.
+ *
+ * How many dimension columns must be filled is decided by the unit, not by the row: a cubic
+ * metre needs three, a square metre two, a metre one, a counted unit none. Mass is the
+ * exception — steel weight does not come from geometry, so it converts from a measured length
+ * through conversionFactor, whose provenance lives in conversionNote.
+ */
+export const takeoffMeasurements = pgTable("takeoff_measurements", {
+  id: text("id").primaryKey(),
+  takeoffItemId: text("takeoff_item_id").notNull().references(() => takeoffItems.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  count: integer("count").notNull(),
+  dimension1: numeric("dimension_1", { precision: 18, scale: 6 }),
+  dimension2: numeric("dimension_2", { precision: 18, scale: 6 }),
+  dimension3: numeric("dimension_3", { precision: 18, scale: 6 }),
+  conversionFactor: numeric("conversion_factor", { precision: 18, scale: 6 }),
+  conversionNote: text("conversion_note"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [index("takeoff_measurements_item_idx").on(table.takeoffItemId)]);
 
 export const evidenceReferences = pgTable("evidence_references", {
   id: text("id").primaryKey(),
@@ -310,6 +348,7 @@ export const schema = {
   drawingDocuments,
   takeoffRuns,
   takeoffItems,
+  takeoffMeasurements,
   evidenceReferences,
   priceSources,
   priceObservations,

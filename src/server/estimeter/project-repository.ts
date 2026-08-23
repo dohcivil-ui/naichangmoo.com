@@ -3,13 +3,14 @@ import { and, count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditEvents, organizations, projects } from "@/db/schema";
 import type { EffectiveEntitlementState } from "@/lib/entitlement";
-import { ESTIMETR_WORK_TYPE } from "@/lib/estimeter-project";
+import { ESTIMETR_WORK_TYPE, type ProjectPathCode } from "@/lib/estimeter-project";
 
 export type ProjectSummary = {
   id: string;
   name: string;
   state: string;
   workType: string;
+  path: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -18,6 +19,7 @@ export type CreateProjectInput = {
   organizationId: string;
   ownerId: string;
   name: string;
+  path: ProjectPathCode;
   projectLimit: number | null;
   entitlementState: EffectiveEntitlementState;
 };
@@ -31,6 +33,7 @@ const summaryColumns = {
   name: projects.name,
   state: projects.state,
   workType: projects.workType,
+  path: projects.path,
   createdAt: projects.createdAt,
   updatedAt: projects.updatedAt
 };
@@ -85,6 +88,7 @@ export async function createProjectWithinLimit(input: CreateProjectInput): Promi
       ownerId: input.ownerId,
       name: input.name,
       workType: ESTIMETR_WORK_TYPE,
+      path: input.path,
       state: "draft"
     });
 
@@ -98,6 +102,7 @@ export async function createProjectWithinLimit(input: CreateProjectInput): Promi
       metadata: {
         name: input.name,
         workType: ESTIMETR_WORK_TYPE,
+        path: input.path,
         // Recording which entitlement allowed the write keeps the decision auditable later.
         entitlementState: input.entitlementState,
         projectLimit: input.projectLimit

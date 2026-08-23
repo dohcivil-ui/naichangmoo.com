@@ -9,13 +9,22 @@ import {
   type EvidenceFieldErrors,
   type TakeoffItemFieldErrors
 } from "@/lib/takeoff-item";
+import {
+  parseMeasurementForm,
+  parseWasteForm,
+  type MeasurementFieldErrors
+} from "@/lib/takeoff-measurement";
 import { getEstimeterAccess } from "@/server/estimeter-access";
 import {
   addItemEvidence,
+  addItemMeasurement,
   addManualItem,
   closeManualRun,
   confirmManualItem,
+  getScopedItem,
+  removeItemMeasurement,
   removeManualItem,
+  setItemWaste,
   startManualRun,
   type WriteRejection
 } from "@/server/estimeter/takeoff-repository";
@@ -25,6 +34,8 @@ export type TakeoffActionState = {
   message: string;
   itemErrors?: TakeoffItemFieldErrors;
   evidenceErrors?: EvidenceFieldErrors;
+  measurementErrors?: MeasurementFieldErrors;
+  wasteErrors?: Partial<Record<"wastePercent" | "wasteSourceNote", string>>;
 };
 
 const rejectionMessage: Record<WriteRejection, string> = {
@@ -34,6 +45,8 @@ const rejectionMessage: Record<WriteRejection, string> = {
   run_not_open: "รอบการถอดปริมาณนี้ปิดแล้ว ต้องเปิดรอบใหม่ก่อนแก้ไข",
   item_locked: "รายการนี้ยืนยันแล้ว จึงแก้ไขหรือลบไม่ได้ เพื่อรักษาร่องรอยการตรวจ",
   evidence_required: "ต้องบันทึกหลักฐานอ้างอิงอย่างน้อยหนึ่งรายการก่อนยืนยันปริมาณ",
+  measurement_required: "ต้องบันทึกรายการคำนวณอย่างน้อยหนึ่งบรรทัดก่อนยืนยันปริมาณ",
+  measurement_shape_mismatch: "จำนวนระยะที่กรอกไม่ตรงกับหน่วยของรายการนี้ กรุณาเปิดฟอร์มใหม่แล้วกรอกอีกครั้ง",
   already_confirmed: "รายการนี้ยืนยันแล้ว",
   no_confirmed_items: "ยังไม่มีรายการที่ยืนยันแล้ว จึงยังปิดรอบการถอดปริมาณไม่ได้"
 };
@@ -195,4 +208,73 @@ export async function closeTakeoffRun(
         ? `ปิดรอบแล้ว โดยนับเฉพาะ ${result.value.confirmedCount} รายการที่ยืนยัน และไม่นับ ${skipped} รายการที่ยังไม่ยืนยัน`
         : `ปิดรอบแล้ว โดยบันทึกลายนิ้วมือของ ${result.value.confirmedCount} รายการที่ยืนยัน`
   };
+}
+
+export async function addTakeoffMeasurement(
+  _previous: TakeoffActionState | undefined,
+  formData: FormData
+): Promise<TakeoffActionState> {
+  const guard = await requireEditAccess();
+  if (!guard.ok) return { ok: false, message: guard.message };
+
+  const itemId = String(formData.get("itemId") ?? "");
+  // The unit decides how many lengths the line must carry, so it is read from the item rather
+  // than taken from the form the browser posted.
+  const item = await getScopedItem(guard.context.organizationId, itemId);
+  if (!item) return { ok: false, message: rejectionMessage.item_not_found };
+
+  const parsed = parseMeasurementForm(formData, item.unit);
+  if (!parsed.ok) return { ok: false, message: "กรุณาตรวจรายการคำนวณอีกครั้ง", measurementErrors: parsed.errors };
+
+  const result = await addItemMeasurement({
+    ...guard.context,
+    itemId,
+    actorId: guard.context.userId,
+    measurement: parsed.value
+  });
+  if (!result.ok) return { ok: false, message: rejectionMessage[result.reason] };
+
+  revalidateTakeoff(result.value.projectId);
+  return { ok: true, message: "บันทึกรายการคำนวณแล้ว ปริมาณถูกรวมใหม่ให้อัตโนมัติ" };
+}
+
+export async function removeTakeoffMeasurement(
+  _previous: TakeoffActionState | undefined,
+  formData: FormData
+): Promise<TakeoffActionState> {
+  const guard = await requireEditAccess();
+  if (!guard.ok) return { ok: false, message: guard.message };
+
+  const result = await removeItemMeasurement({
+    ...guard.context,
+    measurementId: String(formData.get("measurementId") ?? ""),
+    actorId: guard.context.userId
+  });
+  if (!result.ok) return { ok: false, message: rejectionMessage[result.reason] };
+
+  revalidateTakeoff(result.value.projectId);
+  return { ok: true, message: "ลบรายการคำนวณแล้ว ปริมาณถูกรวมใหม่ให้อัตโนมัติ" };
+}
+
+export async function setTakeoffWaste(
+  _previous: TakeoffActionState | undefined,
+  formData: FormData
+): Promise<TakeoffActionState> {
+  const guard = await requireEditAccess();
+  if (!guard.ok) return { ok: false, message: guard.message };
+
+  const parsed = parseWasteForm(formData);
+  if (!parsed.ok) return { ok: false, message: "กรุณาตรวจค่าเผื่ออีกครั้ง", wasteErrors: parsed.errors };
+
+  const result = await setItemWaste({
+    ...guard.context,
+    itemId: String(formData.get("itemId") ?? ""),
+    actorId: guard.context.userId,
+    percent: parsed.percent,
+    sourceNote: parsed.sourceNote
+  });
+  if (!result.ok) return { ok: false, message: rejectionMessage[result.reason] };
+
+  revalidateTakeoff(result.value.projectId);
+  return { ok: true, message: "บันทึกค่าเผื่อแล้ว ปริมาณถูกรวมใหม่ให้อัตโนมัติ" };
 }

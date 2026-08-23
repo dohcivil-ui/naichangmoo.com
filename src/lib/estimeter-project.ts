@@ -16,17 +16,55 @@ const projectNameSchema = z
   // Names end up in printed BOQ headers, so line breaks and control characters are refused here.
   .refine((value) => !/[\u0000-\u001f\u007f]/.test(value), "ชื่อโครงการต้องเป็นข้อความบรรทัดเดียว");
 
-export type ProjectFieldErrors = { name?: string };
+/**
+ * Which costing stack this project's quantities will be priced through (ADR 0007).
+ *
+ * Asked once, at creation. A government estimate reaches its price by multiplying the cost of
+ * the work by a published Factor F that already contains overhead, interest and profit; a
+ * private one builds its price up from direct cost through the company's own margins. The two
+ * numbers are not comparable, so switching a project between them later would silently change
+ * what its stored figures mean.
+ */
+export const PROJECT_PATHS = [
+  {
+    code: "government",
+    label: "งานราชการ",
+    hint: "ราคากลางตามหลักเกณฑ์ ปร.4 ปร.5 ปร.6 และตาราง Factor F ที่ทางราชการประกาศ"
+  },
+  {
+    code: "private",
+    label: "งานเอกชน",
+    hint: "ต้นทุนตรงบวกค่าดำเนินการและกำไรตามนโยบายของบริษัท"
+  }
+] as const;
+
+export type ProjectPathCode = (typeof PROJECT_PATHS)[number]["code"];
+
+export function isProjectPath(value: string): value is ProjectPathCode {
+  return PROJECT_PATHS.some((path) => path.code === value);
+}
+
+export function projectPathLabel(code: string): string {
+  return PROJECT_PATHS.find((path) => path.code === code)?.label ?? code;
+}
+
+export type ProjectFieldErrors = { name?: string; path?: string };
 
 export type ProjectParseResult =
-  | { ok: true; value: { name: string } }
+  | { ok: true; value: { name: string; path: ProjectPathCode } }
   | { ok: false; errors: ProjectFieldErrors };
 
 export function parseProjectForm(formData: FormData): ProjectParseResult {
-  const parsed = projectNameSchema.safeParse(formData.get("name") ?? "");
-  if (parsed.success) return { ok: true, value: { name: parsed.data } };
+  const errors: ProjectFieldErrors = {};
 
-  return { ok: false, errors: { name: parsed.error.issues[0]?.message ?? "กรุณากรอกชื่อโครงการ" } };
+  const parsed = projectNameSchema.safeParse(formData.get("name") ?? "");
+  if (!parsed.success) errors.name = parsed.error.issues[0]?.message ?? "กรุณากรอกชื่อโครงการ";
+
+  const path = String(formData.get("path") ?? "").trim();
+  if (!isProjectPath(path)) errors.path = "เลือกสายงานราชการหรือเอกชน";
+
+  if (!parsed.success || !isProjectPath(path)) return { ok: false, errors };
+  return { ok: true, value: { name: parsed.data, path } };
 }
 
 type CreationCheckInput = {

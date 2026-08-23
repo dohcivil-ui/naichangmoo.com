@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Capability } from "@/lib/entitlement";
 import { PROJECT_NAME_MAX, parseProjectForm, projectCreationDenial } from "@/lib/estimeter-project";
 
-function form(name: unknown): FormData {
+function form(name: unknown, path: string | null = "government"): FormData {
   const data = new FormData();
   if (typeof name === "string") data.set("name", name);
+  if (path !== null) data.set("path", path);
   return data;
 }
 
@@ -21,7 +22,22 @@ describe("project form parsing", () => {
   it("trims the name and accepts it", () => {
     const parsed = parseProjectForm(form("  อาคารสำนักงาน 3 ชั้น  "));
 
-    expect(parsed).toEqual({ ok: true, value: { name: "อาคารสำนักงาน 3 ชั้น" } });
+    expect(parsed).toEqual({ ok: true, value: { name: "อาคารสำนักงาน 3 ชั้น", path: "government" } });
+  });
+
+  it("requires the costing path, because it decides how the project is priced", () => {
+    const missing = parseProjectForm(form("อาคารสำนักงาน 3 ชั้น", null));
+    const unknown = parseProjectForm(form("อาคารสำนักงาน 3 ชั้น", "ราชการ"));
+
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) expect(missing.errors.path).toBeTruthy();
+    expect(unknown.ok).toBe(false);
+  });
+
+  it("accepts the private path as well as the government one", () => {
+    const parsed = parseProjectForm(form("บ้านพักอาศัย 2 ชั้น", "private"));
+
+    expect(parsed).toEqual({ ok: true, value: { name: "บ้านพักอาศัย 2 ชั้น", path: "private" } });
   });
 
   it("rejects a missing, blank or too-short name with a field message", () => {

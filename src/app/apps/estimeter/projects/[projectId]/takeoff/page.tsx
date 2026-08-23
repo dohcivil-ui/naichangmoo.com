@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { AddEvidenceForm } from "@/components/estimeter/takeoff/add-evidence-form";
 import { AddItemForm } from "@/components/estimeter/takeoff/add-item-form";
+import { AddMeasurementForm } from "@/components/estimeter/takeoff/add-measurement-form";
 import { TakeoffActionButton } from "@/components/estimeter/takeoff/takeoff-action-button";
+import { WasteForm } from "@/components/estimeter/takeoff/waste-form";
 import { itemConfirmationBlocker } from "@/lib/takeoff-item";
 import { formatQuantity } from "@/lib/takeoff-quantity";
 import { summarizeConfirmedQuantities } from "@/lib/takeoff-summary";
@@ -13,6 +15,7 @@ import {
   closeTakeoffRun,
   confirmTakeoffItem,
   removeTakeoffItem,
+  removeTakeoffMeasurement,
   startManualTakeoff
 } from "@/server/actions/estimeter-takeoff";
 import { resolveEstimeterContext } from "@/server/estimeter/context";
@@ -21,6 +24,7 @@ import {
   getOpenManualRun,
   listEvidenceForItems,
   listManualRuns,
+  listMeasurementsForItems,
   listRunItems
 } from "@/server/estimeter/takeoff-repository";
 
@@ -57,6 +61,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
   const runs = await listManualRuns(organizationId, projectId);
   const items = openRun ? await listRunItems(organizationId, openRun.id) : [];
   const evidence = await listEvidenceForItems(items.map((item) => item.id));
+  const measurements = await listMeasurementsForItems(items.map((item) => item.id));
   const summary = summarizeConfirmedQuantities(items);
   const confirmedCount = items.filter((item) => item.reviewState === "confirmed").length;
 
@@ -68,7 +73,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
             <p className="eyebrow">03 · MANUAL TAKE-OFF · {project.name}</p>
             <h1>ถอดปริมาณด้วยมือ พร้อมหลักฐานอ้างอิง</h1>
             <p className="estimation-workspace__lead">
-              ทุกปริมาณต้องบอกได้ว่าวัดมาจากไหน รายการจะยืนยันได้เมื่อมีหลักฐานอ้างอิงแล้วเท่านั้น และปริมาณที่ยืนยันแล้วจะถูกล็อกไว้เพื่อรักษาร่องรอยการตรวจ
+              ทุกปริมาณต้องบอกได้ทั้งว่าวัดมาจากไหนและคิดมาอย่างไร ปริมาณมาจากการรวมรายการคำนวณ ไม่ใช่ตัวเลขที่พิมพ์เข้าไป รายการจะยืนยันได้เมื่อมีทั้งรายการคำนวณและหลักฐานอ้างอิงแล้วเท่านั้น
             </p>
           </div>
           <div className="estimation-workspace__progress" aria-label="ความคืบหน้า 3 จาก 4 ขั้นตอน">
@@ -112,6 +117,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                       <th>รายละเอียด</th>
                       <th className="number-cell">ปริมาณ</th>
                       <th>หน่วย</th>
+                      <th>รายการคำนวณ</th>
                       <th>หลักฐานอ้างอิง</th>
                       <th>สถานะ</th>
                       {canEdit ? <th>จัดการ</th> : null}
@@ -120,24 +126,82 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                   <tbody>
                     {items.length === 0 ? (
                       <tr>
-                        <td colSpan={canEdit ? 7 : 6}>
+                        <td colSpan={canEdit ? 8 : 7}>
                           ยังไม่มีรายการในรอบนี้ เริ่มจากเพิ่มรายการแรกจากแบบที่กำลังถอด
                         </td>
                       </tr>
                     ) : (
                       items.map((item) => {
                         const itemEvidence = evidence.filter((entry) => entry.takeoffItemId === item.id);
+                        const itemMeasurements = measurements.filter((entry) => entry.takeoffItemId === item.id);
                         const blocker = itemConfirmationBlocker({
                           reviewState: item.reviewState,
-                          evidenceCount: itemEvidence.length
+                          evidenceCount: itemEvidence.length,
+                          measurementCount: itemMeasurements.length
                         });
 
                         return (
                           <tr key={item.id}>
                             <td>{categoryLabel(item.category)}</td>
                             <td>{item.description}</td>
-                            <td className="number-cell">{formatQuantity(item.quantity)}</td>
+                            <td className="number-cell">
+                              {formatQuantity(item.quantity)}
+                              {item.quantityGross === null ? (
+                                <em className="quantity-note">กรอกมือ ไม่มีรายการคำนวณ</em>
+                              ) : Number(item.wastePercent) > 0 ? (
+                                <em className="quantity-note">
+                                  วัดได้ {formatQuantity(item.quantityGross)} · เผื่อ {Number(item.wastePercent)}%
+                                </em>
+                              ) : null}
+                            </td>
                             <td>{unitLabel(item.unit)}</td>
+                            <td>
+                              <details className="evidence-details">
+                                <summary>
+                                  {itemMeasurements.length === 0
+                                    ? "ยังไม่ได้วัด"
+                                    : `${itemMeasurements.length} บรรทัด`}
+                                </summary>
+                                {itemMeasurements.length > 0 ? (
+                                  <ul className="measurement-list">
+                                    {itemMeasurements.map((line) => (
+                                      <li key={line.id}>
+                                        <span className="measurement-list__label">{line.label}</span>
+                                        <span className="measurement-list__working">
+                                          {[String(line.count), ...line.dimensions, line.conversionFactor]
+                                            .filter((factor): factor is string => Boolean(factor))
+                                            .join(" × ")}
+                                          {" = "}
+                                          {formatQuantity(line.subtotal)} {unitLabel(item.unit)}
+                                        </span>
+                                        {line.conversionNote ? <em>{line.conversionNote}</em> : null}
+                                        {canEdit && item.reviewState !== "confirmed" ? (
+                                          <TakeoffActionButton
+                                            action={removeTakeoffMeasurement}
+                                            fields={{ measurementId: line.id }}
+                                            label="ลบบรรทัด"
+                                            pendingLabel="กำลังลบ..."
+                                          />
+                                        ) : null}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                                {canEdit && item.reviewState !== "confirmed" ? (
+                                  <>
+                                    <AddMeasurementForm itemId={item.id} unitCode={item.unit} />
+                                    <WasteForm
+                                      itemId={item.id}
+                                      percent={item.wastePercent}
+                                      sourceNote={item.wasteSourceNote}
+                                    />
+                                  </>
+                                ) : null}
+                                {item.wasteSourceNote ? (
+                                  <p className="form-note">ที่มาค่าเผื่อ: {item.wasteSourceNote}</p>
+                                ) : null}
+                              </details>
+                            </td>
                             <td>
                               <details className="evidence-details">
                                 <summary>

@@ -59,6 +59,40 @@ export function sumQuantities(values: readonly string[]): string {
   return fromScaledUnits(values.reduce((total, value) => total + toScaledUnits(value), 0n));
 }
 
+/** Half-up division for non-negative integers. Quantities are never negative here. */
+function divideRoundHalfUp(numerator: bigint, denominator: bigint): bigint {
+  const quotient = numerator / denominator;
+  return (numerator % denominator) * 2n >= denominator ? quotient + 1n : quotient;
+}
+
+/**
+ * Exact product, rounded half-up to QUANTITY_SCALE once at the very end.
+ *
+ * A take-off line is a product of factors read off a drawing: count x width x length x
+ * thickness. Rounding after each multiplication would let the error compound with the number
+ * of factors, so the product is carried at full integer precision and rounded a single time.
+ * The factors carry different physical meanings; whether their product lands in the item's
+ * unit is the caller's responsibility.
+ */
+export function multiplyQuantities(values: readonly string[]): string {
+  if (values.length === 0) throw new Error("multiplyQuantities needs at least one factor");
+  const product = values.reduce((total, value) => total * toScaledUnits(value), 1n);
+  // Every factor contributed one SCALE_FACTOR. Keep one and divide the surplus away.
+  return fromScaledUnits(divideRoundHalfUp(product, SCALE_FACTOR ** BigInt(values.length - 1)));
+}
+
+/**
+ * Adds a percentage of a quantity to itself, for material allowance (ค่าเผื่อ).
+ *
+ * Waste is applied to the measured total rather than to each line, because the allowance is a
+ * property of the material and the work, not of any one element that was measured.
+ */
+export function increaseByPercent(value: string, percent: string): string {
+  const hundred = 100n * SCALE_FACTOR;
+  const multiplier = hundred + toScaledUnits(percent);
+  return fromScaledUnits(divideRoundHalfUp(toScaledUnits(value) * multiplier, hundred));
+}
+
 /**
  * Display form: thousand separators, no rounding. Nothing is rounded at this stage because
  * no money is derived from it yet; when pricing arrives, rounding happens once, on the money.
