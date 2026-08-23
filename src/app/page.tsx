@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { AppCard } from "@/components/landing/app-card";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
@@ -27,7 +28,44 @@ export default function LandingPage() {
           </div>
           <div className="hero__side" data-reveal data-reveal-delay="1">
             <HeroEngineeringArt />
-            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--white" id="why">
+        <div className="container">
+          <div className="section-heading" data-reveal>
+            <div>
+              <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
+              <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
+            </div>
+          </div>
+          <div className="evidence-gap">
+            {[
+              {
+                title: "ปริมาณที่ตรวจย้อนกลับไม่ได้",
+                problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม หน้าตาเหมือนกันหมดในตาราง ไม่มีอะไรบอกว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00 หรือมาจากนิ้วที่พลาด",
+                answer: "ปริมาณเป็นผลรวมของบรรทัดวัด จำนวน × กว้าง × ยาว × หนา ที่อ่านออกจากแบบได้ ไม่ใช่ตัวเลขที่พิมพ์เข้าไปเฉย ๆ",
+              },
+              {
+                title: "ค่าเผื่อที่ไม่รู้ว่ามาจากเกณฑ์ข้อไหน",
+                problem: "เผื่อ 7% ใส่ไว้ตั้งแต่เมื่อไหร่ ใครใส่ อ้างหลักเกณฑ์ฉบับไหน วันที่ถูกซัก ถ้าชี้เอกสารต้นทางไม่ได้ ตัวเลขนั้นก็ยืนไม่ได้",
+                answer: "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึกลงฐานข้อมูล ไม่ใช่แค่ข้อความเตือนบนหน้าจอที่กดข้ามได้",
+              },
+              {
+                title: "ตัวคูณที่หยิบมาจากไฟล์เดิม",
+                problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ โครงการที่คิดบนอัตราหนึ่งจะใช้ค่าจากตารางอีกอัตราไม่ได้ ผลลัพธ์จะออกมาหน้าตาเป็นทางการและผิด",
+                answer: "ทุกค่าที่เข้าการคำนวณต้องผูกกับเอกสารที่ระบุผู้ออก เลขที่หนังสือและวันที่ — ชั้นราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
+              },
+            ].map((item, index) => (
+              <article className="evidence-gap__item" key={item.title} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
+                <span className="evidence-gap__index">0{index + 1}</span>
+                <h3>{item.title}</h3>
+                <p className="evidence-gap__problem">{item.problem}</p>
+                <p className="evidence-gap__answer">{item.answer}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>

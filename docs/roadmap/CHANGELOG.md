@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.21.0 — The Landing Says What the Tool Is For, and Shows It Working — 2026-08-23
+
+หน้าแรกเพิ่มสองอย่างที่หายไป: ลำดับ 01-04 ที่เดินให้เห็นพร้อมเส้นสำรวจที่อ่านแผนผังไปเรื่อย ๆ แทนภาพนิ่ง และหัวข้อปัญหาสามข้อที่มาจากงานประมาณราคาจริง — ปริมาณที่ตรวจย้อนไม่ได้ ค่าเผื่อที่ไม่รู้ที่มา และตัวคูณที่หยิบจากตารางผิดชุด — โดยการ์ดที่สามระบุตรง ๆ ว่าชั้นราคายังไม่เปิดใช้งาน ทุก motion อยู่ในสัญญา reduced-motion เดิม
+
 ## v0.18.0 — The Quality Gate Becomes Something That Actually Runs — 2026-08-23
 
 Made the rules the project already declared enforceable by machine. The pre-commit hook now installs itself from the prepare lifecycle, because core.hooksPath lives in .git/config and cannot travel with a commit; CI runs on feature branches, where the work actually happens; the opt-in PostgreSQL suites that handoff notes have been citing as verification now run in CI against a digest-pinned PostgreSQL 16 service with migrations applied first; and check-roadmap refuses a pointer that has drifted from its versioned file, which is how a roadmap edit slipped through unnoticed in fae066b.

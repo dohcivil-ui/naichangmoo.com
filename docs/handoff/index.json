@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.21.0",
+    "title": "The Landing Says What the Tool Is For, and Shows It Working",
+    "description": "ลำดับ 01-04 เดินให้เห็นพร้อมเส้นสำรวจที่อ่านแผนผัง และหัวข้อปัญหาสามข้อจากงานประมาณราคาจริง โดยระบุตรง ๆ ว่าชั้นราคายังไม่เปิดใช้งาน.",
+    "scope": [
+      "hero drawn on load then a survey sweep",
+      "start rail walking 01 to 04, paused on hover or focus",
+      "three problem cards paired with what the product does",
+      "honest statement that the costing layer is not available",
+      "reduced-motion contract preserved"
+    ],
+    "verification": [
+      "screenshots at two animation points show the rail on 01 then on 04",
+      "forced reduced-motion shows a complete static drawing",
+      "scrollWidth equals innerWidth at 1440 and at 390 with mobile emulation",
+      "typecheck/lint pass; vitest 147 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.21.0 commit. Three presentation files only; no schema or server change.",
+    "path": "docs/handoff/2026-08-23-landing-hero-motion-and-problem.md"
+  },
+  {
     "version": "0.20.0",
     "title": "ESTIMETR Can Hold a Real ปร.4",
     "description": "ตรวจกับงานจริงที่ประมาณราคาเสร็จแล้ว แล้วปิดช่องว่างเรื่องหน่วย งานเหมารวม ลำดับชั้นหมวดงาน หัวฟอร์ม การอ่านเงินเป็นภาษาไทย และกฎปัดลงหลักร้อย.",
