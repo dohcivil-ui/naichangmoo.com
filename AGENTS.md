@@ -4,13 +4,14 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 
 ## Required workflow
 
-1. Create a dedicated Git branch before adding a feature, migration, security remediation or refactor.
-2. Add the work as an unchecked roadmap item before implementation.
-3. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
-4. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
-5. Run the quality gate required by the changed code before committing.
-6. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.
-7. Create an annotated semantic Git tag at every project milestone.
+1. Run `/grill-with-docs` before touching source code for new work, and continue until the question frontier is empty. "It is a small change" is not a reason to skip. Skip only for a typo, a constant whose source is already recorded, or a fix that introduces no new term and no new decision. When you skip, state the reason on the first line of the handoff note.
+2. Create a dedicated Git branch before adding a feature, migration, security remediation or refactor.
+3. Add the work as an unchecked roadmap item before implementation.
+4. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
+5. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
+6. Run the quality gate required by the changed code before committing.
+7. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.
+8. Create an annotated semantic Git tag at every project milestone.
 
 ## Safety rules
 
@@ -24,6 +25,15 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 - The UI must remain an engineering tool: one work objective, a short form, validation close to input, visible calculation/evidence and one primary action per state.
 - Use source-controlled SVG symbols for UI iconography. Do not use emoji, stock hero images, copied competitor assets or fabricated user content.
 - Avoid generic dashboards and decorative cards. Any component must earn its place by helping a user progress through the workflow.
+
+## Planning skills
+
+Three skills from `mattpocock/skills` are installed in `.claude/skills/` and pinned by `skills-lock.json`: `grill-with-docs`, `grilling` and `domain-modeling`. They are committed as real files, not symlinks, because this repository runs with `core.symlinks=false`.
+
+- `grill-with-docs` is one line that calls `grilling` and `domain-modeling`. All three must load. If a session asks every question at once with no recommended answer, or never touches `CONTEXT.md`, the dependencies did not load: say so and restart the session instead of continuing.
+- **ADR format is the project's, not the skill's.** Write every ADR with `.agent/commands/adr.md`: the full template (Status / Context / Decision / Alternatives considered / Consequences), `NNNN-slug` numbering, plus the roadmap and handoff references required by steps 4 and 7. Ignore `.claude/skills/domain-modeling/ADR-FORMAT.md`, which specifies a one-paragraph form. The skill's three gates for *whether* a decision deserves an ADR still apply: hard to reverse, surprising without context, a real trade-off.
+- `CONTEXT.md` is a glossary and nothing else. No specification, no implementation detail, no session notes. Terms land in it the moment they resolve, not in a batch at the end.
+- Do not edit anything under `.claude/skills/**`. Their hashes are recorded in `skills-lock.json`, and a local edit makes `npx skills update` report drift forever. Every project-specific override belongs in this file.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
