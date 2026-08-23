@@ -10,18 +10,20 @@
     "record a waste percentage that refuses to apply without a stated source",
     "multiply quantities as scaled integers and round once at the item, matching the existing sum path",
     "add projects.project_path so a project declares the government or private costing path at creation",
-    "refuse item confirmation until at least one measurement line exists, alongside the existing evidence rule"
+    "refuse item confirmation until at least one measurement line exists, alongside the existing evidence rule",
+    "enforce the row-local take-off rules as database CHECK constraints so a write path that skips the parser cannot store an undefendable figure"
   ],
-  "updatedAt": "2026-08-23T21:30:00+07:00",
+  "updatedAt": "2026-08-23T22:05:00+07:00",
   "status": "local_verification_passed_push_and_tag_pending",
   "verification": [
     "unit tests reproduce the worked footing example from the reference knowledge base for one 1.50 x 1.50 x 0.35 m footing: 0.7875 cu.m of concrete, 2.1 sq.m of formwork and 31.35528 kg of DB12 rebar with the 7% allowance, which the reference prints rounded to 0.788, 2.10 and 31.36",
     "unit tests refuse a cubic-metre item measured with two dimensions, refuse a zero or negative dimension, and refuse a waste percentage with no stated source",
     "unit tests confirm 0.1 x 0.2 x 0.3 stays exact through the scaled-integer path",
     "opt-in PostgreSQL tests cover the item quantity being recomputed in the same transaction as the measurement write, a second line changing the total and its removal restoring it, the allowance keeping both the gross and net figures, refusal to confirm a quantity with no recorded arithmetic, refusal of a line whose dimension count does not match the unit stored on the item, the measurement lines locking once the quantity is confirmed, and another organization being refused on every measurement write",
-    "pnpm typecheck, pnpm lint, pnpm test (138 passed with the opt-in database suites enabled), pnpm build and pnpm security:check pass; migration 0002 applied to the local database"
+    "pnpm typecheck, pnpm lint, pnpm test (140 passed with the opt-in database suites enabled), pnpm build and pnpm security:check pass; migrations 0002 and 0003 applied to the local database",
+    "opt-in PostgreSQL tests write straight through Drizzle, skipping the repository, and assert the exact constraint that refuses each case: takeoff_items_waste_needs_source, takeoff_items_waste_percent_range, takeoff_measurements_count_positive, takeoff_measurements_dimensions_positive and takeoff_measurements_conversion_needs_source"
   ],
-  "rollback": "Revert the v0.17.0 commit and drop migration 0002, which is additive only: takeoff_measurements, the waste and gross-quantity columns on takeoff_items, and project_path on projects. Existing takeoff_items.quantity values are never rewritten by the migration, so take-off items created before this release keep their typed-in quantity and are shown as having no measurement lines.",
+  "rollback": "Revert the v0.17.0 commits and drop migrations 0003 and 0002. Both are additive only: 0003 adds CHECK constraints, 0002 adds takeoff_measurements, the waste and gross-quantity columns on takeoff_items, and project_path on projects. Existing takeoff_items.quantity values are never rewritten by the migration, so take-off items created before this release keep their typed-in quantity and are shown as having no measurement lines.",
   "constraints": [
     "The take-off tables stay free of any price, cost, profit or tax column; that separation is the whole point of ADR 0007.",
     "Take-off items created before this release keep their typed-in quantity and are not forced to have measurement lines retroactively.",
@@ -36,18 +38,83 @@
     "0007-two-costing-stacks-over-one-takeoff"
   ],
   "items": [
-    { "id": "IP-045", "title": "Add structured dimension breakdown to take-off items so a quantity's arithmetic can be re-checked", "status": "done", "phase": "schema" },
-    { "id": "IP-049", "title": "Declare the government or private costing path on a project (ADR 0007)", "status": "done", "phase": "schema" },
-    { "id": "IP-050", "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, source checksum and reviewer", "status": "planned", "phase": "data" },
-    { "id": "IP-051", "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates", "status": "planned", "phase": "schema" },
-    { "id": "IP-052", "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation", "status": "planned", "phase": "governance" },
-    { "id": "IP-042", "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance", "status": "planned", "phase": "governance" },
-    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" },
-    { "id": "IP-053", "title": "Run the opt-in PostgreSQL suites in CI so the row lock, entitlement and trial-clock guarantees are machine-checked instead of hand-verified", "status": "planned", "phase": "governance" },
-    { "id": "IP-054", "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes", "status": "planned", "phase": "implementation" },
-    { "id": "IP-055", "title": "Enable the pre-commit hook on every clone and run the quality gate on feature branches", "status": "planned", "phase": "governance" },
-    { "id": "IP-056", "title": "Extend check-roadmap to compare the pointer with its versioned file, the package version and the handoff it claims", "status": "planned", "phase": "governance" },
-    { "id": "IP-057", "title": "Enforce the waste percentage stated source with a database CHECK, not only in the application layer", "status": "planned", "phase": "schema" },
-    { "id": "IP-058", "title": "Order organization selection deterministically before a member can belong to more than one organization", "status": "planned", "phase": "implementation" }
+    {
+      "id": "IP-045",
+      "title": "Add structured dimension breakdown to take-off items so a quantity's arithmetic can be re-checked",
+      "status": "done",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-049",
+      "title": "Declare the government or private costing path on a project (ADR 0007)",
+      "status": "done",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-050",
+      "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, source checksum and reviewer",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-051",
+      "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-053",
+      "title": "Run the opt-in PostgreSQL suites in CI so the row lock, entitlement and trial-clock guarantees are machine-checked instead of hand-verified",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-055",
+      "title": "Enable the pre-commit hook on every clone and run the quality gate on feature branches",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-056",
+      "title": "Extend check-roadmap to compare the pointer with its versioned file, the package version and the handoff it claims",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-057",
+      "title": "Enforce the waste percentage stated source with a database CHECK, not only in the application layer",
+      "status": "done",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    }
   ]
 }

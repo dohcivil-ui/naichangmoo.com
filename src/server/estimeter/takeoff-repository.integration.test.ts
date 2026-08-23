@@ -488,4 +488,59 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
       })
     ).toEqual({ ok: false, reason: "item_not_found" });
   });
+  /**
+   * Drizzle wraps a failed query, so the constraint name lives on the driver error underneath.
+   * Naming it explicitly is the point: the test proves which rule fired, not merely that
+   * something went wrong.
+   */
+  async function refusedBy(write: Promise<unknown>): Promise<string> {
+    try {
+      await write;
+    } catch (error) {
+      const cause = (error as { cause?: { constraint?: string; message?: string } }).cause;
+      return cause?.constraint ?? cause?.message ?? String(error);
+    }
+    throw new Error("expected the database to refuse this write");
+  }
+
+  /**
+   * These write straight through Drizzle, deliberately skipping the repository. The parser and
+   * the write path already refuse all of this; the point here is that the database refuses it
+   * too, so a future caller that forgets the rule cannot store an undefendable figure.
+   */
+  it("refuses an allowance with no stated source even when the write path is bypassed", async () => {
+    const { getDb } = await import("@/db");
+    const { takeoffItems } = await import("@/db/schema");
+    const fixture = await measuredItem();
+    const update = (values: { wastePercent: string; wasteSourceNote: string | null }) =>
+      getDb().update(takeoffItems).set(values).where(eq(takeoffItems.id, fixture.itemId));
+
+    expect(await refusedBy(update({ wastePercent: "7", wasteSourceNote: null }))).toBe(
+      "takeoff_items_waste_needs_source"
+    );
+    expect(await refusedBy(update({ wastePercent: "7", wasteSourceNote: "   " }))).toBe(
+      "takeoff_items_waste_needs_source"
+    );
+    expect(await refusedBy(update({ wastePercent: "150", wasteSourceNote: "เผื่อเกินจริง" }))).toBe(
+      "takeoff_items_waste_percent_range"
+    );
+  });
+
+  it("refuses a measurement line that measures nothing even when the write path is bypassed", async () => {
+    const { getDb } = await import("@/db");
+    const { takeoffMeasurements } = await import("@/db/schema");
+    const fixture = await measuredItem();
+    const base = { takeoffItemId: fixture.itemId, label: "ผ่านหลังบ้าน", count: 1, dimension1: "1" };
+    const insert = (overrides: Record<string, unknown>) =>
+      getDb()
+        .insert(takeoffMeasurements)
+        .values({ ...base, id: randomUUID(), ...overrides });
+
+    expect(await refusedBy(insert({ count: 0 }))).toBe("takeoff_measurements_count_positive");
+    expect(await refusedBy(insert({ dimension1: "0" }))).toBe("takeoff_measurements_dimensions_positive");
+    // A conversion factor with no provenance is an unexplained number inside the arithmetic.
+    expect(await refusedBy(insert({ conversionFactor: "0.888" }))).toBe(
+      "takeoff_measurements_conversion_needs_source"
+    );
+  });
 });

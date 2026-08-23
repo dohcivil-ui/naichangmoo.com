@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -183,7 +185,18 @@ export const takeoffItems = pgTable("takeoff_items", {
   reviewState: reviewState("review_state").notNull().default("proposed"),
   createdAt,
   updatedAt
-});
+}, (table) => [
+  // The parser refuses these too, but the parser only runs on the path that happens to call
+  // it. An allowance folded into a quantity with no rule behind it is exactly the kind of
+  // figure this release exists to prevent, so the database refuses it as well.
+  check("takeoff_items_waste_percent_range", sql`${table.wastePercent} >= 0 AND ${table.wastePercent} <= 100`),
+  check(
+    "takeoff_items_waste_needs_source",
+    sql`${table.wastePercent} = 0 OR (${table.wasteSourceNote} IS NOT NULL AND length(btrim(${table.wasteSourceNote})) > 0)`
+  ),
+  check("takeoff_items_quantity_not_negative", sql`${table.quantity} >= 0`),
+  check("takeoff_items_quantity_gross_not_negative", sql`${table.quantityGross} IS NULL OR ${table.quantityGross} >= 0`)
+]);
 
 /**
  * The arithmetic behind one take-off quantity, one measured element per row.
@@ -211,7 +224,28 @@ export const takeoffMeasurements = pgTable("takeoff_measurements", {
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt,
   updatedAt
-}, (table) => [index("takeoff_measurements_item_idx").on(table.takeoffItemId)]);
+}, (table) => [
+  index("takeoff_measurements_item_idx").on(table.takeoffItemId),
+  // A factor of zero or less is a mistake, not a measurement, and it would silently zero the
+  // whole line. How many dimensions a row needs depends on the parent item's unit, so that
+  // rule stays in the write path; everything checkable from the row alone is enforced here.
+  check("takeoff_measurements_count_positive", sql`${table.count} > 0`),
+  check(
+    "takeoff_measurements_dimensions_positive",
+    sql`(${table.dimension1} IS NULL OR ${table.dimension1} > 0)
+      AND (${table.dimension2} IS NULL OR ${table.dimension2} > 0)
+      AND (${table.dimension3} IS NULL OR ${table.dimension3} > 0)`
+  ),
+  // A conversion factor with no stated provenance is an unexplained number in the middle of
+  // the arithmetic, which is the one thing a measurement line must never contain.
+  check(
+    "takeoff_measurements_conversion_needs_source",
+    sql`${table.conversionFactor} IS NULL
+      OR (${table.conversionFactor} > 0
+        AND ${table.conversionNote} IS NOT NULL
+        AND length(btrim(${table.conversionNote})) > 0)`
+  )
+]);
 
 export const evidenceReferences = pgTable("evidence_references", {
   id: text("id").primaryKey(),
