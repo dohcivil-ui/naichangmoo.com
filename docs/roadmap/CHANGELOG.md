@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.15.0 — ESTIMETR Manual Take-off with Evidence — 2026-08-23
+
+Made the third workflow stage real: quantities can be entered by hand against a closed unit set, summed as scaled integers so no decimal drift reaches a bill of quantities, and confirmed only after at least one evidence reference states where the measurement came from. A confirmed line is locked, closing a run stores a fingerprint of the confirmed lines only, and every read and write is scoped through `projects.organization_id` because the take-off tables carry no organization column of their own.
+
 ## v0.14.0 — ESTIMETR Project Lifecycle — 2026-08-23
 
 Turned ESTIMETR from a demo workspace into an application that creates and opens real projects. ESTIMETR now owns `/apps/estimeter` with its own guard, all project reads are organization-scoped so an id from another organization returns nothing, and the one-project trial cap is enforced inside the write transaction under an organization row lock rather than by disabling a button. The root `todo.md` was retired into the roadmap.

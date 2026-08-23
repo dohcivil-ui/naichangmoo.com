@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.15.0",
+    "title": "ESTIMETR Manual Take-off with Evidence",
+    "description": "ถอดปริมาณด้วยมือได้จริง หน่วยเป็นชุดปิด ปริมาณบวกด้วยจำนวนเต็มสเกลจึงไม่คลาดเคลื่อน และยืนยันรายการได้เมื่อมีหลักฐานอ้างอิงแล้วเท่านั้น.",
+    "scope": ["one open manual run per project", "closed unit set with dimensions", "exact decimal quantities without rounding", "evidence required before confirmation", "confirmed lines locked and fingerprinted on close", "organization scope enforced through projects"],
+    "verification": ["typecheck/lint/build/security:check passed", "vitest 19 files / 94 tests passed with the opt-in PostgreSQL suites enabled", "the item lock test was shown to fail when the row lock is removed", "hand-checked concrete take-off sum matched the code", "unauthenticated probes on the take-off route returned the access gate"],
+    "rollback": "Revert the slice 3 commit or return to tag v0.14.0-estimeter-project-lifecycle; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-manual-takeoff.md"
+  },
+  {
     "version": "0.14.0",
     "title": "ESTIMETR Project Lifecycle",
     "description": "สร้างและเปิดโครงการ ESTIMETR ได้จริง โดยเพดานโครงการของสิทธิ์ทดลองถูกบังคับใน transaction และทุก query ผูก organization.",
