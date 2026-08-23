@@ -24,7 +24,8 @@ export const DIMENSION_RANK: Record<QuantityDimension, number> = {
   area: 2,
   length: 1,
   mass: 1,
-  count: 0
+  count: 0,
+  lump: 0
 };
 
 export const DIMENSION_LABELS: Record<QuantityDimension, readonly string[]> = {
@@ -32,7 +33,8 @@ export const DIMENSION_LABELS: Record<QuantityDimension, readonly string[]> = {
   area: ["กว้าง (ม.)", "ยาว (ม.)"],
   length: ["ยาว (ม.)"],
   mass: ["ความยาวรวม (ม.)"],
-  count: []
+  count: [],
+  lump: []
 };
 
 export type MeasurementInput = {
@@ -93,8 +95,14 @@ export function parseMeasurementForm(formData: FormData, unitCode: string): Meas
   }
 
   const countRaw = String(formData.get("count") ?? "").trim();
-  const count = Number(countRaw);
-  if (countRaw === "" || !Number.isInteger(count) || count < 1 || count > MAX_COUNT) {
+  const count = unit.dimension === "lump" ? 1 : Number(countRaw);
+  if (unit.dimension === "lump") {
+    // A lump sum is the whole of a thing. Two of it is not a larger measurement, it is a second
+    // line that was never written, so the count is fixed rather than asked for.
+    if (countRaw !== "" && Number(countRaw) !== 1) {
+      errors.count = "งานเหมารวมนับเป็น 1 เสมอ ถ้ามีมากกว่าหนึ่งชุด ให้แยกเป็นคนละรายการ";
+    }
+  } else if (countRaw === "" || !Number.isInteger(count) || count < 1 || count > MAX_COUNT) {
     errors.count = `จำนวนต้องเป็นจำนวนเต็ม 1 ถึง ${MAX_COUNT}`;
   }
 
@@ -210,6 +218,7 @@ export function measurementMatchesUnit(line: MeasurementFactors & { conversionNo
   const unit = findUnit(unitCode);
   if (!unit) return false;
   if (line.dimensions.length !== DIMENSION_RANK[unit.dimension]) return false;
+  if (unit.dimension === "lump" && line.count !== 1) return false;
   if (unit.dimension === "mass") return line.conversionFactor !== null;
   return line.conversionFactor === null;
 }

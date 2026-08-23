@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -139,6 +140,11 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   workType: text("work_type").notNull().default("building"),
   path: projectPath("project_path").notNull().default("government"),
+  // ปร.4, ปร.5 and ปร.6 all print สถานที่ก่อสร้าง and หน่วยงาน in their headers. They are nullable
+  // because a project is named before its paperwork is known; the document readiness check that
+  // gates output is where their absence has to stop something, not project creation.
+  siteLocation: text("site_location"),
+  agencyName: text("agency_name"),
   state: projectState("state").notNull().default("draft"),
   createdAt,
   updatedAt
@@ -169,9 +175,34 @@ export const takeoffRuns = pgTable("takeoff_runs", {
   updatedAt
 });
 
+/**
+ * The งานส่วน / หมวดงาน headings a ปร.4 sheet is organised under.
+ *
+ * A real sheet is not a flat list: อาคารฟอกไต ปุญโญภาส runs 1 งานส่วนที่1 over 1.1 งานดินขุด-ดินถม,
+ * 1.2 งานโครงสร้าง, 1.3 งานโครงหลังคา and so on, and prints a subtotal on each heading row. The
+ * ลำดับที่ that appears on the form is deliberately NOT stored: it is a position, so deleting 1.2
+ * has to renumber everything below it. Storing it would let the paper and the database disagree.
+ */
+export const takeoffGroups = pgTable("takeoff_groups", {
+  id: text("id").primaryKey(),
+  runId: text("run_id").notNull().references(() => takeoffRuns.id, { onDelete: "cascade" }),
+  parentId: text("parent_id").references((): AnyPgColumn => takeoffGroups.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [
+  index("takeoff_groups_run_idx").on(table.runId),
+  index("takeoff_groups_parent_idx").on(table.parentId),
+  check("takeoff_groups_title_present", sql`length(btrim(${table.title})) > 0`)
+]);
+
 export const takeoffItems = pgTable("takeoff_items", {
   id: text("id").primaryKey(),
   runId: text("run_id").notNull().references(() => takeoffRuns.id, { onDelete: "cascade" }),
+  // A line whose heading is removed becomes ungrouped rather than disappearing: the measurement
+  // and its evidence outlive whatever heading someone filed it under.
+  groupId: text("group_id").references(() => takeoffGroups.id, { onDelete: "set null" }),
   category: text("category").notNull(),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
@@ -381,6 +412,7 @@ export const schema = {
   projects,
   drawingDocuments,
   takeoffRuns,
+  takeoffGroups,
   takeoffItems,
   takeoffMeasurements,
   evidenceReferences,

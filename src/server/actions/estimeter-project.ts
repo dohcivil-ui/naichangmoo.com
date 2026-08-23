@@ -44,6 +44,8 @@ export async function createEstimeterProject(
     ownerId: user.id,
     name: parsed.value.name,
     path: parsed.value.path,
+    siteLocation: parsed.value.siteLocation,
+    agencyName: parsed.value.agencyName,
     projectLimit: access.projectLimit,
     entitlementState: access.state
   });

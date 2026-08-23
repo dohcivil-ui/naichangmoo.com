@@ -7,7 +7,13 @@
  * added across dimensions.
  */
 
-export type QuantityDimension = "volume" | "area" | "length" | "mass" | "count";
+/**
+ * "lump" is not a physical dimension. It marks work that is priced as one whole thing with
+ * nothing to measure — ระบบกำจัดปลวก, งานตัวอักษรป้าย — which real ปร.4 sheets carry as `1.00 งาน`.
+ * It is kept apart from "count" so the rules can insist its quantity is exactly one: three of a
+ * lump sum is not a measurement, it is a mistake.
+ */
+export type QuantityDimension = "volume" | "area" | "length" | "mass" | "count" | "lump";
 
 export type TakeoffUnit = {
   code: string;
@@ -15,15 +21,28 @@ export type TakeoffUnit = {
   dimension: QuantityDimension;
 };
 
+/**
+ * The set is closed, and it is closed around what real ปร.4 sheets actually use.
+ *
+ * Checked against a complete priced set for อาคารฟอกไต ปุญโญภาส: across its 91 measured lines the
+ * units are ชุด, ตร.ม., ท่อน, ตัว, ม้วน, ม., งาน, ลบ.ม., ถัง and แผ่น. Reinforcement there is priced
+ * by the bar, not by weight, which is why ท่อน is second only to ชุด in frequency and why กก. and
+ * ตัน do not appear on that sheet at all. They stay because weight is how steel is bought and how
+ * some sheets do price it; they are simply not the common case.
+ */
 export const TAKEOFF_UNITS: readonly TakeoffUnit[] = [
   { code: "cu_m", label: "ลบ.ม.", dimension: "volume" },
   { code: "sq_m", label: "ตร.ม.", dimension: "area" },
   { code: "m", label: "ม.", dimension: "length" },
   { code: "kg", label: "กก.", dimension: "mass" },
   { code: "ton", label: "ตัน", dimension: "mass" },
-  { code: "each", label: "หน่วย (ตัว/ต้น/ชุด)", dimension: "count" },
+  { code: "bar", label: "ท่อน", dimension: "count" },
   { code: "sheet", label: "แผ่น", dimension: "count" },
-  { code: "set", label: "ชุด", dimension: "count" }
+  { code: "roll", label: "ม้วน", dimension: "count" },
+  { code: "tank", label: "ถัง", dimension: "count" },
+  { code: "set", label: "ชุด", dimension: "count" },
+  { code: "each", label: "ตัว", dimension: "count" },
+  { code: "lump", label: "งาน", dimension: "lump" }
 ] as const;
 
 const unitByCode = new Map(TAKEOFF_UNITS.map((unit) => [unit.code, unit]));
@@ -37,16 +56,22 @@ export function isTakeoffUnit(code: string): boolean {
 }
 
 /**
- * Broad building-work groups only. These are working groups for organizing a manual
- * take-off, not a claim of compliance with the official ปร.4 category list: that mapping
+ * Working groups for organizing a manual take-off, following the divisions a real priced sheet
+ * uses: อาคารฟอกไต ปุญโญภาส splits its work into งานดินขุด-ดินถม, งานโครงสร้าง, งานโครงหลังคา,
+ * งานสถาปัตยกรรม, งานประตู-หน้าต่าง, งานไฟฟ้า, งานสุขภัณฑ์-สุขาภิบาล and งานอื่นๆ.
+ *
+ * This is still not a claim of compliance with the official ปร.4 category list; that mapping
  * needs the DPT form source, which is roadmap item IP-042.
  */
 export const TAKEOFF_CATEGORIES = [
+  { code: "site", label: "งานดินและงานเตรียมพื้นที่" },
   { code: "structure", label: "งานโครงสร้าง" },
+  { code: "roof", label: "งานโครงหลังคาและหลังคา" },
   { code: "architecture", label: "งานสถาปัตยกรรม" },
+  { code: "opening", label: "งานประตู-หน้าต่าง" },
   { code: "electrical", label: "งานระบบไฟฟ้าและสื่อสาร" },
-  { code: "sanitary", label: "งานระบบสุขาภิบาลและดับเพลิง" },
-  { code: "site", label: "งานภายนอกและงานเตรียมพื้นที่" }
+  { code: "sanitary", label: "งานสุขภัณฑ์และระบบสุขาภิบาล" },
+  { code: "other", label: "งานอื่นๆ" }
 ] as const;
 
 export type TakeoffCategoryCode = (typeof TAKEOFF_CATEGORIES)[number]["code"];

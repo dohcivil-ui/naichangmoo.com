@@ -543,4 +543,134 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
       "takeoff_measurements_conversion_needs_source"
     );
   });
+  it("numbers headings from their position and renumbers when one is removed", async () => {
+    const { addRunGroup, listRunGroups, removeRunGroup } = await import("@/server/estimeter/takeoff-repository");
+    const { buildOutline, outlineNumber } = await import("@/lib/takeoff-outline");
+    const fixture = await measuredItem();
+    const scope = { organizationId: fixture.organizationId, runId: fixture.runId, actorId: fixture.userId };
+
+    const section = await addRunGroup({ ...scope, title: "งานส่วนที่ 1", parentId: null });
+    if (!section.ok) throw new Error("expected the section to be added");
+
+    const added = [];
+    for (const title of ["งานดินขุด-ดินถม", "งานโครงสร้าง คอนกรีตเสริมเหล็ก", "งานโครงหลังคา"]) {
+      const group = await addRunGroup({ ...scope, title, parentId: section.value.groupId });
+      if (!group.ok) throw new Error(`expected ${title} to be added`);
+      added.push(group.value.groupId);
+    }
+
+    const before = buildOutline(await listRunGroups(fixture.organizationId, fixture.runId));
+    expect(before.map((node) => `${node.number} ${node.title}`)).toEqual([
+      "1 งานส่วนที่ 1",
+      "1.1 งานดินขุด-ดินถม",
+      "1.2 งานโครงสร้าง คอนกรีตเสริมเหล็ก",
+      "1.3 งานโครงหลังคา"
+    ]);
+
+    const removed = await removeRunGroup({
+      organizationId: fixture.organizationId,
+      groupId: added[1]!,
+      actorId: fixture.userId
+    });
+    expect(removed.ok).toBe(true);
+
+    const after = buildOutline(await listRunGroups(fixture.organizationId, fixture.runId));
+    expect(outlineNumber(after, added[2]!)).toBe("1.2");
+  });
+
+  it("refuses a third level, because the sheet has no column for 1.1.1", async () => {
+    const { addRunGroup } = await import("@/server/estimeter/takeoff-repository");
+    const fixture = await measuredItem();
+    const scope = { organizationId: fixture.organizationId, runId: fixture.runId, actorId: fixture.userId };
+
+    const section = await addRunGroup({ ...scope, title: "งานส่วนที่ 1", parentId: null });
+    if (!section.ok) throw new Error("expected the section to be added");
+    const child = await addRunGroup({ ...scope, title: "งานโครงสร้าง", parentId: section.value.groupId });
+    if (!child.ok) throw new Error("expected the child to be added");
+
+    expect(await addRunGroup({ ...scope, title: "ลึกเกินไป", parentId: child.value.groupId })).toEqual({
+      ok: false,
+      reason: "group_depth_exceeded"
+    });
+  });
+
+  it("keeps the lines when their heading is removed, rather than taking them with it", async () => {
+    const { addRunGroup, assignItemGroup, listRunItems, removeRunGroup } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const fixture = await measuredItem();
+    const group = await addRunGroup({
+      organizationId: fixture.organizationId,
+      runId: fixture.runId,
+      actorId: fixture.userId,
+      title: "งานโครงสร้าง",
+      parentId: null
+    });
+    if (!group.ok) throw new Error("expected the group to be added");
+
+    const filed = await assignItemGroup({
+      organizationId: fixture.organizationId,
+      itemId: fixture.itemId,
+      groupId: group.value.groupId,
+      actorId: fixture.userId
+    });
+    expect(filed.ok).toBe(true);
+    expect((await listRunItems(fixture.organizationId, fixture.runId))[0]?.groupId).toBe(group.value.groupId);
+
+    await removeRunGroup({
+      organizationId: fixture.organizationId,
+      groupId: group.value.groupId,
+      actorId: fixture.userId
+    });
+
+    const survivors = await listRunItems(fixture.organizationId, fixture.runId);
+    expect(survivors).toHaveLength(1);
+    expect(survivors[0]?.groupId).toBeNull();
+    expect(survivors[0]?.quantity).toBe("1.920000");
+  });
+
+  it("hides another organization's headings from every write", async () => {
+    const { addRunGroup, assignItemGroup, listRunGroups, removeRunGroup } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const owner = await measuredItem();
+    const stranger = await createProjectFixture();
+    const group = await addRunGroup({
+      organizationId: owner.organizationId,
+      runId: owner.runId,
+      actorId: owner.userId,
+      title: "งานโครงสร้าง",
+      parentId: null
+    });
+    if (!group.ok) throw new Error("expected the group to be added");
+
+    expect(
+      await addRunGroup({
+        organizationId: stranger.organizationId,
+        runId: owner.runId,
+        actorId: stranger.userId,
+        title: "แทรกข้ามองค์กร",
+        parentId: null
+      })
+    ).toEqual({ ok: false, reason: "run_not_found" });
+
+    expect(
+      await removeRunGroup({
+        organizationId: stranger.organizationId,
+        groupId: group.value.groupId,
+        actorId: stranger.userId
+      })
+    ).toEqual({ ok: false, reason: "group_not_found" });
+
+    expect(
+      await assignItemGroup({
+        organizationId: stranger.organizationId,
+        itemId: owner.itemId,
+        groupId: group.value.groupId,
+        actorId: stranger.userId
+      })
+    ).toEqual({ ok: false, reason: "item_not_found" });
+
+    expect(await listRunGroups(stranger.organizationId, owner.runId)).toEqual([]);
+  });
 });

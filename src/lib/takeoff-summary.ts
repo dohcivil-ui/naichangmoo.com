@@ -10,7 +10,7 @@ export type TakeoffSummaryRow = {
   itemCount: number;
 };
 
-const dimensionOrder: QuantityDimension[] = ["volume", "area", "length", "mass", "count"];
+const dimensionOrder: QuantityDimension[] = ["volume", "area", "length", "mass", "count", "lump"];
 
 /**
  * Totals of confirmed quantities, grouped strictly by unit.

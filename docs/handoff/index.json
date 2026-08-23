@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.20.0",
+    "title": "ESTIMETR Can Hold a Real ปร.4",
+    "description": "ตรวจกับงานจริงที่ประมาณราคาเสร็จแล้ว แล้วปิดช่องว่างเรื่องหน่วย งานเหมารวม ลำดับชั้นหมวดงาน หัวฟอร์ม การอ่านเงินเป็นภาษาไทย และกฎปัดลงหลักร้อย.",
+    "scope": [
+      "real-project gap check",
+      "units the sheet actually uses",
+      "lump sum",
+      "takeoff_groups with derived ลำดับที่",
+      "project header fields",
+      "Thai baht text and floor-to-hundred"
+    ],
+    "verification": [
+      "typecheck/lint/build/security:check passed",
+      "vitest 23 files / 180 tests passed with the opt-in PostgreSQL suites enabled",
+      "reconciled against the real ปร.4/5/6 for อาคารฟอกไต ปุญโญภาส"
+    ],
+    "rollback": "Return to tag v0.19.0-design-language-file and drop migration 0004, which is additive only.",
+    "path": "docs/handoff/2026-08-23-estimeter-pr4-representable.md"
+  },
+  {
     "version": "0.18.0",
     "title": "The Quality Gate Becomes Something That Actually Runs",
     "description": "hook ติดตั้งตัวเองตอน pnpm install, CI รันบน feature branch พร้อม PostgreSQL 16 service และเปิดชุดทดสอบฐานข้อมูลที่เคยถูก skip, และ check-roadmap ปฏิเสธ pointer ที่แตกจากไฟล์เวอร์ชัน.",

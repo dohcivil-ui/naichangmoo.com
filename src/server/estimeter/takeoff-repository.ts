@@ -1,11 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { auditEvents, evidenceReferences, projects, takeoffItems, takeoffMeasurements, takeoffRuns } from "@/db/schema";
+import { auditEvents, evidenceReferences, projects, takeoffGroups, takeoffItems, takeoffMeasurements, takeoffRuns } from "@/db/schema";
 import type { EvidenceInput, TakeoffItemInput } from "@/lib/takeoff-item";
 import { itemConfirmationBlocker } from "@/lib/takeoff-item";
 import type { MeasurementInput } from "@/lib/takeoff-measurement";
 import { grossQuantity, measurementMatchesUnit, measurementSubtotal, netQuantity } from "@/lib/takeoff-measurement";
+import { MAX_GROUP_DEPTH, type OutlineGroupInput } from "@/lib/takeoff-outline";
 
 export const MANUAL_RUNNER = "manual";
 
@@ -22,8 +23,11 @@ export type TakeoffRunView = {
   updatedAt: Date;
 };
 
+export type TakeoffGroupView = OutlineGroupInput & { runId: string };
+
 export type TakeoffItemView = {
   id: string;
+  groupId: string | null;
   category: string;
   description: string;
   unit: string;
@@ -64,6 +68,8 @@ export type WriteRejection =
   | "evidence_required"
   | "measurement_required"
   | "measurement_shape_mismatch"
+  | "group_not_found"
+  | "group_depth_exceeded"
   | "already_confirmed"
   | "no_confirmed_items";
 
@@ -116,6 +122,7 @@ async function loadItemScoped(
   const rows = await executor
     .select({
       id: takeoffItems.id,
+      groupId: takeoffItems.groupId,
       category: takeoffItems.category,
       description: takeoffItems.description,
       unit: takeoffItems.unit,
@@ -193,6 +200,7 @@ export async function listRunItems(organizationId: string, runId: string): Promi
   return getDb()
     .select({
       id: takeoffItems.id,
+      groupId: takeoffItems.groupId,
       category: takeoffItems.category,
       description: takeoffItems.description,
       unit: takeoffItems.unit,
@@ -595,6 +603,161 @@ export async function setItemWaste(input: {
     });
 
     return { ok: true, value: { projectId: locked.projectId, quantity: totals.net } };
+  });
+}
+
+export async function listRunGroups(organizationId: string, runId: string): Promise<TakeoffGroupView[]> {
+  const scoped = await loadRunScoped(getDb(), organizationId, runId);
+  if (!scoped) return [];
+
+  return getDb()
+    .select({
+      id: takeoffGroups.id,
+      runId: takeoffGroups.runId,
+      parentId: takeoffGroups.parentId,
+      title: takeoffGroups.title,
+      sortOrder: takeoffGroups.sortOrder
+    })
+    .from(takeoffGroups)
+    .where(eq(takeoffGroups.runId, runId))
+    .orderBy(asc(takeoffGroups.sortOrder), asc(takeoffGroups.id));
+}
+
+/**
+ * Adds a heading, optionally beneath another one.
+ *
+ * Depth stops at two because that is what the sheet prints: a งานส่วน and the หมวดงาน under it.
+ * A third level would number as 1.1.1, which no ปร.4 column is laid out to hold.
+ */
+export async function addRunGroup(input: {
+  organizationId: string;
+  runId: string;
+  actorId: string;
+  title: string;
+  parentId: string | null;
+}): Promise<WriteResult<{ groupId: string; projectId: string }>> {
+  return getDb().transaction(async (tx) => {
+    const scoped = await loadRunScoped(tx, input.organizationId, input.runId);
+    if (!scoped) return { ok: false, reason: "run_not_found" };
+    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+    if (scoped.run.state !== "running") return { ok: false, reason: "run_not_open" };
+
+    if (input.parentId !== null) {
+      const parent = await tx
+        .select({ id: takeoffGroups.id, parentId: takeoffGroups.parentId, runId: takeoffGroups.runId })
+        .from(takeoffGroups)
+        .where(eq(takeoffGroups.id, input.parentId))
+        .limit(1);
+      const found = parent[0];
+      // The run check is what keeps a heading from being filed under another project's run.
+      if (!found || found.runId !== input.runId) return { ok: false, reason: "group_not_found" };
+      if (found.parentId !== null) return { ok: false, reason: "group_depth_exceeded" };
+    }
+
+    const nextOrder = await tx
+      .select({ value: sql<number>`coalesce(max(${takeoffGroups.sortOrder}), -1) + 1` })
+      .from(takeoffGroups)
+      .where(
+        input.parentId === null
+          ? and(eq(takeoffGroups.runId, input.runId), isNull(takeoffGroups.parentId))
+          : eq(takeoffGroups.parentId, input.parentId)
+      );
+
+    const groupId = randomUUID();
+    await tx.insert(takeoffGroups).values({
+      id: groupId,
+      runId: input.runId,
+      parentId: input.parentId,
+      title: input.title,
+      sortOrder: Number(nextOrder[0]?.value ?? 0)
+    });
+
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      eventType: "takeoff.group_added",
+      resourceType: "takeoff_group",
+      resourceId: groupId,
+      metadata: { runId: input.runId, title: input.title, parentId: input.parentId, depth: input.parentId === null ? 1 : MAX_GROUP_DEPTH }
+    });
+
+    return { ok: true, value: { groupId, projectId: scoped.run.projectId } };
+  });
+}
+
+/** Removes a heading. Its items survive as ungrouped; child headings go with it. */
+export async function removeRunGroup(input: {
+  organizationId: string;
+  groupId: string;
+  actorId: string;
+}): Promise<WriteResult<{ projectId: string }>> {
+  return getDb().transaction(async (tx) => {
+    const owner = await tx
+      .select({ runId: takeoffGroups.runId, title: takeoffGroups.title })
+      .from(takeoffGroups)
+      .where(eq(takeoffGroups.id, input.groupId))
+      .limit(1);
+    const found = owner[0];
+    if (!found) return { ok: false, reason: "group_not_found" };
+
+    const scoped = await loadRunScoped(tx, input.organizationId, found.runId);
+    if (!scoped) return { ok: false, reason: "group_not_found" };
+    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+    if (scoped.run.state !== "running") return { ok: false, reason: "run_not_open" };
+
+    await tx.delete(takeoffGroups).where(eq(takeoffGroups.id, input.groupId));
+
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      eventType: "takeoff.group_removed",
+      resourceType: "takeoff_group",
+      resourceId: input.groupId,
+      metadata: { runId: found.runId, title: found.title }
+    });
+
+    return { ok: true, value: { projectId: scoped.run.projectId } };
+  });
+}
+
+/** Files an item under a heading, or clears it when the heading is null. */
+export async function assignItemGroup(input: {
+  organizationId: string;
+  itemId: string;
+  groupId: string | null;
+  actorId: string;
+}): Promise<WriteResult<{ projectId: string }>> {
+  return getDb().transaction(async (tx) => {
+    const locked = await lockItemForMeasurement(tx, input.organizationId, input.itemId);
+    if (!locked.ok) return locked;
+
+    if (input.groupId !== null) {
+      const group = await tx
+        .select({ runId: takeoffGroups.runId })
+        .from(takeoffGroups)
+        .where(eq(takeoffGroups.id, input.groupId))
+        .limit(1);
+      if (!group[0] || group[0].runId !== locked.runId) return { ok: false, reason: "group_not_found" };
+    }
+
+    await tx
+      .update(takeoffItems)
+      .set({ groupId: input.groupId, updatedAt: new Date() })
+      .where(eq(takeoffItems.id, input.itemId));
+
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      eventType: "takeoff.item_grouped",
+      resourceType: "takeoff_item",
+      resourceId: input.itemId,
+      metadata: { groupId: input.groupId }
+    });
+
+    return { ok: true, value: { projectId: locked.projectId } };
   });
 }
 
