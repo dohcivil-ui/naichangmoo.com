@@ -1,0 +1,15 @@
+{
+  "version": "0.7.1",
+  "title": "Light Teal Active Navigation",
+  "description": "คืน active state ของ navigation เป็นพื้นเขียวอ่อนใสตาม feedback โดยคง tactile press/release feedback และ active context ที่อ่านง่าย.",
+  "updatedAt": "2026-08-22T10:30:00+07:00",
+  "status": "ready_for_light_teal_navigation_review",
+  "scope": ["เปลี่ยน active pill จาก navy เข้มเป็น translucent teal", "ปรับ active hover/focus ให้ teal เข้มขึ้นเล็กน้อย", "เปลี่ยน active quote action เป็น peach light treatment", "คง press/release animation และ reduced-motion policy"],
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public review"],
+  "rollback": "Return to tag v0.7.0-tactile-navigation to restore dark active navigation tones.",
+  "items": [
+    { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" },
+    { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" },
+    { "id": "IP-020", "title": "Restore active state as a light translucent teal treatment", "status": "done", "phase": "release" }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "version": "0.4.3",
+  "title": "Public Pilot Visual Asset Availability",
+  "description": "แก้ icon graphic ที่แสดงไม่ครบใน Vercel pilot โดยเปลี่ยน visual asset proxy ให้ใช้ public CDN URLs สำหรับ review และสงวน VISUAL_ASSET_ORIGIN สำหรับ Cloudflare R2/CDN production.",
+  "scope": [
+    "สร้าง public pilot source URL สำหรับ icon graphic ของ ESTIMETR, กำแพงกันดิน, Traffic Sign, Land Acquisition V2 และ Hermes",
+    "แก้ visual asset proxy ให้เลือก Cloudflare R2/CDN เมื่อ VISUAL_ASSET_ORIGIN ถูกตั้งค่า หรือใช้ pilot CDN URL เมื่อยังไม่มี production storage",
+    "เพิ่ม VISUAL_ASSET_ORIGIN ใน environment contract",
+    "ตรวจ content type ของ CDN asset และรัน credential-less Vercel quality gate"
+  ],
+  "updatedAt": "2026-08-22T09:35:00+07:00",
+  "status": "ready_for_public_asset_redeploy",
+  "verification": [
+    "curl -I public pilot asset returns image/png",
+    "credential-less DEPLOY_TARGET=vercel lint, test (6 passed), typecheck and production build",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs",
+    "pending public Vercel icon and route verification"
+  ],
+  "rollback": "Return to tag v0.4.2-vercel-native-output. That version uses a sandbox-only asset origin and will not render pilot icons on Vercel.",
+  "constraints": [
+    "Pilot asset URLs are public presentation assets only; no user upload or private project document uses this origin.",
+    "Production must set VISUAL_ASSET_ORIGIN to the approved Cloudflare R2/CDN origin.",
+    "No database migration, real authentication, payment, Hermes runtime or user-data persistence is included."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0002-postgresql-drizzle-and-r2-data-boundary"
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement SVG/icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" },
+    { "id": "IP-012", "title": "Use Vercel native output while retaining Hostinger standalone build portability", "status": "done", "phase": "release" },
+    { "id": "IP-013", "title": "Serve Landing icon graphics through a public pilot-safe asset origin", "status": "done", "phase": "release" }
+  ]
+}

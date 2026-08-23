@@ -1,11 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { getLoginInteractionContract } from "@/lib/landing-interactions";
 
 export function SignInButton() {
+  const [notice, setNotice] = useState("");
+  const authEnabled = process.env.NEXT_PUBLIC_AUTH_ENABLED === "true";
+  const contract = getLoginInteractionContract(authEnabled);
+
+  if (contract.kind === "preview_notice") {
+    return (
+      <div className="sign-in-preview">
+        <button className="button button--primary" type="button" onClick={() => setNotice(contract.notice)}>{contract.label}</button>
+        {notice ? <span role="status">{notice}</span> : null}
+      </div>
+    );
+  }
+
   return (
-    <button className="button button--primary" onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/apps/estimeter" })}>
-      เข้าสู่ระบบด้วย Google
+    <button className="button button--primary" type="button" onClick={() => authClient.signIn.social({ provider: contract.provider, callbackURL: contract.callbackURL })}>
+      {contract.label}
     </button>
   );
 }

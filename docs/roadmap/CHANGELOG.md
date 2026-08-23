@@ -1,5 +1,101 @@
 # Roadmap Changelog
 
+## v0.12.3 — Full Source Repository Verification — 2026-08-22
+
+Verified that the private GitHub repository tracks editable source only, excludes build artifacts and provides a source-map/continuation guide for future development.
+
+## v0.12.2 — Landing Interaction Contracts and Button Audit — 2026-08-22
+
+Added a single tested interaction contract for Landing buttons/links and manually audited navigation, app entry locks, Login preview feedback, Roadmap refresh and enterprise form availability.
+
+## v0.12.1 — Concise Landing Copy and In-App Trial Details — 2026-08-22
+
+Reduced public Landing copy, removed Market/internal capability wording, renamed the first category to หมวดประมาณราคา and moved trial entitlement information into ESTIMETR.
+
+## v0.12.0 — Civil Apps Market and App Detail Routes — 2026-08-22
+
+Reworked the Landing into a direct category-to-app marketplace: each approved work category immediately shows its related app card. Added an honest detail route before workspace entry, with five-day ESTIMETR trial messaging and no numeric commercial price.
+
+## v0.11.2 — Vercel Private Preview Verified — 2026-08-22
+
+Verified that the private-repository preview is READY after commit attribution was aligned with the confirmed GitHub account. No product behavior changed in this release.
+
+## v0.11.1 — Vercel Private Git Commit Attribution Recovery — 2026-08-22
+
+Configured the repository-local Git author with the user-confirmed GitHub email after Vercel blocked the first private-repository preview for unrecognized commit attribution. This release triggers a replacement preview; no product behavior changes.
+
+## v0.11.0 — ESTIMETR Guided Assistant and Strict Release Gates — 2026-08-22
+
+Added a deterministic in-workspace assistant for Beginner/Fast guidance and made the ESTIMETR demo enforce explicit project-path, scale, evidence, price-set and document-release gates. The release records provenance and form-baseline policy but does not create real prices or export files.
+
+## v0.10.2 — ESTIMETR GitHub Release Confirmation — 2026-08-22
+
+Confirmed the ESTIMETR workspace source has been committed, pushed to GitHub and tagged under the project’s release rules. No product behavior changed.
+
+## v0.10.1 — ESTIMETR Public Pilot Verification — 2026-08-22
+
+Recorded a successful public Vercel review of the ESTIMETR workspace, Landing and Roadmap/Handoff routes after the v0.10.0 workspace release. This release changes no product behavior.
+
+## v0.10.0 — ESTIMETR Traceable BOQ Estimation Workspace — 2026-08-22
+
+Replaced the ESTIMETR placeholder with an interactive four-stage workspace for drawing review, quantity take-off, unit-cost estimation and BOQ readiness. The pilot clearly separates evidence, quantities, price-source readiness and document approval from live production data.
+
+## v0.9.2 — ESTIMETR Estimation Terminology — 2026-08-22
+
+Replaced the user-facing term “ผูกราคา” with “ประมาณราคา” across the ESTIMETR workflow and app registry.
+
+## v0.9.1 — NM Brand and Badge Public Review Verification — 2026-08-22
+
+Recorded a public Vercel desktop review confirming the wordmark, hero line-art and visible product badges render through the visual asset proxy.
+
+## v0.9.0 — NM Brand Composition and Engineering App Badges — 2026-08-22
+
+Applied the approved NM wordmark and engineering line-art layout to the shared platform, and replaced generic-looking icon treatments with a coherent set of civil-engineering product badges.
+
+## v0.8.0 — Dedicated Enterprise Quotation Page — 2026-08-22
+
+Moved the enterprise quotation form out of Landing to `/enterprise`, leaving Landing focused on product discovery and platform workflow.
+
+## v0.7.1 — Light Teal Active Navigation — 2026-08-22
+
+Restored the active navigation treatment to a light translucent teal surface while preserving the restrained tactile press/release behavior.
+
+## v0.7.0 — Tactile Engineering Navigation — 2026-08-22
+
+Added restrained press/release feedback and anchor-aware active tones for navigation pills. Active state now communicates the selected work context without decorative motion.
+
+## v0.6.1 — Navigation Button Hierarchy — 2026-08-22
+
+Restyled every sticky navigation item as an accessible pill button. The enterprise quotation shortcut remains the orange primary action.
+
+## v0.6.0 — Sticky Enterprise Navigation — 2026-08-22
+
+Made platform navigation sticky and added direct routes to apps, Hermes, Roadmap/Handoff and the enterprise quotation section. Mobile now retains these links in a horizontally scrollable navigation row. Updated the retaining-wall card as **Retaining Wall Cantilever** with a concise Bisection Algorithm optimization description.
+
+## v0.5.1 — Public Motion Review Verified — 2026-08-22
+
+Recorded successful public Vercel review of the Landing motion release, ESTIMETR app shell and Roadmap/Handoff route. No runtime behavior changed in this verification release.
+
+## v0.5.0 — Responsive Engineering Motion System — 2026-08-22
+
+Added purposeful Landing feedback: hero blueprint signals, reveal-on-scroll, mouse-only card spotlight/tilt, Hermes attention response and form focus lift. The implementation honors reduced-motion and touch constraints.
+
+## v0.4.3 — Public Pilot Visual Asset Availability — 2026-08-22
+
+Fixed Vercel pilot icon rendering by making the visual asset proxy use public presentation CDN URLs until the production Cloudflare R2/CDN origin is configured. The production switch remains controlled by `VISUAL_ASSET_ORIGIN`.
+
+## v0.4.2 — Vercel Native Output Compatibility — 2026-08-22
+
+Fixed Vercel deployment compatibility by making `output: standalone` conditional on `DEPLOY_TARGET=hostinger`. Vercel pilot deployments now use the framework-native Next.js output while the same source remains ready for a standalone Hostinger Docker build.
+
+## v0.4.1 — Vercel Auth-Safe Pilot Build — 2026-08-22
+
+Fixed Vercel build-time failure caused by eager Better Auth database initialization. The auth route now imports the database-backed runtime only when required environment values exist, and Landing shows a safe sign-in preview state until real authentication infrastructure is configured.
+
+## v0.4.0 — Unified App Shell and Interactive Landing System — 2026-08-22
+
+Added original per-app icon graphics, a visual asset proxy, micro-interaction patterns, shared PlatformNav/PlatformFooter/AppShell components, and the platform UI system specification. Corrected RCOPT’s user-facing name to กำแพงกันดิน.
+
 ## v0.3.0 — Interactive Landing and Source Status Console — 2026-08-22
 
 Created full editable Next.js scaffold with Landing app registry, SVG icon system, Hermes pilot disclosure, ESTIMETR trial interaction preview, enterprise quotation intake and runtime Roadmap/Handoff HTML console. This version adds consistent title, description, scope, verification and rollback metadata to the active roadmap source.

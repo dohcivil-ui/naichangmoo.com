@@ -1,0 +1,15 @@
+{
+  "version": "0.9.2",
+  "title": "ESTIMETR Estimation Terminology",
+  "description": "แก้ข้อความ user-facing ของ ESTIMETR จาก “ผูกราคา” เป็น “ประมาณราคา” เพื่อให้ใช้ศัพท์งานประมาณราคาที่ถูกต้องและสอดคล้องกัน.",
+  "updatedAt": "2026-08-22T11:35:00+07:00",
+  "status": "ready_for_terminology_review",
+  "scope": ["เปลี่ยน ESTIMETR app-card workflow summary", "เปลี่ยน hero workflow step 04 เป็น “ประมาณราคาและจัดทำเอกสาร”", "ตรวจ source/docs ไม่ให้มีคำว่า “ผูกราคา” คงเหลือ"],
+  "verification": ["grep confirms no remaining user-facing “ผูกราคา” string", "pending lint/test/typecheck/build/security/roadmap and public Vercel review"],
+  "rollback": "Return to tag v0.9.1-brand-badge-review to restore the previous copy only.",
+  "items": [
+    { "id": "IP-023", "title": "Replace generic icon treatments with product-grade engineering app badges", "status": "done", "phase": "release" },
+    { "id": "IP-024", "title": "Record public brand and badge verification", "status": "done", "phase": "release" },
+    { "id": "IP-025", "title": "Standardize ESTIMETR workflow wording as ประมาณราคา", "status": "done", "phase": "release" }
+  ]
+}

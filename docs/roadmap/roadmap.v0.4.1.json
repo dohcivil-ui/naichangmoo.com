@@ -1,0 +1,46 @@
+{
+  "version": "0.4.1",
+  "title": "Vercel Auth-Safe Pilot Build",
+  "description": "แก้ Vercel build ที่ล้มจาก Better Auth database adapter โดยเลื่อนการสร้าง auth/database ไป runtime และทำให้ Landing preview แสดงสถานะ Google Login ที่ปลอดภัยเมื่อยังไม่มี PostgreSQL หรือ OAuth credentials.",
+  "scope": [
+    "แยก auth availability guard ที่ตรวจ DATABASE_URL, BETTER_AUTH_SECRET และ BETTER_AUTH_URL",
+    "เปลี่ยน Better Auth route ให้ dynamic import เฉพาะเมื่อ runtime environment พร้อม",
+    "คืน HTTP 503 ที่อธิบายได้สำหรับ auth endpoint ใน preview ที่ยังไม่เปิด infrastructure",
+    "เพิ่ม sign-in preview state และ NEXT_PUBLIC_AUTH_ENABLED เพื่อไม่ให้ Landing เริ่ม OAuth ที่ยังไม่พร้อม",
+    "เพิ่ม unit test และทดสอบ production build โดย unset database/auth environment"
+  ],
+  "updatedAt": "2026-08-22T09:15:00+07:00",
+  "status": "ready_for_vercel_pilot",
+  "verification": [
+    "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm lint",
+    "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm test (6 passed)",
+    "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED pnpm typecheck",
+    "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED NODE_ENV=production pnpm build",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs"
+  ],
+  "rollback": "Return to tag v0.4.0-unified-app-shell. The rollback restores eager Better Auth initialization and therefore is unsuitable for a Vercel pilot without database credentials.",
+  "constraints": [
+    "Pilot preview does not enable real login, database actions, payment, Hermes runtime or user-data persistence.",
+    "Production login requires PostgreSQL, Better Auth secret/base URL and OAuth provider credentials before NEXT_PUBLIC_AUTH_ENABLED is true.",
+    "All apps retain the platform UI system introduced in v0.4.0."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0002-postgresql-drizzle-and-r2-data-boundary",
+    "0003-platform-membership-entitlement-and-trial"
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement SVG/icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" }
+  ]
+}

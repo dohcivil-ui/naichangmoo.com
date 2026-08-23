@@ -1,58 +1,62 @@
 import { AppCard } from "@/components/landing/app-card";
-import { EnterpriseQuoteForm } from "@/components/landing/enterprise-quote-form";
+import { LandingMotion } from "@/components/landing/landing-motion";
+import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
 import { SignInButton } from "@/components/landing/sign-in-button";
-import { TrialPolicyPreview } from "@/components/landing/trial-policy-preview";
-import { EstimateIcon, HermesIcon, LandIcon, NaiChangMooMark, QuoteIcon, SignIcon, WallIcon } from "@/components/icons/platform-icons";
-import { platformApps } from "@/lib/platform";
-
-const appIcons = { estimeter: EstimateIcon, rcopt: WallIcon, "traffic-sign": SignIcon, "land-acquisition": LandIcon };
+import Image from "next/image";
+import { PlatformFooter } from "@/components/platform/platform-footer";
+import { PlatformNav } from "@/components/platform/platform-nav";
+import { marketCategories, platformApps } from "@/lib/platform";
+import { visualAssetUrl } from "@/lib/visual-assets";
+import { landingActionContract } from "@/lib/landing-interactions";
 
 export default function LandingPage() {
   return (
     <main className="site-shell">
-      <nav className="site-nav" aria-label="เมนูหลัก">
-        <div className="container site-nav__inner">
-          <a className="brand" href="#top"><NaiChangMooMark /><span>นายช่างหมู<small>CIVIL APPS ASSISTANT</small></span></a>
-          <div className="nav-links"><a href="#apps">แอปของเรา</a><a href="#hermes">Hermes 24/7</a><a href="#enterprise">องค์กร/หน่วยงาน</a></div>
-          <SignInButton />
-        </div>
-      </nav>
+      <LandingMotion />
+      <PlatformNav />
 
       <section className="hero" id="top">
+        <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>
         <div className="container hero__grid">
-          <div>
-            <div className="eyebrow">ENGINEERING TOOLS, NOT NOISY SOFTWARE</div>
-            <h1>เครื่องมือโยธาที่พางานไปทีละขั้น และอธิบายผลได้</h1>
-            <p>นายช่างหมูรวมเครื่องมือที่จำเป็นสำหรับงานวิศวกรรมไว้ภายใต้บัญชีเดียว โดยเริ่มจาก ESTIMETR สำหรับประมาณราคางานอาคารที่ตรวจย้อนกลับจากแบบ ปริมาณ ราคา และเอกสารได้</p>
-            <div className="hero__actions"><SignInButton /><a className="button button--orange" href="#apps">ดูแอปและสิทธิ์ใช้งาน</a></div>
-            <p className="hero__note">สมาชิกใหม่ใช้ ESTIMETR ได้ 5 วัน ไม่เกิน 1 โครงการ โดยข้อมูลยังเปิดดูได้เมื่อสิทธิ์ทดลองหมดอายุ</p>
+          <div className="hero__copy" data-reveal>
+            <div className="eyebrow">นายช่างหมู · แอปงานโยธา</div>
+            <h1>แอปงานโยธา ใช้งานง่าย</h1>
+            <p>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
+          <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
+            <p className="hero__note">ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
           </div>
-          <aside className="workflow-rail" aria-label="ลำดับงาน ESTIMETR"><h2>ESTIMETR WORKFLOW</h2>{["ตั้งโครงการและแบบ", "กำหนดสเกลและตรวจหลักฐาน", "ถอดปริมาณและทบทวน", "ผูกราคาและจัดทำเอกสาร"].map((step, index) => <div className="workflow-step" key={step}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          <div className="hero__side" data-reveal data-reveal-delay="1">
+            <HeroEngineeringArt />
+            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          </div>
         </div>
       </section>
 
       <section className="section" id="apps">
         <div className="container">
-          <div className="section-heading"><div><div className="eyebrow" style={{ color: "var(--teal)" }}>APP REGISTRY</div><h2>แต่ละแอปมีหน้าที่และสิทธิ์ที่ชัดเจน</h2></div><p>ไม่รวมเมนูที่ไม่เกี่ยวกับงานไว้ในที่เดียว ผู้ใช้เลือกเครื่องมือจากงานที่ต้องทำ และระบบตรวจสิทธิ์จากสมาชิก platform หลังเข้าสู่ระบบ</p></div>
-          <div className="app-grid">{platformApps.map((app) => <AppCard key={app.slug} app={app} Icon={appIcons[app.slug as keyof typeof appIcons]} />)}</div>
-          <TrialPolicyPreview />
+          <div className="section-heading" data-reveal><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
+          <div className="market-category-stack">
+            {marketCategories.map((category, index) => {
+              const apps = platformApps.filter((app) => app.categoryId === category.id);
+              return <section className="market-category" key={category.id} data-reveal>
+                <header className="market-category__header">
+                  <span className="market-category__index">0{index + 1}</span>
+                  <div><p className="eyebrow">หมวดงาน</p><h3>{category.label}</h3><p>{category.description}</p></div>
+                </header>
+                <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} />)}</div>
+              </section>;
+            })}
+          </div>
         </div>
       </section>
 
       <section className="section section--white" id="hermes">
         <div className="container">
-          <div className="hermes-panel"><HermesIcon title="Hermes AI Agentic" /><div><div className="eyebrow" style={{ color: "var(--teal)" }}>HERMES AI AGENTIC · 24/7</div><h2>ผู้ช่วยทบทวนหลักฐาน ไม่ใช่ผู้ตัดสินแทนวิศวกร</h2><p>Hermes ถูกออกแบบให้ทำงานเบื้องหลังตลอดเวลาเพื่อรับงานตรวจหลักฐาน AI Takeoff และสรุปประเด็นที่ควรทบทวนก่อนผู้ใช้ยืนยันผล</p><p className="hermes-guardrail">Pilot policy: ไม่มีสิทธิ์แก้ราคา ปล่อยเอกสาร ส่งข้อความ หรือเปลี่ยนข้อมูลโครงการเอง</p></div><span className="access access--member_free">ADVISORY PILOT</span></div>
+          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal)" }}>HERMES · 24/7</div><h2>ผู้ช่วยสำหรับงานที่ต้องทบทวน</h2><p>ช่วยเตือนประเด็นที่ควรตรวจสอบก่อนยืนยันงาน</p></div></div>
         </div>
       </section>
 
-      <section className="section" id="enterprise">
-        <div className="container quote-grid">
-          <div className="quote-intro"><QuoteIcon title="ขอใบเสนอราคาสำหรับองค์กร" /><div className="eyebrow" style={{ color: "var(--teal)" }}>ORGANIZATION / AGENCY</div><h2>ขอใบเสนอราคาสำหรับองค์กรหรือหน่วยงาน</h2><p>แจ้งจำนวนผู้ใช้ แอปที่สนใจ และข้อกำหนดจัดซื้อ เพื่อให้ทีมงานจัดทำข้อเสนอที่ตรงกับบริบทการใช้งานของคุณ</p><p>แบบฟอร์มนี้เป็นเพียงการรับ requirement ยังไม่ถือเป็นใบเสนอราคา สัญญา หรือการชำระเงิน</p></div>
-          <EnterpriseQuoteForm />
-        </div>
-      </section>
-
-      <footer className="footer"><div className="container footer__inner"><div><strong>นายช่างหมู</strong> — CIVIL APPS ASSISTANT</div><p><a href="/roadmap">Roadmap &amp; Handoff</a> · เครื่องมือวิศวกรรมที่เรียบง่าย ตรวจสอบได้ และออกแบบมาเพื่อให้งานเดินหน้า</p></div></footer>
+      <PlatformFooter />
     </main>
   );
 }

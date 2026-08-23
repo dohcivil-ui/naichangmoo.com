@@ -1,0 +1,15 @@
+{
+  "version": "0.9.1",
+  "title": "NM Brand and Badge Public Review Verification",
+  "description": "บันทึกผลตรวจ Vercel ของ NM wordmark, engineering hero line-art และ app product badges เพื่อให้ release trail ระบุผลการแสดงบน public deployment ได้ชัดเจน.",
+  "updatedAt": "2026-08-22T11:20:00+07:00",
+  "status": "public_desktop_review_verified",
+  "scope": ["ตรวจ NM wordmark ใน sticky navigation", "ตรวจ hero engineering line-art", "ตรวจ visible app badges และ Hermes asset pipeline", "บันทึก HTTP asset proxy verification", "ระบุ follow-up สำหรับ manual mobile review และ Cloudflare R2 handoff"],
+  "verification": ["Vercel deployment READY", "public desktop Landing review", "visual asset proxy returns 200 image/png", "pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "credential-less production build", "pnpm security:check", "node scripts/check-roadmap.mjs"],
+  "rollback": "Return to tag v0.9.0-nm-brand-badges to remove only public review documentation; product source remains identical.",
+  "items": [
+    { "id": "IP-022", "title": "Apply approved NM wordmark and engineering line-art composition", "status": "done", "phase": "release" },
+    { "id": "IP-023", "title": "Replace generic icon treatments with product-grade engineering app badges", "status": "done", "phase": "release" },
+    { "id": "IP-024", "title": "Record public brand and badge verification", "status": "done", "phase": "release" }
+  ]
+}
