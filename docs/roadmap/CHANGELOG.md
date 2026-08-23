@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.14.0 — ESTIMETR Project Lifecycle — 2026-08-23
+
+Turned ESTIMETR from a demo workspace into an application that creates and opens real projects. ESTIMETR now owns `/apps/estimeter` with its own guard, all project reads are organization-scoped so an id from another organization returns nothing, and the one-project trial cap is enforced inside the write transaction under an organization row lock rather than by disabling a button. The root `todo.md` was retired into the roadmap.
+
 ## v0.13.0 — ESTIMETR Entitlement Runtime and Source Line Reconciliation — 2026-08-23
 
 Merged the ESTIMETR workspace line back together with the intake abuse-control line, keeping the session guard on `/apps/[slug]`, and replaced the unused entitlement module with an enforced runtime: ESTIMETR is registered in `apps`, the five-day one-project trial is issued from `users.created_at` with an audit event, and every mutating control in the workspace is gated by a capability set decided on the server.

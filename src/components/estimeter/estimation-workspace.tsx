@@ -8,7 +8,6 @@ import {
   type EstimationStage,
   type ProjectPath,
 } from "@/lib/estimation-workflow";
-import { EntitlementStatus } from "@/components/estimeter/entitlement-status";
 import type { EstimeterAccessView } from "@/lib/estimeter-access-view";
 
 const stages = [
@@ -111,7 +110,7 @@ export function EstimationWorkspace({ access }: { access: EstimeterAccessView })
         <header className="estimation-workspace__head">
           <div>
             <p className="eyebrow">ESTIMETR · GUIDED COST WORKSPACE</p>
-            <h1>ประมาณราคาแบบมีผู้ช่วย และห้ามข้ามหลักฐาน</h1>
+            <h2>ลำดับงานประมาณราคา และ gate ที่ห้ามข้าม</h2>
             <p className="estimation-workspace__lead">
               ผู้เริ่มต้นเรียนรู้ทีละขั้น ผู้มีประสบการณ์ข้ามคำอธิบายได้ แต่ทุกคนต้องผ่าน gate เดียวกันก่อนเปลี่ยน BOQ revision หรือเตรียมเอกสาร
             </p>
@@ -126,7 +125,6 @@ export function EstimationWorkspace({ access }: { access: EstimeterAccessView })
             ? <><strong>พื้นที่สาธิต:</strong> ตรวจขั้นตอนการทำงานได้จากหน้านี้ ข้อมูลในตารางเป็นตัวอย่างและยังไม่บันทึกลงโครงการจริง</>
             : <><strong>อ่านอย่างเดียว:</strong> {lockReason}</>}
         </p>
-        <EntitlementStatus access={access} />
 
         <nav className="estimation-steps" aria-label="ขั้นตอนประมาณราคา">
           {stages.map((stage) => {

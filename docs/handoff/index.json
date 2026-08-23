@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.14.0",
+    "title": "ESTIMETR Project Lifecycle",
+    "description": "สร้างและเปิดโครงการ ESTIMETR ได้จริง โดยเพดานโครงการของสิทธิ์ทดลองถูกบังคับใน transaction และทุก query ผูก organization.",
+    "scope": ["dedicated /apps/estimeter routes and guard", "organization-scoped project repository", "trial cap enforced under a row lock", "project.created audit trail", "root todo.md retired into the roadmap"],
+    "verification": ["typecheck/lint/build passed", "vitest 15 files / 63 tests passed with the opt-in PostgreSQL suites enabled", "the lock test was shown to fail when the row lock is removed", "unauthenticated probes on all three ESTIMETR routes returned the access gate without touching project data"],
+    "rollback": "Revert the slice 2 commit or return to tag v0.13.0-estimeter-entitlement-runtime; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-project-lifecycle.md"
+  },
+  {
     "version": "0.13.0",
     "title": "ESTIMETR Entitlement Runtime and Source Line Reconciliation",
     "description": "รวมสองสายพัฒนากลับเป็นสายเดียว และบังคับใช้สิทธิ์ ESTIMETR จริงฝั่งเซิร์ฟเวอร์ตาม ADR 0003.",

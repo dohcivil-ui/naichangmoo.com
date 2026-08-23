@@ -1,13 +1,13 @@
 {
-  "version": "0.13.0",
-  "title": "ESTIMETR Entitlement Runtime and Source Line Reconciliation",
-  "description": "รวมสองสายพัฒนาที่แยกจากกันกลับเป็นสายเดียว แล้วเปลี่ยน entitlement ของ ESTIMETR จากนโยบายบนกระดาษให้เป็นการบังคับใช้จริงฝั่งเซิร์ฟเวอร์ ตาม ADR 0003 คือสิทธิ์ทดลอง 5 วันนับจากวันสมัครสมาชิก บันทึกลง audit และตรวจสิทธิ์ก่อน render workspace ทุกครั้ง",
-  "scope": ["merge feature/estimeter-guided-assistant into the abuse-control line and keep the /apps/[slug] session guard", "register ESTIMETR in the apps table from the code registry without a migration", "issue the five-day trial from users.created_at with an audit event, idempotent under repeat and concurrent visits", "resolve capabilities and project count on the server before rendering the ESTIMETR workspace", "correct entitlement policy defaults that granted more than the approved trial"],
-  "updatedAt": "2026-08-23T18:10:00+07:00",
+  "version": "0.14.0",
+  "title": "ESTIMETR Project Lifecycle",
+  "description": "เปิดให้สร้างและเข้าดูโครงการ ESTIMETR ได้จริงบนตาราง projects ที่มีอยู่ โดยเพดาน 1 โครงการของสิทธิ์ทดลองถูกบังคับที่ write path ไม่ใช่ที่ปุ่ม และทุก query ผูก organization เพื่อกันการเข้าถึงข้ามองค์กร",
+  "scope": ["create and read ESTIMETR projects through a single organization-scoped repository", "enforce the trial project cap inside the write transaction with a row lock, not on the screen", "reject cross-organization project access at the query, not by hiding a link", "record project creation in audit_events with the entitlement state that allowed it", "retire the root todo.md by moving its unfinished items into the roadmap"],
+  "updatedAt": "2026-08-23T19:00:00+07:00",
   "status": "local_verification_passed_push_and_tag_pending",
-  "verification": ["pnpm typecheck, pnpm lint (0 warnings), pnpm test (45 passed / 3 opt-in skipped) and pnpm build pass on the reconciled line", "entitlement unit tests cover AI default, stored limits on a paid entitlement, expired widening, future start date, suspension and the project cap", "opt-in integration run against local PostgreSQL confirms one entitlement and one audit event per member, an unextendable window derived from users.created_at, read-only capabilities after five days and no duplicate row under concurrent first visits", "GitHub push and release tag pending user approval"],
-  "rollback": "Return to tag v0.12.3-source-verification or branch backup/pre-estimeter-merge. No migration runs in this release, so a revert needs no schema rollback; rows written into apps, organizations, organization_members, app_entitlements and audit_events stay valid and unused.",
-  "constraints": ["No schema change or migration in this release; the runtime works on the tables shipped by migrations 0000 and 0001.", "Trial activation starts a clock that cannot be reset, so it requires an explicit user action and an audit record.", "Entitlement decisions are made on the server. Hiding a control in the UI is never the enforcement point.", "No real secret, customer data, uploaded drawing, price export or environment file may enter Git history."],
+  "verification": ["pnpm typecheck, pnpm lint (0 warnings), pnpm test (63 passed with the opt-in database suites enabled) and pnpm build pass", "unit tests cover project name parsing and the denial message for trial cap, expiry, suspension, not-started and unlimited entitlements", "opt-in PostgreSQL tests cover the refused second project, the audit record naming the entitlement that allowed the write, a second submit waiting on the organization lock, cross-organization reads returning nothing, reads surviving expiry and a missing organization", "the lock test was confirmed to fail when the row lock is removed, so it detects the real race rather than passing by timing", "unauthenticated requests to /apps/estimeter, /apps/estimeter/projects/new and /apps/estimeter/projects/{id} all returned the access gate, and /apps/rcopt still resolves through the dynamic app route", "GitHub push and release tag pending user approval"],
+  "rollback": "Revert the slice 2 commit or return to tag v0.13.0-estimeter-entitlement-runtime. No migration runs in this release. Rows written to projects and audit_events remain valid; reverting only removes the routes that read them.",
+  "constraints": ["No schema change or migration in this release; projects is used as shipped by migration 0000.", "Project path (private/government), province and price month are deliberately not collected yet because projects has no column for them; they arrive with the schema slice.", "Server Actions are public POST endpoints, so authentication, entitlement and organization scope are re-checked inside every action.", "No real secret, customer data, uploaded drawing, price export or environment file may enter Git history."],
   "adrReferences": ["0002-postgresql-drizzle-and-r2-data-boundary", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
   "items": [
     { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
@@ -49,6 +49,9 @@
     { "id": "IP-037", "title": "Verify full editable source repository and document continuation workflow", "status": "done", "phase": "release" },
     { "id": "IP-038", "title": "Reconcile the ESTIMETR workspace line with intake abuse controls", "status": "done", "phase": "governance" },
     { "id": "IP-039", "title": "Enforce ESTIMETR entitlement on the server from the member record", "status": "done", "phase": "implementation" },
-    { "id": "IP-040", "title": "Issue the ESTIMETR trial from the Better Auth registration hook instead of first visit", "status": "planned", "phase": "implementation" }
+    { "id": "IP-040", "title": "Issue the ESTIMETR trial from the Better Auth registration hook instead of first visit", "status": "planned", "phase": "implementation" },
+    { "id": "IP-041", "title": "Create and open real ESTIMETR projects with the trial cap enforced on the write path", "status": "done", "phase": "implementation" },
+    { "id": "IP-042", "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance", "status": "planned", "phase": "governance" },
+    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" }
   ]
 }

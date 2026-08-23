@@ -22,8 +22,9 @@ import { platformApps } from "@/lib/platform";
 
 type Database = ReturnType<typeof getDb>;
 
-/** Serializable snapshot for the workspace; every field is decided on the server. */
+/** Server-side decision record. `toAccessView` strips it down to what the client may see. */
 export type EstimeterAccess = {
+  organizationId: string;
   state: EffectiveEntitlementState;
   endsAtIso: string | null;
   daysRemaining: number | null;
@@ -208,6 +209,7 @@ export async function getEstimeterAccess(userId: string, now = new Date()): Prom
     : { ...record.entitlement, state: "suspended" };
 
   return {
+    organizationId: record.organizationId,
     state: resolveEntitlement(entitlement, now),
     endsAtIso: entitlement.endsAt ? entitlement.endsAt.toISOString() : null,
     daysRemaining: trialDaysRemaining(entitlement.endsAt, now),
