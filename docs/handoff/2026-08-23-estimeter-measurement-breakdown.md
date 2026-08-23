@@ -71,7 +71,8 @@ DROP TYPE project_path;
 
 ## Next action
 
-1. Push branch `feature/estimeter-measurement-breakdown` และ tag `v0.17.0-estimeter-measurement-breakdown` (รออนุมัติ)
-2. สไลซ์ถัดไป **v0.18.0 — Cost catalog + price sources**: ingest ว809 / สพฐ. / สนค. พร้อม provenance และ **ต้องมีขั้นตอนคนตรวจก่อนใช้คำนวณ** เพราะ OCR ของทั้งตาราง Factor F และ ว809 มีข้อผิดพลาดจริงที่ตรวจพบแล้ว (IP-050, IP-051, IP-052)
-3. ช่องว่าง schema ที่ต้องปิดใน v0.18.0: `price_observations` ยังไม่มีคอลัมน์ `unit` ไม่แยกค่าวัสดุ/ค่าแรง ไม่มีช่องเงื่อนไข (ว809 ให้อัตราต่างกันตามช่วงจำนวนและเขตพื้นที่) และไม่มีการอ้างหน้าเอกสาร
-4. v0.19.0 คือ ปร.4 → ปร.5 (Factor F) → ปร.6 ปิด IP-042 ตอนนั้น
+1. Push branch และ tag `v0.17.0-estimeter-measurement-breakdown` เสร็จแล้ว และย้อนสร้าง GitHub Release ครบทั้ง 32 tag ตั้งแต่ v0.1.0 โดย v0.17.0 เป็น latest
+2. เปิด PR เข้า `initial-project/nextjs-foundation` แล้ว — branch นี้**บรรจุ PR ที่ค้างอยู่ทั้งหมด (#2–#6)** ไว้ในตัว merge อันเดียวจึงปิดทั้งกอง
+3. สไลซ์ถัดไป **v0.18.0 — Cost catalog + price sources**: ingest ว809 / สพฐ. / สนค. พร้อม provenance และ **ต้องมีขั้นตอนคนตรวจก่อนใช้คำนวณ** เพราะ OCR ของทั้งตาราง Factor F และ ว809 มีข้อผิดพลาดจริงที่ตรวจพบแล้ว (IP-050, IP-051, IP-052)
+4. ช่องว่าง schema ที่ต้องปิดใน v0.18.0: `price_observations` ยังไม่มีคอลัมน์ `unit` ไม่แยกค่าวัสดุ/ค่าแรง ไม่มีช่องเงื่อนไข (ว809 ให้อัตราต่างกันตามช่วงจำนวนและเขตพื้นที่) และไม่มีการอ้างหน้าเอกสาร
+5. v0.19.0 คือ ปร.4 → ปร.5 (Factor F) → ปร.6 ปิด IP-042 ตอนนั้น

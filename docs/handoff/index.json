@@ -15,7 +15,8 @@
       "typecheck/lint/build/security:check passed",
       "vitest 20 files / 140 tests passed with the opt-in PostgreSQL suites enabled",
       "reference footing F1 reproduced: 0.7875 cu.m, 2.1 sq.m, 31.35528 kg",
-      "direct-to-database writes that skip the repository are refused by the named CHECK constraints"
+      "direct-to-database writes that skip the repository are refused by the named CHECK constraints",
+      "branch and tag pushed; GitHub Releases created for all 32 tags with v0.17.0 marked latest"
     ],
     "rollback": "Return to tag v0.16.0-estimeter-trial-activation and drop migrations 0003 and 0002, which are additive only.",
     "path": "docs/handoff/2026-08-23-estimeter-measurement-breakdown.md"
