@@ -14,5 +14,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th"><body className={ibmPlexThai.variable}>{children}</body></html>;
+  return <html lang="th"><body className={ibmPlexThai.variable}>
+    {/* Everything carrying data-reveal starts at opacity 0 and is revealed by script. Without
+        this, a visitor with no JavaScript gets a hero that never arrives. */}
+    <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>
+    {children}
+  </body></html>;
 }

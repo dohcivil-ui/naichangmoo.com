@@ -12,6 +12,8 @@
   --line: #c9d8d9;
   --success: #32765d;
   --ease-out: cubic-bezier(.23, 1, .32, 1);
+  /* Gentler and longer than --ease-out: a reveal should arrive, not snap. */
+  --ease-reveal: cubic-bezier(.25, .1, .25, 1);
   --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   --focus: rgba(244, 119, 33, .72);
 }
@@ -168,7 +170,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @keyframes signal-drift { from { transform: translate3d(0, 0, 0) scale(.94); opacity: .42; } to { transform: translate3d(-20px, 16px, 0) scale(1.06); opacity: .82; } }
 @keyframes app-reveal { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes nav-settle { 0% { transform: translateY(1px) scale(.955); } 68% { transform: translateY(-.5px) scale(1.012); } 100% { transform: translateY(0) scale(1); } }
-[data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity 420ms var(--ease-out), transform 420ms var(--ease-out); transition-delay: calc(var(--reveal-delay, 0) * 70ms); }[data-reveal][data-reveal-delay="1"] { --reveal-delay: 1; }[data-revealed="true"] { opacity: 1; transform: translateY(0); }.app-card[data-revealed="true"] { animation: app-reveal 420ms var(--ease-out) both; }.app-grid .app-card:nth-child(2) { animation-delay: 70ms; }.app-grid .app-card:nth-child(3) { animation-delay: 140ms; }.app-grid .app-card:nth-child(4) { animation-delay: 210ms; }
+/* --fy and --fx are per element: a heading can come down while the card under it rises, which
+   is what stops a long page from reading as one repeated gesture. Positive --fy rises. */
+[data-reveal] { opacity: 0; transform: translateY(var(--fy, 18px)) translateX(var(--fx, 0)); transition: opacity 800ms var(--ease-reveal), transform 800ms var(--ease-reveal); transition-delay: calc(var(--reveal-delay, 0) * 70ms); }[data-revealed="true"] { opacity: 1; transform: none; }.app-card[data-revealed="true"] { animation: app-reveal 420ms var(--ease-out) both; }.app-grid .app-card:nth-child(2) { animation-delay: 70ms; }.app-grid .app-card:nth-child(3) { animation-delay: 140ms; }.app-grid .app-card:nth-child(4) { animation-delay: 210ms; }
 @media (hover: none), (pointer: coarse) { .app-card:hover, .hermes-panel:hover, .button:hover { transform: none; box-shadow: none; }.app-card::before { display: none; } }
 
 /* Hero motion. The drawing builds itself once, then a survey sweep keeps reading it, and the start rail

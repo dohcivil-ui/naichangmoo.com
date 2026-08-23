@@ -19,14 +19,17 @@ export default function LandingPage() {
       <section className="hero" id="top">
         <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>
         <div className="container hero__grid">
-          <div className="hero__copy" data-reveal>
-            <div className="eyebrow">นายช่างหมู · แอปงานโยธา</div>
-            <h1>แอปงานโยธา ใช้งานง่าย</h1>
-            <p>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
-          <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
-            <p className="hero__note">ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
+          {/* The hero introduces itself a line at a time rather than as one block: the eyebrow
+              settles down from above, then everything under it rises, so the eye is led to the
+              headline instead of meeting the whole panel at once. */}
+          <div className="hero__copy">
+            <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
+            <h1 data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>แอปงานโยธา ใช้งานง่าย</h1>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
+          <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
+            <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
           </div>
-          <div className="hero__side" data-reveal data-reveal-delay="1">
+          <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
             <HeroEngineeringArt />
             <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
           </div>
@@ -35,7 +38,7 @@ export default function LandingPage() {
 
       <section className="section section--white" id="why">
         <div className="container">
-          <div className="section-heading" data-reveal>
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
               <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
               <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
@@ -72,7 +75,7 @@ export default function LandingPage() {
 
       <section className="section" id="apps">
         <div className="container">
-          <div className="section-heading" data-reveal><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
           <div className="market-category-stack">
             {marketCategories.map((category, index) => {
               const apps = platformApps.filter((app) => app.categoryId === category.id);
