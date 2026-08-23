@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.24.0",
+    "title": "A Factor Between Two Steps Is Now a Rule, Not a Habit",
+    "description": "ค่างานที่ตกระหว่างขั้นของตาราง Factor F ให้เทียบอัตราส่วนตามหมายเหตุข้อ 1 ของ ว481 ปัดสี่ตำแหน่งก่อนคูณ และผลลัพธ์ต้องบอกที่มาของตัวคูณได้.",
+    "scope": [
+      "interpolation rule recorded beside the latest-circular rule",
+      "four-decimal rounding before multiplying",
+      "one factor per section, chosen from the section total",
+      "result must show printed step or interpolation",
+      "note 2: no-VAT work reads the รวมในรูป Factor column"
+    ],
+    "verification": [
+      "engineering rules carry both notes with the reason each exists",
+      "resolveFactorF already implements them (26fd55a)",
+      "the audited project resolves to 1.3028 interpolated, 3,295,081.10, net 3,295,000",
+      "check-roadmap passes"
+    ],
+    "rollback": "Revert the v0.24.0 commit. Rule text only; the resolver is a separate commit.",
+    "path": "docs/handoff/2026-08-24-factor-f-interpolation-rule.md"
+  },
+  {
     "version": "0.23.0",
     "title": "The Latest Circular Wins, and the Dataset Says Which One It Is",
     "description": "หนังสือเวียนกรมบัญชีกลางต้องใช้ฉบับล่าสุดเสมอ ว480 และ ว481 แทน ว809 และ ว499 และการตามหาตาราง 6% ฉบับก่อนหน้าไม่ใช่เงื่อนไขของการคำนวณอีกต่อไป.",

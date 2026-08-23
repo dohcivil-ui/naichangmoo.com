@@ -9,11 +9,12 @@
     "note that ว480 replaces ว809 as the labour rate source, seven months newer"
   ],
   "updatedAt": "2026-08-24T00:45:00+07:00",
-  "status": "implementation_in_progress",
+  "status": "pushed_tagged_and_released",
   "verification": [
     "docs/rules/engineering.md carries the rule and names ว480 and ว481 as current, superseding ว809 and ว499",
     "docs/research/factor-f-provenance-2026-08-24.md carries both circulars, the timeline from 2565 to 2569 and the two questions still open",
-    "node scripts/check-roadmap.mjs passes with the pointer matching the versioned file"
+    "node scripts/check-roadmap.mjs passes with the pointer matching the versioned file",
+    "pushed and tagged v0.23.0-latest-circular-rule; the Quality Gate passed on the commit that carries it"
   ],
   "rollback": "Revert the v0.23.0 commit. Documentation and plan only; no code, schema or dataset changes.",
   "constraints": [
