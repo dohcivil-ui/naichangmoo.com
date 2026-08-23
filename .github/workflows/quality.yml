@@ -21,14 +21,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.0
 
+      - name: Enable pnpm from the committed package manager version
+        run: corepack enable && corepack prepare pnpm@10.20.0 --activate
+
       - name: Set up Node.js
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 22
           cache: pnpm
-
-      - name: Enable pnpm from the committed package manager version
-        run: corepack enable && corepack prepare pnpm@10.20.0 --activate
 
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
