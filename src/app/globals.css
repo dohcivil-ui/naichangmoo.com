@@ -96,6 +96,10 @@ a { color: inherit; text-decoration: none; }
 .quote-form > label { margin-top: 16px; }
 .quote-form .button { margin-top: 18px; width: 100%; }
 .form-note { color: var(--muted); font-size: .78rem; line-height: 1.55; margin: 13px 0 0; }
+.honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.form-success, .form-error { margin: 16px 0 0; padding: .7rem .85rem; border-radius: 8px; font-size: .86rem; font-weight: 700; line-height: 1.5; }
+.form-success { background: #e4f4f0; color: var(--success); border: 1px solid #a9d5d0; }
+.form-error { background: #f9e7e7; color: #8a3b3b; border: 1px solid #e2b9b9; }
 
 .footer { background: var(--ink-deep); color: #c7dcdf; padding: 34px 0; }
 .footer__inner { display: flex; justify-content: space-between; gap: 18px; font-size: .82rem; }

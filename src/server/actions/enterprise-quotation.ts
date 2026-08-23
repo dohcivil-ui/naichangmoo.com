@@ -5,6 +5,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getDb } from "@/db";
 import { enterpriseQuotationRequests } from "@/db/schema";
+import { consumeRateLimit } from "@/server/rate-limit";
+import { getClientIpHash } from "@/server/request-identity";
+
+export type QuotationActionResult = { ok: boolean; message: string };
+
+// Generous enough for a genuine person retrying a form, low enough to stop a flood.
+const QUOTE_RATE_LIMIT = { limit: 5, windowMs: 60 * 60 * 1000 } as const;
 
 const quotationSchema = z.object({
   organizationName: z.string().trim().min(2).max(200),
@@ -18,7 +25,23 @@ const quotationSchema = z.object({
   consent: z.literal("yes")
 });
 
-export async function requestEnterpriseQuotation(formData: FormData) {
+export async function requestEnterpriseQuotation(
+  _previous: QuotationActionResult | undefined,
+  formData: FormData
+): Promise<QuotationActionResult> {
+  // Honeypot: a hidden field real users never see. If it is filled, treat the
+  // sender as a bot and return a neutral success without touching the database.
+  const honeypot = formData.get("companyWebsite");
+  if (typeof honeypot === "string" && honeypot.trim() !== "") {
+    return { ok: true, message: "ได้รับคำขอของคุณแล้ว ทีมงานจะติดต่อกลับ" };
+  }
+
+  const ipHash = await getClientIpHash();
+  const rate = await consumeRateLimit("enterprise_quote", ipHash, QUOTE_RATE_LIMIT);
+  if (!rate.allowed) {
+    return { ok: false, message: "มีคำขอจากคุณมากเกินไปในช่วงนี้ กรุณาลองใหม่อีกครั้งภายหลัง" };
+  }
+
   const parsed = quotationSchema.safeParse({
     organizationName: formData.get("organizationName"),
     organizationType: formData.get("organizationType"),
@@ -31,7 +54,9 @@ export async function requestEnterpriseQuotation(formData: FormData) {
     consent: formData.get("consent")
   });
 
-  if (!parsed.success) throw new Error("กรุณาตรวจข้อมูลคำขอใบเสนอราคาให้ครบถ้วน");
+  if (!parsed.success) {
+    return { ok: false, message: "กรุณาตรวจข้อมูลคำขอใบเสนอราคาให้ครบถ้วน" };
+  }
 
   const value = parsed.data;
   await getDb().insert(enterpriseQuotationRequests).values({
@@ -44,7 +69,9 @@ export async function requestEnterpriseQuotation(formData: FormData) {
     teamSize: value.teamSize,
     intendedApps: value.intendedApps,
     requirementNote: value.requirementNote,
-    consentAt: new Date()
+    consentAt: new Date(),
+    ipHash
   });
   revalidatePath("/");
+  return { ok: true, message: "ส่งคำขอเรียบร้อยแล้ว ทีมงานจะติดต่อกลับตามข้อมูลที่ให้ไว้" };
 }

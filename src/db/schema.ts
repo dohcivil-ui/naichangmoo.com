@@ -121,6 +121,7 @@ export const enterpriseQuotationRequests = pgTable("enterprise_quotation_request
   procurementNote: text("procurement_note"),
   requirementNote: text("requirement_note").notNull(),
   consentAt: timestamp("consent_at", { withTimezone: true }).notNull(),
+  ipHash: text("ip_hash"),
   status: quoteStatus("status").notNull().default("submitted"),
   createdAt,
   updatedAt
@@ -283,6 +284,18 @@ export const auditEvents = pgTable("audit_events", {
   createdAt
 }, (table) => [index("audit_events_resource_idx").on(table.resourceType, table.resourceId)]);
 
+// Portable fixed-window rate-limit counter. One row per (scope, identifier, window)
+// so abuse controls work identically on Vercel and the VPS without extra infrastructure.
+export const rateLimitCounters = pgTable("rate_limit_counters", {
+  id: text("id").primaryKey(),
+  scope: text("scope").notNull(),
+  identifier: text("identifier").notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  count: integer("count").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [uniqueIndex("rate_limit_counters_unique").on(table.scope, table.identifier, table.windowStart)]);
+
 export const schema = {
   users,
   sessions,
@@ -305,5 +318,6 @@ export const schema = {
   backgroundJobs,
   hermesReviewJobs,
   approvalRequests,
-  auditEvents
+  auditEvents,
+  rateLimitCounters
 };
