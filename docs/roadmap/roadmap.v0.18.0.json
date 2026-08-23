@@ -11,14 +11,15 @@
     "make check-roadmap refuse a pointer that has drifted from its versioned file, or that names a version with no file",
     "cover both the workflow contract and the checker behaviour with tests that run in every gate, including the local hook"
   ],
-  "updatedAt": "2026-08-23T22:30:00+07:00",
-  "status": "implementation_in_progress",
+  "updatedAt": "2026-08-23T22:35:00+07:00",
+  "status": "local_verification_passed_push_and_tag_pending",
   "verification": [
     "pnpm install prints the prepare step and git config core.hooksPath reports hooks afterwards, starting from an unset value",
     "tests assert the workflow carries a digest-pinned postgres image, sets ESTIMETR_DB_TESTS, applies migrations before the suites and triggers on feature branches",
     "tests drive scripts/check-roadmap.mjs against fixtures: a matching pair passes, an edited pointer fails with drifted, a missing versioned file fails, and a pointer missing required fields still fails",
     "the same checker passes against this repository as it stands",
-    "pnpm typecheck, pnpm lint and pnpm test pass"
+    "pnpm typecheck, pnpm lint and pnpm test pass",
+    "hooks/pre-commit ran for the first time in this repository during commit 6f33db6: vitest and tsc executed inside git commit, which is the behaviour IP-055 exists to produce"
   ],
   "rollback": "Revert the v0.18.0 commit. The hook stays configured on machines where pnpm install already ran; git config --unset core.hooksPath removes it. No schema, migration or product behaviour changes in this version.",
   "constraints": [

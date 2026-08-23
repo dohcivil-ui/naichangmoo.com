@@ -57,6 +57,12 @@ Revert commit นี้ hook ยังคงถูกตั้งไว้ใน
 5. **`docs/design-mockups/generate.mjs` มี lint warning** (`notMono` ประกาศแล้วไม่ได้ใช้) ไฟล์นั้นยัง untracked
    และไม่ใช่ของเวอร์ชันนี้ จึงไม่แตะ แต่จะติดไปกับ commit ของใครก็ตามที่ track มันเข้ามา
 
+6. **`docs/roadmap/README.md` ห้ามแก้ไฟล์เวอร์ชันหลัง commit แต่ practice จริงแก้ทุกรอบ** — `9905f55`
+   แก้ `roadmap.v0.17.0.json` เพื่อบันทึกว่า push และ tag เสร็จแล้ว และรอบนี้ก็ทำแบบเดียวกันเพื่อบันทึกสถานะ
+   กฎกับความจริงจึงขัดกัน ทางที่ตรงกว่าคือระบุให้ชัดว่า `status`, `updatedAt` และ `verification`
+   อัปเดตได้หลัง release ส่วน `scope`, `items` และ `rollback` แก้ไม่ได้ — แต่นั่นคือการเปลี่ยนกฎ
+   ต้องผ่านการตัดสินใจ ไม่ใช่แก้เงียบ ๆ ยกเป็น roadmap item ในเวอร์ชันถัดไป
+
 ## Next action
 
 IP-054 (`capabilities.read` ไม่มีด่านฝั่ง server — kill switch ปิดการอ่านไม่ได้จริง) พร้อม IP-058
