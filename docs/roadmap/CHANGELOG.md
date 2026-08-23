@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.13.0 — ESTIMETR Entitlement Runtime and Source Line Reconciliation — 2026-08-23
+
+Merged the ESTIMETR workspace line back together with the intake abuse-control line, keeping the session guard on `/apps/[slug]`, and replaced the unused entitlement module with an enforced runtime: ESTIMETR is registered in `apps`, the five-day one-project trial is issued from `users.created_at` with an audit event, and every mutating control in the workspace is gated by a capability set decided on the server.
+
 ## v0.12.3 — Full Source Repository Verification — 2026-08-22
 
 Verified that the private GitHub repository tracks editable source only, excludes build artifacts and provides a source-map/continuation guide for future development.

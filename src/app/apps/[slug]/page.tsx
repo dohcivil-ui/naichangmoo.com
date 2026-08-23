@@ -5,7 +5,10 @@ import { EstimationWorkspace } from "@/components/estimeter/estimation-workspace
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { AppShell } from "@/components/platform/app-shell";
 import { getPlatformSessionUser } from "@/lib/auth-session";
+import { toAccessView, type EstimeterAccessView } from "@/lib/estimeter-access-view";
+import { ESTIMETR_APP_SLUG } from "@/lib/estimeter-trial";
 import { platformApps } from "@/lib/platform";
+import { getEstimeterAccess } from "@/server/estimeter-access";
 
 export default async function AppBoundaryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -45,8 +48,27 @@ export default async function AppBoundaryPage({ params }: { params: Promise<{ sl
     );
   }
 
-  if (slug === "estimeter") {
-    return <AppShell app={app}><EstimationWorkspace /></AppShell>;
+  if (slug === ESTIMETR_APP_SLUG) {
+    // Entitlement failures fail closed: without a verified decision the workspace stays shut.
+    let access: EstimeterAccessView;
+    try {
+      access = toAccessView(await getEstimeterAccess(user.id));
+    } catch {
+      return (
+        <AppShell app={app}>
+          <section className="app-workspace-intro">
+            <div className="container">
+              <div className="eyebrow">{app.eyebrow}</div>
+              <h1>{app.name}</h1>
+              <p className="hero__note">ขณะนี้ระบบตรวจสอบสิทธิ์การใช้งานไม่ได้ จึงยังเปิด workspace ให้ไม่ได้ กรุณาลองใหม่อีกครั้ง หากยังพบปัญหาให้แจ้งผู้ดูแลระบบพร้อมเวลาที่เกิดเหตุ</p>
+              <div className="hero__actions"><Link className="button button--orange micro-button" href="/">กลับหน้ารวมแอป</Link></div>
+            </div>
+          </section>
+        </AppShell>
+      );
+    }
+
+    return <AppShell app={app}><EstimationWorkspace access={access} /></AppShell>;
   }
 
   return (

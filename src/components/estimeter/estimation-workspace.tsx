@@ -8,7 +8,8 @@ import {
   type EstimationStage,
   type ProjectPath,
 } from "@/lib/estimation-workflow";
-import { TrialPolicyPreview } from "@/components/landing/trial-policy-preview";
+import { EntitlementStatus } from "@/components/estimeter/entitlement-status";
+import type { EstimeterAccessView } from "@/lib/estimeter-access-view";
 
 const stages = [
   { id: 1 as EstimationStage, label: "ตั้งโครงการและตรวจแบบ", english: "Project & drawing review", note: "สายงาน แบบ revision และสเกล" },
@@ -52,7 +53,7 @@ const guidanceByStage: Record<EstimationStage, { title: string; beginner: string
   },
 };
 
-export function EstimationWorkspace() {
+export function EstimationWorkspace({ access }: { access: EstimeterAccessView }) {
   const [activeStage, setActiveStage] = useState<EstimationStage>(1);
   const [projectPath, setProjectPath] = useState<ProjectPath | null>(null);
   const [scaleConfirmed, setScaleConfirmed] = useState(false);
@@ -68,27 +69,38 @@ export function EstimationWorkspace() {
   const blocker = getWorkflowBlocker(workflowState);
   const guide = guidanceByStage[activeStage];
 
+  // The server decides this; the disabled controls below only make the decision visible.
+  const canEdit = access.capabilities.edit;
+  const lockReason =
+    access.state === "expired_read_only"
+      ? "สิทธิ์ทดลองใช้หมดอายุแล้ว เปิดดูข้อมูลเดิมได้ แต่เปลี่ยนแปลงไม่ได้"
+      : access.state === "suspended"
+        ? "สิทธิ์ถูกระงับ จึงเปลี่ยนแปลงข้อมูลไม่ได้"
+        : "บัญชีนี้ยังไม่มีสิทธิ์แก้ไขข้อมูลใน ESTIMETR";
+
   function selectStage(id: EstimationStage) {
     if (canOpenWorkflowStage(id, progress)) setActiveStage(id);
   }
 
   function completeDrawingReview() {
-    if (!projectPath || !scaleConfirmed) return;
+    if (!canEdit || !projectPath || !scaleConfirmed) return;
     setDrawingReviewed(true);
     setActiveStage(2);
   }
 
   function completeTakeoff() {
+    if (!canEdit) return;
     setTakeoffReviewed(true);
     setActiveStage(3);
   }
 
   function approvePriceSet() {
+    if (!canEdit) return;
     setPriceSetApproved(true);
   }
 
   function completeCostReview() {
-    if (!priceSetApproved) return;
+    if (!canEdit || !priceSetApproved) return;
     setCostReviewed(true);
     setActiveStage(4);
   }
@@ -109,8 +121,12 @@ export function EstimationWorkspace() {
           </div>
         </header>
 
-        <p className="workspace-notice"><strong>พื้นที่สาธิต:</strong> ตรวจขั้นตอนการทำงานได้จากหน้านี้</p>
-        <TrialPolicyPreview />
+        <p className="workspace-notice">
+          {canEdit
+            ? <><strong>พื้นที่สาธิต:</strong> ตรวจขั้นตอนการทำงานได้จากหน้านี้ ข้อมูลในตารางเป็นตัวอย่างและยังไม่บันทึกลงโครงการจริง</>
+            : <><strong>อ่านอย่างเดียว:</strong> {lockReason}</>}
+        </p>
+        <EntitlementStatus access={access} />
 
         <nav className="estimation-steps" aria-label="ขั้นตอนประมาณราคา">
           {stages.map((stage) => {
@@ -126,13 +142,13 @@ export function EstimationWorkspace() {
             {activeStage === 1 && (
               <div className="workspace-panel">
                 <div className="workspace-panel__title"><div><p className="eyebrow">01 · PROJECT PATH, DRAWING & SCALE</p><h2>ตั้งโครงการ ตรวจแบบ และยืนยันสเกล</h2></div><span className={drawingReviewed ? "status-chip status-chip--ready" : "status-chip"}>{drawingReviewed ? "ผ่าน gate แล้ว" : "ต้องยืนยัน 3 จุด"}</span></div>
-                <div className="project-path-control" role="group" aria-label="เลือกสายงานโครงการ"><span>สายงานของโครงการ</span><div><button className={projectPath === "private" ? "is-selected" : ""} onClick={() => setProjectPath("private")} type="button">เอกชน<small>OH&P · กำไร · VAT</small></button><button className={projectPath === "government" ? "is-selected" : ""} onClick={() => setProjectPath("government")} type="button">ราชการ<small>Baseline · Factor F · เอกสาร</small></button></div></div>
+                <div className="project-path-control" role="group" aria-label="เลือกสายงานโครงการ"><span>สายงานของโครงการ</span><div><button className={projectPath === "private" ? "is-selected" : ""} disabled={!canEdit} onClick={() => setProjectPath("private")} type="button">เอกชน<small>OH&P · กำไร · VAT</small></button><button className={projectPath === "government" ? "is-selected" : ""} disabled={!canEdit} onClick={() => setProjectPath("government")} type="button">ราชการ<small>Baseline · Factor F · เอกสาร</small></button></div></div>
                 <div className="preflight-grid">
                   <article><span className="review-grid__icon">R</span><div><h3>Drawing revision</h3><p>ยืนยันว่าแบบและ specification เป็นชุดเดียวกันก่อนเริ่มงาน</p><small>{drawingReviewed ? "ยืนยันแล้ว" : "รอการยืนยัน"}</small></div></article>
-                  <article><span className="review-grid__icon">S</span><div><h3>Scale reference</h3><p>ตั้ง scale จากระยะจริงที่ตรวจสอบได้ ไม่อนุญาตให้เดา scale</p><button className={`calibration-check ${scaleConfirmed ? "is-confirmed" : ""}`} onClick={() => setScaleConfirmed((value) => !value)} type="button">{scaleConfirmed ? "ยืนยันจุดอ้างอิงแล้ว" : "ยืนยันจุดอ้างอิงสเกล"}</button></div></article>
+                  <article><span className="review-grid__icon">S</span><div><h3>Scale reference</h3><p>ตั้ง scale จากระยะจริงที่ตรวจสอบได้ ไม่อนุญาตให้เดา scale</p><button className={`calibration-check ${scaleConfirmed ? "is-confirmed" : ""}`} disabled={!canEdit} onClick={() => setScaleConfirmed((value) => !value)} type="button">{scaleConfirmed ? "ยืนยันจุดอ้างอิงแล้ว" : "ยืนยันจุดอ้างอิงสเกล"}</button></div></article>
                   <article><span className="review-grid__icon">Q</span><div><h3>Open issues</h3><p>บันทึกข้อขัดแย้งก่อนถอดปริมาณ เพื่อไม่ให้ตัวเลขปิดบังความไม่แน่นอน</p><small>ไม่มีการปิด issue อัตโนมัติ</small></div></article>
                 </div>
-                <div className="workspace-callout"><div><strong>QA gate: ปลดล็อกการถอดปริมาณ</strong><p>{blocker}</p></div><button className="button button--orange micro-button" disabled={!projectPath || !scaleConfirmed} onClick={completeDrawingReview} type="button">ยืนยัน project, แบบ และสเกล <span>→</span></button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ปลดล็อกการถอดปริมาณ</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit || !projectPath || !scaleConfirmed} onClick={completeDrawingReview} type="button">ยืนยัน project, แบบ และสเกล <span>→</span></button></div>
               </div>
             )}
 
@@ -141,7 +157,7 @@ export function EstimationWorkspace() {
                 <div className="workspace-panel__title"><div><p className="eyebrow">02 · AI TAKE-OFF WITH HUMAN EVIDENCE REVIEW</p><h2>ถอดปริมาณงานพร้อมหลักฐาน</h2></div><span className={takeoffReviewed ? "status-chip status-chip--ready" : "status-chip"}>{takeoffReviewed ? "ปริมาณตรวจแล้ว" : "รอ review รายการ"}</span></div>
                 <div className="takeoff-table-wrap"><table className="takeoff-table"><thead><tr><th>รหัส</th><th>รายการงาน</th><th>หน่วย</th><th>ปริมาณ</th><th>หลักฐานจากแบบ</th></tr></thead><tbody>{takeoffRows.map((row) => <tr key={row.code}><td><code>{row.code}</code></td><td>{row.item}</td><td>{row.unit}</td><td className="number-cell">{row.quantity}</td><td><span className="evidence-link">{row.evidence}</span></td></tr>)}</tbody></table></div>
                 <div className="prelim-boq-note"><strong>Prelim BOQ ยังไม่ใช่เอกสารปล่อยออก</strong><p>AI อาจเสนอรายการได้ แต่ผู้ใช้ต้องยืนยันหน่วย สูตร และ evidence ก่อนสร้าง estimate revision</p></div>
-                <div className="workspace-split"><div><strong>QA gate: ก่อนเลือก Price Set</strong><p>{blocker}</p></div><button className="button button--orange micro-button" onClick={completeTakeoff} type="button">ยืนยันปริมาณและหลักฐาน <span>→</span></button></div>
+                <div className="workspace-split"><div><strong>QA gate: ก่อนเลือก Price Set</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit} onClick={completeTakeoff} type="button">ยืนยันปริมาณและหลักฐาน <span>→</span></button></div>
               </div>
             )}
 
@@ -150,8 +166,8 @@ export function EstimationWorkspace() {
                 <div className="workspace-panel__title"><div><p className="eyebrow">03 · PROVENANCE-BOUND UNIT COST</p><h2>ประมาณราคาจาก Price Set ที่อนุมัติ</h2></div><span className={costReviewed ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>{costReviewed ? "ตรวจราคาแล้ว" : "ยังไม่พร้อมคำนวณ"}</span></div>
                 <div className="cost-source-card"><div><span className="cost-source-card__signal">REFERENCE PRICE POLICY</span><h3>{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยังไม่มี price set ที่อนุมัติ"}</h3><p>Production จะต้องระบุ source, จังหวัด, เดือน, revision, price excluding VAT, treatment ค่าขนส่ง และ raw payload hash ก่อนผูกราคากับ BOQ</p></div><div className="cost-source-card__meta"><span>สายงาน</span><strong>{projectPath === "government" ? "ราชการ" : "เอกชน"}</strong><span>Baseline</span><strong>{projectPath === "government" ? "versioned / รอยืนยัน" : "policy รออนุมัติ"}</strong></div></div>
                 <div className="cost-breakdown"><article><span>วัสดุ</span><strong>ห้ามใช้ราคาไม่มีที่มา</strong><small>source + province/month + revision</small></article><article><span>ค่าแรง</span><strong>แยกจากค่าวัสดุ</strong><small>ทุกแถวต้อง review ได้</small></article><article><span>VAT / ขนส่ง</span><strong>ห้ามเดาสถานะ</strong><small>ต้องระบุ policy ใน price set</small></article></div>
-                <div className="price-set-gate"><div><strong>Gate A: price set revision</strong><p>คลิกเพื่อจำลองการอนุมัติ price set เท่านั้น ไม่ได้ดึงหรือสร้างราคาจริง</p></div><button className={`button ${priceSetApproved ? "button--primary" : "button--orange"} micro-button`} onClick={approvePriceSet} type="button">{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยืนยัน price set สาธิต"}</button></div>
-                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>{blocker}</p></div><button className="button button--orange micro-button" disabled={!priceSetApproved} onClick={completeCostReview} type="button">ยืนยันการประมาณราคา <span>→</span></button></div>
+                <div className="price-set-gate"><div><strong>Gate A: price set revision</strong><p>คลิกเพื่อจำลองการอนุมัติ price set เท่านั้น ไม่ได้ดึงหรือสร้างราคาจริง</p></div><button className={`button ${priceSetApproved ? "button--primary" : "button--orange"} micro-button`} disabled={!canEdit} onClick={approvePriceSet} type="button">{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยืนยัน price set สาธิต"}</button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit || !priceSetApproved} onClick={completeCostReview} type="button">ยืนยันการประมาณราคา <span>→</span></button></div>
               </div>
             )}
 

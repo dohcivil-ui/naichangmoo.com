@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.13.0",
+    "title": "ESTIMETR Entitlement Runtime and Source Line Reconciliation",
+    "description": "รวมสองสายพัฒนากลับเป็นสายเดียว และบังคับใช้สิทธิ์ ESTIMETR จริงฝั่งเซิร์ฟเวอร์ตาม ADR 0003.",
+    "scope": ["source line reconciliation", "app registry and entitlement bootstrap", "server-side capability gating", "entitlement policy correction"],
+    "verification": ["typecheck/lint/build passed", "vitest 12 files / 45 tests passed", "opt-in PostgreSQL integration run passed", "GitHub push and release tag pending user approval"],
+    "rollback": "Return to branch backup/pre-estimeter-merge or tag v0.12.3-source-verification; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-entitlement-runtime.md"
+  },
+  {
     "version": "0.12.3",
     "title": "Full Source Repository Verification",
     "description": "ยืนยันว่า repository private เก็บ full source ที่แก้ไขต่อได้ และไม่เก็บ build artifacts.",
