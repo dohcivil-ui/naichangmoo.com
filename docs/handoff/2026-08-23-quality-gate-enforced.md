@@ -27,7 +27,7 @@ CI รันบน feature branch และรันชุดทดสอบฐ�
 - digest ของ image ดึงจาก Docker Hub registry จริง (`postgres:16-alpine` → `sha256:cf78e766…0685`) ไม่ได้เดา
 - รูปแบบ service container (image / env / `--health-cmd pg_isready` / ports / เชื่อมผ่าน `localhost`) ตรงตามที่ GitHub Actions documentation กำหนดสำหรับ job ที่รันบน runner โดยตรง
 
-**ยังไม่ได้ตรวจ:** ชุดทดสอบฐานข้อมูลบน CI จริง เพราะยังไม่ได้ push — ครั้งแรกที่ push branch นี้คือการพิสูจน์ว่า service, migration และ 29 เทสต์ที่เคยถูก skip รันผ่านจริงบน PostgreSQL 16 ถ้าล้ม แปลว่าโค้ดพึ่งพฤติกรรมของ PostgreSQL 18 ที่เครื่อง dev ใช้อยู่ ซึ่งเป็นข้อมูลที่ต้องรู้ก่อน production ไม่ใช่หลัง
+**ตรวจแล้วบน CI จริง:** run `32649341753` ถูก trigger ด้วย push บน feature branch เป็นครั้งแรก และรายงาน `Test Files 21 passed (21)` / `Tests 149 passed (149)` **ไม่มี skipped เลย** — 29 เทสต์ที่ไม่เคยรันใน CI ผ่านบน PostgreSQL 16 รวม `makes a second submit wait for the lock instead of counting stale rows` (312ms) และ `makes a second confirmation wait for the item lock instead of reading a stale state` (428ms) ซึ่งเป็นสองข้อที่ handoff ก่อนหน้าอ้างเป็นหลักฐานมาตลอดโดยที่เครื่องไม่เคยตรวจ โค้ดจึงไม่ได้พึ่งพฤติกรรมของ PostgreSQL 18 ที่เครื่อง dev ใช้
 
 ## Security and data impact
 

@@ -16,7 +16,7 @@
       "vitest 21 files / 149 tests: 120 passed, 29 skipped locally without a database",
       "pnpm install proved to set core.hooksPath from an unset value",
       "check-roadmap reports the pointer matches roadmap.v0.18.0.json",
-      "the CI database suites are unverified until this branch is pushed"
+      "CI run 32649341753: 21 files / 149 tests passed with no skips against PostgreSQL 16"
     ],
     "rollback": "Revert the v0.18.0 commit and run git config --unset core.hooksPath. No schema or product behaviour changed.",
     "path": "docs/handoff/2026-08-23-quality-gate-enforced.md"
