@@ -1,0 +1,40 @@
+{
+  "version": "0.15.0",
+  "title": "ESTIMETR Manual Take-off with Evidence",
+  "description": "เปิดให้ถอดปริมาณด้วยมือได้จริงบนตาราง takeoff_runs/takeoff_items/evidence_references ที่มีอยู่ โดยหน่วยถูกจำกัดเป็นชุดปิด ปริมาณคำนวณด้วยจำนวนเต็มสเกลจึงไม่มีความคลาดเคลื่อนจากทศนิยมลอยตัว และรายการจะยืนยันได้เมื่อมีหลักฐานอ้างอิงแล้วเท่านั้น",
+  "scope": [
+    "open one manual take-off run per project, with the open run enforced under a project row lock",
+    "record take-off items with a closed unit set, a work-group category and an exact decimal quantity",
+    "require at least one evidence reference before a quantity can be confirmed, checked inside the confirming transaction",
+    "lock a confirmed line against evidence changes and deletion so the audit trail stays intact",
+    "close a run with a fingerprint of the confirmed lines only, so a later estimate can prove which quantities it priced",
+    "total confirmed quantities per unit without rounding and without merging units",
+    "scope every take-off read and write through projects.organization_id, since the take-off tables carry no organization column"
+  ],
+  "updatedAt": "2026-08-23T19:20:00+07:00",
+  "status": "local_verification_passed_push_and_tag_pending",
+  "verification": [
+    "pnpm typecheck, pnpm lint (0 warnings), pnpm test (94 passed with the opt-in database suites enabled), pnpm build and pnpm security:check pass",
+    "unit tests cover decimal parsing and refusal, exact addition where floating point fails, the numeric(18,6) boundary, form validation and the evidence gate",
+    "opt-in PostgreSQL tests cover run idempotency, refusal to confirm without evidence, the lock on a confirmed line, cross-organization reads and writes returning nothing, run closing that excludes unconfirmed lines, every write refused on a locked project and the audit record carrying the measured value",
+    "the item lock test was confirmed to fail when the row lock is removed: without it one quantity is confirmed twice and two audit events are written",
+    "unauthenticated requests to /apps/estimeter, /apps/estimeter/projects/{id} and /apps/estimeter/projects/{id}/takeoff all returned the access gate",
+    "GitHub push and release tag pending user approval"
+  ],
+  "rollback": "Revert the slice 3 commit or return to tag v0.14.0-estimeter-project-lifecycle. No migration runs in this release. Rows already written to takeoff_runs, takeoff_items, evidence_references and audit_events stay valid and readable; reverting only removes the route that writes them.",
+  "constraints": [
+    "No schema change or migration in this release; takeoff_runs, takeoff_items and evidence_references are used as shipped by migration 0000.",
+    "takeoff_items has no column for a dimension breakdown, so the measurement basis is recorded as an evidence note in the operator's words. Re-checking the arithmetic of a quantity is not possible until the schema slice adds structured dimensions (IP-045).",
+    "evidence_references.document_id stays null because drawing upload is not built yet; evidence is a written reference to a drawing sheet and page.",
+    "takeoff_runs.input_hash is NOT NULL and was designed for a computed run, so a manual run stores a hash of the project, runner and operator that opened it.",
+    "The work-group categories are working groups only, not a claim of ปร.4 compliance; that mapping needs the official DPT form (IP-042).",
+    "No price, Factor F or VAT is computed anywhere in this release."
+  ],
+  "adrReferences": ["0002-postgresql-drizzle-and-r2-data-boundary", "0003-platform-membership-entitlement-and-trial"],
+  "items": [
+    { "id": "IP-044", "title": "Record manual take-off quantities with a mandatory evidence reference before confirmation", "status": "done", "phase": "implementation" },
+    { "id": "IP-045", "title": "Add structured dimension breakdown to take-off items so a quantity's arithmetic can be re-checked", "status": "planned", "phase": "schema" },
+    { "id": "IP-042", "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance", "status": "planned", "phase": "governance" },
+    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" }
+  ]
+}

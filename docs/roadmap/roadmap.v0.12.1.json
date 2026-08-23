@@ -1,0 +1,23 @@
+{
+  "version": "0.12.1",
+  "title": "Concise Landing Copy and In-App Trial Details",
+  "description": "ลดข้อความหน้า Landing, เอาคำ Market และรายละเอียดความสามารถภายในออกจากหน้าสาธารณะ พร้อมย้ายข้อมูลสิทธิ์ทดลองใช้เข้า ESTIMETR.",
+  "updatedAt": "2026-08-22T21:25:00+07:00",
+  "status": "release_validation_pending",
+  "scope": [
+    "Landing copy reduced to app discovery and clear start actions",
+    "first category renamed หมวดประมาณราคา and public trial label changed to ฟรี ทดลองใช้งาน 5 วัน",
+    "trial entitlement/AI Takeoff/BOQ capability preview moved from Landing into ESTIMETR",
+    "land-acquisition category context identifies the Department of Highways land-acquisition mission"
+  ],
+  "verification": [
+    "local Landing review confirms no visible Market terminology, no public trial policy panel and no public technical preview notice",
+    "ESTIMETR review confirms trial entitlement information appears inside the app",
+    "eslint, 5 Vitest files / 13 tests, TypeScript, credential-less Vercel production build, security preflight, roadmap validation and diff hygiene pass",
+    "GitHub push and private preview review pending"
+  ],
+  "rollback": "Return to tag v0.12.0-civil-apps-market. No schema, customer data, price source, payment or export artifact changes.",
+  "items": [
+    { "id": "IP-035", "title": "Tighten public Landing copy and move internal trial details into ESTIMETR", "status": "done", "phase": "implementation" }
+  ]
+}

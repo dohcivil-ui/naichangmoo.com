@@ -1,0 +1,16 @@
+{
+  "version": "0.7.0",
+  "title": "Tactile Engineering Navigation",
+  "description": "เพิ่ม press/release feedback และ anchor-aware active states ให้ navigation pills เพื่อบอกตำแหน่งงานที่กำลังเลือกอย่างสุขุม ไม่ใช้ motion แบบ decorative AI Slop.",
+  "updatedAt": "2026-08-22T10:20:00+07:00",
+  "status": "ready_for_tactile_navigation_review",
+  "scope": ["เปลี่ยน PlatformNav เป็น client component เพื่อสังเกต anchor section ที่กำลังใช้งาน", "เพิ่ม mouse/touch press compression และ release settle duration สั้น", "ใช้ ink active tone สำหรับเมนูทั่วไปและ dark-orange active tone สำหรับ quote action", "รักษา keyboard focus, aria-current และ reduced-motion policy"],
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public review"],
+  "rollback": "Return to tag v0.6.1-navigation-pills to remove active section tracking and tactile navigation state.",
+  "items": [
+    { "id": "IP-016", "title": "Add sticky platform navigation with enterprise quote shortcut", "status": "done", "phase": "release" },
+    { "id": "IP-017", "title": "Refine Retaining Wall Cantilever card copy for Bisection Algorithm", "status": "done", "phase": "release" },
+    { "id": "IP-018", "title": "Restyle every sticky navigation link as a button/pill", "status": "done", "phase": "release" },
+    { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" }
+  ]
+}

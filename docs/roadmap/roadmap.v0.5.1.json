@@ -1,0 +1,29 @@
+{
+  "version": "0.5.1",
+  "title": "Public Motion Review Verified",
+  "description": "บันทึกผลตรวจ Landing micro-interaction, public Vercel access, app shell และ Roadmap/Handoff หลัง deployment v0.5.0 พร้อมชุดลิงก์ทดลองที่ยืนยันแล้ว.",
+  "scope": ["ยืนยัน Vercel public access โดยไม่ต้องล็อกอิน", "ตรวจ Landing v0.5.0 พร้อม hero signal และ app card icons", "ตรวจ ESTIMETR app shell และ Roadmap/Handoff route", "บันทึก release checklist และลิงก์ทดลองครบชุด"],
+  "updatedAt": "2026-08-22T09:46:00+07:00",
+  "status": "public_review_verified",
+  "verification": ["Landing public URL HTTP render verified", "ESTIMETR app shell public route verified", "Roadmap/Handoff renders v0.5.0 metadata", "Vercel build READY", "lint, 6 unit tests, typecheck, credential-less production build and security preflight passed in v0.5.0"],
+  "rollback": "Return to tag v0.5.0-responsive-motion to preserve the exact motion source; this verification release contains no runtime behavior change.",
+  "constraints": ["Pilot remains credential-less; Google login, database, payment and Hermes runtime remain disabled.", "Vercel preview uses public presentation assets only; production assets must move to Cloudflare R2/CDN."],
+  "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0004-hermes-pilot-review-boundary"],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" },
+    { "id": "IP-012", "title": "Use Vercel native output while retaining Hostinger standalone build portability", "status": "done", "phase": "release" },
+    { "id": "IP-013", "title": "Serve Landing icon graphics through a public pilot-safe asset origin", "status": "done", "phase": "release" },
+    { "id": "IP-014", "title": "Add responsive engineering motion system to Landing", "status": "done", "phase": "release" },
+    { "id": "IP-015", "title": "Verify public Vercel review routes and share complete test link set", "status": "done", "phase": "release" }
+  ]
+}

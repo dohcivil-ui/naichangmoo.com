@@ -1,0 +1,23 @@
+{
+  "version": "0.10.2",
+  "title": "ESTIMETR GitHub Release Confirmation",
+  "description": "ยืนยันการ commit, push ขึ้น GitHub, semantic version และ annotated tag ของ ESTIMETR workspace ตามคำขอผู้ใช้ โดยไม่เปลี่ยนพฤติกรรมของ product.",
+  "updatedAt": "2026-08-22T14:55:00+07:00",
+  "status": "release_confirmed",
+  "scope": [
+    "confirm source branch matches GitHub remote revision",
+    "confirm ESTIMETR workspace release tags v0.10.0 and v0.10.1",
+    "record release confirmation in the project TODO and handoff"
+  ],
+  "verification": [
+    "origin/initial-project/nextjs-scaffold matches commit dad3083",
+    "v0.10.1-estimeter-pilot-verified annotated tag exists",
+    "Vercel public pilot is READY and serves the ESTIMETR workspace",
+    "quality gate for v0.10.1 passed lint, 4 Vitest files / 8 tests, typecheck, build, security, roadmap and diff checks"
+  ],
+  "rollback": "Return to tag v0.10.1-estimeter-pilot-verified. This confirmation release changes documentation/version metadata only and has no migration or user data.",
+  "items": [
+    { "id": "IP-027", "title": "Verify public Vercel pilot routes for ESTIMETR workspace release", "status": "done", "phase": "release" },
+    { "id": "IP-028", "title": "Confirm GitHub commit, push, version and release tag for ESTIMETR", "status": "done", "phase": "release" }
+  ]
+}

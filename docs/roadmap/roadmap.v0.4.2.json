@@ -1,0 +1,45 @@
+{
+  "version": "0.4.2",
+  "title": "Vercel Native Output Compatibility",
+  "description": "แก้ Vercel deployment error ที่ค้นหา standalone trace artifact ไม่พบ โดยใช้ Next.js native Vercel output สำหรับ pilot และคง standalone output ไว้เฉพาะ Hostinger VPS ผ่าน DEPLOY_TARGET.",
+  "scope": [
+    "เปลี่ยน next.config.ts ให้ standalone output ทำงานเฉพาะ DEPLOY_TARGET=hostinger",
+    "ใช้ native Next.js/Vercel output สำหรับ DEPLOY_TARGET=vercel หรือเมื่อไม่ระบุ target",
+    "บันทึก DEPLOY_TARGET ใน environment contract เพื่อให้ Vercel และ Hostinger ใช้ source ชุดเดียวกันได้",
+    "ทดสอบ production build แบบไม่มี database/auth credentials และ DEPLOY_TARGET=vercel"
+  ],
+  "updatedAt": "2026-08-22T09:25:00+07:00",
+  "status": "ready_for_vercel_redeploy",
+  "verification": [
+    "env -u DATABASE_URL -u BETTER_AUTH_SECRET -u BETTER_AUTH_URL -u NEXT_PUBLIC_AUTH_ENABLED DEPLOY_TARGET=vercel NODE_ENV=production pnpm build",
+    "pnpm lint",
+    "pnpm test",
+    "pnpm typecheck",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs"
+  ],
+  "rollback": "Return to tag v0.4.1-vercel-auth-safe. Note that v0.4.1 may recreate the missing standalone trace artifact issue on Vercel.",
+  "constraints": [
+    "Vercel pilot uses native Next.js output and remains credential-less.",
+    "Hostinger production must set DEPLOY_TARGET=hostinger before building the Docker image.",
+    "No database migration, real authentication, billing or Hermes worker deployment is included in this version."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0002-postgresql-drizzle-and-r2-data-boundary"
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement SVG/icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" },
+    { "id": "IP-012", "title": "Use Vercel native output while retaining Hostinger standalone build portability", "status": "done", "phase": "release" }
+  ]
+}

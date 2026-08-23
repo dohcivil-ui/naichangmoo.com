@@ -46,6 +46,14 @@ _Avoid_: AI answer, claim
 ชุดราคาที่มีแหล่งอ้างอิง ช่วงเวลา จังหวัด และสถานะอนุมัติชัดเจน เพื่อผูกกับ revision ของ project.
 _Avoid_: current price, live price โดยไม่มี version
 
+**Guided AI Assistant**:
+ผู้ช่วยใน Workspace ที่สอนการใช้เครื่องมือ อธิบายข้อมูลหรือ prerequisite ที่ขาด และถามคำถามทบทวนตามขั้นตอนปัจจุบัน โดยผู้ใช้เลือกข้ามคำแนะนำหรือขอความช่วยเหลือได้เสมอ.
+_Avoid_: autonomous estimator, AI ที่ทำแทนผู้ใช้ทั้งหมด
+
+**Document Readiness**:
+สถานะที่บอกว่าข้อมูลและการทบทวนของสายเอกสารหนึ่งครบตาม quality gate ที่กำหนดแล้ว จึงสามารถเสนอให้สร้างเอกสารหรือ output ได้; ไม่ใช่คำยืนยันว่าข้อมูลถูกต้องโดยไม่มีการอนุมัติ.
+_Avoid_: auto-approved document, PDF พร้อมส่งโดยอัตโนมัติ
+
 ## Hermes
 
 **Hermes Review Job**:

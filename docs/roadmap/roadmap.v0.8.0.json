@@ -1,0 +1,15 @@
+{
+  "version": "0.8.0",
+  "title": "Dedicated Enterprise Quotation Page",
+  "description": "ย้ายแบบฟอร์มขอใบเสนอราคาสำหรับองค์กร/หน่วยงานออกจาก Landing ไปยังหน้า `/enterprise` เพื่อให้ Landing เน้น app cards, workflow และ platform functions.",
+  "updatedAt": "2026-08-22T10:45:00+07:00",
+  "status": "ready_for_enterprise_route_review",
+  "scope": ["เพิ่ม dedicated route `/enterprise`", "ย้าย enterprise form และ explanatory content ออกจาก Landing", "เปลี่ยน primary quote navigation ให้ชี้หน้าใหม่", "ปรับ anchor observer ให้เฝ้าเฉพาะ sections ที่ยังอยู่บน Landing"],
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending Vercel build/security/roadmap validation/public route review"],
+  "rollback": "Return to tag v0.7.1-light-teal-active to restore the enterprise form inline on Landing.",
+  "items": [
+    { "id": "IP-019", "title": "Add tactile press/release feedback and anchor-aware active navigation tone", "status": "done", "phase": "release" },
+    { "id": "IP-020", "title": "Restore active state as a light translucent teal treatment", "status": "done", "phase": "release" },
+    { "id": "IP-021", "title": "Move enterprise quotation form to dedicated route", "status": "done", "phase": "release" }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "version": "0.11.2",
+  "title": "Vercel Private Preview Verified",
+  "description": "ยืนยันว่า Vercel preview จาก private repository ผ่าน READY หลังใช้ commit author ที่จับคู่กับบัญชี GitHub/Vercel ได้สำเร็จ.",
+  "updatedAt": "2026-08-22T18:45:00+07:00",
+  "status": "preview_verified",
+  "scope": [
+    "verify corrected commit attribution on the private Git repository",
+    "record Vercel READY preview URL for v0.11.1 source",
+    "close deployment verification TODO without changing product behavior"
+  ],
+  "verification": [
+    "Vercel deployment dpl_AHqJaJbZAJNt38LwKCzh7FFp4BxV is READY",
+    "deployment is sourced from feature/estimeter-guided-assistant commit 285abcb",
+    "GitHub commit metadata reports verified GitHub login and the user-confirmed email",
+    "v0.11.1 quality gate passed lint, 4 Vitest files / 11 tests, typecheck, production build, security, roadmap and diff checks"
+  ],
+  "rollback": "Return to tag v0.11.1-vercel-attribution-recovery. This verification release changes no application behavior, schema or customer data.",
+  "items": [
+    { "id": "IP-031", "title": "Recover Vercel private-repository preview through verified commit attribution", "status": "done", "phase": "release" },
+    { "id": "IP-032", "title": "Verify private-repository preview is READY before sharing review URL", "status": "done", "phase": "release" }
+  ]
+}

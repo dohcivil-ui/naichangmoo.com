@@ -1,0 +1,22 @@
+{
+  "version": "0.12.3",
+  "title": "Full Source Repository Verification",
+  "description": "ยืนยันว่า GitHub private repository เก็บ full editable source code และไม่มี Next.js build artifacts พร้อมเพิ่มคู่มือแก้ไข/พัฒนาต่อจาก source.",
+  "updatedAt": "2026-08-22T22:10:00+07:00",
+  "status": "release_validation_pending",
+  "scope": [
+    "audit tracked files and ignore rules for build artifact exclusion",
+    "document editable source map and continuation commands",
+    "clarify that build is release validation and not a Git deliverable"
+  ],
+  "verification": [
+    "Git tracked-file scan finds no .next, dist, build, node_modules, coverage or TypeScript build artifacts",
+    ".gitignore excludes Next.js outputs, dependencies, coverage, environment files, uploads, exports and local data",
+    "SOURCE_CONTINUATION.md maps editable source locations and source-only development workflow",
+    "GitHub push pending"
+  ],
+  "rollback": "Return to tag v0.12.2-landing-interactions. This documentation-only release changes no application behavior, schema or customer data.",
+  "items": [
+    { "id": "IP-037", "title": "Verify full editable source repository and document continuation workflow", "status": "done", "phase": "release" }
+  ]
+}

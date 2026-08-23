@@ -1,10 +1,589 @@
 [
   {
+    "version": "0.17.0",
+    "title": "ESTIMETR Take-off Quantities Become Re-checkable",
+    "description": "ปริมาณกลายเป็นผลรวมของบรรทัดวัด จำนวน × ระยะ ค่าเผื่อแยกออกมาและต้องอ้างอิงหลักเกณฑ์ พร้อมวางรอยต่อของสองชั้นราคาไว้ที่ projects.project_path ตาม ADR 0007.",
+    "scope": [
+      "ADR 0007",
+      "takeoff_measurements",
+      "dimension rank enforced by unit",
+      "sourced waste percentage",
+      "project costing path",
+      "database CHECK constraints for the row-local rules"
+    ],
+    "verification": [
+      "typecheck/lint/build/security:check passed",
+      "vitest 20 files / 140 tests passed with the opt-in PostgreSQL suites enabled",
+      "reference footing F1 reproduced: 0.7875 cu.m, 2.1 sq.m, 31.35528 kg",
+      "direct-to-database writes that skip the repository are refused by the named CHECK constraints",
+      "branch and tag pushed; GitHub Releases created for all 32 tags with v0.17.0 marked latest"
+    ],
+    "rollback": "Return to tag v0.16.0-estimeter-trial-activation and drop migrations 0003 and 0002, which are additive only.",
+    "path": "docs/handoff/2026-08-23-estimeter-measurement-breakdown.md"
+  },
+  {
+    "version": "vscode-continuation",
+    "title": "VS Code Continuation — ESTIMETR through v0.16.0",
+    "description": "Handoff สำหรับเปิด VS Code ต่อ: branch, tags, PRs, โมเดล 2 ด่าน, คำสั่ง และ slice ถัดไป.",
+    "scope": [
+      "feature/estimeter-trial-activation at ea0974e",
+      "tags v0.13.0–v0.16.0",
+      "PR #6 green",
+      "next slice drawing upload or pricing"
+    ],
+    "verification": [
+      "PR #6 Quality Gate pass",
+      "local quality gate commands documented"
+    ],
+    "rollback": "See docs/handoff/2026-08-23-vscode-continuation-estimeter.md",
+    "path": "docs/handoff/2026-08-23-vscode-continuation-estimeter.md"
+  },
+  {
+    "version": "0.16.0",
+    "title": "ESTIMETR Trial Starts at Explicit Activation",
+    "description": "แยกด่านสมาชิกเว็บออกจากด่านสิทธิ์ทดลองใช้แอป นาฬิกา 5 วันเริ่มนับเมื่อกดเริ่มทดลองใช้อย่างชัดแจ้ง การอ่านสิทธิ์ไม่เขียนฐานข้อมูล.",
+    "scope": [
+      "ADR 0006",
+      "explicit trial activation",
+      "read path writes nothing",
+      "not_activated gate on project and take-off writes"
+    ],
+    "verification": [
+      "typecheck/lint/build/security:check passed",
+      "vitest 19 files / 100 tests passed with the opt-in PostgreSQL suites enabled"
+    ],
+    "rollback": "Return to tag v0.15.0-estimeter-manual-takeoff; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-trial-activation.md"
+  },
+  {
+    "version": "0.15.0",
+    "title": "ESTIMETR Manual Take-off with Evidence",
+    "description": "ถอดปริมาณด้วยมือได้จริง หน่วยเป็นชุดปิด ปริมาณบวกด้วยจำนวนเต็มสเกลจึงไม่คลาดเคลื่อน และยืนยันรายการได้เมื่อมีหลักฐานอ้างอิงแล้วเท่านั้น.",
+    "scope": [
+      "one open manual run per project",
+      "closed unit set with dimensions",
+      "exact decimal quantities without rounding",
+      "evidence required before confirmation",
+      "confirmed lines locked and fingerprinted on close",
+      "organization scope enforced through projects"
+    ],
+    "verification": [
+      "typecheck/lint/build/security:check passed",
+      "vitest 19 files / 94 tests passed with the opt-in PostgreSQL suites enabled",
+      "the item lock test was shown to fail when the row lock is removed",
+      "hand-checked concrete take-off sum matched the code",
+      "unauthenticated probes on the take-off route returned the access gate"
+    ],
+    "rollback": "Revert the slice 3 commit or return to tag v0.14.0-estimeter-project-lifecycle; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-manual-takeoff.md"
+  },
+  {
+    "version": "0.14.0",
+    "title": "ESTIMETR Project Lifecycle",
+    "description": "สร้างและเปิดโครงการ ESTIMETR ได้จริง โดยเพดานโครงการของสิทธิ์ทดลองถูกบังคับใน transaction และทุก query ผูก organization.",
+    "scope": [
+      "dedicated /apps/estimeter routes and guard",
+      "organization-scoped project repository",
+      "trial cap enforced under a row lock",
+      "project.created audit trail",
+      "root todo.md retired into the roadmap"
+    ],
+    "verification": [
+      "typecheck/lint/build passed",
+      "vitest 15 files / 63 tests passed with the opt-in PostgreSQL suites enabled",
+      "the lock test was shown to fail when the row lock is removed",
+      "unauthenticated probes on all three ESTIMETR routes returned the access gate without touching project data"
+    ],
+    "rollback": "Revert the slice 2 commit or return to tag v0.13.0-estimeter-entitlement-runtime; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-project-lifecycle.md"
+  },
+  {
+    "version": "0.13.0",
+    "title": "ESTIMETR Entitlement Runtime and Source Line Reconciliation",
+    "description": "รวมสองสายพัฒนากลับเป็นสายเดียว และบังคับใช้สิทธิ์ ESTIMETR จริงฝั่งเซิร์ฟเวอร์ตาม ADR 0003.",
+    "scope": [
+      "source line reconciliation",
+      "app registry and entitlement bootstrap",
+      "server-side capability gating",
+      "entitlement policy correction"
+    ],
+    "verification": [
+      "typecheck/lint/build passed",
+      "vitest 12 files / 45 tests passed",
+      "opt-in PostgreSQL integration run passed",
+      "GitHub push and release tag pending user approval"
+    ],
+    "rollback": "Return to branch backup/pre-estimeter-merge or tag v0.12.3-source-verification; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-entitlement-runtime.md"
+  },
+  {
+    "version": "0.12.3",
+    "title": "Full Source Repository Verification",
+    "description": "ยืนยันว่า repository private เก็บ full source ที่แก้ไขต่อได้ และไม่เก็บ build artifacts.",
+    "scope": [
+      "tracked-file audit",
+      "gitignore verification",
+      "source continuation guide"
+    ],
+    "verification": [
+      "no tracked build artifacts",
+      "source map documented",
+      "GitHub push pending"
+    ],
+    "rollback": "Return to tag v0.12.2-landing-interactions; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-full-source-verification.md"
+  },
+  {
+    "version": "0.12.2",
+    "title": "Landing Interaction Contracts and Button Audit",
+    "description": "ล็อก behavior ของปุ่ม Landing ด้วย interaction contract และบันทึกผลตรวจการกดใช้งานจริง.",
+    "scope": [
+      "navigation/app-entry/Login contract",
+      "manual button audit",
+      "regression tests"
+    ],
+    "verification": [
+      "manual button audit passed",
+      "lint/typecheck/build/security/roadmap/diff passed",
+      "vitest 6 files / 16 tests passed",
+      "GitHub push and private preview pending"
+    ],
+    "rollback": "Return to tag v0.12.1-concise-landing; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-landing-interaction-contracts.md"
+  },
+  {
+    "version": "0.12.1",
+    "title": "Concise Landing Copy and In-App Trial Details",
+    "description": "ลดข้อความหน้า Landing และย้ายข้อมูลสิทธิ์ทดลองใช้จากหน้าสาธารณะเข้า ESTIMETR.",
+    "scope": [
+      "concise public copy",
+      "หมวดประมาณราคา",
+      "ฟรี ทดลองใช้งาน 5 วัน",
+      "in-app trial detail placement"
+    ],
+    "verification": [
+      "local Landing/ESTIMETR review passed",
+      "lint/typecheck/build/security/roadmap/diff passed",
+      "vitest 5 files / 13 tests passed",
+      "GitHub push and private preview pending"
+    ],
+    "rollback": "Return to tag v0.12.0-civil-apps-market; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-concise-landing-copy.md"
+  },
+  {
+    "version": "0.12.0",
+    "title": "Civil Apps Market and App Detail Routes",
+    "description": "Landing แสดง app card ใต้ 4 หมวดงานที่ผู้ใช้ยืนยันโดยตรง พร้อมหน้า detail ก่อนเข้าสู่ workspace.",
+    "scope": [
+      "direct category-to-card marketplace",
+      "four honest app detail routes",
+      "free 5-day ESTIMETR message",
+      "responsive validation and registry tests"
+    ],
+    "verification": [
+      "lint/typecheck/build/security/roadmap/diff passed",
+      "vitest 5 files / 13 tests passed",
+      "local visual/browser review passed",
+      "GitHub push and private preview pending"
+    ],
+    "rollback": "Return to tag v0.11.2-vercel-private-preview-verified; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-civil-apps-market.md"
+  },
+  {
+    "version": "0.11.2",
+    "title": "Vercel Private Preview Verified",
+    "description": "บันทึกผล Vercel READY ของ private-repository preview หลังแก้ commit attribution สำเร็จ.",
+    "scope": [
+      "READY deployment verification",
+      "verified GitHub commit attribution",
+      "TODO closure"
+    ],
+    "verification": [
+      "Vercel READY",
+      "commit 285abcb",
+      "v0.11.1 quality gate previously passed"
+    ],
+    "rollback": "Return to tag v0.11.1-vercel-attribution-recovery; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-vercel-private-preview-verified.md"
+  },
+  {
+    "version": "0.11.1",
+    "title": "Vercel Private Git Commit Attribution Recovery",
+    "description": "แก้ Git commit attribution เพื่อให้ Vercel จับคู่ author ของ private-repository preview ได้.",
+    "scope": [
+      "repository-local Git identity",
+      "blocked deployment evidence",
+      "versioned preview retrigger"
+    ],
+    "verification": [
+      "author identity configured",
+      "prior v0.11.0 quality gate passed",
+      "GitHub push and new Vercel preview pending"
+    ],
+    "rollback": "Return to tag v0.11.0-estimeter-guided-assistant; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-vercel-private-git-attribution-recovery.md"
+  },
+  {
+    "version": "0.11.0",
+    "title": "ESTIMETR Guided Assistant and Strict Release Gates",
+    "description": "เพิ่ม Guided AI Assistant แบบ deterministic และล็อก ESTIMETR flow ตาม project path, scale, evidence, approved price set และ document readiness.",
+    "scope": [
+      "beginner/fast contextual guidance",
+      "strict workflow gates",
+      "workflow tests and responsive validation",
+      "private source baseline hardening"
+    ],
+    "verification": [
+      "lint/typecheck/build pass",
+      "vitest 4 files / 11 tests pass",
+      "desktop/mobile visual review",
+      "security, roadmap and diff checks pass"
+    ],
+    "rollback": "Return to tag v0.10.2-estimeter-github-confirmed; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-guided-assistant-and-strict-gates.md"
+  },
+  {
+    "version": "0.10.2",
+    "title": "ESTIMETR GitHub Release Confirmation",
+    "description": "บันทึกการยืนยัน commit, GitHub push, version และ release tag ของ ESTIMETR workspace ตามคำขอผู้ใช้.",
+    "scope": [
+      "branch/remote confirmation",
+      "release tag confirmation",
+      "TODO and handoff audit"
+    ],
+    "verification": [
+      "GitHub remote revision matches local branch",
+      "annotated version tag exists",
+      "public Vercel pilot READY"
+    ],
+    "rollback": "Return to tag v0.10.1-estimeter-pilot-verified; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-github-release-confirmation.md"
+  },
+  {
+    "version": "0.10.1",
+    "title": "ESTIMETR Public Pilot Verification",
+    "description": "บันทึกผลตรวจ Vercel public pilot ของ ESTIMETR workspace, Landing และ Roadmap/Handoff โดยไม่เปลี่ยน product behavior.",
+    "scope": [
+      "deployment READY verification",
+      "public ESTIMETR, Landing and roadmap routes",
+      "validation evidence record"
+    ],
+    "verification": [
+      "Vercel READY",
+      "three public routes reviewed",
+      "v0.10.0 quality gate already passed"
+    ],
+    "rollback": "Return to tag v0.10.0-estimeter-workspace; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-public-pilot-verification.md"
+  },
+  {
+    "version": "0.10.0",
+    "title": "ESTIMETR Traceable BOQ Estimation Workspace",
+    "description": "แทนหน้า ESTIMETR placeholder ด้วย workspace แบบมี QA gate, evidence ledger และ BOQ readiness ที่ไม่อ้างว่าเป็นข้อมูลจริง.",
+    "scope": [
+      "four gated ESTIMETR stages",
+      "quantity/unit/evidence view",
+      "price-source and BOQ readiness states",
+      "workflow tests and responsive validation"
+    ],
+    "verification": [
+      "lint/typecheck/build pass",
+      "vitest 4 files / 8 tests pass",
+      "desktop progression and 375×812 viewport reviewed",
+      "pending security and public Vercel review"
+    ],
+    "rollback": "Return to tag v0.9.2-estimetr-terminology; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimeter-traceable-boq-workspace.md"
+  },
+  {
+    "version": "0.9.2",
+    "title": "ESTIMETR Estimation Terminology",
+    "description": "แก้คำ workflow ของ ESTIMETR จาก “ผูกราคา” เป็น “ประมาณราคา” ให้ตรงกับศัพท์งานประมาณราคา.",
+    "scope": [
+      "app registry workflow copy",
+      "hero workflow step 04",
+      "terminology search"
+    ],
+    "verification": [
+      "no remaining ผูกราคา string",
+      "pending quality gate and Vercel review"
+    ],
+    "rollback": "Return to tag v0.9.1-brand-badge-review; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-estimetr-estimation-terminology.md"
+  },
+  {
+    "version": "0.9.1",
+    "title": "NM Brand and Badge Public Review Verification",
+    "description": "บันทึกผลตรวจ Vercel public review ของ NM wordmark, hero line-art และ product badges.",
+    "scope": [
+      "public desktop review",
+      "asset proxy 200 verification",
+      "mobile and R2 follow-up"
+    ],
+    "verification": [
+      "Vercel READY",
+      "Landing visual review",
+      "asset proxy HTTP 200"
+    ],
+    "rollback": "Return to tag v0.9.0-nm-brand-badges; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-nm-brand-badge-public-review.md"
+  },
+  {
+    "version": "0.9.0",
+    "title": "NM Brand Composition and Engineering App Badges",
+    "description": "นำ NM wordmark, engineering line-art และชุด product-grade app badges มาใช้กับ shared platform.",
+    "scope": [
+      "NM wordmark navigation",
+      "hero engineering line-art",
+      "product badges",
+      "per-app badge framing"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "credential-less production build",
+      "pending Vercel public review"
+    ],
+    "rollback": "Return to tag v0.8.0-enterprise-page; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-nm-brand-and-engineering-badges.md"
+  },
+  {
+    "version": "0.8.0",
+    "title": "Dedicated Enterprise Quotation Page",
+    "description": "ย้ายแบบฟอร์มใบเสนอราคาองค์กรออกจาก Landing ไปหน้า `/enterprise` เพื่อลดความหนาแน่นของหน้าแรก.",
+    "scope": [
+      "new /enterprise route",
+      "simplified Landing",
+      "updated quote navigation",
+      "route-aware active state"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "pending Vercel public review"
+    ],
+    "rollback": "Return to tag v0.7.1-light-teal-active; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-dedicated-enterprise-quotation-page.md"
+  },
+  {
+    "version": "0.7.1",
+    "title": "Light Teal Active Navigation",
+    "description": "คืน active navigation เป็นพื้นเขียวอ่อนใส โดยคง tactile feedback และ active context.",
+    "scope": [
+      "translucent teal active state",
+      "light peach quote active state",
+      "tactile motion retained"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "pending Vercel public review"
+    ],
+    "rollback": "Return to tag v0.7.0-tactile-navigation; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-light-teal-active-navigation.md"
+  },
+  {
+    "version": "0.7.0",
+    "title": "Tactile Engineering Navigation",
+    "description": "เพิ่ม press/release feedback และ anchor-aware active states ให้ navigation pills อย่างสุขุมแบบเครื่องมือวิศวกรรม.",
+    "scope": [
+      "active section tracking",
+      "tactile press/release",
+      "ink and dark-orange active tones",
+      "aria-current and reduced motion guards"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "pending Vercel public review"
+    ],
+    "rollback": "Return to tag v0.6.1-navigation-pills; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-tactile-engineering-navigation.md"
+  },
+  {
+    "version": "0.6.1",
+    "title": "Navigation Button Hierarchy",
+    "description": "ปรับ sticky navigation ทุกตัวเป็น pill button และรักษาปุ่มขอใบเสนอราคาเป็น primary action.",
+    "scope": [
+      "neutral nav pills",
+      "orange quote primary action",
+      "focus/hover/active states",
+      "mobile horizontal pill navigation"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "pending Vercel public review"
+    ],
+    "rollback": "Return to tag v0.6.0-sticky-enterprise-nav; no data rollback is needed.",
+    "path": "docs/handoff/2026-08-22-navigation-button-hierarchy.md"
+  },
+  {
+    "version": "0.6.0",
+    "title": "Sticky Enterprise Navigation",
+    "description": "เพิ่ม sticky top navigation พร้อมทางลัดแอป, Hermes, Roadmap/Handoff และขอใบเสนอราคาสำหรับองค์กร; มือถือใช้ horizontal navigation row.",
+    "scope": [
+      "sticky navigation layer",
+      "Roadmap/Handoff link",
+      "enterprise quote shortcut",
+      "mobile horizontal navigation",
+      "anchor scroll offsets"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "pending Vercel public sticky/mobile review"
+    ],
+    "rollback": "Return to tag v0.5.1-public-motion-review; no database rollback is needed.",
+    "path": "docs/handoff/2026-08-22-sticky-enterprise-navigation.md"
+  },
+  {
+    "version": "0.5.1",
+    "title": "Public Motion Review Verified",
+    "description": "บันทึกผลตรวจ Landing, ESTIMETR app shell และ Roadmap/Handoff บน Vercel public deployment หลัง motion release.",
+    "scope": [
+      "public Landing review",
+      "ESTIMETR app shell review",
+      "Roadmap/Handoff review",
+      "verified link set"
+    ],
+    "verification": [
+      "Vercel READY",
+      "public browser verification",
+      "v0.5.0 quality gate"
+    ],
+    "rollback": "Return to tag v0.5.0-responsive-motion; no runtime rollback is required.",
+    "path": "docs/handoff/2026-08-22-public-motion-review-verified.md"
+  },
+  {
+    "version": "0.5.0",
+    "title": "Responsive Engineering Motion System",
+    "description": "เพิ่ม hero signal, reveal-on-scroll, mouse-only app-card spotlight/tilt, Hermes attention response และ form focus feedback ที่เคารพ reduced motion.",
+    "scope": [
+      "LandingMotion controller",
+      "hero blueprint signals",
+      "app card pointer response",
+      "Hermes/form feedback",
+      "responsive and reduced-motion guards"
+    ],
+    "verification": [
+      "pnpm lint",
+      "6 unit tests",
+      "pnpm typecheck",
+      "credential-less Vercel production build",
+      "pending public Vercel review"
+    ],
+    "rollback": "Return to tag v0.4.3-public-pilot-assets; no database rollback is needed.",
+    "path": "docs/handoff/2026-08-22-responsive-engineering-motion-system.md"
+  },
+  {
+    "version": "0.4.3",
+    "title": "Public Pilot Visual Asset Availability",
+    "description": "ทำให้ Landing icon graphics แสดงบน Vercel pilot ได้ผ่าน public presentation CDN และเตรียม Cloudflare R2/CDN origin สำหรับ production.",
+    "scope": [
+      "allowlisted pilot CDN icon URLs",
+      "asset proxy fallback",
+      "VISUAL_ASSET_ORIGIN production contract",
+      "credential-less Vercel verification"
+    ],
+    "verification": [
+      "public CDN response image/png",
+      "lint",
+      "6 unit tests",
+      "typecheck",
+      "credential-less Vercel build",
+      "security preflight",
+      "roadmap validation"
+    ],
+    "rollback": "Return to tag v0.4.2-vercel-native-output; pilot icons will no longer resolve.",
+    "path": "docs/handoff/2026-08-22-public-pilot-visual-asset-availability.md"
+  },
+  {
+    "version": "0.4.2",
+    "title": "Vercel Native Output Compatibility",
+    "description": "ใช้ native Next.js output บน Vercel pilot และสงวน standalone output สำหรับ Hostinger Docker build.",
+    "scope": [
+      "conditional DEPLOY_TARGET output",
+      "Vercel-native build",
+      "Hostinger standalone portability",
+      "credential-less pilot contract"
+    ],
+    "verification": [
+      "credential-less DEPLOY_TARGET=vercel production build",
+      "pending final quality gate and Vercel public-route verification"
+    ],
+    "rollback": "Return to tag v0.4.1-vercel-auth-safe; this may restore the Vercel trace-file error.",
+    "path": "docs/handoff/2026-08-22-vercel-native-output-compatibility.md"
+  },
+  {
+    "version": "0.4.1",
+    "title": "Vercel Auth-Safe Pilot Build",
+    "description": "แก้ Better Auth build boundary เพื่อให้ pilot preview build ได้แม้ยังไม่มี PostgreSQL หรือ OAuth credentials.",
+    "scope": [
+      "auth availability guard",
+      "lazy Better Auth route import",
+      "safe Landing login preview state",
+      "missing-environment build coverage"
+    ],
+    "verification": [
+      "lint",
+      "6 unit tests",
+      "typecheck",
+      "production build with DB/auth env unset",
+      "security preflight",
+      "roadmap validation"
+    ],
+    "rollback": "Return to tag v0.4.0-unified-app-shell; this is not appropriate for a credential-less Vercel pilot.",
+    "path": "docs/handoff/2026-08-22-vercel-auth-safe-pilot-build.md"
+  },
+  {
+    "version": "0.4.0",
+    "title": "Unified App Shell and Interactive Landing System",
+    "description": "เพิ่ม icon graphic, micro-interaction และ shared app shell เพื่อให้ทุกหน้าและทุกแอปใช้ platform UI system เดียวกัน.",
+    "scope": [
+      "กำแพงกันดิน name correction",
+      "per-app icon graphic และ visual asset proxy",
+      "PlatformNav/PlatformFooter/AppShell",
+      "motion/focus/reduced-motion rules",
+      "platform UI system documentation"
+    ],
+    "verification": [
+      "pnpm lint",
+      "pnpm test (4 passed)",
+      "pnpm typecheck",
+      "NODE_ENV=production pnpm build",
+      "pnpm security:check",
+      "node scripts/check-roadmap.mjs",
+      "browser verification"
+    ],
+    "rollback": "Return to tag v0.3.0-interactive-landing; no database migration is applied.",
+    "path": "docs/handoff/2026-08-22-unified-app-shell-and-interactive-landing.md"
+  },
+  {
     "version": "0.3.0",
     "title": "Interactive Landing and Source Status Console",
     "description": "ส่งมอบ full editable Next.js source scaffold พร้อม Landing mockup, app registry, Hermes pilot disclosure, quotation intake และ Roadmap/Handoff HTML console.",
-    "scope": ["Landing app registry และ SVG icon system", "ESTIMETR trial/read-only interaction preview", "Drizzle initial migration", "Hermes typed review policy", "Roadmap/Handoff runtime console"],
-    "verification": ["pnpm lint", "pnpm test (4 passed)", "pnpm typecheck", "NODE_ENV=production pnpm build", "pnpm db:generate", "browser verification"],
+    "scope": [
+      "Landing app registry และ SVG icon system",
+      "ESTIMETR trial/read-only interaction preview",
+      "Drizzle initial migration",
+      "Hermes typed review policy",
+      "Roadmap/Handoff runtime console"
+    ],
+    "verification": [
+      "pnpm lint",
+      "pnpm test (4 passed)",
+      "pnpm typecheck",
+      "NODE_ENV=production pnpm build",
+      "pnpm db:generate",
+      "browser verification"
+    ],
     "rollback": "Return to tag v0.2.0-architecture; the initial migration is not applied to a database.",
     "path": "docs/handoff/2026-08-22-interactive-landing-and-status-console.md"
   },
@@ -12,8 +591,15 @@
     "version": "0.2.0",
     "title": "Architecture Decisions",
     "description": "กำหนด runtime, data model และ security boundaries ก่อนสร้าง application source.",
-    "scope": ["ADRs 0001–0005", "PostgreSQL/R2/queue boundary", "trial entitlement และ Hermes pilot policy"],
-    "verification": ["node scripts/check-roadmap.mjs", "git diff --check"],
+    "scope": [
+      "ADRs 0001–0005",
+      "PostgreSQL/R2/queue boundary",
+      "trial entitlement และ Hermes pilot policy"
+    ],
+    "verification": [
+      "node scripts/check-roadmap.mjs",
+      "git diff --check"
+    ],
     "rollback": "กลับไป tag v0.1.0-initial-governance; ไม่มี migration หรือ production data เปลี่ยนแปลง.",
     "path": "docs/handoff/2026-08-22-architecture-decisions.md"
   },
@@ -21,8 +607,14 @@
     "version": "0.1.0",
     "title": "Initial Project Governance",
     "description": "สร้าง project memory, rules, ADR command, Git hooks และ roadmap versioning.",
-    "scope": ["CONTEXT.md / PROJECT.md / AGENTS.md", "Git hook และ roadmap JSON", "Hermes runtime assessment"],
-    "verification": ["node scripts/check-roadmap.mjs"],
+    "scope": [
+      "CONTEXT.md / PROJECT.md / AGENTS.md",
+      "Git hook และ roadmap JSON",
+      "Hermes runtime assessment"
+    ],
+    "verification": [
+      "node scripts/check-roadmap.mjs"
+    ],
     "rollback": "เป็น root governance milestone; revert commit 2767d94 หากต้องเริ่มใหม่.",
     "path": "docs/handoff/2026-08-22-initial-governance.md"
   }

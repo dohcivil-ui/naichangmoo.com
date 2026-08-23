@@ -1,0 +1,40 @@
+{
+  "version": "0.16.0",
+  "title": "ESTIMETR Trial Starts at Explicit Activation",
+  "description": "แยกด่านสมาชิกเว็บออกจากด่านสิทธิ์ทดลองใช้แอป ตามโมเดลสองด่าน: authentication สร้าง Platform Membership อย่างเดียว นาฬิกา ESTIMETR 5 วันเริ่มนับเมื่อสมาชิกกดเริ่มทดลองใช้อย่างชัดแจ้งหลังเห็นเงื่อนไข การอ่านสิทธิ์ไม่เขียนฐานข้อมูล และ ADR 0006 supersede จุดเริ่มนาฬิกาใน ADR 0003",
+  "scope": [
+    "record ADR 0006 superseding only the trial start point in ADR 0003",
+    "split trial issuance into ensurePersonalOrganization on the write path and activateEstimeterTrial from a server action",
+    "keep getEstimeterAccess as a read path that reports not_activated when no entitlement row exists",
+    "start the five-day window from the activation instant, not from users.created_at",
+    "show trial terms next to an explicit start control and write entitlement.trial_activated with acceptedTerms",
+    "refuse project creation and take-off mutation until the trial is activated, on both the page and the write path"
+  ],
+  "updatedAt": "2026-08-23T19:40:00+07:00",
+  "status": "local_verification_passed_push_and_tag_pending",
+  "verification": [
+    "pnpm typecheck, pnpm lint (0 warnings), pnpm test (100 passed with the opt-in database suites enabled), pnpm build and pnpm security:check pass",
+    "unit tests cover the activation window, not_activated capabilities and the project-creation denial that tells the member to start the trial first",
+    "opt-in PostgreSQL tests cover GET writing nothing, the clock starting at activation, a second click refusing to extend the window, one row under concurrent activation, and read-only access after expiry",
+    "GitHub push and release tag pending user approval"
+  ],
+  "rollback": "Revert the v0.16.0 commit or return to tag v0.15.0-estimeter-manual-takeoff. No migration runs in this release. Dev entitlement rows written under the old clock stay valid until deleted; after revert they would be read as trials again.",
+  "constraints": [
+    "No schema change or migration in this release; not_activated is inferred from a missing entitlement row.",
+    "The five-day, one-project, export/print lock and read-only retention terms remain those of ADR 0003.",
+    "The trial is bound to one organization once; a new email still receives a new trial, the same limitation as before.",
+    "Local database is development-only; leftover entitlement rows from v0.13.0 keep the old clock until deleted."
+  ],
+  "adrReferences": [
+    "0002-postgresql-drizzle-and-r2-data-boundary",
+    "0003-platform-membership-entitlement-and-trial",
+    "0006-trial-clock-starts-at-explicit-activation"
+  ],
+  "items": [
+    { "id": "IP-046", "title": "Start the ESTIMETR trial clock at explicit activation (ADR 0006)", "status": "done", "phase": "implementation" },
+    { "id": "IP-040", "title": "Issue the ESTIMETR trial from the Better Auth registration hook instead of first visit", "status": "cancelled", "phase": "implementation" },
+    { "id": "IP-045", "title": "Add structured dimension breakdown to take-off items so a quantity's arithmetic can be re-checked", "status": "planned", "phase": "schema" },
+    { "id": "IP-042", "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance", "status": "planned", "phase": "governance" },
+    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" }
+  ]
+}

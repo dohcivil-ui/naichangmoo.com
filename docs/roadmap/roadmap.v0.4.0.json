@@ -1,0 +1,46 @@
+{
+  "version": "0.4.0",
+  "title": "Unified App Shell and Interactive Landing System",
+  "description": "ยกระดับ Landing ของนายช่างหมูด้วย icon graphic เฉพาะแอป, micro-interaction ที่เข้าถึงได้ และ shared app shell ที่ทำให้ทุกหน้าใช้รูปแบบ navigation, context, status และ responsive system เดียวกัน.",
+  "scope": [
+    "แก้ชื่อ RCOPT ให้เป็น กำแพงกันดิน ใน app registry และ shared app route",
+    "สร้าง icon graphic สำหรับ ESTIMETR, กำแพงกันดิน, Traffic Sign, Land Acquisition V2 และ Hermes พร้อม allowlisted visual asset proxy",
+    "สร้าง PlatformNav, PlatformFooter และ AppShell สำหรับทุก app route",
+    "เพิ่ม micro-interaction สำหรับ app cards, workflow steps, Hermes panel, buttons และ form focus โดยรองรับ reduced motion",
+    "จัดทำ platform UI system documentation สำหรับ navigation, layout, card, form, status และ responsive conventions"
+  ],
+  "updatedAt": "2026-08-22T06:40:00+07:00",
+  "status": "visual-system-ready",
+  "verification": [
+    "pnpm lint",
+    "pnpm test",
+    "pnpm typecheck",
+    "NODE_ENV=production pnpm build",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs",
+    "browser verification of Landing and shared app shell"
+  ],
+  "rollback": "Return to tag v0.3.0-interactive-landing; visual asset proxy and shared app shell are source-only changes with no database migration applied.",
+  "constraints": [
+    "All apps share the same platform UI system; only workflow, data and entitlement differ.",
+    "Hermes remains advisory-only for AI Takeoff evidence review.",
+    "Visual asset production storage must resolve STATIC_ASSET_ORIGIN to the approved Cloudflare R2/CDN origin before deployment."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0003-platform-membership-entitlement-and-trial",
+    "0004-hermes-pilot-review-boundary"
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement SVG/icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" }
+  ]
+}

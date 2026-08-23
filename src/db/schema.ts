@@ -1,5 +1,7 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -19,6 +21,9 @@ export const memberRole = pgEnum("member_role", ["owner", "admin", "member", "vi
 export const entitlementState = pgEnum("entitlement_state", ["trial", "active", "expired_read_only", "suspended", "member_free", "doh_staff_only"]);
 export const quoteStatus = pgEnum("enterprise_quote_status", ["submitted", "triaged", "contacted", "proposal_prepared", "closed"]);
 export const projectState = pgEnum("project_state", ["draft", "active", "locked", "archived"]);
+// Which costing stack a project's quantities will be priced through. See ADR 0007: the two
+// stacks are not interchangeable, so a project declares one at creation instead of switching.
+export const projectPath = pgEnum("project_path", ["private", "government"]);
 export const reviewState = pgEnum("review_state", ["proposed", "review_required", "confirmed", "rejected"]);
 export const jobState = pgEnum("job_state", ["queued", "running", "succeeded", "failed", "cancelled", "dead_letter"]);
 export const approvalState = pgEnum("approval_state", ["pending", "approved", "rejected", "cancelled"]);
@@ -121,6 +126,7 @@ export const enterpriseQuotationRequests = pgTable("enterprise_quotation_request
   procurementNote: text("procurement_note"),
   requirementNote: text("requirement_note").notNull(),
   consentAt: timestamp("consent_at", { withTimezone: true }).notNull(),
+  ipHash: text("ip_hash"),
   status: quoteStatus("status").notNull().default("submitted"),
   createdAt,
   updatedAt
@@ -132,6 +138,7 @@ export const projects = pgTable("projects", {
   ownerId: text("owner_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   workType: text("work_type").notNull().default("building"),
+  path: projectPath("project_path").notNull().default("government"),
   state: projectState("state").notNull().default("draft"),
   createdAt,
   updatedAt
@@ -168,11 +175,77 @@ export const takeoffItems = pgTable("takeoff_items", {
   category: text("category").notNull(),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
+  // Net quantity: the sum of the measurement lines with the waste percentage applied. Items
+  // created before v0.17.0 carry a typed-in quantity and a null quantityGross, which is how a
+  // reader tells a measured quantity from one that was simply asserted.
   quantity: numeric("quantity", { precision: 18, scale: 6 }).notNull(),
+  quantityGross: numeric("quantity_gross", { precision: 18, scale: 6 }),
+  wastePercent: numeric("waste_percent", { precision: 9, scale: 6 }).notNull().default("0"),
+  wasteSourceNote: text("waste_source_note"),
   reviewState: reviewState("review_state").notNull().default("proposed"),
   createdAt,
   updatedAt
-});
+}, (table) => [
+  // The parser refuses these too, but the parser only runs on the path that happens to call
+  // it. An allowance folded into a quantity with no rule behind it is exactly the kind of
+  // figure this release exists to prevent, so the database refuses it as well.
+  check("takeoff_items_waste_percent_range", sql`${table.wastePercent} >= 0 AND ${table.wastePercent} <= 100`),
+  check(
+    "takeoff_items_waste_needs_source",
+    sql`${table.wastePercent} = 0 OR (${table.wasteSourceNote} IS NOT NULL AND length(btrim(${table.wasteSourceNote})) > 0)`
+  ),
+  check("takeoff_items_quantity_not_negative", sql`${table.quantity} >= 0`),
+  check("takeoff_items_quantity_gross_not_negative", sql`${table.quantityGross} IS NULL OR ${table.quantityGross} >= 0`)
+]);
+
+/**
+ * The arithmetic behind one take-off quantity, one measured element per row.
+ *
+ * A quantity that arrives as a single typed number cannot be re-checked in a review meeting:
+ * nobody can tell whether 12.5 cu.m came from the right footing or from a slipped decimal.
+ * Each row therefore keeps the factors a person actually read off the drawing, and the item
+ * quantity is their sum rather than an independent number.
+ *
+ * How many dimension columns must be filled is decided by the unit, not by the row: a cubic
+ * metre needs three, a square metre two, a metre one, a counted unit none. Mass is the
+ * exception — steel weight does not come from geometry, so it converts from a measured length
+ * through conversionFactor, whose provenance lives in conversionNote.
+ */
+export const takeoffMeasurements = pgTable("takeoff_measurements", {
+  id: text("id").primaryKey(),
+  takeoffItemId: text("takeoff_item_id").notNull().references(() => takeoffItems.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  count: integer("count").notNull(),
+  dimension1: numeric("dimension_1", { precision: 18, scale: 6 }),
+  dimension2: numeric("dimension_2", { precision: 18, scale: 6 }),
+  dimension3: numeric("dimension_3", { precision: 18, scale: 6 }),
+  conversionFactor: numeric("conversion_factor", { precision: 18, scale: 6 }),
+  conversionNote: text("conversion_note"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [
+  index("takeoff_measurements_item_idx").on(table.takeoffItemId),
+  // A factor of zero or less is a mistake, not a measurement, and it would silently zero the
+  // whole line. How many dimensions a row needs depends on the parent item's unit, so that
+  // rule stays in the write path; everything checkable from the row alone is enforced here.
+  check("takeoff_measurements_count_positive", sql`${table.count} > 0`),
+  check(
+    "takeoff_measurements_dimensions_positive",
+    sql`(${table.dimension1} IS NULL OR ${table.dimension1} > 0)
+      AND (${table.dimension2} IS NULL OR ${table.dimension2} > 0)
+      AND (${table.dimension3} IS NULL OR ${table.dimension3} > 0)`
+  ),
+  // A conversion factor with no stated provenance is an unexplained number in the middle of
+  // the arithmetic, which is the one thing a measurement line must never contain.
+  check(
+    "takeoff_measurements_conversion_needs_source",
+    sql`${table.conversionFactor} IS NULL
+      OR (${table.conversionFactor} > 0
+        AND ${table.conversionNote} IS NOT NULL
+        AND length(btrim(${table.conversionNote})) > 0)`
+  )
+]);
 
 export const evidenceReferences = pgTable("evidence_references", {
   id: text("id").primaryKey(),
@@ -283,6 +356,18 @@ export const auditEvents = pgTable("audit_events", {
   createdAt
 }, (table) => [index("audit_events_resource_idx").on(table.resourceType, table.resourceId)]);
 
+// Portable fixed-window rate-limit counter. One row per (scope, identifier, window)
+// so abuse controls work identically on Vercel and the VPS without extra infrastructure.
+export const rateLimitCounters = pgTable("rate_limit_counters", {
+  id: text("id").primaryKey(),
+  scope: text("scope").notNull(),
+  identifier: text("identifier").notNull(),
+  windowStart: timestamp("window_start", { withTimezone: true }).notNull(),
+  count: integer("count").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [uniqueIndex("rate_limit_counters_unique").on(table.scope, table.identifier, table.windowStart)]);
+
 export const schema = {
   users,
   sessions,
@@ -297,6 +382,7 @@ export const schema = {
   drawingDocuments,
   takeoffRuns,
   takeoffItems,
+  takeoffMeasurements,
   evidenceReferences,
   priceSources,
   priceObservations,
@@ -305,5 +391,6 @@ export const schema = {
   backgroundJobs,
   hermesReviewJobs,
   approvalRequests,
-  auditEvents
+  auditEvents,
+  rateLimitCounters
 };

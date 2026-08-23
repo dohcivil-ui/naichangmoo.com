@@ -1,0 +1,51 @@
+{
+  "version": "0.5.0",
+  "title": "Responsive Engineering Motion System",
+  "description": "ยกระดับ Landing ด้วย micro-interactions ที่มีเป้าหมาย: hero signal, reveal-on-scroll, pointer spotlight/tilt สำหรับ app cards, Hermes panel response และ form focus feedback โดยเคารพ reduced-motion และ touch behavior.",
+  "scope": [
+    "เพิ่ม client-side LandingMotion controller สำหรับ reveal-on-scroll ที่หยุด observer หลังแสดงผล",
+    "เพิ่ม blueprint signal layer บน hero เพื่อสื่อสาร workflow โดยไม่รบกวนความอ่านง่าย",
+    "ปรับ app cards ให้ตอบสนองต่อ mouse pointer ด้วย spotlight และ tilt เฉพาะ mouse input",
+    "เพิ่ม focused form lift และ Hermes attention ring พร้อม disable motion ที่ไม่จำเป็นบน touch/reduced-motion",
+    "ปรับ icon frame ให้ crop และขยาย visual asset อย่างอ่านได้ใน card ขนาดเล็ก"
+  ],
+  "updatedAt": "2026-08-22T09:42:00+07:00",
+  "status": "ready_for_vercel_motion_review",
+  "verification": [
+    "pnpm lint",
+    "pnpm test (6 passed)",
+    "pnpm typecheck",
+    "credential-less DEPLOY_TARGET=vercel production build",
+    "pnpm security:check",
+    "node scripts/check-roadmap.mjs",
+    "pending public Vercel motion and responsive review"
+  ],
+  "rollback": "Return to tag v0.4.3-public-pilot-assets to remove the LandingMotion controller and v0.5.0 motion CSS. No database migration is involved.",
+  "constraints": [
+    "Motion is decorative feedback only; no pricing, entitlement, project state or document decision depends on animation.",
+    "Pointer tilt is limited to mouse input and disabled on touch/coarse pointers.",
+    "Reduced-motion users receive immediate content without animated transforms.",
+    "No production identity, database, payment or Hermes worker service is enabled."
+  ],
+  "adrReferences": [
+    "0001-portable-pilot-and-production-deployment",
+    "0003-platform-membership-entitlement-and-trial",
+    "0004-hermes-pilot-review-boundary"
+  ],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" },
+    { "id": "IP-012", "title": "Use Vercel native output while retaining Hostinger standalone build portability", "status": "done", "phase": "release" },
+    { "id": "IP-013", "title": "Serve Landing icon graphics through a public pilot-safe asset origin", "status": "done", "phase": "release" },
+    { "id": "IP-014", "title": "Add responsive engineering motion system to Landing", "status": "done", "phase": "release" }
+  ]
+}

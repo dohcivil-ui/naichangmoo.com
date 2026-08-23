@@ -1,8 +1,29 @@
+"use client";
+
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { requestEnterpriseQuotation } from "@/server/actions/enterprise-quotation";
+import type { QuotationActionResult } from "@/server/actions/quotation-schema";
+
+const initialState: QuotationActionResult = { ok: false, message: "" };
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button className="button button--orange" type="submit" disabled={pending}>
+      {pending ? "กำลังส่งคำขอ..." : "ส่งคำขอให้ทีมงานจัดทำข้อเสนอ"}
+    </button>
+  );
+}
 
 export function EnterpriseQuoteForm() {
+  const [state, formAction] = useActionState(requestEnterpriseQuotation, initialState);
+
   return (
-    <form className="quote-form" action={requestEnterpriseQuotation}>
+    <form className="quote-form" action={formAction}>
+      <div className="honeypot" aria-hidden="true">
+        <label>อย่ากรอกช่องนี้<input name="companyWebsite" type="text" tabIndex={-1} autoComplete="off" /></label>
+      </div>
       <div className="field-grid">
         <label>ชื่อองค์กรหรือหน่วยงาน<input name="organizationName" required autoComplete="organization" /></label>
         <label>ประเภทองค์กร<select name="organizationType" defaultValue=""><option value="" disabled>เลือกประเภท</option><option value="government">หน่วยงานภาครัฐ</option><option value="company">บริษัทเอกชน</option><option value="education">สถานศึกษา</option><option value="other">อื่น ๆ</option></select></label>
@@ -20,9 +41,11 @@ export function EnterpriseQuoteForm() {
           <label><input name="intendedApps" value="land-acquisition" type="checkbox" /> Land Acquisition V2</label>
         </div>
       </fieldset>
-      <label>ความต้องการหรือขั้นตอนจัดซื้อ<textarea name="requirementNote" required rows={4} placeholder="เช่น จำนวนผู้ใช้ รูปแบบการจัดซื้อ หรือวันที่ต้องการเริ่มใช้งาน" /></label>
+      <label>ความต้องการใช้งาน<textarea name="requirementNote" required rows={4} placeholder="เช่น ขอบเขตงาน จำนวนผู้ใช้ หรือวันที่ต้องการเริ่มใช้งาน" /></label>
+      <label>ขั้นตอนหรือเงื่อนไขการจัดซื้อ (ถ้ามี)<textarea name="procurementNote" rows={3} placeholder="เช่น รูปแบบการจัดซื้อจัดจ้าง งบประมาณ หรือเอกสารที่ต้องใช้" /></label>
       <label className="consent"><input name="consent" value="yes" required type="checkbox" /> ยินยอมให้ทีมงานติดต่อกลับตามข้อมูลข้างต้นเพื่อจัดทำข้อเสนอ</label>
-      <button className="button button--orange" type="submit">ส่งคำขอให้ทีมงานจัดทำข้อเสนอ</button>
+      {state.message ? <p className={state.ok ? "form-success" : "form-error"} role="status" aria-live="polite">{state.message}</p> : null}
+      <SubmitButton />
       <p className="form-note">การส่งแบบฟอร์มนี้ยังไม่ใช่ใบเสนอราคา การทำสัญญา หรือการชำระเงิน</p>
     </form>
   );

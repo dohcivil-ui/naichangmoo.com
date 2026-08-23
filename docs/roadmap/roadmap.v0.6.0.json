@@ -1,0 +1,31 @@
+{
+  "version": "0.6.0",
+  "title": "Sticky Enterprise Navigation",
+  "description": "ปรับ navigation bar ด้านบนให้ตรึงระหว่างเลื่อน รวมทางลัดหลักไว้ในแถบเดียว และเรียบเรียง card Retaining Wall Cantilever ให้สื่อ Bisection Algorithm อย่างกระชับ.",
+  "scope": ["ทำ top navigation เป็น sticky layer ที่มี shadow และ z-index เหนือเนื้อหา", "เพิ่มเมนูสถานะโครงการไปยัง Roadmap/Handoff", "เพิ่มปุ่มขอใบเสนอราคาเป็น action เด่นไปยัง enterprise intake", "แสดง nav links บนมือถือผ่าน horizontal scroll แทนการซ่อน", "กำหนด anchor scroll margin เพื่อไม่ให้ section ถูกบังด้วย sticky bar", "เปลี่ยน card กำแพงกันดินเป็น Retaining Wall Cantilever พร้อม Bisection Algorithm copy ภาษาอังกฤษที่อ่านง่าย"],
+  "updatedAt": "2026-08-22T10:02:00+07:00",
+  "status": "ready_for_sticky_nav_review",
+  "verification": ["pnpm lint", "pnpm test (6 passed)", "pnpm typecheck", "pending credential-less Vercel production build", "pending security preflight and roadmap validation", "pending public Vercel sticky/mobile/card-copy review"],
+  "rollback": "Return to tag v0.5.1-public-motion-review to restore the previous top navigation without the quote action or mobile horizontal nav strip. No database migration is involved.",
+  "constraints": ["Navigation links only use internal routes or anchors; no new auth/payment behavior is enabled.", "Mobile navigation remains keyboard-reachable and horizontally scrollable without hiding the enterprise quote action.", "Sticky navigation must not obstruct target section headings."],
+  "adrReferences": ["0001-portable-pilot-and-production-deployment", "0003-platform-membership-entitlement-and-trial", "0005-enterprise-quotation-intake"],
+  "items": [
+    { "id": "IP-001", "title": "Create project memory, rules, commands, hooks and handoff policy", "status": "done", "phase": "governance" },
+    { "id": "IP-002", "title": "Create versioned roadmap and commit policy", "status": "done", "phase": "governance" },
+    { "id": "IP-003", "title": "Define architecture ADRs and PostgreSQL schema", "status": "done", "phase": "architecture" },
+    { "id": "IP-004", "title": "Scaffold Next.js application and Drizzle migrations", "status": "done", "phase": "implementation" },
+    { "id": "IP-005", "title": "Implement membership, entitlements and ESTIMETR trial/read-only policy", "status": "done", "phase": "implementation" },
+    { "id": "IP-006", "title": "Implement icon graphics and enterprise quotation intake", "status": "done", "phase": "implementation" },
+    { "id": "IP-007", "title": "Draft Hermes typed job boundary and security controls", "status": "in_progress", "phase": "implementation" },
+    { "id": "IP-008", "title": "Run security audit, tag milestone and write handoff", "status": "done", "phase": "release" },
+    { "id": "IP-009", "title": "Create unified platform UI system and shared app shell", "status": "done", "phase": "implementation" },
+    { "id": "IP-010", "title": "Build ESTIMETR engineering workspace mockup", "status": "planned", "phase": "next_app_mockup" },
+    { "id": "IP-011", "title": "Make Vercel pilot build safe when database and OAuth credentials are absent", "status": "done", "phase": "release" },
+    { "id": "IP-012", "title": "Use Vercel native output while retaining Hostinger standalone build portability", "status": "done", "phase": "release" },
+    { "id": "IP-013", "title": "Serve Landing icon graphics through a public pilot-safe asset origin", "status": "done", "phase": "release" },
+    { "id": "IP-014", "title": "Add responsive engineering motion system to Landing", "status": "done", "phase": "release" },
+    { "id": "IP-015", "title": "Verify public Vercel review routes and share complete test link set", "status": "done", "phase": "release" },
+    { "id": "IP-016", "title": "Add sticky platform navigation with enterprise quote shortcut", "status": "done", "phase": "release" },
+    { "id": "IP-017", "title": "Refine Retaining Wall Cantilever card copy for Bisection Algorithm", "status": "done", "phase": "release" }
+  ]
+}

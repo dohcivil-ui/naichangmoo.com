@@ -15,3 +15,13 @@ Landing mockup ต้องแสดง interaction ของ entitlement อย
 ## Roadmap and handoff console
 
 `/roadmap` แสดง Roadmap v0.3.0 พร้อม title, description, scope, item status และ runtime refresh time ได้จาก `docs/roadmap/roadmap.json`. แท็บ Handoff แสดง metadata ของ handoff ล่าสุด ได้แก่ version, title, description, changed scope, verification และ rollback จาก `docs/handoff/index.json` ได้ถูกต้อง.
+
+## Visual-system update
+
+Landing แสดง icon graphic ใหม่สำหรับ ESTIMETR, กำแพงกันดิน, Traffic Sign, Land Acquisition V2 และ Hermes ผ่าน allowlisted Next.js visual asset proxy ได้แล้ว. การแก้ proxy ทำให้ app cards ไม่อ้าง path storage ที่ไม่อยู่ใน Next.js dev server โดยตรง และคง migration path ผ่าน environment `STATIC_ASSET_ORIGIN` สำหรับ deployment ต่อไป.
+
+Micro-interaction ของ card ถูกผูกกับ `pointermove`, hover/focus และ pointer leave ใน source. Browser coordinate automation รอบแรกยังไม่ได้อยู่ใน boundary ของ card จึงไม่พบ transform ใน computed style; ต้องทำ manual hover check รอบ final viewport เพื่อยืนยัน visual transition ก่อน release.
+
+## Shared app shell
+
+Routes `/apps/rcopt` และ `/apps/estimeter` แสดง `PlatformNav`, app context bar, entitlement label, workspace introduction และ `PlatformFooter` ในรูปแบบเดียวกัน. ความต่างของแต่ละหน้าอยู่ที่ชื่อ app, access label และ copy ของ workflow เท่านั้น โดย RCOPT แสดงชื่อผู้ใช้ว่า “กำแพงกันดิน” ตาม requirement ล่าสุด.
