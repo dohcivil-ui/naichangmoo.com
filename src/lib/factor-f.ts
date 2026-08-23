@@ -107,9 +107,8 @@ export type FactorFSelection = {
   /** The next row up, present only when the cost of work falls between two printed rows. */
   nextRow?: FactorFRow;
   /**
-   * True when the cost of work sits between two printed rows. The note under every table says to
-   * interpolate, while the real ปร.4 checked against this dataset used the lower row as printed.
-   * The difference is real money, so this flag is surfaced rather than resolved here.
+   * True when the cost of work sits between two printed rows, which is when the note under every
+   * table calls for interpolation. `resolveFactorF` acts on it; this function only reports it.
    */
   betweenRows: boolean;
 };
@@ -143,4 +142,96 @@ export function selectFactorFRow(table: FactorFTable, costOfWorkBaht: number): F
   const nextRow = rows.slice(index + 1).find((candidate) => candidate.bound !== "above");
   const exact = millions === row.costMillionBaht;
   return { row, ...(nextRow && !exact ? { nextRow } : {}), betweenRows: !exact && Boolean(nextRow) };
+}
+
+/** Factor F is printed to four decimal places, and the printed figure is what a ปร.5 multiplies by. */
+const FACTOR_SCALE = 10_000;
+
+function toPrintedFactor(scaledValue: number): number {
+  return Math.round(scaledValue) / FACTOR_SCALE;
+}
+
+/** Which published column a factor was read from. */
+export type FactorFColumn = "with_vat" | "without_vat" | "heavy_rain_1" | "heavy_rain_2";
+
+export type FactorFOptions = {
+  /**
+   * False for work funded by a loan or another source that pays no VAT, which note 2 under every
+   * table sends to the "รวมในรูป Factor" column instead.
+   */
+  paysVat: boolean;
+  /** Irrigation only: how many heavy-rain zones the work sits in. Published with VAT only. */
+  heavyRainZones?: 0 | 1 | 2;
+};
+
+export type FactorFResolution = {
+  /** The multiplier to apply, at the four decimals a sheet prints. */
+  factor: number;
+  column: FactorFColumn;
+  /** Whether the factor was read off a printed step or interpolated between two of them. */
+  basis: "printed_row" | "interpolated";
+  row: FactorFRow;
+  /** The row above, present only when the factor was interpolated. */
+  nextRow?: FactorFRow;
+};
+
+function columnOf(options: FactorFOptions): FactorFColumn {
+  const zones = options.heavyRainZones ?? 0;
+  if (zones === 0) return options.paysVat ? "with_vat" : "without_vat";
+  if (!options.paysVat) {
+    // The circular publishes heavy-rain columns inclusive of VAT and no plain counterpart, so
+    // there is no honest figure to return here.
+    throw new Error("no heavy-rain column is published without VAT");
+  }
+  return zones === 1 ? "heavy_rain_1" : "heavy_rain_2";
+}
+
+function readColumn(row: FactorFRow, column: FactorFColumn): number {
+  const value =
+    column === "with_vat"
+      ? row.factorWithVat
+      : column === "without_vat"
+        ? row.factor
+        : column === "heavy_rain_1"
+          ? row.factorHeavyRain1
+          : row.factorHeavyRain2;
+  if (value === undefined) throw new Error(`this table has no ${column} column`);
+  return value;
+}
+
+/**
+ * The Factor F that governs a cost of work, following the two notes printed under every table.
+ *
+ * > 1. กรณีค่างานอยู่ระหว่างช่วงของค่างานต้นทุนที่กำหนด ให้เทียบอัตราส่วนเพื่อหาค่า Factor F
+ * > 2. ถ้าเป็นงานเงินกู้หรือจากแหล่งอื่นซึ่งไม่ต้องชำระภาษีมูลค่าเพิ่ม ให้ใช้ Factor F ในช่อง "รวมในรูป Factor"
+ *
+ * Note 1 is the reason this exists. Reaching for the row below is the easier thing to do and the
+ * figure it gives is close enough to look right, which is exactly why it has to be ruled out here
+ * rather than left to whoever calls this next.
+ *
+ * The interpolated value is rounded to the four decimals the tables are published at, because
+ * that printed figure is what a ปร.5 prints in its Factor F column and multiplies each line by.
+ * Carrying more precision than the sheet shows would make the sheet fail its own arithmetic check.
+ *
+ * One factor governs a whole section: it is chosen from the section's total cost of work, then
+ * applied to every line. Choosing per line would give a total that still looks plausible.
+ */
+export function resolveFactorF(
+  table: FactorFTable,
+  costOfWorkBaht: number,
+  options: FactorFOptions
+): FactorFResolution {
+  const column = columnOf(options);
+  const { row, nextRow, betweenRows } = selectFactorFRow(table, costOfWorkBaht);
+
+  if (!betweenRows || !nextRow) {
+    return { factor: toPrintedFactor(readColumn(row, column) * FACTOR_SCALE), column, basis: "printed_row", row };
+  }
+
+  const low = Math.round(readColumn(row, column) * FACTOR_SCALE);
+  const high = Math.round(readColumn(nextRow, column) * FACTOR_SCALE);
+  const millions = costOfWorkBaht / 1_000_000;
+  const ratio = (millions - row.costMillionBaht) / (nextRow.costMillionBaht - row.costMillionBaht);
+
+  return { factor: toPrintedFactor(low + (high - low) * ratio), column, basis: "interpolated", row, nextRow };
 }

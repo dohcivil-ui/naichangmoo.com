@@ -5,6 +5,7 @@ import {
   factorFSource,
   factorFVatPercent,
   findFactorFTable,
+  resolveFactorF,
   selectFactorFRow,
   type FactorFWorkType,
 } from "@/lib/factor-f";
@@ -109,30 +110,13 @@ describe("Selecting the row that governs a cost of work", () => {
     return found.table;
   };
 
-  it("reproduces the real ปร.4 of the ปุญโญภาส dialysis building", () => {
-    // ราคากลาง 20 มิถุนายน 2569: cost of work 2,529,230.20 priced at Factor F 1.3034,
-    // giving 3,296,598.64 and a net of 3,296,500 after flooring to the hundred.
-    const costOfWork = 2_529_230.2;
-    const selection = selectFactorFRow(buildingZeroZero(), costOfWork);
+  it("finds the printed rows a cost of work falls between", () => {
+    const selection = selectFactorFRow(buildingZeroZero(), 2_529_230.2);
     expect(selection.row.costMillionBaht).toBe(2);
     expect(selection.row.factorWithVat).toBe(1.3034);
-    expect(costOfWork * selection.row.factorWithVat).toBeCloseTo(3_296_598.64, 2);
-    expect(Math.floor((costOfWork * selection.row.factorWithVat) / 100) * 100).toBe(3_296_500);
-  });
-
-  it("flags that the same cost of work sits between two printed rows", () => {
-    const selection = selectFactorFRow(buildingZeroZero(), 2_529_230.2);
-    expect(selection.betweenRows).toBe(true);
     expect(selection.nextRow?.costMillionBaht).toBe(5);
-    // Interpolating as the table note directs gives a different, smaller answer. Which rule the
-    // product follows is not decided here; the caller is handed both rows and told they differ.
-    const { row, nextRow } = selection;
-    const interpolated =
-      row.factorWithVat +
-      ((nextRow!.factorWithVat - row.factorWithVat) * (2_529_230.2 / 1e6 - row.costMillionBaht)) /
-        (nextRow!.costMillionBaht - row.costMillionBaht);
-    expect(interpolated).toBeLessThan(row.factorWithVat);
-    expect(Math.floor((2_529_230.2 * interpolated) / 100) * 100).toBe(3_295_100);
+    expect(selection.nextRow?.factorWithVat).toBe(1.3002);
+    expect(selection.betweenRows).toBe(true);
   });
 
   it("does not flag a cost of work that lands exactly on a printed row", () => {
@@ -156,5 +140,98 @@ describe("Selecting the row that governs a cost of work", () => {
 
   it("refuses a cost of work that is not positive", () => {
     expect(() => selectFactorFRow(buildingZeroZero(), 0)).toThrow();
+  });
+});
+
+/**
+ * The two notes printed under every table in ว481.
+ *
+ * > 1. กรณีค่างานอยู่ระหว่างช่วงของค่างานต้นทุนที่กำหนด ให้เทียบอัตราส่วนเพื่อหาค่า Factor F
+ * > 2. ถ้าเป็นงานเงินกู้หรือจากแหล่งอื่นซึ่งไม่ต้องชำระภาษีมูลค่าเพิ่ม ให้ใช้ Factor F ในช่อง "รวมในรูป Factor"
+ */
+describe("Resolving Factor F the way the circular directs", () => {
+  const buildingZeroZero = () => {
+    const found = findFactorFTable(query());
+    if (!found.ok) throw new Error(found.detail);
+    return found.table;
+  };
+
+  it("interpolates between the printed steps rather than taking the row below", () => {
+    // 2,529,230.20 sits between the 2M step (1.3034) and the 5M step (1.3002).
+    const resolved = resolveFactorF(buildingZeroZero(), 2_529_230.2, { paysVat: true });
+
+    expect(resolved.basis).toBe("interpolated");
+    expect(resolved.factor).toBe(1.3028);
+    expect(resolved.factor).toBeLessThan(resolved.row.factorWithVat);
+    expect(resolved.row.costMillionBaht).toBe(2);
+    expect(resolved.nextRow?.costMillionBaht).toBe(5);
+  });
+
+  it("costs a section less than the row below would, which is the point of note 1", () => {
+    const costOfWork = 2_529_230.2;
+    const resolved = resolveFactorF(buildingZeroZero(), costOfWork, { paysVat: true });
+
+    const byNote = Math.round(costOfWork * resolved.factor * 100) / 100;
+    const byRowBelow = Math.round(costOfWork * resolved.row.factorWithVat * 100) / 100;
+
+    expect(byNote).toBeLessThan(byRowBelow);
+    expect(byRowBelow - byNote).toBeGreaterThan(1_000);
+  });
+
+  it("reads a printed step as printed, with no interpolation to do", () => {
+    const resolved = resolveFactorF(buildingZeroZero(), 5_000_000, { paysVat: true });
+
+    expect(resolved.basis).toBe("printed_row");
+    expect(resolved.factor).toBe(1.3002);
+    expect(resolved.nextRow).toBeUndefined();
+  });
+
+  it("sends work that pays no VAT to the รวมในรูป Factor column", () => {
+    const table = buildingZeroZero();
+    const withVat = resolveFactorF(table, 5_000_000, { paysVat: true });
+    const withoutVat = resolveFactorF(table, 5_000_000, { paysVat: false });
+
+    expect(withVat.column).toBe("with_vat");
+    expect(withoutVat.column).toBe("without_vat");
+    expect(withoutVat.factor).toBe(1.2152);
+    expect(withVat.factor).toBe(1.3002);
+    // The two columns are each rounded from a higher-precision source, so one is not the other
+    // multiplied and re-rounded: 1.2152 x 1.07 lands on 1.3003, while the table prints 1.3002.
+    expect(Math.abs(withoutVat.factor * 1.07 - withVat.factor)).toBeLessThan(0.0002);
+  });
+
+  it("interpolates the no-VAT column on its own numbers, not by discounting the other one", () => {
+    const resolved = resolveFactorF(buildingZeroZero(), 2_529_230.2, { paysVat: false });
+
+    expect(resolved.basis).toBe("interpolated");
+    expect(resolved.factor).toBe(1.2177);
+  });
+
+  it("holds the flat ends flat, above and below the printed range", () => {
+    const table = buildingZeroZero();
+    const small = resolveFactorF(table, 250_000, { paysVat: true });
+    const huge = resolveFactorF(table, 900_000_000, { paysVat: true });
+
+    expect(small.basis).toBe("printed_row");
+    expect(small.factor).toBe(1.3073);
+    expect(huge.basis).toBe("printed_row");
+    expect(huge.factor).toBe(1.1787);
+  });
+
+  it("keeps the factor at the four decimals a ปร.5 prints", () => {
+    const resolved = resolveFactorF(buildingZeroZero(), 3_333_333.33, { paysVat: true });
+    expect(resolved.factor.toString()).toMatch(/^\d\.\d{1,4}$/);
+  });
+
+  it("refuses a heavy-rain zone without VAT, because the circular prints no such column", () => {
+    const irrigation = findFactorFTable(query({ workType: "irrigation" }));
+    if (!irrigation.ok) throw new Error(irrigation.detail);
+
+    expect(() => resolveFactorF(irrigation.table, 20_000_000, { paysVat: false, heavyRainZones: 1 })).toThrow();
+    expect(resolveFactorF(irrigation.table, 20_000_000, { paysVat: true, heavyRainZones: 1 }).column).toBe("heavy_rain_1");
+  });
+
+  it("refuses a heavy-rain zone on a table that has no such column", () => {
+    expect(() => resolveFactorF(buildingZeroZero(), 20_000_000, { paysVat: true, heavyRainZones: 2 })).toThrow();
   });
 });

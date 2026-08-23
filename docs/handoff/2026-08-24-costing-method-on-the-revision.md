@@ -16,6 +16,7 @@
 | Decision | `docs/adr/0007-two-costing-stacks-over-one-takeoff.md` | เปลี่ยนสถานะเป็น `Superseded by ADR 0008` ตามรูปแบบที่ 0003 ใช้อ้าง 0006 |
 | Glossary | `CONTEXT.md` | เพิ่ม 5 คำ: Factor F, Costing Method, Estimate Revision, Cost Item Treatment, Document Set |
 | Research | `docs/research/oag-region12-pr456-reference-2026-08-24.md` | อ่านชุด ปร.4/5/6 ของ สตง. ภูมิภาคที่ 12 ทั้ง 55 หน้า แล้วบันทึกรูปของเอกสาร ตัวคูณของแต่ละหมวด และสิ่งที่ชุดนี้ยังตอบไม่ได้ |
+| Factor F | `src/lib/factor-f.ts` + test | เพิ่ม `resolveFactorF` ที่ทำตามหมายเหตุท้ายตาราง ว481 ทั้งสองข้อ — เทียบอัตราส่วนเมื่อค่างานตกระหว่างแถว และเลือกคอลัมน์ตามการเสียภาษี |
 | Money | `src/lib/thai-baht.ts` + test | แทน `floorToHundredBaht` ด้วย `floorToThousandBaht` — ราคากลางตัดเศษจุดเดียวที่บรรทัด "คิดเป็น" ของ ปร.6 ชั้น ปร.4/ปร.5 ไม่ตัด |
 
 **ไม่ได้แตะโค้ด ไม่ได้แตะ `roadmap.json` และไม่ได้เพิ่มรายการใน `docs/handoff/index.json`** — index เป็นสารบัญของ release ที่มีเวอร์ชัน สไลซ์นี้ไม่มี และอีก session กำลังแก้ไฟล์นั้นอยู่ ถ้าจะให้เข้า index ควรรวมไปกับ release ที่ปล่อย migration จริง
@@ -131,4 +132,4 @@ Factor F 1.2957  (ล่วงหน้า 0% · ประกันผลงา�
 1. **migration แยก branch ของตัวเอง** ตาม [AGENTS.md](../../AGENTS.md) ข้อ 2 — ลบ `projects.project_path` + enum, เพิ่ม `costing_method` เข้า `estimate_revisions`, เปลี่ยน unique เป็นสามคอลัมน์
 2. **แก้ `src/lib/estimation-workflow.ts` พร้อม test** ที่ตอนนี้ยืนยันการกั้นขั้นที่หนึ่งด้วยสายงานไว้ตรง ๆ ที่ `estimation-workflow.test.ts`
 3. **แก้ `docs/architecture/DATA_MODEL.md`** บรรทัด `government_form_projections` เขียนว่าผลิต ปร.4(ก) ซึ่งไม่มีอยู่จริง ของจริงคือ ปร.4 กับ ปร.4(พ) และต้องเพิ่มแนวคิดชุดเอกสาร
-4. **ตัดสินกฎการเทียบช่วงของ Factor F** ระหว่างเทียบอัตราส่วนตามหมายเหตุท้ายตาราง กับใช้ค่าแถวที่ต่ำกว่าตามที่งานจริงทำ — สองวิธีให้ราคากลางคนละตัว ต้องเลือกก่อนคำนวณใบแรก และควรบันทึกเป็น ADR เพราะพลิกทีหลังแปลว่าต้องคิดใหม่ทุก revision ที่ออกไปแล้ว
+4. **ให้ผู้มีคุณวุฒิตรวจตาราง Factor F แล้วบันทึกชื่อลง `reviewedBy`** ตอนนี้ยังเป็น `null` และชุดข้อมูลห้ามตัวเองไม่ให้ถูกใช้คำนวณจนกว่าจะมีชื่อ ซึ่งเป็นประตูสุดท้ายก่อนคำนวณราคากลางใบแรกได้
