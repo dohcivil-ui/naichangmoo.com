@@ -18,6 +18,17 @@ Entitlement must be checked by server-side policy on every protected action. Tri
 
 The quotation request form may collect organization requirements and a contact channel only after consent. It must not represent a binding offer, create invoices, capture payment data or automatically send external messages.
 
+## Official circulars and reference tables
+
+ค่าที่เข้าการคำนวณราคากลางต้องมาจากหนังสือเวียนกรมบัญชีกลาง **ฉบับล่าสุด** เสมอ ทั้งบัญชีค่าแรงงาน
+สำหรับถอดแบบและตาราง Factor F ฉบับที่ถูกแทนแล้วห้ามเป็นแหล่งของค่าที่ระบบใช้
+ณ 26 มิถุนายน 2569 ฉบับล่าสุดคือ **ว480** (บัญชีค่าแรงงาน) และ **ว481** (อัตราดอกเบี้ยและตาราง Factor F)
+ซึ่งแทน ว809 และ ว499 ตามลำดับ
+
+ทุกชุดข้อมูลอ้างอิงต้องพกที่มาไปกับตัวเลข: หน่วยงานผู้ออก เลขที่หนังสือ วันที่ หลักเกณฑ์ที่อาศัยอำนาจ
+และ checksum ของไฟล์ต้นทาง ค่าที่ไม่มีที่มาครบห้ามเข้าการคำนวณ และชุดข้อมูลที่ยังไม่มีผู้มีคุณวุฒิรับรอง
+ต้องประกาศสถานะนั้นออกมาให้ผู้เรียกปฏิเสธได้
+
 ## Hermes pilot
 
 Hermes only handles `takeoff_evidence_review` jobs. It produces a non-authoritative review summary. Any mutation or external effect needs an explicit approval gate in the application; it is prohibited in the pilot worker.

@@ -1,5 +1,23 @@
 [
   {
+    "version": "0.23.0",
+    "title": "The Latest Circular Wins, and the Dataset Says Which One It Is",
+    "description": "หนังสือเวียนกรมบัญชีกลางต้องใช้ฉบับล่าสุดเสมอ ว480 และ ว481 แทน ว809 และ ว499 และการตามหาตาราง 6% ฉบับก่อนหน้าไม่ใช่เงื่อนไขของการคำนวณอีกต่อไป.",
+    "scope": [
+      "latest-circular rule recorded in engineering rules",
+      "reference datasets must carry issuer, number, date, criteria and checksum",
+      "IP-068 replaced by a currency check",
+      "ว480 noted as the labour source superseding ว809"
+    ],
+    "verification": [
+      "engineering rules name ว480 and ว481 as current",
+      "the provenance research carries both circulars and the 2565-2569 timeline",
+      "check-roadmap passes with pointer matching the versioned file"
+    ],
+    "rollback": "Revert the v0.23.0 commit. Documentation and plan only.",
+    "path": "docs/handoff/2026-08-24-latest-circular-rule.md"
+  },
+  {
     "version": "0.22.0",
     "title": "Factor F Stops Being a Number Someone Typed",
     "description": "ตาราง Factor F 48 ตาราง 1,644 แถว จาก ว481 เข้า repository พร้อมที่มาครบและ sha256 โมดูลปฏิเสธเมื่ออัตราไม่ตรงแทนที่จะหยิบตารางใกล้เคียง.",
