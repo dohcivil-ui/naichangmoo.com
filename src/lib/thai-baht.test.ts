@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   bahtText,
   floorToHundredBaht,
+  floorToThousandBaht,
   formatBaht,
   formatSatang,
   parseBaht
@@ -83,6 +84,39 @@ describe("reading an amount in Thai", () => {
     expect(bahtText(satang("3296598.64"))).toBe("สามล้านสองแสนเก้าหมื่นหกพันห้าร้อยเก้าสิบแปดบาทหกสิบสี่สตางค์");
     expect(bahtText(satang("0.25"))).toBe("ยี่สิบห้าสตางค์");
     expect(bahtText(satang("0"))).toBe("ศูนย์บาทถ้วน");
+  });
+});
+
+/**
+ * The priced set for โครงการ สตง. ภูมิภาคที่ 12 (เพชรบุรี), `km/4.แบบ ปร.4 ปร.5 ปร.6.pdf`. Its ปร.6
+ * is the only sheet on hand that prints a คิดเป็น line, so it is the only evidence for the unit
+ * the final ราคากลาง is floored to.
+ */
+describe("reference estimate: สตง. ภูมิภาคที่ 12", () => {
+  it("floors the ปร.6 total to the thousand the way the sheet prints it", () => {
+    // หมวด 1 อาคาร 9,534,946.00 + หมวด 2 ครุภัณฑ์ 5,613,930.48 + หมวด 3 พิเศษ 65,000.00
+    const summed = satang("15213876.48");
+
+    expect(formatBaht(summed)).toBe("15,213,876.48");
+    expect(formatBaht(floorToThousandBaht(summed))).toBe("15,213,000.00");
+  });
+
+  it("drops the remainder rather than rounding it", () => {
+    // 15,213,876.48 rounded to the nearest thousand would be 15,214,000.
+    expect(formatBaht(floorToThousandBaht(satang("15213999.99")))).toBe("15,213,000.00");
+    expect(formatBaht(floorToThousandBaht(satang("999.99")))).toBe("0.00");
+    expect(formatBaht(floorToThousandBaht(satang("15213000")))).toBe("15,213,000.00");
+  });
+
+  it("spells the printed ราคากลาง", () => {
+    expect(bahtText(satang("15213000"))).toBe("สิบห้าล้านสองแสนหนึ่งหมื่นสามพันบาทถ้วน");
+  });
+
+  it("floors ปร.5 and ปร.6 to different units, because the two sheets do", () => {
+    const summed = satang("15213876.48");
+
+    expect(formatBaht(floorToHundredBaht(summed))).toBe("15,213,800.00");
+    expect(formatBaht(floorToThousandBaht(summed))).toBe("15,213,000.00");
   });
 });
 
