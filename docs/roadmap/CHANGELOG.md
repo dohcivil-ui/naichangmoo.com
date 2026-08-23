@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.16.0 — ESTIMETR Trial Starts at Explicit Activation — 2026-08-23
+
+Separated the two access gates. Authentication still creates platform membership; the ESTIMETR five-day clock now starts only when the member presses "เริ่มทดลองใช้" after seeing the trial terms. Reading entitlement no longer writes the database. ADR 0006 supersedes the start point in ADR 0003; the five-day, one-project, export/print lock and read-only retention terms stand.
+
 ## v0.15.0 — ESTIMETR Manual Take-off with Evidence — 2026-08-23
 
 Made the third workflow stage real: quantities can be entered by hand against a closed unit set, summed as scaled integers so no decimal drift reaches a bill of quantities, and confirmed only after at least one evidence reference states where the measurement came from. A confirmed line is locked, closing a run stores a fingerprint of the confirmed lines only, and every read and write is scoped through `projects.organization_id` because the take-off tables carry no organization column of their own.

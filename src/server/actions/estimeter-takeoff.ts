@@ -61,9 +61,13 @@ async function requireEditAccess(): Promise<{ ok: true; context: EditContext } |
       message:
         access.state === "expired_read_only"
           ? "สิทธิ์ทดลองใช้หมดอายุแล้ว เปิดดูข้อมูลเดิมได้ แต่แก้ไขปริมาณไม่ได้"
-          : "สิทธิ์ปัจจุบันไม่อนุญาตให้แก้ไขข้อมูลใน ESTIMETR"
+          : access.state === "not_activated"
+            ? "บัญชีนี้ยังไม่ได้เริ่มทดลองใช้ ESTIMETR กดเริ่มทดลองใช้ก่อนจึงจะบันทึกปริมาณได้"
+            : "สิทธิ์ปัจจุบันไม่อนุญาตให้แก้ไขข้อมูลใน ESTIMETR"
     };
   }
+
+  if (!access.organizationId) return { ok: false, message: "บัญชีนี้ยังไม่มีองค์กรสำหรับเก็บข้อมูลการถอดปริมาณ" };
 
   return { ok: true, context: { userId: user.id, organizationId: access.organizationId } };
 }

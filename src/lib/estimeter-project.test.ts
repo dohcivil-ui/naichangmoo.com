@@ -87,6 +87,17 @@ describe("project creation denial", () => {
     expect(notStarted).toBeTruthy();
   });
 
+  it("tells a member who has not activated the trial to start it first", () => {
+    const denial = projectCreationDenial({
+      state: "not_activated",
+      capabilities: { ...allowAll, create_project: false, edit: false, run_ai: false },
+      projectCount: 0,
+      projectLimit: 0
+    });
+
+    expect(denial).toContain("เริ่มทดลองใช้");
+  });
+
   it("allows an unlimited entitlement regardless of how many projects exist", () => {
     expect(
       projectCreationDenial({ state: "active", capabilities: allowAll, projectCount: 42, projectLimit: null })

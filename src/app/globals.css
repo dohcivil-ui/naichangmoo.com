@@ -205,6 +205,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 960px) { .estimation-board--guided { grid-template-columns: 1fr; }.guidance-assistant { position: static; }.project-path-control { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 720px) { .preflight-grid { grid-template-columns: 1fr; }.project-path-control > div, .prelim-boq-note, .price-set-gate { width: 100%; }.project-path-control button { flex: 1; }.prelim-boq-note, .price-set-gate { align-items: flex-start; flex-direction: column; }.prelim-boq-note .button, .price-set-gate .button { width: 100%; } }
 
+/* Trial activation: the terms and the control that starts the clock stay in one field of view, since the clock cannot be reset once it starts. */
+.trial-activation { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 300px); gap: 1.6rem; align-items: start; margin: 1.5rem 0; border: 1px solid #bedbd7; border-radius: 16px; padding: 1.6rem; background: linear-gradient(135deg, #eff9f7, #f8fcfc); }
+.trial-activation h2 { margin: .35rem 0 .5rem; color: #093d4b; font-size: clamp(1.2rem, 2.4vw, 1.6rem); }
+.trial-activation p { max-width: 620px; margin: 0; color: #62808a; font-size: .86rem; line-height: 1.6; }
+.trial-activation__terms { display: grid; gap: .45rem; margin: 1rem 0 0; padding-left: 1.1rem; color: #2c5964; font-size: .84rem; font-weight: 700; line-height: 1.5; }
+.trial-activation__action { display: grid; gap: .5rem; border-left: 1px solid #cfe5e1; padding-left: 1.5rem; }
+.trial-activation__action .button { width: 100%; justify-content: center; }
+.trial-activation__action .form-note { margin: 0; }
+@media (max-width: 860px) { .trial-activation { grid-template-columns: 1fr; }.trial-activation__action { border-left: 0; border-top: 1px solid #cfe5e1; padding: 1.1rem 0 0; } }
+
 /* Manual take-off: entry rows are filled in all day, so the row form stays on one line and every control is reachable by keyboard in reading order. */
 .takeoff-form { display: grid; grid-template-columns: minmax(140px, .9fr) minmax(240px, 2.2fr) minmax(110px, .7fr) minmax(110px, .7fr) auto; gap: .7rem; align-items: end; margin: 1.1rem 0 0; padding: 1rem; }
 .takeoff-form > label, .evidence-form > label { margin-top: 0; font-size: .78rem; }

@@ -3,18 +3,18 @@ import { canUseCapability, resolveEntitlement, type Entitlement } from "@/lib/en
 import { ESTIMETR_TRIAL_LIMITS, computeTrialWindow, trialDaysRemaining } from "@/lib/estimeter-trial";
 
 describe("ESTIMETR trial window", () => {
-  it("runs exactly five days from the member record", () => {
-    const memberCreatedAt = new Date("2026-08-23T09:15:00.000Z");
-    const window = computeTrialWindow(memberCreatedAt);
+  it("runs exactly five days from the moment of activation", () => {
+    const activatedAt = new Date("2026-08-23T09:15:00.000Z");
+    const window = computeTrialWindow(activatedAt);
 
-    expect(window.startsAt).toEqual(memberCreatedAt);
+    expect(window.startsAt).toEqual(activatedAt);
     expect(window.endsAt.toISOString()).toBe("2026-08-28T09:15:00.000Z");
   });
 
-  it("cannot be extended by writing the entitlement row late", () => {
-    const memberCreatedAt = new Date("2026-08-23T09:15:00.000Z");
-    const writtenFourDaysLater = computeTrialWindow(memberCreatedAt);
-    const writtenImmediately = computeTrialWindow(memberCreatedAt);
+  it("does not move when the same activation instant is written later", () => {
+    const activatedAt = new Date("2026-08-23T09:15:00.000Z");
+    const writtenFourDaysLater = computeTrialWindow(activatedAt);
+    const writtenImmediately = computeTrialWindow(activatedAt);
 
     expect(writtenFourDaysLater.endsAt).toEqual(writtenImmediately.endsAt);
   });
@@ -30,8 +30,8 @@ describe("ESTIMETR trial window", () => {
   });
 
   it("produces an entitlement that matches the approved trial policy end to end", () => {
-    const memberCreatedAt = new Date("2026-08-23T00:00:00.000Z");
-    const window = computeTrialWindow(memberCreatedAt);
+    const activatedAt = new Date("2026-08-23T00:00:00.000Z");
+    const window = computeTrialWindow(activatedAt);
     const entitlement: Entitlement = { state: "trial", ...window, limits: ESTIMETR_TRIAL_LIMITS };
     const dayThree = new Date("2026-08-26T00:00:00.000Z");
     const afterExpiry = new Date("2026-08-28T00:00:00.000Z");

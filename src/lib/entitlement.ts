@@ -1,7 +1,12 @@
 export type EntitlementState = "trial" | "active" | "expired_read_only" | "suspended" | "member_free" | "doh_staff_only";
 
-/** `not_started` is computed, never stored: it covers an entitlement whose startsAt is still in the future. */
-export type EffectiveEntitlementState = EntitlementState | "not_started";
+/**
+ * Two states are computed and never stored:
+ * - `not_started`: an entitlement row exists but its startsAt is still in the future.
+ * - `not_activated`: no entitlement row exists at all, so the member has passed authentication
+ *   but has not started the app trial yet. See ADR 0006.
+ */
+export type EffectiveEntitlementState = EntitlementState | "not_started" | "not_activated";
 
 export type EntitlementLimits = {
   projectLimit?: number;
@@ -38,8 +43,24 @@ const STATE_POLICY: Record<EffectiveEntitlementState, StatePolicy> = {
   doh_staff_only: { read: true, mutate: true, projectLimit: null, exportEnabled: true, printEnabled: true, aiEnabled: true },
   expired_read_only: { read: true, mutate: false, projectLimit: 0, exportEnabled: false, printEnabled: false, aiEnabled: false },
   suspended: { read: false, mutate: false, projectLimit: 0, exportEnabled: false, printEnabled: false, aiEnabled: false },
-  not_started: { read: true, mutate: false, projectLimit: 0, exportEnabled: false, printEnabled: false, aiEnabled: false }
+  not_started: { read: true, mutate: false, projectLimit: 0, exportEnabled: false, printEnabled: false, aiEnabled: false },
+  // ADR 0006: a member who has not started the trial may look around and read anything they
+  // already own, but nothing is writable until they accept the trial terms.
+  not_activated: { read: true, mutate: false, projectLimit: 0, exportEnabled: false, printEnabled: false, aiEnabled: false }
 };
+
+/** Capabilities for a member with no entitlement row, which no `Entitlement` can represent. */
+export function notActivatedCapabilities(): Record<Capability, boolean> {
+  const policy = STATE_POLICY.not_activated;
+  return {
+    read: policy.read,
+    create_project: false,
+    edit: policy.mutate,
+    run_ai: policy.aiEnabled,
+    export: policy.exportEnabled,
+    print: policy.printEnabled
+  };
+}
 
 const EXPIRABLE_STATES: ReadonlySet<EntitlementState> = new Set(["trial", "active"]);
 

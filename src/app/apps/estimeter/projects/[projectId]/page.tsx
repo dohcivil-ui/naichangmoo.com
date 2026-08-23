@@ -14,12 +14,15 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   if (!result.ok) return <EstimeterEntryBlocked reason={result.reason} />;
 
   const { projectId } = await params;
-  // Scoped by organization, so an id from another organization is indistinguishable from a
-  // non-existent one. Nothing about the other organization's data is revealed.
-  const project = await getProject(result.context.access.organizationId, projectId);
+  const organizationId = result.context.access.organizationId;
+  // No organization means no project of one's own, and the id is treated as not found rather
+  // than probed further. Scoping by organization also makes another organization's id
+  // indistinguishable from a non-existent one.
+  if (!organizationId) notFound();
+
+  const project = await getProject(organizationId, projectId);
   if (!project) notFound();
 
-  const organizationId = result.context.access.organizationId;
   const openRun = await getOpenManualRun(organizationId, project.id);
   const runs = await listManualRuns(organizationId, project.id);
   const items = openRun ? await listRunItems(organizationId, openRun.id) : [];

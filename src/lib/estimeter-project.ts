@@ -47,6 +47,9 @@ export function projectCreationDenial(access: CreationCheckInput): string | null
   }
   if (access.state === "suspended") return "สิทธิ์การใช้งานถูกระงับ กรุณาติดต่อผู้ดูแลสิทธิ์";
   if (access.state === "not_started") return "สิทธิ์การใช้งานยังไม่เริ่ม จึงยังสร้างโครงการไม่ได้";
+  if (access.state === "not_activated") {
+    return "บัญชีนี้ยังไม่ได้เริ่มทดลองใช้ ESTIMETR กดเริ่มทดลองใช้ก่อนจึงจะสร้างโครงการได้";
+  }
 
   if (access.projectLimit !== null && access.projectCount >= access.projectLimit) {
     return `สิทธิ์ปัจจุบันสร้างได้ ${access.projectLimit} โครงการ และใช้ครบแล้ว หากต้องการเพิ่มจำนวนโครงการ ขอใบเสนอราคาสำหรับองค์กรได้`;

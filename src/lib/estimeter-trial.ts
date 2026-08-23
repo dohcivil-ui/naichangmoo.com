@@ -2,8 +2,8 @@ import type { EntitlementLimits } from "@/lib/entitlement";
 
 export const ESTIMETR_APP_SLUG = "estimeter";
 
-// ADR 0003: the ESTIMETR trial runs five days from the member record, allows one project
-// and keeps export and print locked. Changing any of these values needs a superseding ADR.
+// ADR 0003 sets the trial terms: five days, one project, export and print locked. ADR 0006
+// sets when the five days begin. Changing any of these values needs a superseding ADR.
 export const ESTIMETR_TRIAL_DAYS = 5;
 
 export const ESTIMETR_TRIAL_LIMITS: EntitlementLimits = {
@@ -16,14 +16,16 @@ export const ESTIMETR_TRIAL_LIMITS: EntitlementLimits = {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * The window is derived from the member record, not from the moment the row is written,
- * so a member who reaches ESTIMETR late gets the same five days they were granted at
- * registration and a delayed backfill can never extend the trial.
+ * The window runs from the moment the member activates the trial, which is the second of the
+ * two access gates: authentication makes someone a platform member, and activation starts the
+ * app entitlement. Deriving it from the registration date instead would spend the five days
+ * while the member has not opened the app, and someone arriving on day six would find an
+ * expired trial they never used. See ADR 0006, which supersedes this point in ADR 0003.
  */
-export function computeTrialWindow(memberCreatedAt: Date): { startsAt: Date; endsAt: Date } {
+export function computeTrialWindow(activatedAt: Date): { startsAt: Date; endsAt: Date } {
   return {
-    startsAt: memberCreatedAt,
-    endsAt: new Date(memberCreatedAt.getTime() + ESTIMETR_TRIAL_DAYS * DAY_MS)
+    startsAt: activatedAt,
+    endsAt: new Date(activatedAt.getTime() + ESTIMETR_TRIAL_DAYS * DAY_MS)
   };
 }
 

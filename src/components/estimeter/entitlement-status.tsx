@@ -7,7 +7,8 @@ const headline: Record<EstimeterAccessView["state"], string> = {
   doh_staff_only: "สิทธิ์บุคลากรกรมทางหลวง",
   expired_read_only: "สิทธิ์ทดลองใช้หมดอายุแล้ว",
   suspended: "สิทธิ์ถูกระงับ",
-  not_started: "สิทธิ์ยังไม่เริ่มใช้งาน"
+  not_started: "สิทธิ์ยังไม่เริ่มใช้งาน",
+  not_activated: "ยังไม่ได้เริ่มทดลองใช้"
 };
 
 function describe(access: EstimeterAccessView): string {
@@ -24,6 +25,9 @@ function describe(access: EstimeterAccessView): string {
   }
   if (access.state === "not_started") {
     return "สิทธิ์นี้จะเริ่มใช้งานได้ตามวันที่กำหนดไว้ในบัญชีของคุณ";
+  }
+  if (access.state === "not_activated") {
+    return "นาฬิกาทดลองใช้ยังไม่เริ่มเดิน กดเริ่มทดลองใช้เมื่อพร้อมใช้งานจริง";
   }
   return "ใช้งาน workflow ได้ครบตามสิทธิ์ที่ได้รับ";
 }

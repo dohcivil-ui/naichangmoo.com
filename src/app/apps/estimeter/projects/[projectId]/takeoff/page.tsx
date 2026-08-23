@@ -46,13 +46,16 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
 
   const { access } = result.context;
   const { projectId } = await params;
-  const project = await getProject(access.organizationId, projectId);
+  const organizationId = access.organizationId;
+  if (!organizationId) notFound();
+
+  const project = await getProject(organizationId, projectId);
   if (!project) notFound();
 
   const canEdit = access.capabilities.edit && (project.state === "draft" || project.state === "active");
-  const openRun = await getOpenManualRun(access.organizationId, projectId);
-  const runs = await listManualRuns(access.organizationId, projectId);
-  const items = openRun ? await listRunItems(access.organizationId, openRun.id) : [];
+  const openRun = await getOpenManualRun(organizationId, projectId);
+  const runs = await listManualRuns(organizationId, projectId);
+  const items = openRun ? await listRunItems(organizationId, openRun.id) : [];
   const evidence = await listEvidenceForItems(items.map((item) => item.id));
   const summary = summarizeConfirmedQuantities(items);
   const confirmedCount = items.filter((item) => item.reviewState === "confirmed").length;
@@ -78,7 +81,9 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
             <strong>อ่านอย่างเดียว:</strong>{" "}
             {access.capabilities.edit
               ? "โครงการนี้ถูกล็อกหรือเก็บถาวรแล้ว จึงแก้ไขปริมาณไม่ได้"
-              : "สิทธิ์ปัจจุบันเปิดดูข้อมูลเดิมได้ แต่บันทึกหรือยืนยันปริมาณไม่ได้"}
+              : access.state === "not_activated"
+                ? "บัญชีนี้ยังไม่ได้เริ่มทดลองใช้ กดเริ่มทดลองใช้ที่หน้า ESTIMETR ก่อนจึงจะบันทึกปริมาณได้"
+                : "สิทธิ์ปัจจุบันเปิดดูข้อมูลเดิมได้ แต่บันทึกหรือยืนยันปริมาณไม่ได้"}
           </p>
         ) : null}
 

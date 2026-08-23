@@ -1,5 +1,14 @@
 [
   {
+    "version": "0.16.0",
+    "title": "ESTIMETR Trial Starts at Explicit Activation",
+    "description": "แยกด่านสมาชิกเว็บออกจากด่านสิทธิ์ทดลองใช้แอป นาฬิกา 5 วันเริ่มนับเมื่อกดเริ่มทดลองใช้อย่างชัดแจ้ง การอ่านสิทธิ์ไม่เขียนฐานข้อมูล.",
+    "scope": ["ADR 0006", "explicit trial activation", "read path writes nothing", "not_activated gate on project and take-off writes"],
+    "verification": ["typecheck/lint/build/security:check passed", "vitest 19 files / 100 tests passed with the opt-in PostgreSQL suites enabled"],
+    "rollback": "Return to tag v0.15.0-estimeter-manual-takeoff; no migration runs in this release.",
+    "path": "docs/handoff/2026-08-23-estimeter-trial-activation.md"
+  },
+  {
     "version": "0.15.0",
     "title": "ESTIMETR Manual Take-off with Evidence",
     "description": "ถอดปริมาณด้วยมือได้จริง หน่วยเป็นชุดปิด ปริมาณบวกด้วยจำนวนเต็มสเกลจึงไม่คลาดเคลื่อน และยืนยันรายการได้เมื่อมีหลักฐานอ้างอิงแล้วเท่านั้น.",

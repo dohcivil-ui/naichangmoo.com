@@ -1,6 +1,6 @@
 # ADR 0003: Platform membership, app entitlement and ESTIMETR trial
 
-**Status:** Accepted
+**Status:** Accepted — the trial start point is superseded by ADR 0006
 
 ## Context
 
@@ -9,6 +9,8 @@
 ## Decision
 
 สร้าง platform member เมื่อ registration สำเร็จ. สร้าง personal organization เริ่มต้น และออก `app_entitlement` สำหรับ ESTIMETR ด้วย state `trial`, `starts_at = member.created_at`, `ends_at = starts_at + 5 days`, `project_limit = 1`, `export_enabled = false`, `print_enabled = false`. เมื่อหมดอายุ state เป็น `expired_read_only`; server-side policy lock create/edit/AI/export/print แต่อนุญาต read own retained data.
+
+> **แก้ไขโดย ADR 0006:** `starts_at = member.created_at` ไม่ใช้แล้ว นาฬิกาทดลองใช้เริ่มนับเมื่อสมาชิกกดเริ่มทดลองใช้อย่างชัดแจ้ง เงื่อนไขอื่นในย่อหน้านี้ (5 วัน, 1 โครงการ, ปิด export และ print, read-only retention) ยังใช้ตามเดิม
 
 RCOPT และ Traffic Sign ใช้ entitlement แบบ `member_free`. Land Acquisition V2 ใช้ `doh_staff_only` ใน app registry ใหม่ แต่ไม่ย้าย legacy authentication/data ใน initial release.
 

@@ -31,11 +31,16 @@ export async function createEstimeterProject(
   const denial = projectCreationDenial(access);
   if (denial) return { ok: false, message: denial };
 
+  const organizationId = access.organizationId;
+  // Unreachable through the entitlement states that allow creation, but the write path must
+  // not depend on that reasoning holding true after a future policy change.
+  if (!organizationId) return { ok: false, message: "บัญชีนี้ยังไม่มีองค์กรสำหรับเก็บโครงการ" };
+
   const parsed = parseProjectForm(formData);
   if (!parsed.ok) return { ok: false, message: "กรุณาตรวจข้อมูลโครงการอีกครั้ง", errors: parsed.errors };
 
   const created = await createProjectWithinLimit({
-    organizationId: access.organizationId,
+    organizationId,
     ownerId: user.id,
     name: parsed.value.name,
     projectLimit: access.projectLimit,
@@ -48,7 +53,7 @@ export async function createEstimeterProject(
       message:
         created.reason === "project_limit_reached"
           ? "จำนวนโครงการเต็มตามสิทธิ์ปัจจุบันแล้ว จึงไม่ได้สร้างโครงการใหม่"
-          : "ไม่พบองค์กรของบัญชีนี้ กรุณาเข้าหน้า ESTIMETR อีกครั้งเพื่อให้ระบบตั้งค่าสิทธิ์ให้ครบ"
+          : "ไม่พบองค์กรของบัญชีนี้ กรุณากดเริ่มทดลองใช้ที่หน้า ESTIMETR ก่อน"
     };
   }
 

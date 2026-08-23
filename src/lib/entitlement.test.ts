@@ -3,6 +3,7 @@ import {
   canCreateAnotherProject,
   canUseCapability,
   listCapabilities,
+  notActivatedCapabilities,
   resolveEntitlement,
   type Entitlement
 } from "@/lib/entitlement";
@@ -116,6 +117,18 @@ describe("ESTIMETR trial entitlement", () => {
       create_project: false,
       edit: true,
       run_ai: true,
+      export: false,
+      print: false
+    });
+  });
+
+  it("gives a member who has not activated the trial read access and nothing else", () => {
+    // ADR 0006: authentication alone must not grant a single writable capability.
+    expect(notActivatedCapabilities()).toEqual({
+      read: true,
+      create_project: false,
+      edit: false,
+      run_ai: false,
       export: false,
       print: false
     });

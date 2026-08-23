@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { appEntitlements, apps, auditEvents, organizationMembers, organizations, projects, users } from "@/db/schema";
 import {
   listCapabilities,
+  notActivatedCapabilities,
   resolveEntitlement,
   resolveLimits,
   type Capability,
@@ -21,10 +22,16 @@ import {
 import { platformApps } from "@/lib/platform";
 
 type Database = ReturnType<typeof getDb>;
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+type Executor = Database | Transaction;
 
-/** Server-side decision record. `toAccessView` strips it down to what the client may see. */
+/**
+ * Server-side decision record. `toAccessView` strips it down to what the client may see.
+ * `organizationId` is null for a member who has never had a personal organization written,
+ * which happens before the trial is activated (ADR 0006).
+ */
 export type EstimeterAccess = {
-  organizationId: string;
+  organizationId: string | null;
   state: EffectiveEntitlementState;
   endsAtIso: string | null;
   daysRemaining: number | null;
@@ -41,12 +48,12 @@ type EntitlementRecord = {
 };
 
 // Identifiers are derived from the member and the app slug so a concurrent or repeated
-// bootstrap collides on the primary key instead of issuing a second trial.
+// activation collides on the primary key instead of issuing a second trial.
 const appRowId = (slug: string) => `app_${slug}`;
 const personalOrgId = (userId: string) => `org_personal_${userId}`;
 const membershipId = (organizationId: string, userId: string) => `member_${organizationId}_${userId}`;
 const entitlementRowId = (organizationId: string, appId: string) => `ent_${organizationId}_${appId}`;
-const trialAuditId = (entitlementId: string) => `audit_trial_issued_${entitlementId}`;
+const trialAuditId = (entitlementId: string) => `audit_trial_activated_${entitlementId}`;
 
 function readNumber(source: Record<string, unknown>, key: string): number | undefined {
   const value = source[key];
@@ -105,26 +112,64 @@ async function readEstimeterEntitlement(db: Database, userId: string): Promise<E
   };
 }
 
+async function readMembershipOrganization(db: Executor, userId: string): Promise<string | null> {
+  const rows = await db
+    .select({ organizationId: organizationMembers.organizationId })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userId, userId))
+    .limit(1);
+  return rows[0]?.organizationId ?? null;
+}
+
+async function countOrganizationProjects(db: Database, organizationId: string): Promise<number> {
+  const rows = await db
+    .select({ value: count() })
+    .from(projects)
+    .where(eq(projects.organizationId, organizationId));
+  return rows[0]?.value ?? 0;
+}
+
 /**
- * ADR 0003 issues the ESTIMETR trial at registration. Members created before this runtime
- * existed have no row, so the first authenticated visit backfills one. The window still
- * comes from users.created_at, which keeps the backfill from handing out extra days.
+ * Gate 1 of ADR 0006: the personal organization that owns a member's work. It is written
+ * lazily on the first write that needs it, never while reading, and is safe to call again.
  */
-async function issueEstimeterTrial(db: Database, userId: string): Promise<EntitlementRecord> {
+async function ensurePersonalOrganization(tx: Executor, userId: string, memberName: string): Promise<string> {
+  const existing = await readMembershipOrganization(tx, userId);
+  if (existing) return existing;
+
+  const organizationId = personalOrgId(userId);
+  await tx
+    .insert(organizations)
+    .values({ id: organizationId, kind: "personal", name: memberName })
+    .onConflictDoNothing();
+  await tx
+    .insert(organizationMembers)
+    .values({ id: membershipId(organizationId, userId), organizationId, userId, role: "owner" })
+    .onConflictDoNothing();
+  return organizationId;
+}
+
+export type TrialActivation =
+  | { ok: true; organizationId: string; startsAt: Date; endsAt: Date }
+  | { ok: false; reason: "unknown_member" | "already_activated" };
+
+/**
+ * Gate 2 of ADR 0006: the member accepts the trial terms and the five-day clock starts here,
+ * at the moment of the click. Repeating the click cannot extend or reissue anything, because
+ * the unique index on (organization_id, app_id) refuses the second row.
+ */
+export async function activateEstimeterTrial(userId: string, now = new Date()): Promise<TrialActivation> {
+  const db = getDb();
   const app = platformApps.find((item) => item.slug === ESTIMETR_APP_SLUG);
   if (!app) throw new Error(`App registry is missing "${ESTIMETR_APP_SLUG}".`);
 
-  const memberRows = await db
-    .select({ name: users.name, createdAt: users.createdAt })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const memberRows = await db.select({ name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
   const member = memberRows[0];
-  if (!member) throw new Error("Cannot issue an entitlement for an unknown member.");
+  if (!member) return { ok: false, reason: "unknown_member" };
 
-  const window = computeTrialWindow(member.createdAt);
+  const window = computeTrialWindow(now);
 
-  await db.transaction(async (tx) => {
+  return db.transaction(async (tx) => {
     await tx
       .insert(apps)
       .values({ id: appRowId(app.slug), slug: app.slug, displayName: app.name, accessModel: app.access })
@@ -135,26 +180,10 @@ async function issueEstimeterTrial(db: Database, userId: string): Promise<Entitl
     const appId = appRows[0]?.id;
     if (!appId) throw new Error(`Failed to register app "${app.slug}".`);
 
-    const membershipRows = await tx
-      .select({ organizationId: organizationMembers.organizationId })
-      .from(organizationMembers)
-      .where(eq(organizationMembers.userId, userId))
-      .limit(1);
-    const organizationId = membershipRows[0]?.organizationId ?? personalOrgId(userId);
-
-    if (!membershipRows[0]) {
-      await tx
-        .insert(organizations)
-        .values({ id: organizationId, kind: "personal", name: member.name })
-        .onConflictDoNothing();
-      await tx
-        .insert(organizationMembers)
-        .values({ id: membershipId(organizationId, userId), organizationId, userId, role: "owner" })
-        .onConflictDoNothing();
-    }
-
+    const organizationId = await ensurePersonalOrganization(tx, userId, member.name);
     const entitlementId = entitlementRowId(organizationId, appId);
-    await tx
+
+    const inserted = await tx
       .insert(appEntitlements)
       .values({
         id: entitlementId,
@@ -165,7 +194,10 @@ async function issueEstimeterTrial(db: Database, userId: string): Promise<Entitl
         endsAt: window.endsAt,
         limits: ESTIMETR_TRIAL_LIMITS
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning({ id: appEntitlements.id });
+
+    if (inserted.length === 0) return { ok: false, reason: "already_activated" };
 
     await tx
       .insert(auditEvents)
@@ -173,7 +205,7 @@ async function issueEstimeterTrial(db: Database, userId: string): Promise<Entitl
         id: trialAuditId(entitlementId),
         organizationId,
         actorId: userId,
-        eventType: "entitlement.trial_issued",
+        eventType: "entitlement.trial_activated",
         resourceType: "app_entitlement",
         resourceId: entitlementId,
         metadata: {
@@ -182,26 +214,40 @@ async function issueEstimeterTrial(db: Database, userId: string): Promise<Entitl
           projectLimit: ESTIMETR_TRIAL_LIMITS.projectLimit,
           startsAt: window.startsAt.toISOString(),
           endsAt: window.endsAt.toISOString(),
-          derivedFrom: "users.created_at"
+          // The member saw the trial terms next to the control they pressed, so this record is
+          // the consent for the entitlement, not just a note that a row appeared.
+          acceptedTerms: `${ESTIMETR_TRIAL_DAYS} days, ${ESTIMETR_TRIAL_LIMITS.projectLimit} project, export and print locked`,
+          startedBy: "explicit_activation"
         }
       })
       .onConflictDoNothing();
-  });
 
-  const record = await readEstimeterEntitlement(db, userId);
-  if (!record) throw new Error("Entitlement bootstrap did not produce a readable record.");
-  return record;
+    return { ok: true, organizationId, startsAt: window.startsAt, endsAt: window.endsAt };
+  });
 }
 
+/**
+ * Read path only. A member with no entitlement row has passed gate 1 but not gate 2, and is
+ * reported as `not_activated` rather than being handed a trial as a side effect of looking.
+ */
 export async function getEstimeterAccess(userId: string, now = new Date()): Promise<EstimeterAccess> {
   const db = getDb();
-  const record = (await readEstimeterEntitlement(db, userId)) ?? (await issueEstimeterTrial(db, userId));
+  const record = await readEstimeterEntitlement(db, userId);
 
-  const projectRows = await db
-    .select({ value: count() })
-    .from(projects)
-    .where(eq(projects.organizationId, record.organizationId));
-  const projectCount = projectRows[0]?.value ?? 0;
+  if (!record) {
+    const organizationId = await readMembershipOrganization(db, userId);
+    return {
+      organizationId,
+      state: "not_activated",
+      endsAtIso: null,
+      daysRemaining: null,
+      projectCount: organizationId ? await countOrganizationProjects(db, organizationId) : 0,
+      projectLimit: 0,
+      capabilities: notActivatedCapabilities()
+    };
+  }
+
+  const projectCount = await countOrganizationProjects(db, record.organizationId);
 
   // A disabled app row is the platform-level kill switch and outranks the stored state.
   const entitlement: Entitlement = record.appEnabled
