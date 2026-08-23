@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.22.0",
+    "title": "Factor F Stops Being a Number Someone Typed",
+    "description": "ตาราง Factor F 48 ตาราง 1,644 แถว จาก ว481 เข้า repository พร้อมที่มาครบและ sha256 โมดูลปฏิเสธเมื่ออัตราไม่ตรงแทนที่จะหยิบตารางใกล้เคียง.",
+    "scope": [
+      "48 tables extracted with a self-checking extractor",
+      "full circular provenance including the MLR survey and rounding rule",
+      "lookup refuses a mismatched interest or VAT rate",
+      "betweenRows flag instead of deciding interpolation",
+      "reviewedBy recorded as null"
+    ],
+    "verification": [
+      "extractor self-checks all 1,644 rows against factor x 1.07",
+      "14 unit tests re-check the invariants in every gate",
+      "the real ปร.4 reproduced: 2,529,230.20 x 1.3034 = 3,296,598.64 -> 3,296,500",
+      "typecheck/lint pass; vitest 161 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.22.0 commit. Nothing reads Factor F yet, so no existing behaviour changes.",
+    "path": "docs/handoff/2026-08-24-factor-f-dataset.md"
+  },
+  {
     "version": "0.21.0",
     "title": "The Landing Says What the Tool Is For, and Shows It Working",
     "description": "ลำดับ 01-04 เดินให้เห็นพร้อมเส้นสำรวจที่อ่านแผนผัง และหัวข้อปัญหาสามข้อจากงานประมาณราคาจริง โดยระบุตรง ๆ ว่าชั้นราคายังไม่เปิดใช้งาน.",
