@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.19.0",
+    "title": "The Design Language Stops Living Only in globals.css",
+    "description": "ถอด token ที่ใช้จริงจาก globals.css เป็น DESIGN.md ที่ root ตามรูปแบบ Google Stitch แล้วทำ tracking เหลือสามขั้น (-.035em/-.03em/-.02em) และ radius เหลือบันไดเดียว 8/12/16/24/32 จากเดิม 11 ค่าที่ปนกันอยู่.",
+    "scope": [
+      "root DESIGN.md extracted from globals.css",
+      "three-step negative tracking",
+      "single 8/12/16/24/32 radius ladder",
+      "DESIGN.md comparison generator kept, its 75 generated pages dropped"
+    ],
+    "verification": [
+      "lint/typecheck/test/build/security:check passed",
+      "check-roadmap reports the pointer matches roadmap.v0.19.0.json",
+      "grep proves only ladder values remain for radius and negative tracking",
+      "the generator was re-run from the root DESIGN.md and produced 75 pages before the output was removed",
+      "the rendered result was not viewed in a browser"
+    ],
+    "rollback": "Revert the v0.19.0 commit. No runtime behaviour, schema or migration changed. Return to v0.18.0-quality-gate-enforced.",
+    "path": "docs/handoff/2026-08-23-design-language-file.md"
+  },
+  {
     "version": "0.18.0",
     "title": "The Quality Gate Becomes Something That Actually Runs",
     "description": "hook ติดตั้งตัวเองตอน pnpm install, CI รันบน feature branch พร้อม PostgreSQL 16 service และเปิดชุดทดสอบฐานข้อมูลที่เคยถูก skip, และ check-roadmap ปฏิเสธ pointer ที่แตกจากไฟล์เวอร์ชัน.",

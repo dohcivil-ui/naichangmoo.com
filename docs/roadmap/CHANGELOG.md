@@ -1,5 +1,9 @@
 # Roadmap Changelog
 
+## v0.19.0 — The Design Language Stops Living Only in globals.css — 2026-08-23
+
+Extracted the platform design language from src/app/globals.css into a DESIGN.md at the repository root, following the Google Stitch format, so design agents read the system instead of guessing it. Extracting it surfaced two things the system never decided on purpose: display headings tracked at -.05em, which hides word boundaries in a language that does not space its words, and eleven different border radius values that accumulated one fix at a time. Tracking is now three deliberate steps (-.035em / -.03em / -.02em) and radius is a single ladder of 8/12/16/24/32 plus the pill. No selector, layout rule or colour changed.
+
 ## v0.18.0 — The Quality Gate Becomes Something That Actually Runs — 2026-08-23
 
 Made the rules the project already declared enforceable by machine. The pre-commit hook now installs itself from the prepare lifecycle, because core.hooksPath lives in .git/config and cannot travel with a commit; CI runs on feature branches, where the work actually happens; the opt-in PostgreSQL suites that handoff notes have been citing as verification now run in CI against a digest-pinned PostgreSQL 16 service with migrations applied first; and check-roadmap refuses a pointer that has drifted from its versioned file, which is how a roadmap edit slipped through unnoticed in fae066b.
