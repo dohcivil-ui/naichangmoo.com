@@ -1,5 +1,27 @@
 [
   {
+    "version": "0.34.0",
+    "title": "An App Is Free Because An Administrator Said So",
+    "description": "โค้ดของ IP-090 เสร็จครบและผ่านทุก gate แล้ว ทะเบียนแอปเป็นเจ้าของคำแถลงต่อสาธารณะแทน source มีหน้า /admin/apps ที่บังคับเหตุผลและเขียน audit ทุกครั้ง หน้าราคาและเชิงอรรถ derive จากทะเบียน และ /apps/<slug> ปิดเมื่อทะเบียนบอกว่ายังไม่เปิดใช้ เวอร์ชันนี้ปิดเพื่อส่งมอบ โดยยังไม่ได้ตรวจด้วยตาในเบราว์เซอร์แม้แต่ครั้งเดียว ซึ่งระบุไว้ตรง ๆ ในช่อง verification",
+    "scope": [
+      "add announced_at and announced_by to apps, so an announcement is an act with an owner rather than a side effect of a row existing",
+      "route every read and write of the registry through one module, so no page queries the apps table itself",
+      "build /admin/apps from the card primitives, with a mandatory reason and an audit event per announcement and per revocation",
+      "derive the member-free app list and the restricted-app footnote on /pricing from the registry, naming no app in source",
+      "refuse to mark a member_free app as open until a path exists that actually issues the entitlement",
+      "close the app entry page when the registry says an app is not open, while an unreadable database keeps the previous behaviour",
+      "rename platform.ts access to seededAccess, so a default stops reading as a declaration"
+    ],
+    "verification": [
+      "pnpm test 252 passed, 33 skipped (ฐานก่อนหน้า 220)",
+      "pnpm typecheck, pnpm lint (0 error) และ pnpm build ผ่านทั้งหมด",
+      "planted both app names back into the member_free highlights, confirmed two assertions turn red, reverted and confirmed green with a clean git diff",
+      "NOT VERIFIED: ไม่มีขั้นตอนใดถูกเปิดดูในเบราว์เซอร์จริง ไม่มีการรัน pnpm db:migrate และไม่มีผู้ดูแลคนใดถูก grant — ทุกอย่างที่ต้องใช้ฐานข้อมูลจริงยังไม่ถูกตรวจ"
+    ],
+    "rollback": "กลับไป tag v0.33.0-closed-tables-by-test migration 0006 เพิ่มคอลัมน์ nullable สองตัว ถอยได้โดยไม่เสียข้อมูล แถวที่ประกาศไปแล้วจะค้างอยู่โดยไม่มีใครอ่าน",
+    "path": "docs/handoff/2026-08-24-announced-app-registry.md"
+  },
+  {
     "version": "0.33.0",
     "title": "The Closed Tables Are Closed By Test, Not By Habit",
     "description": "เทสต์ที่สแกน source ของหลังบ้านและแดงเมื่อมีการอ่านคอลัมน์จากตารางที่ ADR 0013 ปิดไว้ พร้อมสรุปปิดเซสชันสำหรับทำงานต่อ",
