@@ -308,6 +308,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .access-tiers { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
 .access-tier { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
 .access-tier--featured { border-color: var(--teal); box-shadow: 0 12px 30px rgba(13,130,130,.13); }
+/* .eyebrow is defined for dark sections; these cards are on paper, where #aee6dd reads at
+   about 1.4:1 against white. The heading above the cards already overrides it inline. */
+.access-tier .eyebrow { color: var(--teal); }
 .access-tier header { display: block; }
 .access-tier h2 { font-size: 1.3rem; letter-spacing: -.03em; margin: 6px 0 0; }
 .access-tier__note { color: var(--teal); font-weight: 800; font-size: 1.04rem; margin: 10px 0 0; }
@@ -470,5 +473,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-form__foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .admin-form__ok { margin: 0; color: var(--success); font-size: .82rem; font-weight: 700; }
 .admin-form__error { margin: 0; color: #a4402f; font-size: .82rem; font-weight: 700; }
+/* Shown while the administrator is still choosing, not after the server says no. A rule a
+   person only meets as a rejection is a rule they learn by annoyance. */
+.admin-form__warning { margin: 0; padding: 12px 14px; border: 1px solid #f0d3bb; border-radius: 10px; background: #fdf6f0; color: var(--ink); font-size: .82rem; line-height: 1.7; font-weight: 400; }
+.admin-registry-status { display: block; color: #93a5ab; font-size: .72rem; margin-top: 3px; }
+.admin-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 700; background: #f1f5f5; color: var(--muted); }
+.admin-pill--announced { background: #e3f1ef; color: #0b5f5f; }
+.admin-pill--conflict { background: #fdf1e8; color: #a4402f; }
 
 @media (max-width: 720px) { .admin-form__row { grid-template-columns: 1fr; } }

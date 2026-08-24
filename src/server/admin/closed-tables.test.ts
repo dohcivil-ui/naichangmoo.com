@@ -38,6 +38,7 @@ const ADMIN_FILES = [
   "src/server/platform-admin.ts",
   "src/server/platform-admin-metrics.ts",
   "src/server/actions/admin-entitlement.ts",
+  "src/server/actions/admin-apps.ts",
   // Shared with the public pricing page, but reachable from the back office and writable by an
   // administrator, so it is held to the same rule. A module outside this list is a module outside
   // the guard.

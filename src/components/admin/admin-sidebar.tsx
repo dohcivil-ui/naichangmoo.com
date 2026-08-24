@@ -22,7 +22,7 @@ export const adminNavigation = [
     items: [
       { id: "pricing", label: "ราคาและสิทธิ์", href: "/admin/pricing", ready: false },
       { id: "promotions", label: "ช่วงลดราคา", href: "/admin/promotions", ready: false },
-      { id: "apps", label: "ทะเบียนแอป", href: "/admin/apps", ready: false }
+      { id: "apps", label: "ทะเบียนแอป", href: "/admin/apps", ready: true }
     ]
   },
   {

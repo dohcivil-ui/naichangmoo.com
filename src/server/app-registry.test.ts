@@ -21,6 +21,7 @@ type AppRow = {
   enabled: boolean;
   announcedAt: Date | null;
   announcedBy: string | null;
+  announcedByEmail?: string | null;
 };
 
 let appRows: AppRow[] = [];
@@ -28,7 +29,7 @@ let failReads = false;
 
 /**
  * Enough of the drizzle chain for the reads in this module: `select(...).from(...)` optionally
- * followed by `where(...)` and `limit(...)`, awaited as an array of whatever the test put in the
+ * followed by `leftJoin(...)`, `where(...)` and `limit(...)`, awaited as an array of whatever the test put in the
  * table. It deliberately does not interpret drizzle conditions — the rules worth holding here live
  * in the module's own code, which is why `readAnnouncedApps` decides "announced" in TypeScript
  * rather than in a WHERE clause a fake database could never enforce.
@@ -36,6 +37,7 @@ let failReads = false;
 function selectBuilder(rows: AppRow[]) {
   const chain = {
     from: () => chain,
+    leftJoin: () => chain,
     where: () => chain,
     limit: () => chain,
     then: (resolve: (value: AppRow[]) => unknown, reject?: (reason: unknown) => unknown) => {

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { apps, auditEvents } from "@/db/schema";
+import { apps, auditEvents, users } from "@/db/schema";
 import { platformApps, type AppAccess } from "@/lib/platform";
 
 /**
@@ -110,14 +110,17 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         accessModel: apps.accessModel,
         enabled: apps.enabled,
         announcedAt: apps.announcedAt,
-        announcedBy: apps.announcedBy
+        // Who said it, by the name they are known by here. An announcement with a time but no
+        // author is half a record, and the half it is missing is the one worth having.
+        announcedByEmail: users.email
       })
-      .from(apps);
+      .from(apps)
+      .leftJoin(users, eq(users.id, apps.announcedBy));
 
-    const byslug = new Map(rows.map((row) => [row.slug, row]));
+    const bySlug = new Map(rows.map((row) => [row.slug, row]));
 
     const entries = platformApps.map((app) => {
-      const row = byslug.get(app.slug);
+      const row = bySlug.get(app.slug);
       const announced = Boolean(row?.announcedAt);
       const access = row && isAppAccess(row.accessModel) ? row.accessModel : null;
       return {
@@ -129,7 +132,7 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         access: announced ? access : null,
         open: announced ? Boolean(row?.enabled) : false,
         announcedAt: row?.announcedAt ?? null,
-        announcedByEmail: null,
+        announcedByEmail: announced ? row?.announcedByEmail ?? null : null,
         conflictsWithSeed: announced && access !== null && access !== app.seededAccess
       } satisfies RegistryEntry;
     });
@@ -312,4 +315,62 @@ export async function readAppOpenState(slug: string): Promise<AppOpenState> {
   } catch {
     return "unknown";
   }
+}
+
+/**
+ * What the back office has said lately, with the reason attached. The overview page shows platform
+ * events by type; this shows the same events with the sentence somebody typed, which is the part
+ * worth reading when the question is "why is this app free now".
+ */
+export type RecentAnnouncement = {
+  id: string;
+  slug: string;
+  eventType: string;
+  reason: string;
+  createdAt: Date;
+  actorEmail: string | null;
+};
+
+const ANNOUNCEMENT_EVENTS = [
+  "app.announced_by_administrator",
+  "app.announcement_revoked_by_administrator"
+];
+
+export async function readRecentAnnouncements(limit = 8): Promise<RecentAnnouncement[]> {
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        id: auditEvents.id,
+        slug: auditEvents.resourceId,
+        eventType: auditEvents.eventType,
+        metadata: auditEvents.metadata,
+        createdAt: auditEvents.createdAt,
+        actorEmail: users.email
+      })
+      .from(auditEvents)
+      .leftJoin(users, eq(users.id, auditEvents.actorId))
+      .where(inArray(auditEvents.eventType, ANNOUNCEMENT_EVENTS))
+      .orderBy(sql`${auditEvents.createdAt} desc`)
+      .limit(limit);
+
+    return rows.map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      eventType: row.eventType,
+      reason: readReason(row.metadata),
+      createdAt: row.createdAt,
+      actorEmail: row.actorEmail ?? null
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function readReason(metadata: unknown): string {
+  if (metadata && typeof metadata === "object" && "reason" in metadata) {
+    const reason = (metadata as { reason?: unknown }).reason;
+    if (typeof reason === "string") return reason;
+  }
+  return "";
 }
