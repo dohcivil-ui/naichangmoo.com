@@ -50,7 +50,7 @@ export function AppCard({ app }: AppCardProps) {
       <div className="app-card__body">
         <div className="app-card__topline">
           <span>{app.eyebrow}</span>
-          <span className={`access access--${app.access}`}>{accessLabel[app.access]}</span>
+          <span className={`access access--${app.seededAccess}`}>{accessLabel[app.seededAccess]}</span>
         </div>
         <h3>{app.name}</h3>
         <p>{app.description}</p>

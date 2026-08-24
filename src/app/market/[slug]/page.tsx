@@ -26,7 +26,7 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
               <h1>{app.name}</h1>
               <p>{app.marketDetail.outcome}</p>
               <div className="market-detail__badges">
-                <span className={`access access--${app.access}`}>{accessLabel[app.access]}</span>
+                <span className={`access access--${app.seededAccess}`}>{accessLabel[app.seededAccess]}</span>
                 <span className={`app-status app-status--${app.status}`}>{appStatusLabel[app.status]}</span>
               </div>
             </div>

@@ -93,12 +93,24 @@ export const organizationMembers = pgTable("organization_members", {
   updatedAt
 }, (table) => [uniqueIndex("organization_members_unique").on(table.organizationId, table.userId)]);
 
+/**
+ * The registry of what the platform says about an app publicly. See ADR 0014.
+ *
+ * A row is not an announcement: `activateEstimeterTrial` inserts one the first time a customer
+ * starts a trial, with no administrator involved. `announcedAt` is what an administrator sets, and
+ * it is the only thing a public surface may read as a statement. Revoking clears it rather than
+ * deleting the row, because `app_entitlements.app_id` cascades and a customer's right to use is not
+ * something a copy change may take away.
+ */
 export const apps = pgTable("apps", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull(),
   displayName: text("display_name").notNull(),
   accessModel: text("access_model").notNull(),
+  /** Whether the app is open for use, as opposed to announced and still being prepared. */
   enabled: boolean("enabled").notNull().default(true),
+  announcedAt: timestamp("announced_at", { withTimezone: true }),
+  announcedBy: text("announced_by").references(() => users.id),
   createdAt,
   updatedAt
 }, (table) => [uniqueIndex("apps_slug_unique").on(table.slug)]);

@@ -9,7 +9,7 @@ export function AppShell({ app, children }: { app: PlatformApp; children: ReactN
   return (
     <main className="site-shell app-shell">
       <PlatformNav workspace={app.name} />
-      <section className="app-shell__context"><div className="container"><Link href="/#apps">← แอปทั้งหมด</Link><span>/</span><strong>{app.name}</strong><span className={`access access--${app.access}`}>{accessLabel[app.access]}</span></div></section>
+      <section className="app-shell__context"><div className="container"><Link href="/#apps">← แอปทั้งหมด</Link><span>/</span><strong>{app.name}</strong><span className={`access access--${app.seededAccess}`}>{accessLabel[app.seededAccess]}</span></div></section>
       {children}
       <PlatformFooter />
     </main>

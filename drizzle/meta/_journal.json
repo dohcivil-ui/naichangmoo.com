@@ -43,6 +43,13 @@
       "when": 1787559439480,
       "tag": "0005_unknown_chat",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787576074625,
+      "tag": "0006_next_magdalene",
+      "breakpoints": true
     }
   ]
 }

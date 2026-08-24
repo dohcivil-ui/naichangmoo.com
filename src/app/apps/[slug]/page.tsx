@@ -33,7 +33,7 @@ export default async function AppBoundaryPage({ params }: { params: Promise<{ sl
     );
   }
 
-  if (app.access === "doh_staff_only") {
+  if (app.seededAccess === "doh_staff_only") {
     return (
       <AppShell app={app}>
         <section className="app-workspace-intro">

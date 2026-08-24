@@ -34,7 +34,12 @@ export type PlatformApp = {
   description: string;
   iconSrc: string;
   iconAlt: string;
-  access: AppAccess;
+  /**
+   * What the team intended this app's access to be when the code was written. ADR 0014: this is a
+   * default for an administrator to consider and a category label on the browsing pages, never an
+   * announcement. When it disagrees with the registry, the registry is right.
+   */
+  seededAccess: AppAccess;
   href: string;
   status: "available" | "coming_soon" | "restricted";
   categoryId: MarketCategoryId;
@@ -54,7 +59,7 @@ export const platformApps: PlatformApp[] = [
     description: "ประมาณราคางานอาคาร",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
-    access: "paid_trial",
+    seededAccess: "paid_trial",
     href: "/apps/estimeter",
     status: "available",
     categoryId: "building-cost",
@@ -74,7 +79,7 @@ export const platformApps: PlatformApp[] = [
     description: "Optimize cantilever dimensions with a bounded bisection search, then review stability checks and the calculation trail before confirmation.",
     iconSrc: visualAssetUrl("retaining_wall"),
     iconAlt: "Retaining Wall Cantilever optimization icon",
-    access: "member_free",
+    seededAccess: "member_free",
     href: "/apps/rcopt",
     status: "coming_soon",
     categoryId: "civil-design",
@@ -92,7 +97,7 @@ export const platformApps: PlatformApp[] = [
     description: "คำนวณรายการวัสดุป้ายจราจรแบบ form → list → BOQ สำหรับสมาชิก",
     iconSrc: visualAssetUrl("traffic_sign"),
     iconAlt: "สัญลักษณ์คำนวณวัสดุป้ายจราจร",
-    access: "member_free",
+    seededAccess: "member_free",
     href: "/apps/traffic-sign",
     status: "coming_soon",
     categoryId: "safety-equipment",
@@ -110,7 +115,7 @@ export const platformApps: PlatformApp[] = [
     description: "ระบบงานจัดกรรมสิทธิ์ที่ดินสำหรับบุคลากรกรมทางหลวงตามสิทธิ์ที่ได้รับ",
     iconSrc: visualAssetUrl("land_acquisition"),
     iconAlt: "สัญลักษณ์งานจัดกรรมสิทธิ์ที่ดิน",
-    access: "doh_staff_only",
+    seededAccess: "doh_staff_only",
     href: "/apps/land-acquisition",
     status: "restricted",
     categoryId: "land-acquisition",
