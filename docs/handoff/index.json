@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.29.0",
+    "title": "The Heavy Weights Stop Being Faked",
+    "description": "เปลี่ยนเป็น Prompt และโหลดทุกน้ำหนักที่สเปคประกาศ จบปัญหา faux bold พร้อมตั้งน้ำหนักหัวข้อกลับมาที่ 600 หลัง Tailwind Preflight รีเซ็ตไว้ที่ 400",
+    "scope": [
+      "replace IBM Plex Sans Thai with Prompt through next/font/google, which self-hosts at build",
+      "load 400, 500, 600, 700, 800 and 900 so no declared weight is synthesised by the browser",
+      "restore a heading weight after Tailwind Preflight reset it to inherit, at 600 for optical reasons",
+      "leave the downloaded font files under km/ unused, because km/ is gitignored and a local font would build on one machine only"
+    ],
+    "verification": [
+      "browser check with document.fonts.ready: real faces loaded are Prompt 400, 600, 700, 800 and 900, so no weight is synthesised",
+      "computed styles read from the running page: hero h1 is Prompt 600 at 72px, section h2 Prompt 600 at 42px, .eyebrow Prompt 800 at 12px, body Prompt 400 at 18px",
+      "grep over src/ finds no remaining reference to IBM Plex",
+      "pnpm test 185 passed, 33 skipped; pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.28.0-stated-prices แล้ว revert สอง commit ของ v0.29.0 เป็นการเปลี่ยนเฉพาะการนำเสนอ ไม่มี migration และไม่มีข้อมูลใดเกี่ยวข้อง",
+    "path": "docs/handoff/2026-08-24-prompt-typeface.md"
+  },
+  {
     "version": "0.28.0",
     "title": "The Platform States Its Prices, and the Day Pass Stops Competing With VIP",
     "description": "ADR 0011 อนุญาตให้ประกาศราคา สมาชิก VIP 1,170/เดือน หรือ 10,440/ปี พร้อมสวิตช์ และราคาแยกแอปที่แพงกว่าเหมารวมถูกเปลี่ยนเป็นบัตรรายวัน",
