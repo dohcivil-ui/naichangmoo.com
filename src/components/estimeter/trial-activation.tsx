@@ -20,9 +20,11 @@ function Submit() {
  * The terms sit next to the control, because pressing it starts a clock that cannot be reset.
  * A member who reads this screen and closes it has spent none of the seven days.
  *
- * The project cap is listed here on purpose. ADR 0009 removed it from the copy that runs before
- * entry, where a limit is the wrong first thing to say about a tool, but this screen is where the
- * member agrees to the terms. Dropping it here too would mean agreeing to a wall nobody mentioned.
+ * The project cap is listed here on purpose. ADR 0009 removed it from the headline copy and
+ * ADR 0010 removed it from every remaining surface before entry, so this screen is the first and
+ * only place a member is told. That is exactly why it cannot be dropped here as well: Gate 2 of
+ * ADR 0006 guarantees no trial starts without passing through this screen, and that guarantee is
+ * what keeps the quieter pre-entry copy honest.
  */
 export function TrialActivation() {
   const [state, formAction] = useActionState(startEstimeterTrial, initialState);

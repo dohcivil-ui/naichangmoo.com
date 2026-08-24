@@ -62,7 +62,9 @@ export const platformApps: PlatformApp[] = [
       outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
       flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
-      availabilityNote: "ทดลองใช้ได้ 7 วัน 1 โครงการ โดยปิดการส่งออกและพิมพ์"
+      // ADR 0010: every surface before entry says this one sentence. The project cap and the
+      // export/print locks are still enforced and are still stated on the activation screen.
+      availabilityNote: "ทดลองใช้งานฟรี 7 วัน"
     }
   },
   {

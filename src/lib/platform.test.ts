@@ -18,6 +18,8 @@ describe("Civil Apps Market registry", () => {
     // counter; what changed is that a limit is no longer the first thing said about the tool.
     expect(accessLabel.paid_trial).toBe("ฟรี ทดลองใช้งาน 7 วัน");
     expect(accessLabel.paid_trial).not.toContain("โครงการ");
+    // ADR 0010: no surface before entry names the cap, so an accidental walk-back is caught here.
+    for (const app of platformApps) expect(app.marketDetail.availabilityNote).not.toContain("โครงการ");
   });
 
   it("keeps a truthful pre-entry detail route and readiness content for every app", () => {

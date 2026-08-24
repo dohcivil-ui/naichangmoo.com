@@ -1,6 +1,6 @@
 # ADR 0009: ทดลองใช้เป็น 7 วัน และเลิกโฆษณาเพดาน 1 โครงการ
 
-**Status:** Accepted — supersedes the five-day term in ADR 0003 and re-affirmed in ADR 0006
+**Status:** Accepted — supersedes the five-day term in ADR 0003 and re-affirmed in ADR 0006; the `marketDetail.availabilityNote` row of the decision table below is superseded by ADR 0010
 
 ## Context
 

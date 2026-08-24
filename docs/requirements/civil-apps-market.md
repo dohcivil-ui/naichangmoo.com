@@ -58,7 +58,7 @@ The landing supports conversion with a short, factual explanation of the single-
 
 The market should feel like a clean engineering instrument: restrained motion, tactile press feedback, high-contrast action states, keyboard-accessible controls and responsive layouts. Work-category sections remain visible and cards remain directly below their corresponding heading; no filter, launcher or hidden-category state is permitted. The mobile version must stack category sections and cards while preserving readable app actions without horizontal clipping.
 
-The key conversion phrase is **“ทดลองใช้ฟรี 7 วัน”** (ADR 0009). It must not introduce a numeric price, fabricated testimonials, ratings, usage metrics, customer logos, or claims of final document compliance. Per ADR 0009 the phrase also no longer carries the one-project cap: the cap is still enforced server-side and is still stated on the activation screen, the in-app counter and the app's own detail page, but it is not what the platform says first about the tool.
+The key conversion phrase is **“ทดลองใช้ฟรี 7 วัน”** (ADR 0009). It must not introduce a numeric price, fabricated testimonials, ratings, usage metrics, customer logos, or claims of final document compliance. Per ADR 0009 the phrase no longer carries the one-project cap, and per ADR 0010 no surface before entry does: the cap is still enforced server-side and is still stated on the activation screen and the in-app counter, but every pre-entry surface — headline, entry button and the app's own detail page — says only that the trial is free for seven days.
 
 ## Acceptance Criteria for the First Market Release
 
