@@ -3,11 +3,31 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SignInButton } from "@/components/landing/sign-in-button";
+import { AccountMenu } from "@/components/platform/account-menu";
 import { BrandLogo } from "@/components/platform/brand-logo";
-import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
+import {
+  landingActionContract,
+  landingNavigationContract,
+  type AccountAppAccess,
+  type AccountViewer
+} from "@/lib/landing-interactions";
 
-export function PlatformNav({ workspace }: { workspace?: string }) {
+/**
+ * The nav is a client component because the active-section highlight watches the viewport. Who is
+ * looking is not something it can work out from the browser, so it is handed down: `SiteHeader`
+ * reads the session on the server and passes the result through.
+ */
+export function PlatformNav({
+  workspace,
+  user = null,
+  isPlatformAdmin = false,
+  apps = []
+}: {
+  workspace?: string;
+  user?: AccountViewer | null;
+  isPlatformAdmin?: boolean;
+  apps?: AccountAppAccess[];
+}) {
   const pathname = usePathname();
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
@@ -43,7 +63,7 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
           })}
         </div>
-        <div className="site-nav__account"><SignInButton /></div>
+        <div className="site-nav__account"><AccountMenu user={user} isPlatformAdmin={isPlatformAdmin} apps={apps} /></div>
       </div>
     </nav>
   );

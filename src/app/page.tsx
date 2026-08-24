@@ -5,7 +5,7 @@ import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { PlatformNav } from "@/components/platform/platform-nav";
+import { SiteHeader } from "@/components/platform/site-header";
 import { marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract } from "@/lib/landing-interactions";
@@ -14,7 +14,7 @@ export default function LandingPage() {
   return (
     <main className="site-shell">
       <LandingMotion />
-      <PlatformNav />
+      <SiteHeader />
 
       <section className="hero" id="top">
         <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>

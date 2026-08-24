@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { PlatformNav } from "@/components/platform/platform-nav";
+import { SiteHeader } from "@/components/platform/site-header";
 import { AccessStatePanel } from "@/components/pricing/access-state-panel";
 import { AccessTiers } from "@/components/pricing/access-tiers";
 import {
@@ -39,7 +39,7 @@ export default async function PricingPage() {
   return (
     <main className="site-shell">
       <LandingMotion />
-      <PlatformNav />
+      <SiteHeader />
 
       <section className="section section--white" id="access">
         <div className="container">

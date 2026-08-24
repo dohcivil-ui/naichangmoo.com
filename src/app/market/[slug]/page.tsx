@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { PlatformNav } from "@/components/platform/platform-nav";
+import { SiteHeader } from "@/components/platform/site-header";
 import { accessLabel, appStatusLabel, marketCategories, platformApps } from "@/lib/platform";
 import { getAppInteractionContract } from "@/lib/landing-interactions";
 
@@ -16,7 +16,7 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
 
   return (
     <main className="site-shell market-detail">
-      <PlatformNav />
+      <SiteHeader />
       <section className="market-detail__hero">
         <div className="container">
           <Link className="market-detail__back" href="/#apps">← กลับไปดูทุกแอป</Link>

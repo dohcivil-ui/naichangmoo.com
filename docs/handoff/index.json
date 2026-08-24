@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.37.0",
+    "title": "The Header Knows Who Is Looking",
+    "description": "เพิ่มเมนูบัญชีบนแถบบนและหน้า /account แก้บั๊กที่ทำให้ล็อกอิน Google ล้มเหลว และให้ทุกแอปมีชื่อโปรแกรมกับคำอธิบายในตำแหน่งเดียวกัน",
+    "scope": [
+      "accounts.issuer และ migration สามสเต็ป",
+      "account menu, /account และ SiteHeader ที่อ่าน session ที่เดียว",
+      "programName/purpose ของทุกแอป และแอปค่า K เป็น coming_soon"
+    ],
+    "verification": [
+      "pnpm test 264 passed, 33 skipped",
+      "pnpm typecheck, pnpm lint",
+      "ESTIMETR_DB_TESTS=1 33/33",
+      "ล็อกอิน Google จริงและ bootstrap ผู้ดูแลสำเร็จ",
+      "node scripts/check-roadmap.mjs"
+    ],
+    "rollback": "กลับไป commit ก่อนหน้าบน feature/app-registry-announced; ต้อง DROP COLUMN accounts.issuer เอง และการย้อนทำให้ล็อกอิน Google ใช้ไม่ได้",
+    "path": "docs/handoff/2026-08-24-header-knows-who-is-looking.md"
+  },
+  {
     "version": "0.34.0",
     "title": "An App Is Free Because An Administrator Said So",
     "description": "โค้ดของ IP-090 เสร็จครบและผ่านทุก gate แล้ว ทะเบียนแอปเป็นเจ้าของคำแถลงต่อสาธารณะแทน source มีหน้า /admin/apps ที่บังคับเหตุผลและเขียน audit ทุกครั้ง หน้าราคาและเชิงอรรถ derive จากทะเบียน และ /apps/<slug> ปิดเมื่อทะเบียนบอกว่ายังไม่เปิดใช้ เวอร์ชันนี้ปิดเพื่อส่งมอบ โดยยังไม่ได้ตรวจด้วยตาในเบราว์เซอร์แม้แต่ครั้งเดียว ซึ่งระบุไว้ตรง ๆ ในช่อง verification",

@@ -1,12 +1,12 @@
 import { EnterpriseQuoteForm } from "@/components/landing/enterprise-quote-form";
 import { QuoteIcon } from "@/components/icons/platform-icons";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { PlatformNav } from "@/components/platform/platform-nav";
+import { SiteHeader } from "@/components/platform/site-header";
 
 export default function EnterpriseQuotationPage() {
   return (
     <main className="site-shell">
-      <PlatformNav />
+      <SiteHeader />
       <section className="section enterprise-page">
         <div className="container quote-grid">
           <div className="quote-intro">

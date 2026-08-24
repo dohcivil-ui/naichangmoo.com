@@ -11,5 +11,10 @@ export const entitlementStateLabel: Record<EntitlementState | string, string> = 
   member_free: "สมาชิกใช้ฟรี",
   doh_staff_only: "บุคลากรกรมทางหลวง",
   expired_read_only: "ครบกำหนด เปิดดูได้อย่างเดียว",
-  suspended: "ถูกระงับ"
+  suspended: "ถูกระงับ",
+  // The two states that only exist once an entitlement is resolved against the clock. The back
+  // office reads stored states and never meets them; the member's own account panel reads
+  // effective ones and does, so they are labelled here rather than in a second copy of this map.
+  not_started: "ยังไม่ถึงวันเริ่ม",
+  not_activated: "ยังไม่ได้เริ่มใช้งาน"
 };

@@ -120,7 +120,7 @@ describe.skipIf(!enabled)("ESTIMETR trial activation against PostgreSQL", () => 
     expect(audits).toHaveLength(1);
     expect(audits[0]?.eventType).toBe("entitlement.trial_activated");
     expect(audits[0]?.actorId).toBe(userId);
-    expect(audits[0]?.metadata).toMatchObject({ startedBy: "explicit_activation", trialDays: 5, projectLimit: 1 });
+    expect(audits[0]?.metadata).toMatchObject({ startedBy: "explicit_activation", trialDays: 7, projectLimit: 1 });
   });
 
   it("refuses a second activation instead of extending the window", async () => {
@@ -140,10 +140,10 @@ describe.skipIf(!enabled)("ESTIMETR trial activation against PostgreSQL", () => 
       .from(appEntitlements)
       .where(eq(appEntitlements.organizationId, `org_personal_${userId}`));
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.endsAt?.toISOString()).toBe("2026-08-25T00:00:00.000Z");
+    expect(rows[0]?.endsAt?.toISOString()).toBe("2026-08-27T00:00:00.000Z");
 
     // The expiry still counts from the first activation, so pressing again bought nothing.
-    const access = await getEstimeterAccess(userId, new Date("2026-08-26T00:00:00.000Z"));
+    const access = await getEstimeterAccess(userId, new Date("2026-08-28T00:00:00.000Z"));
     expect(access.state).toBe("expired_read_only");
   });
 

@@ -54,6 +54,13 @@ export const sessions = pgTable("sessions", {
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
+  // better-auth 1.7 scopes an account's identity by the issuer that vouched for it, and looks a
+  // returning member up by (issuer, account_id) rather than by (provider_id, account_id). The
+  // column is required by the library, not optional decoration: without it the Drizzle adapter
+  // cannot resolve the field and emits a WHERE clause with the column name missing, so every
+  // OAuth callback fails at the database. `provider_id` stays because it names which configured
+  // provider was used, which is our own concern; the issuer is Google's claim about itself.
+  issuer: text("issuer").notNull(),
   providerId: text("provider_id").notNull(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),

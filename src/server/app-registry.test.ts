@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { platformApps } from "@/lib/platform";
 
 /**
  * IP-090 / ADR 0014. Three properties are worth holding here.
@@ -153,7 +154,9 @@ describe("the back office sees the catalogue, not only the rows", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
-    expect(result.entries).toHaveLength(4);
+    // Every app in the registry, derived rather than counted — the claim is "every app", and a
+    // literal would quietly stop testing that the day the catalogue grows.
+    expect(result.entries).toHaveLength(platformApps.length);
     expect(result.entries.every((entry) => entry.announced === false)).toBe(true);
     expect(result.entries.every((entry) => entry.access === null)).toBe(true);
     expect(result.entries.every((entry) => entry.conflictsWithSeed === false)).toBe(true);
