@@ -1,5 +1,26 @@
 [
   {
+    "version": "0.27.0",
+    "title": "An Access Page That Compares Rights, Not Prices",
+    "description": "หน้า /pricing เทียบสิทธิ์การเข้าใช้งานสามแบบแทนราคา ตารางความสามารถ derive จาก listCapabilities และ ADR 0010 ทำให้ข้อความก่อนเข้าใช้งานเป็นประโยคเดียวทุกพื้นผิว",
+    "scope": [
+      "ADR 0010 supersedes the marketDetail.availabilityNote row of ADR 0009: no surface before entry names the project cap",
+      "add /pricing with three access tiers and a fifth main-menu entry",
+      "derive the capability table from listCapabilities rather than authoring ticks",
+      "replace the reference layout's order-total column with the visitor's own entitlement state, failing closed",
+      "keep the restricted DOH app as a footnote rather than a tier"
+    ],
+    "verification": [
+      "pnpm test 175 passed, 33 skipped; pricing.test.ts asserts no baht/THB/EUR figure and no digit other than the trial length appears in tier copy",
+      "pricing.test.ts asserts the export and print rows are false for trial and true for the other tiers, read from the real policy",
+      "platform.test.ts asserts no marketDetail.availabilityNote contains โครงการ",
+      "pnpm typecheck and pnpm lint pass; the one warning is the pre-existing unused formatSatang",
+      "browser check on localhost:3000/pricing: five nav pills including ราคา, and the derived table shows ส่งออกไฟล์ and พิมพ์เอกสาร false only under ทดลองใช้งาน"
+    ],
+    "rollback": "กลับไป tag v0.26.0-trial-seven-days แล้ว revert สอง commit ของ v0.27.0 หน้า /pricing เป็นหน้าใหม่ ไม่มี migration และไม่มีข้อมูลผู้ใช้เกี่ยวข้อง",
+    "path": "docs/handoff/2026-08-24-access-page.md"
+  },
+  {
     "version": "0.26.0",
     "title": "A Seven-Day Trial That Does Not Lead With Its Limit",
     "description": "ทดลองใช้ ESTIMETR เป็น 7 วันตาม ADR 0009 และถอดเพดาน 1 โครงการออกจากข้อความพาดหัวโดยที่การบังคับใช้ฝั่งเซิร์ฟเวอร์ไม่เปลี่ยน",
