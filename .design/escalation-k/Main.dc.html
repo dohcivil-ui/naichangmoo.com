@@ -1,0 +1,425 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #073047; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    a { color: #0d8282; text-decoration: none; } a:hover { color: #095d5b; }
+    button { font: inherit; }
+    .num { font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="min-height: 100%; background: linear-gradient(180deg, #f4f8f7 0%, #ffffff 34%, #f5f8f8 100%)">
+
+  <div style="background: #e7f1f1; border-bottom: 1px solid #c9d8d9">
+    <div style="width: 1160px; margin: 0 auto; min-height: 50px; display: flex; align-items: center; gap: 10px; color: #5f7178; font-size: .82rem">
+      <a href="#">รวมแอป</a><span>/</span><span style="color: #0d8282; font-weight: 700">ESCALATION FACTOR K</span>
+      <span style="margin-left: auto; padding: 4px 7px; border-radius: 999px; background: #fff0e3; color: #955012; font-size: .61rem; letter-spacing: .03em">ฟรี ทดลองใช้งาน 7 วัน</span>
+    </div>
+  </div>
+
+  <div style="width: 1160px; margin: 0 auto; padding: 3.5rem 0 4rem">
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; padding-bottom: 1.35rem; border-bottom: 1px solid #d8e5e3">
+      <div style="min-width: 0">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="color: #0b7777; font-size: .67rem; font-weight: 900; letter-spacing: .12em">สัญญาแบบปรับราคาได้ · มติ ครม. ว 109</span>
+          <span style="border: 1px solid #e2c392; border-radius: 99px; padding: .2rem .5rem; background: #fff9ee; color: #99631a; font-size: .64rem; font-weight: 800">ตัวเลขสาธิต</span>
+        </div>
+        <h1 style="max-width: 680px; margin: .35rem 0 .6rem; color: #083a50; font-size: 3.1rem; line-height: 1.08; letter-spacing: -.055em">ก่อสร้างอาคารเรียน 4 ชั้น 12 ห้องเรียน</h1>
+        <p style="max-width: 690px; margin: 0; color: #49606b; font-size: 1.04rem; line-height: 1.75">สัญญาเลขที่ 42/2569 · เดือนฐาน กันยายน 2568 · วงเงินตามสัญญา 28,500,000 บาท</p>
+      </div>
+      <div style="flex: 0 0 132px; border: 1px solid #b9d8d4; border-radius: 16px; padding: .9rem 1rem; background: #eff8f6; color: #0d6f70">
+        <span style="display: block; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase">ขั้นตอน</span>
+        <strong class="num" style="display: block; margin: .15rem 0; color: #083a50; font-size: 1.65rem">{{stepNo}} / 7</strong>
+        <small style="display: block; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase">{{stepShort}}</small>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .65rem; margin: 1.65rem 0">
+      <sc-for list="{{steps}}" as="s" hint-placeholder-count="7">
+        <button onClick="{{ s.go }}" style="position: relative; min-height: 128px; display: flex; flex-direction: column; gap: .48rem; align-items: flex-start; border: 1px solid {{s.border}}; border-radius: 14px; padding: .85rem; background: {{s.bg}}; color: {{s.fg}}; text-align: left; cursor: pointer; box-shadow: {{s.shadow}}; opacity: {{s.opacity}}">
+          <span class="num" style="display: grid; width: 1.9rem; height: 1.9rem; place-items: center; border-radius: 50%; background: {{s.numBg}}; color: {{s.numFg}}; font-size: .76rem; font-weight: 900">{{s.n}}</span>
+          <strong style="display: block; color: inherit; font-size: .95rem; line-height: 1.3">{{s.label}}</strong>
+          <em style="color: #789096; font-size: .7rem; font-style: normal; line-height: 1.4">{{s.hint}}</em>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; align-items: start">
+
+      <div style="border: 1px solid #d9e5e4; border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); min-height: 560px; padding: 2rem">
+
+        <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid #e4edec">
+          <div>
+            <small style="color: #71878c; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase">ขั้นที่ {{stepNo}}</small>
+            <h2 style="margin: .3rem 0 0; color: #083a50; font-size: 1.9rem; letter-spacing: -.03em">{{stepTitle}}</h2>
+          </div>
+          <span style="display: inline-flex; white-space: nowrap; border: 1px solid {{chipBorder}}; border-radius: 99px; padding: .35rem .6rem; background: {{chipBg}}; color: {{chipFg}}; font-size: .72rem; font-weight: 800">{{chipText}}</span>
+        </div>
+
+        <sc-if value="{{p1}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 1.4rem">
+              <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047">เลขที่สัญญา
+                <input value="42/2569" style="width: 100%; border: 1px solid #c9d8d9; border-radius: 7px; padding: .67rem .72rem; background: #fbfdfd; color: #073047; font-weight: 500">
+              </label>
+              <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047">หน่วยงานผู้ว่าจ้าง
+                <input value="สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน" style="width: 100%; border: 1px solid #c9d8d9; border-radius: 7px; padding: .67rem .72rem; background: #fbfdfd; color: #073047; font-weight: 500">
+              </label>
+            </div>
+            <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047; margin-top: 16px">ชื่องานตามสัญญา
+              <input value="ก่อสร้างอาคารเรียน 4 ชั้น 12 ห้องเรียน" style="width: 100%; border: 1px solid #c9d8d9; border-radius: 7px; padding: .67rem .72rem; background: #fbfdfd; color: #073047; font-weight: 500">
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 16px">
+              <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047">วงเงินตามสัญญา (บาท)
+                <input class="num" value="28,500,000" style="width: 100%; border: 1px solid #c9d8d9; border-radius: 7px; padding: .67rem .72rem; background: #fbfdfd; color: #073047; font-weight: 500; text-align: right">
+              </label>
+              <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047">เดือนที่เปิดซอง (เดือนฐาน)
+                <input value="กันยายน 2568" style="width: 100%; border: 1px solid #0d8282; border-radius: 7px; padding: .67rem .72rem; background: #ffffff; color: #073047; font-weight: 500; box-shadow: 0 0 0 3px rgba(13,130,130,.12)">
+              </label>
+              <label style="display: grid; gap: 7px; font-size: .88rem; font-weight: 700; color: #073047">ส่งมอบงานงวดสุดท้าย
+                <input value="30 กันยายน 2569" style="width: 100%; border: 1px solid #c9d8d9; border-radius: 7px; padding: .67rem .72rem; background: #fbfdfd; color: #073047; font-weight: 500">
+              </label>
+            </div>
+            <div style="margin: 1.4rem 0 0; border-left: 3px solid #f47721; padding: .75rem 1rem; background: #fffaf5; color: #596c72; font-size: .88rem; line-height: 1.6">
+              <strong style="color: #123e4e">เดือนฐานคือเดือนที่เปิดซองประกวดราคา</strong> ไม่ใช่เดือนที่ลงนามสัญญา ดัชนีทุกตัวที่ลงท้ายด้วย o จะอ่านจากเดือนนี้ · สิทธิ์เรียกร้องเงินเพิ่มมีอายุ <strong style="color: #123e4e">90 วัน</strong> นับจากวันส่งมอบงานงวดสุดท้าย
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p2}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.4rem">
+              <sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+                <span style="border: 1px solid {{g.border}}; border-radius: 999px; padding: .42rem .78rem; background: {{g.bg}}; color: {{g.fg}}; font-size: .78rem; font-weight: 700">{{g.name}}</span>
+              </sc-for>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; gap: 1rem; margin: 1.3rem 0 1rem; border: 1px solid #bedbd7; border-radius: 13px; padding: 1.2rem; background: linear-gradient(135deg, #eff9f7, #f8fcfc)">
+              <div>
+                <div style="color: #0b7777; font-size: .67rem; font-weight: 900; letter-spacing: .12em">หมวดที่ 1 · งานอาคาร</div>
+                <h3 style="margin: .3rem 0; color: #093d4b; font-size: 1.05rem">อาคาร ไฟฟ้า ประปา ท่อในอาคาร ทางเท้ารอบอาคารไม่เกิน 3 เมตร</h3>
+                <p style="max-width: 515px; margin: 0; color: #688087; font-size: .82rem; line-height: 1.55">ไม่รวมหม้อแปลง ระบบไฟฟ้าและประปาภายในบริเวณ ลิฟท์ เครื่องปรับอากาศ และเครื่องจักรที่นำมาประกอบหรือติดตั้ง</p>
+              </div>
+              <div style="display: grid; align-content: center; gap: .3rem; color: #6a8489; font-size: .74rem; text-align: right; white-space: nowrap">
+                <span>ที่มา <strong style="color: #173e4e">ว 109 หน้า 2</strong></span>
+                <span>สัมประสิทธิ์รวม <strong class="num" style="color: #173e4e">1.000</strong></span>
+              </div>
+            </div>
+
+            <div style="border: 1px solid #e1ebea; border-radius: 12px; padding: 1.35rem 1.2rem; background: #fbfdfd; text-align: center">
+              <div class="num" style="color: #083a50; font-size: 1.28rem; font-weight: 800">K = 0.25 + 0.15 It/Io + 0.10 Ct/Co + 0.40 Mt/Mo + 0.10 St/So</div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0 0">
+              <sc-for list="{{vars}}" as="v" hint-placeholder-count="4">
+                <div style="border: 1px solid #e2eceb; border-radius: 12px; padding: .95rem; background: #fcfdfd">
+                  <span class="num" style="display: block; color: #0b7777; font-size: .8rem; font-weight: 900; letter-spacing: .06em">{{v.sym}}</span>
+                  <strong style="display: block; margin: .35rem 0 .2rem; color: #123e4e; font-size: .84rem; line-height: 1.38">{{v.name}}</strong>
+                  <small style="color: #799096; font-size: .72rem; line-height: 1.4">{{v.note}}</small>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{notReviewed}}" hint-placeholder-val="{{ false }}">
+              <div style="margin: 1.3rem 0 0; border: 1px solid #e2b9b9; border-radius: 10px; padding: .85rem 1rem; background: #f9e7e7; color: #8a3b3b; font-size: .86rem; font-weight: 700; line-height: 1.5">
+                หมวดนี้ยังไม่ผ่านการรับรอง — การถอดสูตรจาก ว 109 ยังไม่มีวิศวกรลงชื่อตรวจเทียบเอกสารต้นฉบับ เลือกใช้คำนวณไม่ได้จนกว่าจะมีผู้รับรอง
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p3}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="margin: 1.3rem 0; border: 1px solid {{srcBorder}}; border-radius: 12px; padding: .9rem 1.05rem; background: {{srcBg}}; color: {{srcFg}}; font-size: .85rem; line-height: 1.55">{{srcText}}</div>
+            <div style="overflow-x: auto; margin: 1.25rem 0; border: 1px solid #e1ebea; border-radius: 12px">
+              <table style="width: 100%; border-collapse: collapse; font-size: .83rem">
+                <thead>
+                  <tr>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">ตัวแปร</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">ดัชนีที่ใช้</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: right; text-transform: uppercase">ฐาน ก.ย. 68</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: right; text-transform: uppercase">ส่งมอบ มิ.ย. 69</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: right; text-transform: uppercase">เลขสัมพันธ์</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">ที่มา</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{indexRows}}" as="r" hint-placeholder-count="4">
+                    <tr>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #0b7777; font-weight: 900">{{r.sym}}</td>
+                      <td style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #334f59">{{r.name}}</td>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #083a50; font-weight: 900; text-align: right">{{r.base}}</td>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #083a50; font-weight: 900; text-align: right">{{r.now}}</td>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #083a50; font-weight: 900; text-align: right">{{r.ratio}}</td>
+                      <td style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #799096; font-size: .75rem">{{r.src}}</td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <div style="border-left: 3px solid #f47721; padding: .75rem 1rem; background: #fffaf5; color: #596c72; font-size: .86rem; line-height: 1.6">
+              <strong style="color: #123e4e">It/Io คือดัชนีราคาผู้บริโภคทั่วไป</strong> ไม่ใช่ดัชนีวัสดุก่อสร้าง และ <strong style="color: #123e4e">Mt/Mo ไม่รวมเหล็กและซีเมนต์</strong> ตามตารางนิยามหน้า 9 ของ ว 109 · แก้ค่าเองได้ แต่ต้องบันทึกเหตุผลกำกับทุกครั้ง
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p4}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="overflow-x: auto; margin: 1.4rem 0 1.25rem; border: 1px solid #e1ebea; border-radius: 12px">
+              <table style="width: 100%; border-collapse: collapse; font-size: .83rem">
+                <thead>
+                  <tr>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">งวด</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">รายการงาน</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: right; text-transform: uppercase">ค่างานตามสัญญา</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">เดือนส่งมอบ</th>
+                    <th style="padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <sc-for list="{{periods}}" as="w" hint-placeholder-count="4">
+                    <tr>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #334f59; font-weight: 700">{{w.n}}</td>
+                      <td style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #334f59">{{w.name}}</td>
+                      <td class="num" style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #083a50; font-weight: 900; text-align: right">{{w.amount}}</td>
+                      <td style="padding: .82rem .8rem; border-top: 1px solid #e8efee; color: #334f59">{{w.month}}</td>
+                      <td style="padding: .82rem .8rem; border-top: 1px solid #e8efee"><span style="border-radius: 999px; padding: 3px 8px; background: {{w.bg}}; color: {{w.fg}}; font-size: .68rem; font-weight: 800">{{w.state}}</span></td>
+                    </tr>
+                  </sc-for>
+                </tbody>
+              </table>
+            </div>
+            <div style="border-left: 3px solid #f47721; padding: .75rem 1rem; background: #fffaf5; color: #596c72; font-size: .86rem; line-height: 1.6">
+              ถ้างานล่าช้าโดยเป็นความผิดของผู้รับจ้าง ให้ใช้ค่า K ของ<strong style="color: #123e4e">เดือนสุดท้ายตามอายุสัญญา</strong> หรือ<strong style="color: #123e4e">เดือนที่ส่งมอบจริง</strong> แล้วแต่ตัวใดจะน้อยกว่า
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p5}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <p style="margin: 1.3rem 0 1rem; color: #49606b; font-size: .9rem; line-height: 1.7">ว 109 กำหนดให้ทำ<strong style="color: #123e4e">เลขสัมพันธ์ให้เป็นผลสำเร็จก่อน</strong> แล้วจึงนำไปคูณสัมประสิทธิ์ และให้ใช้ทศนิยม 3 ตำแหน่งทุกขั้นตอน <strong style="color: #123e4e">โดยไม่มีการปัดเศษ</strong> ทุกบรรทัดข้างล่างจึงเป็นการตัดทิ้ง ไม่ใช่การปัด</p>
+            <div style="border: 1px solid #e1ebea; border-radius: 12px; overflow: hidden">
+              <sc-for list="{{terms}}" as="t" hint-placeholder-count="5">
+                <div style="display: grid; grid-template-columns: 68px minmax(0,1fr) 190px 96px; gap: 1rem; align-items: center; padding: .8rem 1.1rem; border-top: 1px solid #eef4f3; background: {{t.bg}}">
+                  <span class="num" style="color: #0b7777; font-size: .84rem; font-weight: 900">{{t.coef}}</span>
+                  <span style="color: #5f7a80; font-size: .8rem">{{t.label}}</span>
+                  <span class="num" style="color: #334f59; font-size: .84rem; text-align: right">{{t.work}}</span>
+                  <span class="num" style="color: #083a50; font-size: .95rem; font-weight: 900; text-align: right">{{t.value}}</span>
+                </div>
+              </sc-for>
+              <div style="display: grid; grid-template-columns: minmax(0,1fr) 96px; gap: 1rem; align-items: center; padding: 1rem 1.1rem; border-top: 2px solid #bedbd7; background: #eff9f7">
+                <span style="color: #093d4b; font-size: .95rem; font-weight: 800">ESCALATION FACTOR K</span>
+                <span class="num" style="color: #083a50; font-size: 1.5rem; font-weight: 900; text-align: right; letter-spacing: -.02em">1.045</span>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p6}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="margin: 1.4rem 0 1.1rem; border: 1px solid #bedbd7; border-radius: 13px; padding: 1.2rem; background: linear-gradient(135deg, #eff9f7, #f8fcfc)">
+              <div style="color: #0b7777; font-size: .67rem; font-weight: 900; letter-spacing: .12em">เกณฑ์ 4 เปอร์เซ็นต์</div>
+              <h3 class="num" style="margin: .35rem 0; color: #093d4b; font-size: 1.05rem">| 1.045 − 1 | = 0.045 มากกว่า 0.04 จึงปรับเพิ่มค่างาน</h3>
+              <p style="max-width: 560px; margin: 0; color: #688087; font-size: .82rem; line-height: 1.55">เอกสารกำหนดให้นำ<strong style="color: #173e4e">เฉพาะส่วนที่เกิน 4%</strong> มาคำนวณ โดยไม่คิด 4% แรกให้ ค่า K ที่นำไปคูณจึงเป็น K ที่หักด้วย 0.04 แล้ว</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0 1.35rem">
+              <sc-for list="{{money}}" as="m" hint-placeholder-count="3">
+                <div style="border: 1px solid #e2eceb; border-radius: 12px; padding: .95rem; background: #fcfdfd">
+                  <span style="display: block; color: #71878c; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase">{{m.label}}</span>
+                  <strong class="num" style="display: block; margin: .45rem 0; color: #123e4e; font-size: 1.3rem; letter-spacing: -.02em">{{m.value}}</strong>
+                  <small style="color: #799096; font-size: .72rem; line-height: 1.4">{{m.note}}</small>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 1rem; border: 1px solid #bcdad5; border-radius: 14px; padding: 1.1rem; background: #f3faf8">
+              <div>
+                <h3 style="margin: .22rem 0; color: #0b494f; font-size: .95rem">เงินเพิ่มงวดที่ 3</h3>
+                <p style="max-width: 520px; margin: 0; color: #698087; font-size: .8rem; line-height: 1.5">5,700,000 × (1.045 − 0.04) = 5,728,500 บาท ส่วนต่างจากค่างานตามสัญญาคือเงินชดเชยที่ผู้ว่าจ้างต้องจ่ายเพิ่ม</p>
+              </div>
+              <div class="num" style="display: grid; align-content: center; color: #0b7777; font-size: 1.75rem; font-weight: 900; white-space: nowrap; letter-spacing: -.02em">+28,500</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{p7}}" hint-placeholder-val="{{ true }}">
+          <div>
+            <div style="margin: 1.4rem 0 1.2rem; border: 1px solid #e1ebea; border-radius: 12px; padding: 1.4rem 1.5rem; background: #fbfdfd">
+              <div style="color: #5f7a80; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase">ตัวอย่างหัวกระดาษ</div>
+              <h3 style="margin: .5rem 0 .3rem; color: #083a50; font-size: 1.15rem">รายการคำนวณค่า K ตามสัญญาแบบปรับราคาได้</h3>
+              <p style="margin: 0; color: #688087; font-size: .82rem; line-height: 1.6">สัญญาเลขที่ 42/2569 · หมวดที่ 1 งานอาคาร · เดือนฐาน กันยายน 2568 · งวดที่ 3 ส่งมอบ มิถุนายน 2569<br>อ้างอิง มติคณะรัฐมนตรี ตามหนังสือสำนักเลขาธิการคณะรัฐมนตรี ที่ นร 0203/ว 109 ลงวันที่ 24 สิงหาคม 2532</p>
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-top: 1px solid #e4edec; padding-top: 1.15rem">
+              <div>
+                <strong style="color: #123e4e; font-size: .9rem">{{printTitle}}</strong>
+                <p style="max-width: 570px; margin: .25rem 0 0; color: #70858b; font-size: .8rem; line-height: 1.5">{{printNote}}</p>
+              </div>
+              <sc-if value="{{canPrint}}" hint-placeholder-val="{{ true }}">
+                <button style="border: 1px solid transparent; border-radius: 8px; padding: .72rem 1.15rem; cursor: pointer; font-weight: 700; background: #f47721; color: #17120d; white-space: nowrap">พิมพ์ หรือ บันทึกเป็น PDF</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+
+      <aside style="border: 1px solid #d9e5e4; border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); padding: 1.2rem">
+        <small style="color: #71878c; font-size: .68rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase">ที่มาของตัวเลข</small>
+        <h2 style="margin: .3rem 0 1.15rem; color: #0b3c4e; font-size: 1.1rem; line-height: 1.3">ทุกค่าตามรอยกลับไปหาเอกสารได้</h2>
+        <ol style="display: grid; gap: .95rem; margin: 0; padding: 0; list-style: none">
+          <sc-for list="{{evidence}}" as="e" hint-placeholder-count="4">
+            <li style="display: flex; gap: .65rem">
+              <span class="num" style="display: grid; width: 1.65rem; height: 1.65rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #e7f3f1; color: #0b7777; font-size: .65rem; font-weight: 900">{{e.n}}</span>
+              <div>
+                <strong style="color: #224855; font-size: .8rem">{{e.title}}</strong>
+                <p style="margin: .12rem 0 0; color: #768b91; font-size: .72rem; line-height: 1.42">{{e.body}}</p>
+              </div>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="margin-top: 1.2rem; border-top: 1px solid #e3edeb; padding-top: .9rem">
+          <strong style="color: #0c6668; font-size: .78rem">ยังตรวจไม่ได้</strong>
+          <p style="margin: .2rem 0 0; color: #768b91; font-size: .72rem; line-height: 1.42">ว 109 ประกาศปี 2532 ไฟล์ที่มีไม่มีหนังสือแก้ไขเพิ่มเติมฉบับใด ระบบจึงยังยืนยันไม่ได้ว่านี่คือฉบับล่าสุดที่บังคับใช้</p>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script data-props='{"formulaReviewed":{"editor":"boolean","default":true,"section":"สวิตช์"},"indexSource":{"editor":"enum","options":["ดึงอัตโนมัติ","ปิด API กรอกมือ"],"default":"ดึงอัตโนมัติ","section":"สวิตช์"},"canPrint":{"editor":"boolean","default":true,"section":"สวิตช์"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 5 };
+  }
+
+  renderVals() {
+    const step = this.state.step;
+    const reviewed = this.props.formulaReviewed !== false;
+    const apiOn = (this.props.indexSource ?? 'ดึงอัตโนมัติ') === 'ดึงอัตโนมัติ';
+    const canPrint = this.props.canPrint !== false;
+
+    const defs = [
+      { n: '1', label: 'ข้อมูลสัญญา', hint: 'เดือนฐานและวงเงิน', short: 'สัญญา' },
+      { n: '2', label: 'เลือกสูตร K', hint: '34 สูตร 5 หมวด', short: 'สูตร' },
+      { n: '3', label: 'ดัชนีราคา', hint: 'เดือนฐาน กับ เดือนส่งมอบ', short: 'ดัชนี' },
+      { n: '4', label: 'งวดงาน', hint: 'ค่างานและเดือนส่งมอบ', short: 'งวดงาน' },
+      { n: '5', label: 'คำนวณ K', hint: 'แทนค่าทีละพจน์', short: 'ค่า K' },
+      { n: '6', label: 'เงินชดเชย', hint: 'เกณฑ์ 4 เปอร์เซ็นต์', short: 'เงินชดเชย' },
+      { n: '7', label: 'ใบรายการคำนวณ', hint: 'พิมพ์เป็น PDF', short: 'พิมพ์' }
+    ];
+
+    const steps = defs.map((d, i) => {
+      const n = i + 1;
+      const active = n === step;
+      const done = n < step;
+      return {
+        n: d.n, label: d.label, hint: d.hint,
+        border: active ? '#0d8282' : '#d5e1df',
+        bg: active ? '#eff9f7' : '#ffffff',
+        fg: active ? '#093d4b' : '#668087',
+        shadow: active ? 'inset 0 0 0 1px rgba(13,130,130,.13)' : 'none',
+        opacity: n > step + 1 ? '.58' : '1',
+        numBg: done ? '#0d8282' : '#e8f0ef',
+        numFg: done ? '#ffffff' : '#0d6f70',
+        go: () => this.setState({ step: n })
+      };
+    });
+
+    let chip = { text: 'ข้อมูลครบ', border: '#9fcfc7', bg: '#eff9f6', fg: '#0a6f70' };
+    if (!reviewed && step === 2) chip = { text: 'หมวดยังไม่รับรอง', border: '#e2b9b9', bg: '#f9e7e7', fg: '#8a3b3b' };
+    else if (!apiOn && step === 3) chip = { text: 'กรอกมือ', border: '#f1bb80', bg: '#fff6eb', fg: '#a5500b' };
+
+    const groupNames = ['งานอาคาร', 'งานดิน', 'งานทาง', 'งานชลประทาน', 'งานระบบสาธารณูปโภค'];
+    const src = apiOn ? 'กระทรวงพาณิชย์' : 'กรอกมือ';
+
+    return {
+      stepNo: String(step),
+      stepShort: defs[step - 1].short,
+      stepTitle: defs[step - 1].label,
+      steps,
+      p1: step === 1, p2: step === 2, p3: step === 3, p4: step === 4,
+      p5: step === 5, p6: step === 6, p7: step === 7,
+      chipText: chip.text, chipBorder: chip.border, chipBg: chip.bg, chipFg: chip.fg,
+      notReviewed: !reviewed,
+      canPrint,
+
+      groups: groupNames.map((name, i) => ({
+        name,
+        border: i === 0 ? '#0d8282' : '#d5e1df',
+        bg: i === 0 ? '#eff9f7' : '#ffffff',
+        fg: i === 0 ? '#093d4b' : '#668087'
+      })),
+
+      vars: [
+        { sym: 'It / Io', name: 'ดัชนีราคาผู้บริโภคทั่วไป', note: 'ของประเทศ ไม่ใช่ดัชนีวัสดุ' },
+        { sym: 'Ct / Co', name: 'ดัชนีราคาซีเมนต์', note: 'ตามที่กระทรวงพาณิชย์จัดทำ' },
+        { sym: 'Mt / Mo', name: 'ดัชนีราคาวัสดุก่อสร้าง', note: 'ไม่รวมเหล็กและซีเมนต์' },
+        { sym: 'St / So', name: 'ดัชนีราคาเหล็ก', note: 'ตามที่กระทรวงพาณิชย์จัดทำ' }
+      ],
+
+      srcText: apiOn
+        ? 'ดึงจากกระทรวงพาณิชย์เมื่อ 24 สิงหาคม 2569 เวลา 19:42 น. ทุกค่าบันทึกรหัสดัชนีและเวลาที่ดึงไว้ในใบรายการคำนวณ'
+        : 'การดึงอัตโนมัติถูกปิดอยู่ ทุกค่าต้องกรอกเองพร้อมระบุที่มา ระบบจะพิมพ์คำว่า กรอกมือ กำกับไว้ในใบรายการคำนวณทุกบรรทัด',
+      srcBorder: apiOn ? '#a9d5d0' : '#f1bb80',
+      srcBg: apiOn ? '#e4f4f0' : '#fff6eb',
+      srcFg: apiOn ? '#17604e' : '#a5500b',
+
+      indexRows: [
+        { sym: 'I', name: 'ผู้บริโภคทั่วไป', base: '105.2', now: '108.4', ratio: '1.030', src },
+        { sym: 'C', name: 'ซีเมนต์', base: '104.9', now: '112.7', ratio: '1.074', src },
+        { sym: 'M', name: 'วัสดุก่อสร้าง ไม่รวมเหล็กและซีเมนต์', base: '110.6', now: '119.3', ratio: '1.078', src },
+        { sym: 'S', name: 'เหล็ก', base: '103.4', now: '106.8', ratio: '1.032', src }
+      ],
+
+      periods: [
+        { n: '1', name: 'งานฐานราก และเสาตอม่อ', amount: '4,275,000', month: 'ธันวาคม 2568', state: 'คำนวณแล้ว', bg: '#d6eee8', fg: '#17604e' },
+        { n: '2', name: 'โครงสร้างชั้น 1 ถึงชั้น 2', amount: '7,125,000', month: 'มีนาคม 2569', state: 'คำนวณแล้ว', bg: '#d6eee8', fg: '#17604e' },
+        { n: '3', name: 'โครงสร้างชั้น 3 ถึงชั้นหลังคา', amount: '5,700,000', month: 'มิถุนายน 2569', state: 'งวดปัจจุบัน', bg: '#fff0e3', fg: '#955012' },
+        { n: '4', name: 'งานสถาปัตยกรรม และงานระบบ', amount: '11,400,000', month: 'กันยายน 2569', state: 'ยังไม่ส่งมอบ', bg: '#eef3f3', fg: '#68818a' }
+      ],
+
+      terms: [
+        { coef: '0.25', label: 'ส่วนคงที่ของสูตรหมวดงานอาคาร', work: '', value: '0.250', bg: '#ffffff' },
+        { coef: '0.15', label: 'ดัชนีราคาผู้บริโภคทั่วไป', work: '108.4 / 105.2 = 1.030', value: '0.154', bg: '#fbfdfd' },
+        { coef: '0.10', label: 'ดัชนีราคาซีเมนต์', work: '112.7 / 104.9 = 1.074', value: '0.107', bg: '#ffffff' },
+        { coef: '0.40', label: 'ดัชนีราคาวัสดุก่อสร้าง', work: '119.3 / 110.6 = 1.078', value: '0.431', bg: '#fbfdfd' },
+        { coef: '0.10', label: 'ดัชนีราคาเหล็ก', work: '106.8 / 103.4 = 1.032', value: '0.103', bg: '#ffffff' }
+      ],
+
+      money: [
+        { label: 'ค่างานงวดที่ 3', value: '5,700,000', note: 'ราคาตามสัญญา Po' },
+        { label: 'ค่า K หลังหัก 4%', value: '1.005', note: '1.045 ลบ 0.04 ตามข้อ ค.4' },
+        { label: 'ค่างานที่ต้องจ่าย', value: '5,728,500', note: 'P เท่ากับ Po คูณ K' }
+      ],
+
+      printTitle: canPrint
+        ? 'พิมพ์ได้ทั้งฉบับ ครบทุกขั้นตอน'
+        : 'สิทธิ์ระหว่างทดลองใช้งานยังพิมพ์ไม่ได้',
+      printNote: canPrint
+        ? 'ใบรายการคำนวณพิมพ์ครบทั้ง 7 ขั้นตอน ไม่ใช่เฉพาะแท็บที่เปิดอยู่ พร้อมที่มาของดัชนีทุกค่า ส่งออกเป็น PDF เท่านั้น ไม่มีการส่งออกเป็นไฟล์ Word'
+        : 'ผู้ใช้ระหว่างทดลองใช้งานคำนวณและตรวจผลบนจอได้ทั้งหมด แต่การพิมพ์และการส่งออกถูกปิดไว้ตามสิทธิ์ที่ได้รับ',
+
+      evidence: [
+        { n: '1', title: 'มติ ครม. ว 109', body: 'นร 0203/ว 109 ลงวันที่ 24 สิงหาคม 2532 สูตรและสัมประสิทธิ์อ่านจากไฟล์ต้นฉบับที่ผูก sha256 ไว้' },
+        { n: '2', title: 'ดัชนีราคา', body: 'จัดทำโดยกระทรวงพาณิชย์ บันทึกรหัสดัชนี เดือน และเวลาที่ดึงไว้ทุกค่า' },
+        { n: '3', title: 'การปัดเศษ', body: 'ทศนิยม 3 ตำแหน่งทุกขั้นตอน ตัดทิ้ง ไม่ปัดเศษ ตามข้อ ค.3' },
+        { n: '4', title: 'เกณฑ์ 4 เปอร์เซ็นต์', body: 'นำเฉพาะส่วนที่เกิน 4% มาคำนวณ ไม่คิด 4% แรกให้ ตามข้อ ค.4' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1021 @@
+<title>คำนวณหา Escalation factor (K)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap">
+
+<style>
+/* Single-theme on purpose: this prototype has to look like the real นายช่างหมู workspace,
+   which is a light engineering surface. Every colour is painted explicitly so the page holds
+   on either host ground. Values lifted from src/app/globals.css, not re-invented. */
+:root {
+  --ink: #073047;
+  --ink-deep: #051f2f;
+  --teal: #0d8282;
+  --teal-deep: #0b7777;
+  --orange: #f47721;
+  --canvas: #f4f7f7;
+  --paper: #ffffff;
+  --muted: #5f7178;
+  --line: #c9d8d9;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --focus: rgba(244, 119, 33, .72);
+
+  --ok-bg: #e4f4f0; --ok-fg: #17604e; --ok-line: #a9d5d0;
+  --warn-bg: #fff6eb; --warn-fg: #a5500b; --warn-line: #f1bb80;
+  --bad-bg: #f9e7e7; --bad-fg: #8a3b3b; --bad-line: #e2b9b9;
+  --ai-bg: #f3f0fb; --ai-fg: #4b3d86; --ai-line: #cfc4ee;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+h1, h2, h3, h4 { font-weight: 600; margin: 0; text-wrap: balance; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
+
+/* ---------- prototype control bar ---------- */
+.rig {
+  background: var(--ink-deep);
+  color: #cfe0e3;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.rig__inner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 11px 0; }
+.rig__tag {
+  font-size: .64rem; font-weight: 800; letter-spacing: .14em;
+  color: #ffb87e; white-space: nowrap;
+}
+.rig__group { display: flex; align-items: center; gap: 8px; font-size: .78rem; }
+.rig__group > span { color: #9db4b9; }
+.switch {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+  padding: .26rem .66rem .26rem .4rem; background: rgba(255,255,255,.05);
+  font-size: .76rem; font-weight: 600; white-space: nowrap;
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+}
+.switch:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.4); }
+.switch input { position: absolute; opacity: 0; pointer-events: none; }
+.switch__dot {
+  width: 30px; height: 17px; border-radius: 999px; background: #4a6068;
+  position: relative; flex: 0 0 auto; transition: background 160ms var(--ease-out);
+}
+.switch__dot::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 13px; height: 13px;
+  border-radius: 50%; background: #fff; transition: transform 160ms var(--ease-out);
+}
+.switch input:checked + .switch__dot { background: var(--teal); }
+.switch input:checked + .switch__dot::after { transform: translateX(13px); }
+.seg { display: inline-flex; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; overflow: hidden; }
+.seg button {
+  border: 0; background: transparent; color: #cfe0e3; cursor: pointer;
+  padding: .3rem .7rem; font-size: .74rem; font-weight: 700;
+  transition: background 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.seg button[aria-pressed="true"] { background: var(--teal); color: #fff; }
+
+/* ---------- app chrome ---------- */
+.crumb { background: #e7f1f1; border-bottom: 1px solid var(--line); }
+.crumb__inner { min-height: 50px; display: flex; align-items: center; gap: 10px; font-size: .82rem; color: var(--muted); }
+.crumb b { color: var(--teal); font-weight: 700; }
+.chip-access { margin-left: auto; padding: 4px 9px; border-radius: 999px; background: #fff0e3; color: #955012; font-size: .64rem; font-weight: 700; letter-spacing: .03em; }
+
+.stage { background: linear-gradient(180deg, #f4f8f7 0%, #ffffff 34%, #f5f8f8 100%); padding: 2.6rem 0 4rem; }
+
+.contract { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; padding-bottom: 1.3rem; border-bottom: 1px solid #d8e5e3; }
+.eyebrow { color: var(--teal-deep); font-size: .67rem; font-weight: 900; letter-spacing: .13em; }
+.contract h1 { max-width: 22ch; margin: .4rem 0 .55rem; color: #083a50; font-size: clamp(1.7rem, 3.1vw, 2.7rem); line-height: 1.12; letter-spacing: -.045em; }
+.contract__meta { display: flex; flex-wrap: wrap; gap: .35rem 1.4rem; margin: 0; color: #49606b; font-size: .95rem; }
+.contract__meta span { white-space: nowrap; }
+.contract__meta b { color: #123e4e; font-weight: 700; }
+.gauge { flex: 0 0 148px; border: 1px solid #b9d8d4; border-radius: 16px; padding: .85rem 1rem; background: #eff8f6; color: #0d6f70; }
+.gauge span, .gauge small { display: block; font-size: .64rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.gauge strong { display: block; margin: .1rem 0; color: #083a50; font-size: 1.6rem; }
+
+/* ---------- step strip ---------- */
+.steps { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .6rem; margin: 1.5rem 0; }
+.step {
+  min-height: 124px; display: flex; flex-direction: column; gap: .42rem; align-items: flex-start;
+  border: 1px solid #d5e1df; border-radius: 14px; padding: .8rem; background: #fff;
+  color: #668087; text-align: left; cursor: pointer;
+  transition: transform 170ms var(--ease-out), border-color 170ms var(--ease-out), box-shadow 170ms var(--ease-out), background 170ms var(--ease-out);
+}
+.step:hover { transform: translateY(-2px); border-color: #65aaa3; box-shadow: 0 9px 22px rgba(8,58,80,.08); }
+.step[aria-current="step"] { border-color: var(--teal); background: #eff9f7; color: #093d4b; box-shadow: inset 0 0 0 1px rgba(13,130,130,.13); }
+.step__n { display: grid; width: 1.85rem; height: 1.85rem; place-items: center; border-radius: 50%; background: #e8f0ef; color: #0d6f70; font-size: .74rem; font-weight: 900; font-variant-numeric: tabular-nums; transition: background 170ms var(--ease-out), color 170ms var(--ease-out); }
+.step.is-done .step__n { background: var(--teal); color: #fff; }
+.step b { font-size: .92rem; font-weight: 700; line-height: 1.28; }
+.step i { font-style: normal; color: #789096; font-size: .69rem; line-height: 1.35; }
+
+/* ---------- board ---------- */
+.board { display: grid; grid-template-columns: minmax(0, 1fr) 336px; gap: 1rem; align-items: start; }
+.panel { border: 1px solid #d9e5e4; border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); min-height: 540px; padding: clamp(1.15rem, 2.4vw, 1.9rem); }
+.panel__head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid #e4edec; }
+.panel__head small { color: #71878c; font-size: .66rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.panel__head h2 { margin: .28rem 0 0; color: #083a50; font-size: clamp(1.3rem, 2.4vw, 1.85rem); letter-spacing: -.03em; }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border: 1px solid var(--ok-line); border-radius: 99px; padding: .32rem .62rem; background: var(--ok-bg); color: var(--ok-fg); font-size: .71rem; font-weight: 800; }
+.pill--warn { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn-fg); }
+.pill--bad { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad-fg); }
+
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; margin-top: 1.35rem; }
+.field { display: grid; gap: 6px; font-size: .85rem; font-weight: 700; color: var(--ink); }
+.field span { display: flex; align-items: center; gap: 6px; }
+.field input, .field select {
+  width: 100%; border: 1px solid var(--line); border-radius: 7px; padding: .64rem .7rem;
+  background: #fbfdfd; font-weight: 500;
+  transition: border-color 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background 150ms var(--ease-out);
+}
+.field input:focus, .field select:focus { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3px rgba(13,130,130,.12); outline: none; }
+.field--key input { border-color: var(--teal); background: #fff; box-shadow: 0 0 0 3px rgba(13,130,130,.12); }
+.field--wide { grid-column: 1 / -1; }
+.field em { font-style: normal; color: var(--teal-deep); font-size: .66rem; font-weight: 800; letter-spacing: .06em; }
+
+.note { margin: 1.3rem 0 0; border-left: 3px solid var(--orange); padding: .72rem 1rem; background: #fffaf5; color: #596c72; font-size: .86rem; line-height: 1.62; }
+.note b { color: #123e4e; }
+
+.tablewrap { overflow-x: auto; margin: 1.25rem 0; border: 1px solid #e1ebea; border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+th { padding: .7rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .65rem; letter-spacing: .08em; text-align: left; text-transform: uppercase; white-space: nowrap; }
+td { padding: .78rem .8rem; border-top: 1px solid #e8efee; color: #334f59; }
+td.n, th.n { text-align: right; }
+td.n { color: #083a50; font-weight: 800; font-variant-numeric: tabular-nums; }
+tr.is-current td { background: #fffaf3; }
+
+.formula { border: 1px solid #e1ebea; border-radius: 12px; padding: 1.3rem 1.2rem; background: #fbfdfd; text-align: center; margin: 1rem 0; }
+.formula code { color: #083a50; font-family: inherit; font-size: clamp(.95rem, 1.9vw, 1.24rem); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .7rem; margin: 1rem 0; }
+.card { border: 1px solid #e2eceb; border-radius: 12px; padding: .9rem; background: #fcfdfd; }
+.card span { display: block; color: #71878c; font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.card strong { display: block; margin: .4rem 0 .2rem; color: #123e4e; font-size: 1.22rem; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.card small { color: #799096; font-size: .71rem; line-height: 1.4; }
+
+.terms { border: 1px solid #e1ebea; border-radius: 12px; overflow: hidden; margin-top: 1.1rem; }
+.term { display: grid; grid-template-columns: 62px minmax(0,1fr) 200px 92px; gap: 1rem; align-items: center; padding: .78rem 1.05rem; border-top: 1px solid #eef4f3; font-size: .83rem; }
+.term:first-child { border-top: 0; }
+.term:nth-child(even) { background: #fbfdfd; }
+.term b, .term u { font-variant-numeric: tabular-nums; text-decoration: none; }
+.term b { color: var(--teal-deep); font-weight: 900; }
+.term span { color: #5f7a80; }
+.term u { color: #334f59; text-align: right; }
+.term em { font-style: normal; color: #083a50; font-weight: 900; text-align: right; font-size: .95rem; }
+.term--total { grid-template-columns: minmax(0,1fr) 92px; border-top: 2px solid #bedbd7; background: #eff9f7 !important; padding: .95rem 1.05rem; }
+.term--total span { color: #093d4b; font-weight: 800; font-size: .93rem; }
+.term--total em { font-size: 1.45rem; letter-spacing: -.02em; }
+
+.verdict { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border: 1px solid #bcdad5; border-radius: 14px; padding: 1.05rem 1.15rem; background: #f3faf8; margin-top: 1.1rem; }
+.verdict h3 { color: #0b494f; font-size: .95rem; }
+.verdict p { max-width: 56ch; margin: .2rem 0 0; color: #698087; font-size: .8rem; line-height: 1.5; }
+.verdict__amount { color: var(--teal-deep); font-size: 1.7rem; font-weight: 900; white-space: nowrap; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+.btn { border: 1px solid transparent; border-radius: 8px; padding: .68rem 1.1rem; cursor: pointer; font-weight: 700; transition: transform 160ms var(--ease-out), background 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(7,48,71,.16); }
+.btn:active { transform: scale(.97); }
+.btn--orange { background: var(--orange); color: #17120d; }
+.btn--ink { background: var(--ink); color: #fff; }
+.btn--ghost { background: #fff; border-color: var(--line); color: var(--ink); }
+.btn[disabled] { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.footrow { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-top: 1px solid #e4edec; padding-top: 1.1rem; margin-top: 1.4rem; }
+.footrow p { max-width: 60ch; margin: .2rem 0 0; color: #70858b; font-size: .8rem; line-height: 1.5; }
+.footrow b { color: #123e4e; font-size: .9rem; }
+
+/* ---------- assistant ---------- */
+.aide { border: 1px solid var(--ai-line); border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); overflow: hidden; position: sticky; top: 16px; }
+.aide__top { display: flex; align-items: center; gap: 9px; padding: .9rem 1rem; background: var(--ai-bg); border-bottom: 1px solid var(--ai-line); }
+.aide__top svg { flex: 0 0 auto; color: var(--ai-fg); }
+.aide__top b { color: var(--ai-fg); font-size: .92rem; font-weight: 700; }
+.aide__top small { display: block; color: #6d63a0; font-size: .68rem; font-weight: 600; }
+.aide__modes { display: flex; gap: 5px; padding: .7rem 1rem 0; }
+.aide__modes button {
+  flex: 1; border: 1px solid var(--line); border-radius: 8px; background: #fff; cursor: pointer;
+  padding: .4rem .5rem; font-size: .74rem; font-weight: 700; color: var(--muted);
+  transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out), color 140ms var(--ease-out);
+}
+.aide__modes button[aria-pressed="true"] { background: var(--ai-bg); border-color: var(--ai-line); color: var(--ai-fg); }
+.aide__body { padding: .9rem 1rem 1.1rem; display: grid; gap: .85rem; }
+.aide h3 { color: #2c2352; font-size: .88rem; line-height: 1.4; }
+.aide p { margin: .25rem 0 0; color: #5c6a72; font-size: .8rem; line-height: 1.55; }
+.aide p b { color: #123e4e; }
+
+.checks { display: grid; gap: .45rem; margin: 0; padding: 0; list-style: none; }
+.checks li { display: grid; grid-template-columns: 18px 1fr; gap: .55rem; align-items: start; font-size: .78rem; line-height: 1.45; color: #5c6a72; }
+.checks svg { margin-top: 3px; }
+.checks .ok { color: var(--ok-fg); }
+.checks .warn { color: var(--warn-fg); }
+.checks .bad { color: var(--bad-fg); }
+.checks b { color: #123e4e; font-weight: 700; }
+
+.trap { border: 1px solid var(--warn-line); border-radius: 10px; padding: .7rem .8rem; background: var(--warn-bg); }
+.trap b { display: block; color: var(--warn-fg); font-size: .74rem; font-weight: 800; letter-spacing: .04em; margin-bottom: .2rem; }
+.trap p { margin: 0; color: #7d5626; font-size: .78rem; line-height: 1.5; }
+
+.recall { border: 1px dashed var(--ai-line); border-radius: 10px; padding: .7rem .8rem; background: #faf9ff; }
+.recall b { display: block; color: var(--ai-fg); font-size: .72rem; font-weight: 800; margin-bottom: .25rem; }
+.recall p { margin: 0; color: #5f5a7d; font-size: .77rem; line-height: 1.5; }
+.recall p + p { margin-top: .4rem; }
+.recall em { font-style: normal; color: #2c2352; font-weight: 700; }
+
+.boundary { border-top: 1px solid #eceaf5; padding: .75rem 1rem; background: #fcfbff; color: #6d63a0; font-size: .71rem; line-height: 1.5; }
+.boundary b { color: var(--ai-fg); }
+
+.ask { display: grid; gap: .45rem; }
+.ask textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: .55rem .65rem; background: #fbfdfd; font-size: .8rem; resize: vertical; min-height: 62px; }
+.ask textarea:focus { border-color: var(--ai-fg); background: #fff; box-shadow: 0 0 0 3px rgba(75,61,134,.12); outline: none; }
+.ask button { border: 0; border-radius: 8px; padding: .5rem .7rem; background: var(--ai-fg); color: #fff; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.ask button:hover { background: #3c3170; }
+
+.suggest { border: 1px solid var(--ai-line); border-radius: 10px; padding: .75rem .8rem; background: var(--ai-bg); }
+.suggest b { display: block; color: var(--ai-fg); font-size: .74rem; font-weight: 800; }
+.suggest strong { display: block; margin: .3rem 0; color: #2c2352; font-size: .92rem; }
+.suggest p { margin: 0; color: #5f5a7d; font-size: .77rem; line-height: 1.5; }
+.suggest .row { display: flex; gap: .4rem; margin-top: .6rem; }
+.suggest .row button { flex: 1; border-radius: 7px; padding: .4rem .5rem; font-size: .75rem; font-weight: 700; cursor: pointer; border: 1px solid var(--ai-line); }
+.suggest .row .use { background: var(--ai-fg); color: #fff; border-color: var(--ai-fg); }
+.suggest .row .why { background: #fff; color: var(--ai-fg); }
+
+.picker { display: grid; gap: .4rem; margin-top: 1rem; }
+.pick { display: flex; gap: .7rem; align-items: baseline; border: 1px solid #e2eceb; border-radius: 10px; padding: .6rem .75rem; background: #fff; cursor: pointer; text-align: left; transition: border-color 140ms var(--ease-out), background 140ms var(--ease-out); }
+.pick:hover { border-color: #65aaa3; background: #fbfdfd; }
+.pick[aria-pressed="true"] { border-color: var(--teal); background: #eff9f7; }
+.pick code { flex: 0 0 3.1rem; color: var(--teal-deep); font-family: inherit; font-weight: 900; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.pick span { flex: 1; color: #334f59; font-size: .83rem; line-height: 1.4; }
+.pick small { color: #8aa0a6; font-size: .7rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.groupbar { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: 1.3rem; }
+.groupbar button { border: 1px solid #d5e1df; border-radius: 999px; padding: .38rem .78rem; background: #fff; color: #668087; font-size: .78rem; font-weight: 700; cursor: pointer; transition: border-color 140ms var(--ease-out), background 140ms var(--ease-out), color 140ms var(--ease-out); }
+.groupbar button:hover { border-color: #65aaa3; }
+.groupbar button[aria-pressed="true"] { border-color: var(--teal); background: #eff9f7; color: #093d4b; }
+
+.sheet { border: 1px solid #e1ebea; border-radius: 12px; padding: 1.3rem 1.4rem; background: #fbfdfd; margin-top: 1.35rem; }
+.sheet small { color: #5f7a80; font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.sheet h3 { margin: .45rem 0 .3rem; color: #083a50; font-size: 1.1rem; }
+.sheet p { margin: 0; color: #688087; font-size: .82rem; line-height: 1.62; }
+
+.demo-tag { display: inline-flex; align-items: center; gap: 5px; border: 1px solid #e2c392; border-radius: 99px; padding: .18rem .5rem; background: #fff9ee; color: #99631a; font-size: .63rem; font-weight: 800; }
+
+@media (max-width: 1080px) {
+  .board { grid-template-columns: 1fr; }
+  .aide { position: static; }
+  .steps { display: flex; overflow-x: auto; padding-bottom: .4rem; scroll-snap-type: x proximity; }
+  .step { min-width: 168px; scroll-snap-align: start; }
+}
+@media (max-width: 720px) {
+  .contract { display: grid; }
+  .gauge { width: 100%; }
+  .term { grid-template-columns: 52px minmax(0,1fr) 84px; }
+  .term u { display: none; }
+  .verdict, .footrow { flex-direction: column; align-items: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+
+<div class="rig">
+  <div class="wrap rig__inner">
+    <span class="rig__tag">แผงทดสอบ · ไม่มีในของจริง</span>
+    <label class="switch"><input type="checkbox" id="sw-open" checked><span class="switch__dot"></span>ทะเบียนเปิดใช้แอป</label>
+    <label class="switch"><input type="checkbox" id="sw-review" checked><span class="switch__dot"></span>หมวดผ่านการรับรอง</label>
+    <label class="switch"><input type="checkbox" id="sw-api" checked><span class="switch__dot"></span>ดึงดัชนีอัตโนมัติ</label>
+    <label class="switch"><input type="checkbox" id="sw-print" checked><span class="switch__dot"></span>สิทธิ์พิมพ์ PDF</label>
+  </div>
+</div>
+
+<div class="crumb">
+  <div class="wrap crumb__inner">
+    <span>รวมแอป</span><span>/</span><b>คำนวณหา Escalation factor (K)</b>
+    <span class="chip-access">ฟรี ทดลองใช้งาน 7 วัน</span>
+  </div>
+</div>
+
+<main class="stage">
+  <div class="wrap" id="app"></div>
+</main>
+
+<script>
+"use strict";
+
+/* ============================================================
+   ว 109 — สูตรจริงทั้ง 34 สูตร ถอดจาก km/ว109.pdf หน้า 2–8
+   สัมประสิทธิ์ทุกสูตรบวกได้ 1.000 พอดี ตรวจแล้ว
+   ============================================================ */
+const GROUPS = ["งานอาคาร", "งานดิน", "งานทาง", "งานชลประทาน", "งานระบบสาธารณูปโภค"];
+
+const FORMULAS = [
+  { id: "1",     g: 0, name: "งานอาคาร", base: .25, t: { I: .15, C: .10, M: .40, S: .10 },
+    tags: ["อาคาร","ที่พัก","บ้านพัก","แฟลต","อพาร์ตเมนต์","หอพัก","สำนักงาน","โรงเรียน","โรงพยาบาล","ตึก","ชั้น","ครอบครัว"] },
+  { id: "2.1",   g: 1, name: "งานดิน", base: .30, t: { I: .10, E: .40, F: .20 }, tags: ["ขุดดิน","ถมดิน","บดอัด","คันดิน"] },
+  { id: "2.2",   g: 1, name: "งานหินเรียง", base: .40, t: { I: .20, M: .20, F: .20 }, tags: ["หินเรียง","กันตลิ่ง","ลาดตลิ่ง"] },
+  { id: "2.3",   g: 1, name: "งานเจาะระเบิดหิน", base: .45, t: { I: .15, M: .10, E: .20, F: .10 }, tags: ["ระเบิดหิน","เจาะหิน"] },
+  { id: "3.1",   g: 2, name: "ผิวทาง PRIME / TACK / SEAL COAT", base: .30, t: { A: .40, E: .20, F: .10 }, tags: ["ไพรม์โค้ท","แทคโค้ท","ซีลโค้ท"] },
+  { id: "3.2",   g: 2, name: "ผิวทาง SURFACE TREATMENT SLURRY SEAL", base: .30, t: { M: .10, A: .30, E: .20, F: .10 }, tags: ["สเลอรี่ซีล"] },
+  { id: "3.3",   g: 2, name: "ผิวทาง ASPHALTIC CONCRETE", base: .30, t: { M: .10, A: .40, E: .10, F: .10 }, tags: ["แอสฟัลต์","ยางมะตอย","ลาดยาง"] },
+  { id: "3.4",   g: 2, name: "ผิวถนนคอนกรีตเสริมเหล็ก", base: .30, t: { I: .10, C: .35, M: .10, S: .15 }, tags: ["ถนนคอนกรีต","ผิวคอนกรีต"] },
+  { id: "3.5",   g: 2, name: "ท่อระบายน้ำ คสล. และบ่อพัก", base: .35, t: { I: .20, C: .15, M: .15, S: .15 }, tags: ["ท่อระบายน้ำ","บ่อพัก","แมนโฮล"] },
+  { id: "3.6",   g: 2, name: "โครงสร้าง คสล. และเขื่อนกันตลิ่ง", base: .30, t: { I: .10, C: .15, M: .20, S: .25 }, tags: ["สะพาน","บ็อกซ์คัลเวิร์ต","เขื่อนกันตลิ่ง"] },
+  { id: "3.7",   g: 2, name: "โครงสร้างเหล็ก", base: .25, t: { I: .10, C: .05, M: .20, S: .40 }, tags: ["สะพานเหล็ก","ป้ายจราจร","เสาไฟแรงสูง"] },
+  { id: "4.1",   g: 3, name: "อาคารชลประทานไม่รวมบานเหล็ก", base: .40, t: { I: .20, C: .10, M: .10, S: .20 }, tags: ["อาคารชลประทาน","ท่อลอด","น้ำตก"] },
+  { id: "4.2",   g: 3, name: "อาคารชลประทานรวมบานเหล็ก", base: .35, t: { I: .20, C: .10, M: .10, S: .25 }, tags: ["ประตูระบายน้ำ","อาคารอัดน้ำ"] },
+  { id: "4.3",   g: 3, name: "บานระบาย TRASHRACK และ STEEL LINER", base: .35, t: { I: .20, G: .45 }, tags: ["บานระบาย","ตะแกรงกันขยะ"] },
+  { id: "4.4",   g: 3, name: "เหล็กเสริมคอนกรีตและ ANCHOR BAR", base: .25, t: { I: .15, S: .60 }, tags: ["เหล็กเสริม","แองเคอร์บาร์"] },
+  { id: "4.5",   g: 3, name: "คอนกรีตไม่รวมเหล็ก และคอนกรีตดาดคลอง", base: .40, t: { I: .15, C: .25, M: .20 }, tags: ["ดาดคลอง"] },
+  { id: "4.6",   g: 3, name: "งานเจาะ", base: .40, t: { I: .20, M: .10, E: .20, F: .10 }, tags: ["เจาะอัดฉีด"] },
+  { id: "5.1.1", g: 4, name: "วางท่อ AC/PVC — ผู้ว่าจ้างจัดหาท่อ", base: .50, t: { I: .25, M: .25 }, tags: ["วางท่อ"] },
+  { id: "5.1.2", g: 4, name: "วางท่อ AC — ผู้รับจ้างจัดหาท่อ", base: .40, t: { I: .10, M: .10, AC: .40 }, tags: ["ท่อซีเมนต์ใยหิน"] },
+  { id: "5.1.3", g: 4, name: "วางท่อ PVC — ผู้รับจ้างจัดหาท่อ", base: .40, t: { I: .10, M: .10, PVC: .40 }, tags: ["ท่อพีวีซี"] },
+  { id: "5.2.1", g: 4, name: "ท่อเหล็กเหนียว/HDPE — ผู้ว่าจ้างจัดหา", base: .40, t: { I: .10, M: .15, E: .20, F: .15 }, tags: [] },
+  { id: "5.2.2", g: 4, name: "ท่อเหล็กเหนียว — ผู้รับจ้างจัดหา", base: .40, t: { I: .10, M: .10, E: .10, GIP: .30 }, tags: ["ท่อเหล็กเหนียว"] },
+  { id: "5.2.3", g: 4, name: "ท่อ HDPE — ผู้รับจ้างจัดหา", base: .50, t: { I: .10, M: .10, PE: .30 }, tags: ["เอชดีพีอี"] },
+  { id: "5.3",   g: 4, name: "ปรับปรุงอุโมงค์ส่งน้ำ และ SECONDARY LINING", base: .40, t: { I: .10, E: .15, GIP: .35 }, tags: ["อุโมงค์ส่งน้ำ"] },
+  { id: "5.4",   g: 4, name: "วางท่อ PVC หุ้มด้วยคอนกรีต", base: .30, t: { I: .10, C: .20, M: .05, S: .05, PVC: .30 }, tags: [] },
+  { id: "5.5",   g: 4, name: "วางท่อ PVC กลบทราย", base: .25, t: { I: .05, M: .05, PVC: .65 }, tags: [] },
+  { id: "5.6",   g: 4, name: "วางท่อเหล็กอาบสังกะสี", base: .25, t: { I: .25, GIP: .50 }, tags: ["ท่อกัลวาไนซ์"] },
+  { id: "5.7.1", g: 4, name: "ติดตั้งเสา/โครงเหล็กสายส่งและอุปกรณ์", base: .60, t: { I: .25, F: .15 }, only: "กฟผ.", tags: ["สายส่ง"] },
+  { id: "5.7.2", g: 4, name: "ฐานรากเสาไฟฟ้า และ BOUNDARY POST", base: .35, t: { I: .20, C: .20, S: .10, F: .15 }, only: "กฟผ.", tags: [] },
+  { id: "5.7.3", g: 4, name: "ฐานรากอุปกรณ์สถานีไฟฟ้าย่อย", base: .50, t: { I: .20, C: .15, S: .15 }, only: "กฟผ.", tags: ["สถานีไฟฟ้าย่อย"] },
+  { id: "5.8.1", g: 4, name: "เสาเข็มคอนกรีตอัดแรง", base: .35, t: { I: .15, C: .20, S: .30 }, only: "กฟผ.", tags: ["เสาเข็มอัดแรง"] },
+  { id: "5.8.2", g: 4, name: "เสาเข็มแบบ CAST IN PLACE", base: .30, t: { I: .10, C: .25, S: .35 }, only: "กฟผ.", tags: ["เสาเข็มเจาะ"] },
+  { id: "5.9.1", g: 4, name: "สายส่ง 69–115 KV — ผู้ว่าจ้างจัดหาวัสดุ", base: .80, t: { I: .05, M: .10, F: .05 }, only: "กฟภ.", tags: [] },
+  { id: "5.9.2", g: 4, name: "สายส่ง 69–115 KV — ผู้รับจ้างจัดหาวัสดุ", base: .45, t: { I: .05, M: .20, F: .05, W: .25 }, only: "กฟภ.", tags: [] }
+];
+
+const VARS = {
+  I:   { label: "ดัชนีราคาผู้บริโภคทั่วไป", note: "ของประเทศ ไม่ใช่ดัชนีวัสดุก่อสร้าง" },
+  C:   { label: "ดัชนีราคาซีเมนต์", note: "" },
+  M:   { label: "ดัชนีราคาวัสดุก่อสร้าง", note: "ไม่รวมเหล็กและซีเมนต์" },
+  S:   { label: "ดัชนีราคาเหล็ก", note: "" },
+  G:   { label: "ดัชนีราคาเหล็กแผ่นเรียบในประเทศ", note: "" },
+  A:   { label: "ดัชนีราคาแอสฟัลท์", note: "" },
+  E:   { label: "ดัชนีราคาเครื่องจักรกลและบริภัณฑ์", note: "" },
+  F:   { label: "ดัชนีราคาน้ำมันดีเซลหมุนเร็ว", note: "" },
+  AC:  { label: "ดัชนีราคาท่อซีเมนต์ใยหิน", note: "" },
+  PVC: { label: "ดัชนีราคาท่อ PVC", note: "" },
+  PE:  { label: "ดัชนีราคาท่อ HDPE", note: "" },
+  GIP: { label: "ดัชนีราคาท่อเหล็กอาบสังกะสี", note: "" },
+  W:   { label: "ดัชนีราคาสายไฟฟ้า", note: "" }
+};
+
+/* ตัวเลขดัชนีเป็นค่าสาธิต — ของจริงต้องดึงจากชุด Escalation factor ของกระทรวงพาณิชย์ */
+const INDEX = {
+  I: { base: 105.2, now: 108.4 },
+  C: { base: 104.9, now: 112.7 },
+  M: { base: 110.6, now: 119.3 },
+  S: { base: 103.4, now: 106.8 }
+};
+
+const CONTRACT = {
+  no: "27/2569",
+  name: "งานก่อสร้างอาคารที่พักอาศัยข้าราชการตำรวจ 54 ครอบครัว สูง 7 ชั้น",
+  owner: "สำนักงานตำรวจแห่งชาติ",
+  value: 64120000,
+  medianApproved: "12 สิงหาคม 2568",   // เดือนที่หัวหน้าหน่วยงานเห็นชอบราคากลาง
+  bidOpened: "กันยายน 2568",            // เดือนที่เปิดซองประกวดราคา
+  signed: "2568-11-14",                 // วันลงนามสัญญา — ตัวตัดสินของหลักเกณฑ์ที่ 2
+  signedLabel: "14 พฤศจิกายน 2568",
+  lastDelivery: "30 กันยายน 2569"
+};
+
+const PERIODS = [
+  { n: 1, name: "งานเสาเข็ม ฐานราก และเสาตอม่อ",        amount:  9618000, month: "ธันวาคม 2568", date: "2568-12-18", state: "คำนวณแล้ว" },
+  { n: 2, name: "โครงสร้าง คสล. ชั้น 1 ถึงชั้น 4",       amount: 16030000, month: "มีนาคม 2569",  date: "2569-03-16", state: "คำนวณแล้ว" },
+  { n: 3, name: "โครงสร้าง คสล. ชั้น 5 ถึงชั้นหลังคา",   amount: 12824000, month: "มิถุนายน 2569", date: "2569-06-20", state: "งวดปัจจุบัน" },
+  { n: 4, name: "งานสถาปัตยกรรมและงานตกแต่งภายใน",       amount: 16030000, month: "กันยายน 2569", date: "2569-09-25", state: "ยังไม่ส่งมอบ" },
+  { n: 5, name: "งานระบบประกอบอาคารและงานภายนอก",        amount:  9618000, month: "กันยายน 2569", date: "2569-09-30", state: "ยังไม่ส่งมอบ" }
+];
+
+/* ============================================================
+   เกณฑ์ส่วนต่าง — เป็นข้อมูลที่ตัดสินด้วยวันที่ ไม่ใช่ค่าคงที่ในโค้ด
+   ว 109 ใช้ ±4% มาตลอด จนกระทั่งมีมาตรการชั่วคราวปี 2569 ลดเหลือ ±2%
+   สองหลักเกณฑ์ของมาตรการนี้ใช้ "วันที่คนละตัว" เป็นตัวตัดสิน ซึ่งเป็น
+   จุดที่พลาดกันมากที่สุด — ข้อ 1 ดูวันส่งมอบงวด ข้อ 2 ดูวันลงนามสัญญา
+   ============================================================ */
+const WINDOW = { from: "2569-02-28", to: "2569-09-30" };
+const inWindow = (d) => d >= WINDOW.from && d <= WINDOW.to;
+
+const RULEBOOK = {
+  standard: {
+    id: "w109", thresholdMilli: 40, label: "หลักเกณฑ์ปกติ ± 4%",
+    source: "นร 0203/ว 109 ลว. 24 ส.ค. 2532", verified: true
+  },
+  temporary: {
+    id: "temp2569", thresholdMilli: 20, label: "มาตรการชั่วคราว ± 2%",
+    source: "มติคณะรัฐมนตรี 19 พ.ค. 2569 · หนังสือซักซ้อมความเข้าใจ สำนักงบประมาณ",
+    verified: false   // ยังไม่มีเอกสารต้นฉบับใน km/ — ห้ามถือว่ายืนยันแล้ว
+  }
+};
+
+/** หลักเกณฑ์ที่ 1 — ตัดสินที่ "วันที่ส่งมอบงวดงาน" */
+function thresholdRuleFor(period) {
+  return inWindow(period.date) ? RULEBOOK.temporary : RULEBOOK.standard;
+}
+
+/** หลักเกณฑ์ที่ 2 — ตัดสินที่ "วันที่ลงนามในสัญญา" คนละตัวกับข้อ 1 */
+function baseMonthRule() {
+  return inWindow(CONTRACT.signed)
+    ? { id: "temp2569", month: CONTRACT.medianApproved, label: "เดือนที่หัวหน้าหน่วยงานเห็นชอบราคากลาง", temporary: true, verified: false }
+    : { id: "w109", month: CONTRACT.bidOpened, label: "เดือนที่เปิดซองประกวดราคา", temporary: false, verified: true };
+}
+
+/* ============================================================
+   แกนคำนวณ — ทำบนหน่วยหนึ่งในพันเสมอ
+   ว 109 ข้อ ค.3 สั่งให้ตัดทศนิยมที่ 3 ตำแหน่ง "โดยไม่มีการปัดเศษ"
+   ถ้าคำนวณด้วย float ตรง ๆ 1.045 - 0.04 จะได้ 1.0049999999999999
+   แล้วการตัดทิ้งจะกิน 1.005 เหลือ 1.004 — เพี้ยนไปทั้งหลัก
+   ============================================================ */
+const milli = (x) => Math.trunc(x * 1000);          // ตัดทิ้ง ไม่ปัด
+const fromMilli = (m) => m / 1000;
+const fmt3 = (m) => (m / 1000).toFixed(3);
+const baht = (n) => n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const bahtShort = (n) => n.toLocaleString("th-TH");
+
+function computeK(formula) {
+  const terms = [{ sym: null, coef: formula.base, ratio: null, milli: milli(formula.base) }];
+  let total = milli(formula.base);
+  for (const [sym, coef] of Object.entries(formula.t)) {
+    const px = INDEX[sym];
+    if (!px) { terms.push({ sym, coef, ratio: null, milli: null, missing: true }); continue; }
+    const ratioM = milli(px.now / px.base);                    // เลขสัมพันธ์ให้เสร็จก่อน
+    const termM = milli(coef * fromMilli(ratioM));             // แล้วจึงคูณสัมประสิทธิ์
+    terms.push({ sym, coef, ratio: ratioM, milli: termM, px });
+    total += termM;
+  }
+  return { terms, kMilli: total, complete: terms.every((t) => t.missing !== true) };
+}
+
+function settle(kMilli, period) {
+  const rule = thresholdRuleFor(period);
+  const t = rule.thresholdMilli;
+  const amount = period.amount;
+  const drift = kMilli - 1000;
+
+  if (Math.abs(drift) <= t) {
+    return { rule, action: "none", adjMilli: 1000, pay: amount, delta: 0, drift };
+  }
+  const adjMilli = drift > 0 ? kMilli - t : kMilli + t;
+  const pay = Math.round(amount * fromMilli(adjMilli) * 100) / 100;
+  return {
+    rule, drift, adjMilli, pay,
+    action: drift > 0 ? "add" : "recover",
+    delta: Math.round((pay - amount) * 100) / 100
+  };
+}
+
+/** ส่วนต่างที่จะได้ถ้าใช้อีกหลักเกณฑ์หนึ่ง — ใช้เทียบให้ผู้ใช้เห็นว่าเลือกผิดแล้วต่างแค่ไหน */
+function counterfactual(kMilli, period) {
+  const applied = thresholdRuleFor(period);
+  const other = applied.id === "temp2569" ? RULEBOOK.standard : RULEBOOK.temporary;
+  const drift = kMilli - 1000;
+  if (Math.abs(drift) <= other.thresholdMilli) return { other, delta: 0 };
+  const adj = drift > 0 ? kMilli - other.thresholdMilli : kMilli + other.thresholdMilli;
+  const pay = Math.round(period.amount * fromMilli(adj) * 100) / 100;
+  return { other, delta: Math.round((pay - period.amount) * 100) / 100 };
+}
+
+/* ============================================================ */
+
+const STEPS = [
+  { n: 1, label: "ข้อมูลสัญญา",     hint: "เดือนฐานและวงเงิน",     short: "สัญญา" },
+  { n: 2, label: "เลือกสูตร K",     hint: "34 สูตร 5 หมวด",        short: "สูตร" },
+  { n: 3, label: "ดัชนีราคา",       hint: "เดือนฐาน กับ เดือนส่งมอบ", short: "ดัชนี" },
+  { n: 4, label: "งวดงาน",          hint: "ค่างานและเดือนส่งมอบ",   short: "งวดงาน" },
+  { n: 5, label: "คำนวณ K",         hint: "แทนค่าทีละพจน์",         short: "ค่า K" },
+  { n: 6, label: "เงินชดเชย",       hint: "เกณฑ์ 4 เปอร์เซ็นต์",    short: "เงินชดเชย" },
+  { n: 7, label: "ใบรายการคำนวณ",   hint: "พิมพ์เป็น PDF",          short: "พิมพ์" }
+];
+
+const state = {
+  step: 1,
+  formulaId: "1",
+  group: 0,
+  mode: "hand",          // hand = จับมือทำ, fast = ทางลัด
+  askText: "",
+  suggestion: null,
+  showWhy: false,
+  open: true, reviewed: true, api: true, canPrint: true
+};
+
+const ICONS = {
+  ok:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  warn: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+  bad:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+  aide: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v3"/><rect x="4" y="5" width="16" height="14" rx="3"/><path d="M9 11v2"/><path d="M15 11v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>',
+  clock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+};
+
+const el = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function currentFormula() { return FORMULAS.find((f) => f.id === state.formulaId); }
+function currentPeriod() { return PERIODS.find((p) => p.state === "งวดปัจจุบัน"); }
+
+/* ---------- ผู้ช่วย: เดาสูตรจากคำอธิบายงานเป็นภาษาคน ---------- */
+function matchFormula(text) {
+  const q = text.trim();
+  if (!q) return null;
+  let best = null;
+  for (const f of FORMULAS) {
+    let score = 0;
+    for (const tag of f.tags) if (q.includes(tag)) score += 3;
+    for (const word of f.name.split(/[\s/—-]+/)) if (word.length > 2 && q.includes(word)) score += 1;
+    if (score > 0 && (!best || score > best.score)) best = { f, score };
+  }
+  return best;
+}
+
+/* ============================================================
+   ผู้ช่วยประจำแต่ละขั้น
+   ============================================================ */
+function aideFor(step) {
+  const f = currentFormula();
+  const p = currentPeriod();
+  const sum = PERIODS.reduce((a, b) => a + b.amount, 0);
+  const kk = computeK(f);
+  const ss = settle(kk.kMilli, p);
+  const cfx = counterfactual(kk.kMilli, p);
+  const bmr = baseMonthRule();
+  const tempCount = PERIODS.filter((w) => inWindow(w.date)).length;
+
+  const guides = {
+    1: {
+      title: "ขั้นนี้กำลังบอกระบบว่า “นับจากเดือนไหน”",
+      body: "ค่า K ทั้งหมดเทียบระหว่างสองเดือนเท่านั้น คือเดือนฐานกับเดือนที่ส่งมอบงานงวดนั้น กรอกเดือนฐานผิด ค่าที่ได้จะผิดทั้งสัญญาโดยไม่มีอะไรเตือน",
+      trap: {
+        b: "จุดที่เปลี่ยนไปในปี 2569",
+        p: "เดิม ว 109 ใช้ <b>เดือนที่เปิดซองประกวดราคา</b> เสมอ แต่มาตรการชั่วคราวให้สัญญาที่<b>ลงนาม</b>ระหว่าง 28 ก.พ. – 30 ก.ย. 2569 " +
+           "เปลี่ยนไปใช้ <b>เดือนที่หัวหน้าหน่วยงานเห็นชอบราคากลาง</b>แทน ตัวตัดสินคือวันลงนาม ไม่ใช่วันเปิดซองและไม่ใช่วันส่งมอบ"
+      },
+      checks: [
+        { s: "ok",   t: "วงเงินตามสัญญา <b>" + baht(CONTRACT.value) + "</b> บาท ตรงกับผลรวมงวดงานทั้ง " + PERIODS.length + " งวด" },
+        { s: "ok",   t: "สัญญาลงนาม " + CONTRACT.signedLabel + " จึง<b>" + (bmr.temporary ? "เข้า" : "ไม่เข้า") +
+              "</b>หลักเกณฑ์ที่ 2 เดือนฐานที่ใช้คือ <b>" + bmr.month + "</b> (" + bmr.label + ")" },
+        { s: "ok",   t: "เดือนฐานอยู่ก่อนเดือนส่งมอบของทุกงวด" },
+        { s: "warn", t: "ส่งมอบงวดสุดท้าย " + CONTRACT.lastDelivery + " สิทธิ์เรียกเงินเพิ่มหมดอายุใน <b>90 วัน</b> หลังจากนั้น" }
+      ],
+      recall: {
+        b: "เคยเจอเคสแบบนี้",
+        p: "อาคารที่พักอาศัยของหน่วยงานราชการ <em>7 เคส</em> — <em>2 ใน 7</em> เคยกรอกเดือนลงนามเป็นเดือนฐานแล้วต้องแก้ทีหลัง<br>" +
+           "และตั้งแต่มาตรการปี 2569 ออกมา <em>3 เคส</em> ที่ลงนามในช่วงมาตรการเคยใช้เดือนเปิดซองตามความเคยชิน ผมจะทักให้ทุกครั้งที่วันลงนามตกในช่วงนั้น"
+      }
+    },
+    2: {
+      title: "บอกลักษณะงานมาเป็นภาษาคน แล้วให้ผมหาสูตรให้",
+      body: "ว 109 มี 34 สูตร แบ่ง 5 หมวด เลือกผิดหมวดคือคนละสัมประสิทธิ์กันทั้งชุด ไม่ต้องจำรหัสสูตร พิมพ์ว่างานคืออะไรก็พอ",
+      ask: true,
+      trap: { b: "ข้อควรระวัง", p: "สัญญาเดียวที่มีงานหลายประเภท <b>ต้องแยกค่างานรายประเภท</b> แล้วคำนวณคนละสูตร ไม่ใช่เลือกสูตรเดียวคลุมทั้งสัญญา" },
+      recall: { b: "ผมเรียนจากที่คุณแก้", p: "เมื่อคุณเลือกสูตรต่างจากที่ผมแนะนำ ระบบจะบันทึกคำอธิบายงานคู่กับสูตรที่คุณเลือกจริงและเหตุผล <em>ครั้งต่อไปที่เจอคำอธิบายคล้ายกัน ผมจะแนะนำตามที่คุณเคยตัดสิน ไม่ใช่ตามที่ผมเดาไว้เดิม</em>" }
+    },
+    3: {
+      title: "ดัชนีคือตัวเลขเดียวที่มาจากข้างนอก",
+      body: "ทุกอย่างในหน้านี้คำนวณเองได้หมด ยกเว้นดัชนีราคา ระบบจึงบันทึกที่มาและเวลาที่ดึงไว้ทุกค่า เพื่อให้คนตรวจย้อนได้ว่าเลขมาจากไหน",
+      trap: { b: "จุดที่คนเข้าใจผิดที่สุด", p: "<b>It/Io ไม่ใช่ดัชนีวัสดุก่อสร้าง</b> แต่เป็นดัชนีราคาผู้บริโภคทั่วไปของประเทศ และ <b>Mt/Mo ไม่รวมเหล็กกับซีเมนต์</b> เพราะสูตรแยกสองตัวนั้นเป็นพจน์ของมันเองแล้ว หยิบดัชนีรวมมาใส่ตรง M คือนับซ้ำ" },
+      checks: [
+        { s: "ok",   t: "ครบทั้ง <b>4 ตัวแปร</b> ที่สูตร " + f.id + " ต้องใช้" },
+        { s: "ok",   t: "ทุกค่าเป็นเดือนเดียวกัน — ฐาน ก.ย. 68 เทียบ มิ.ย. 69" },
+        { s: "warn", t: "ดัชนีของ M ขยับ <b>+7.9%</b> สูงกว่าอีกสามตัว ถ้าตัวเลขนี้ผิดจะกระทบมากที่สุดเพราะถือน้ำหนัก 0.40" }
+      ],
+      recall: { b: "สังเกตจากเคสก่อนหน้า", p: "งวดที่ส่งมอบเดือนมิถุนายนของปีนี้ <em>5 เคส</em> ใช้ชุดดัชนีเดียวกันนี้ ถ้าคุณกรอกต่างจากนั้นผมจะทักก่อนให้ยืนยัน" }
+    },
+    4: {
+      title: "งวดงานคือหน่วยที่คิดเงินชดเชย",
+      body: "ค่า K คิดแยกทีละงวด เพราะแต่ละงวดส่งมอบคนละเดือน ดัชนีจึงคนละชุด ไม่ใช่คิดทีเดียวทั้งสัญญา",
+      checks: [
+        { s: sum === CONTRACT.value ? "ok" : "bad",
+          t: "ผลรวมค่างานทุกงวด <b>" + baht(sum) + "</b> " + (sum === CONTRACT.value ? "ตรงกับวงเงินตามสัญญา" : "ไม่ตรงกับวงเงินตามสัญญา") },
+        { s: "ok",   t: "งวดที่ " + p.n + " ส่งมอบ " + p.month + " — ระบบจะใช้ดัชนีของเดือนนี้" },
+        { s: "warn", t: "<b>" + tempCount + " จาก " + PERIODS.length + " งวด</b> ส่งมอบในช่วง 28 ก.พ. – 30 ก.ย. 2569 งวดเหล่านั้นใช้เกณฑ์ <b>± 2%</b> ส่วนงวดที่เหลือใช้ ± 4% ตามปกติ สัญญาเดียวจึงมีสองเกณฑ์ปนกันได้" },
+        { s: "warn", t: "งวดที่ 4 กับ 5 ส่งมอบเดือนเดียวกัน ตรวจกับสัญญาว่าถูกต้องหรือพิมพ์ตกหล่น" }
+      ],
+      trap: { b: "กรณีงานล่าช้า", p: "ถ้าล่าช้าโดยเป็นความผิดของผู้รับจ้าง ให้ใช้ค่า K ของ<b>เดือนสุดท้ายตามอายุสัญญา</b> หรือ<b>เดือนที่ส่งมอบจริง</b> แล้วแต่ตัวใดน้อยกว่า ระบบจะเลือกให้เองเมื่อคุณติ๊กว่าล่าช้า" }
+    },
+    5: {
+      title: "อ่านทีละบรรทัดแล้วจะเห็นว่าไม่มีอะไรซ่อน",
+      body: "ว 109 กำหนดลำดับไว้เอง คือทำเลขสัมพันธ์ให้เป็นผลสำเร็จก่อน แล้วค่อยคูณสัมประสิทธิ์ สลับลำดับได้คนละคำตอบ",
+      trap: { b: "ตัดทิ้ง ไม่ใช่ปัดเศษ", p: "เอกสารเขียนว่า “ใช้เลขทศนิยม 3 ตำแหน่งทุกขั้นตอน<b>โดยไม่มีการปัดเศษ</b>” ทุกบรรทัดข้างซ้ายจึงตัดหลักที่ 4 ทิ้ง ไม่ใช่ปัดขึ้น" },
+      checks: [
+        { s: "ok", t: "สัมประสิทธิ์ของสูตร " + f.id + " บวกกันได้ <b>1.000</b> พอดี" },
+        { s: "ok", t: "แทนค่าครบทุกพจน์ ไม่มีตัวแปรไหนถูกข้าม" },
+        { s: "ok", t: "คำนวณบนหน่วยหนึ่งในพัน ไม่ใช่ทศนิยมลอยตัว จึงไม่มีหลักหายจากปัญหาปัดเศษของเครื่อง" }
+      ],
+      recall: { b: "เทียบกับงวดก่อน", p: "งวดที่ 1 ได้ K <em>1.021</em> และงวดที่ 2 ได้ <em>1.033</em> งวดนี้ <em>1.045</em> ไต่ขึ้นต่อเนื่องตามดัชนีวัสดุ ไม่มีงวดไหนกระโดดผิดปกติ" }
+    },
+    6: {
+      title: "เกณฑ์ไม่ใช่แค่ด่านผ่าน แต่เป็นส่วนที่ไม่คิดให้",
+      body: "หลายคนเข้าใจว่าพอเกินเกณฑ์แล้วได้เต็มจำนวน ความจริงคือได้เฉพาะส่วนที่เกินเกณฑ์เท่านั้น และงวดนี้เกณฑ์ไม่ใช่ 4% ตามที่คุ้นเคย",
+      trap: {
+        b: "อย่าคิดจาก K − 1",
+        p: "ทั้ง ว 109 และมาตรการชั่วคราวเขียนตรงกันว่าให้นำ<b>เฉพาะส่วนที่เกินเกณฑ์</b>มาคำนวณ โดยไม่คิดส่วนแรกให้ ค่าที่เอาไปคูณจึงเป็น <b>K − " +
+           fmt3(ss.rule.thresholdMilli) + "</b> ถ้าคิดจาก K − 1 เงินจะเกินความจริงทุกงวด"
+      },
+      checks: [
+        { s: "ok", t: "งวดนี้ส่งมอบ " + p.month + " <b>" + (inWindow(p.date) ? "อยู่ใน" : "อยู่นอก") +
+              "</b>ช่วงมาตรการชั่วคราว ระบบจึงใช้เกณฑ์ <b>" + esc(ss.rule.label) + "</b>" },
+        { s: "ok", t: "ผลต่างจากหนึ่ง <b>" + fmt3(Math.abs(ss.drift)) + "</b> เกินเกณฑ์ " + fmt3(ss.rule.thresholdMilli) + " จึงเข้าเงื่อนไขปรับเพิ่ม" },
+        { s: "ok", t: "หักเกณฑ์แล้วเหลือ <b>" + fmt3(ss.adjMilli) + "</b> เป็นตัวที่นำไปคูณค่างานงวด" },
+        { s: "bad", t: "ถ้าเผลอใช้" + esc(cfx.other.label) + " จะได้ <b>" + baht(cfx.delta) + "</b> ผิดไป <b>" +
+              baht(Math.abs(ss.delta - cfx.delta)) + "</b> บาทในงวดเดียว" },
+        { s: "warn", t: "เงินก้อนนี้ต้องผ่านการตรวจสอบและเห็นชอบจาก<b>สำนักงบประมาณ</b>ก่อนจ่ายจริง" }
+      ],
+      recall: {
+        b: "สัญญานี้เข้าเงื่อนไขไม่เท่ากันทุกข้อ",
+        p: "หลักเกณฑ์ที่ 1 ดู<em>วันส่งมอบงวด</em> — งวดที่เข้าเงื่อนไข <em>" + tempCount + " จาก " + PERIODS.length + " งวด</em><br>" +
+           "หลักเกณฑ์ที่ 2 ดู<em>วันลงนามสัญญา</em> — สัญญานี้ลงนาม " + CONTRACT.signedLabel + " จึง<em>" +
+           (bmr.temporary ? "เข้า" : "ไม่เข้า") + "เงื่อนไข</em> เดือนฐานยังเป็น " + bmr.month
+      }
+    },
+    7: {
+      title: "ก่อนพิมพ์ ผมไล่ให้แล้วว่าครบไหม",
+      body: "ใบรายการคำนวณเป็นเอกสารที่คนอื่นจะใช้ตรวจ ทุกตัวเลขในนั้นจึงต้องบอกได้ว่ามาจากไหน",
+      checks: [
+        { s: "ok", t: "อ้างเลขหนังสือ <b>นร 0203/ว 109</b> ลงวันที่ 24 สิงหาคม 2532" },
+        { s: "ok", t: "ระบุเดือนฐาน สูตรที่ใช้ และที่มาของดัชนีครบทุกค่า" },
+        { s: "ok", t: "มีช่องลงนามผู้คำนวณ ผู้ตรวจสอบ และผู้ควบคุมงาน" },
+        { s: state.canPrint ? "ok" : "bad", t: state.canPrint ? "สิทธิ์ปัจจุบันพิมพ์และบันทึกเป็น PDF ได้" : "สิทธิ์ระหว่างทดลองใช้งาน <b>ยังพิมพ์ไม่ได้</b>" }
+      ],
+      trap: { b: "ส่งออกได้อย่างเดียวคือ PDF", p: "ไม่มีการส่งออกเป็นไฟล์ Word ทุกกรณี เพราะเอกสารที่แก้ต่อได้ทำให้ตัวเลขที่ผ่านการตรวจแล้วเปลี่ยนได้โดยไม่มีร่องรอย" }
+    }
+  };
+
+  return guides[step];
+}
+
+function renderAide() {
+  const g = aideFor(state.step);
+  const fast = state.mode === "fast";
+  let html = "";
+
+  html += '<div class="aide__top">' + ICONS.aide +
+    '<div><b>ผู้ช่วยจับมือทำ</b><small>ขั้นที่ ' + state.step + " · " + esc(STEPS[state.step - 1].label) + "</small></div></div>";
+
+  html += '<div class="aide__modes">' +
+    '<button type="button" data-mode="hand" aria-pressed="' + (!fast) + '">จับมือทำ</button>' +
+    '<button type="button" data-mode="fast" aria-pressed="' + fast + '">ทางลัด</button></div>';
+
+  html += '<div class="aide__body">';
+
+  if (!fast) {
+    html += "<div><h3>" + esc(g.title) + "</h3><p>" + esc(g.body) + "</p></div>";
+  }
+
+  if (g.ask) {
+    html += '<div class="ask">' +
+      '<textarea id="ask" placeholder="เช่น ก่อสร้างอาคารที่พักอาศัย 7 ชั้น สำหรับข้าราชการ">' + esc(state.askText) + "</textarea>" +
+      '<button type="button" id="ask-go">หาสูตรที่ตรงกับงานนี้</button></div>';
+
+    if (state.suggestion) {
+      const s = state.suggestion;
+      if (s.f) {
+        html += '<div class="suggest"><b>ผมคิดว่าเป็นสูตรนี้</b>' +
+          "<strong>" + esc(s.f.id) + " · " + esc(s.f.name) + "</strong>" +
+          "<p>หมวดที่ " + (s.f.g + 1) + " " + esc(GROUPS[s.f.g]) + " · ความมั่นใจ " + (s.score >= 3 ? "สูง" : "ปานกลาง") + "</p>";
+        if (state.showWhy) {
+          html += '<p style="margin-top:.5rem">ผมจับคำว่า <em>' + esc(s.hit) + "</em> ในคำอธิบายของคุณ ซึ่งตรงกับขอบเขตของหมวดนี้ใน ว 109 หน้า 2 " +
+            "สูตรนี้ให้น้ำหนักวัสดุก่อสร้าง 0.40 ซึ่งเป็นสัดส่วนที่สูงที่สุดในบรรดา 34 สูตร เหมาะกับงานที่ค่าวัสดุเป็นก้อนใหญ่ของค่างาน</p>";
+        }
+        html += '<div class="row"><button type="button" class="use" data-use="' + esc(s.f.id) + '">ใช้สูตรนี้</button>' +
+          '<button type="button" class="why" id="why">' + (state.showWhy ? "ซ่อนเหตุผล" : "ทำไมถึงแนะนำ") + "</button></div></div>";
+      } else {
+        html += '<div class="suggest"><b>ยังจับไม่ได้</b><p>ผมยังแยกไม่ออกจากคำอธิบายนี้ ลองบอกเพิ่มว่าเป็นงานอาคาร งานทาง งานดิน งานชลประทาน หรืองานวางท่อ — ' +
+          "ผมจะไม่เดาให้ เพราะเลือกสูตรผิดคือค่า K ผิดทั้งสัญญา</p></div>";
+      }
+    }
+  }
+
+  if (g.trap && !fast) {
+    html += '<div class="trap"><b>' + esc(g.trap.b) + "</b><p>" + g.trap.p + "</p></div>";
+  }
+
+  if (g.checks) {
+    html += '<div><h3 style="margin-bottom:.5rem">ผมตรวจให้แล้ว</h3><ul class="checks">';
+    for (const c of g.checks) {
+      html += '<li><span class="' + c.s + '">' + ICONS[c.s] + "</span><span>" + c.t + "</span></li>";
+    }
+    html += "</ul></div>";
+  }
+
+  if (g.recall && !fast) {
+    html += '<div class="recall"><b>' + esc(g.recall.b) + "</b><p>" + g.recall.p + "</p></div>";
+  }
+
+  html += "</div>";
+
+  html += '<div class="boundary"><b>ขอบเขตของผม</b> — ผมอธิบาย ตรวจ และเสนอสูตรให้ได้ ' +
+    "แต่ตัวเลขค่า K และเงินชดเชยมาจากสูตรใน ว 109 ที่ระบบคำนวณตรง ๆ ไม่ได้มาจากผม " +
+    "และผมแก้ข้อมูลในสัญญาของคุณเองไม่ได้ ทุกครั้งที่ผมเสนอ คุณเป็นคนกดยืนยัน</div>";
+
+  return html;
+}
+
+/* ============================================================ */
+function renderPanel() {
+  const f = currentFormula();
+  const p = currentPeriod();
+  const k = computeK(f);
+  const st = settle(k.kMilli, p);
+  const bm = baseMonthRule();
+
+  let chip = '<span class="pill">' + ICONS.ok + " ข้อมูลครบ</span>";
+  if (state.step === 2 && !state.reviewed) chip = '<span class="pill pill--bad">' + ICONS.bad + " หมวดยังไม่รับรอง</span>";
+  else if (state.step === 3 && !state.api) chip = '<span class="pill pill--warn">' + ICONS.warn + " กรอกมือ</span>";
+  else if (state.step === 7 && !state.canPrint) chip = '<span class="pill pill--warn">' + ICONS.warn + " พิมพ์ไม่ได้ตามสิทธิ์</span>";
+
+  let body = "";
+
+  if (state.step === 1) {
+    body += '<div class="fields">' +
+      field("เลขที่สัญญา", CONTRACT.no) +
+      field("หน่วยงานผู้ว่าจ้าง", CONTRACT.owner) +
+      '<label class="field field--wide"><span>ชื่องานตามสัญญา</span><input value="' + esc(CONTRACT.name) + '"></label>' +
+      field("วงเงินตามสัญญา (บาท)", baht(CONTRACT.value)) +
+      field("เดือนที่เห็นชอบราคากลาง", CONTRACT.medianApproved) +
+      field("เดือนที่เปิดซองประกวดราคา", CONTRACT.bidOpened) +
+      '<label class="field field--key"><span>วันที่ลงนามในสัญญา <em>ตัวตัดสินเดือนฐาน</em></span><input value="' + esc(CONTRACT.signedLabel) + '"></label>' +
+      field("ส่งมอบงานงวดสุดท้าย", CONTRACT.lastDelivery) +
+      "</div>";
+
+    body += '<div style="margin-top:1.3rem;border:1px solid ' + (bm.temporary ? "#cfc4ee" : "#bedbd7") +
+      ';border-radius:13px;padding:1.1rem 1.2rem;background:' + (bm.temporary ? "#f7f5fd" : "linear-gradient(135deg,#eff9f7,#f8fcfc)") + '">' +
+      '<div style="color:' + (bm.temporary ? "#4b3d86" : "#0b7777") + ';font-size:.66rem;font-weight:900;letter-spacing:.12em">เดือนฐานที่ระบบจะใช้</div>' +
+      '<h3 style="margin:.35rem 0;color:#093d4b;font-size:1.15rem">' + esc(bm.month) + "</h3>" +
+      '<p style="max-width:64ch;margin:0;color:#688087;font-size:.83rem;line-height:1.6">' +
+      "เพราะสัญญาลงนาม <b>" + esc(CONTRACT.signedLabel) + "</b> ซึ่ง" +
+      (bm.temporary
+        ? "อยู่ในช่วง 28 ก.พ. – 30 ก.ย. 2569 จึงเข้าหลักเกณฑ์ที่ 2 ของมาตรการชั่วคราว ให้ใช้<b>เดือนที่เห็นชอบราคากลาง</b>แทนเดือนเปิดซอง"
+        : "อยู่<b>นอก</b>ช่วง 28 ก.พ. – 30 ก.ย. 2569 จึงยังใช้หลักเกณฑ์เดิมของ ว 109 คือ<b>เดือนที่เปิดซองประกวดราคา</b>") +
+      "</p></div>";
+
+    body += '<div class="note"><b>สองหลักเกณฑ์ของมาตรการชั่วคราวใช้วันคนละตัว</b> — หลักเกณฑ์ที่ 1 (เกณฑ์ ± 2%) ตัดสินที่<b>วันที่ส่งมอบงวดงาน</b> ส่วนหลักเกณฑ์ที่ 2 (เดือนฐาน) ตัดสินที่<b>วันที่ลงนามในสัญญา</b> สัญญาเดียวจึงเข้าข้อหนึ่งแต่ไม่เข้าอีกข้อได้ · สิทธิ์เรียกร้องเงินเพิ่มมีอายุ <b>90 วัน</b> นับจากวันส่งมอบงานงวดสุดท้าย</div>';
+  }
+
+  if (state.step === 2) {
+    body += '<div class="groupbar">';
+    GROUPS.forEach((name, i) => {
+      body += '<button type="button" data-group="' + i + '" aria-pressed="' + (state.group === i) + '">' + esc(name) + "</button>";
+    });
+    body += "</div>";
+
+    body += '<div class="picker">';
+    for (const item of FORMULAS.filter((x) => x.g === state.group)) {
+      const on = item.id === state.formulaId;
+      body += '<button type="button" class="pick" data-pick="' + esc(item.id) + '" aria-pressed="' + on + '">' +
+        "<code>" + esc(item.id) + "</code><span>" + esc(item.name) +
+        (item.only ? ' <small style="color:#a5500b">เฉพาะ ' + esc(item.only) + "</small>" : "") +
+        '</span><small>' + Object.keys(item.t).length + " พจน์</small></button>";
+    }
+    body += "</div>";
+
+    body += '<div class="formula"><code>K = ' + fmt3(milli(f.base)).replace(/0$/, "") +
+      Object.entries(f.t).map(([s, c]) => " + " + c.toFixed(2) + " " + s + "t/" + s + "o").join("") + "</code></div>";
+
+    body += '<div class="cards">';
+    for (const [sym, coef] of Object.entries(f.t)) {
+      body += '<div class="card"><span>' + esc(sym) + "t / " + esc(sym) + "o · น้ำหนัก " + coef.toFixed(2) + "</span>" +
+        '<strong style="font-size:.92rem;letter-spacing:0">' + esc(VARS[sym].label) + "</strong>" +
+        (VARS[sym].note ? "<small>" + esc(VARS[sym].note) + "</small>" : "") + "</div>";
+    }
+    body += "</div>";
+
+    if (!state.reviewed) {
+      body += '<div class="note" style="border-left-color:#8a3b3b;background:#f9e7e7;color:#8a3b3b"><b style="color:#8a3b3b">หมวดนี้ยังไม่ผ่านการรับรอง</b> — การถอดสูตรจาก ว 109 ยังไม่มีวิศวกรลงชื่อตรวจเทียบเอกสารต้นฉบับ เลือกใช้คำนวณไม่ได้จนกว่าจะมีผู้รับรอง</div>';
+    }
+  }
+
+  if (state.step === 3) {
+    body += state.api
+      ? '<div class="note" style="border-left-color:#17604e;background:#e4f4f0;color:#17604e">ดึงจากกระทรวงพาณิชย์เมื่อ 24 สิงหาคม 2569 เวลา 19:42 น. ทุกค่าบันทึกรหัสดัชนีและเวลาที่ดึงไว้ในใบรายการคำนวณ</div>'
+      : '<div class="note">การดึงอัตโนมัติถูกปิดอยู่ ทุกค่าต้องกรอกเองพร้อมระบุที่มา ระบบจะพิมพ์คำว่า <b>กรอกมือ</b> กำกับไว้ในใบรายการคำนวณทุกบรรทัด</div>';
+
+    body += '<div class="tablewrap"><table><thead><tr><th>ตัวแปร</th><th>ดัชนีที่ใช้</th>' +
+      '<th class="n">ฐาน ก.ย. 68</th><th class="n">ส่งมอบ มิ.ย. 69</th><th class="n">เลขสัมพันธ์</th><th>ที่มา</th></tr></thead><tbody>';
+    for (const sym of Object.keys(f.t)) {
+      const px = INDEX[sym];
+      if (!px) {
+        body += '<tr><td style="color:#0b7777;font-weight:900">' + esc(sym) + "</td><td>" + esc(VARS[sym].label) +
+          '</td><td class="n" colspan="3" style="color:#8a3b3b;text-align:center">ยังไม่มีชุดข้อมูลของตัวแปรนี้</td><td>—</td></tr>';
+        continue;
+      }
+      body += "<tr><td style='color:#0b7777;font-weight:900'>" + esc(sym) + "</td><td>" + esc(VARS[sym].label) +
+        '</td><td class="n">' + px.base.toFixed(1) + '</td><td class="n">' + px.now.toFixed(1) +
+        '</td><td class="n">' + fmt3(milli(px.now / px.base)) + "</td><td style='color:#799096;font-size:.75rem'>" +
+        (state.api ? "กระทรวงพาณิชย์" : "กรอกมือ") + "</td></tr>";
+    }
+    body += "</tbody></table></div>";
+    body += '<div class="note"><b>It/Io คือดัชนีราคาผู้บริโภคทั่วไป</b> ไม่ใช่ดัชนีวัสดุก่อสร้าง และ <b>Mt/Mo ไม่รวมเหล็กและซีเมนต์</b> ตามตารางนิยามหน้า 9 ของ ว 109 · แก้ค่าเองได้ แต่ต้องบันทึกเหตุผลกำกับทุกครั้ง</div>';
+  }
+
+  if (state.step === 4) {
+    const sum = PERIODS.reduce((a, b) => a + b.amount, 0);
+    body += '<div class="tablewrap"><table><thead><tr><th>งวด</th><th>รายการงาน</th>' +
+      '<th class="n">ค่างานตามสัญญา</th><th>เดือนส่งมอบ</th><th>สถานะ</th></tr></thead><tbody>';
+    for (const w of PERIODS) {
+      const tone = w.state === "คำนวณแล้ว" ? "background:#d6eee8;color:#17604e"
+        : w.state === "งวดปัจจุบัน" ? "background:#fff0e3;color:#955012" : "background:#eef3f3;color:#68818a";
+      body += '<tr class="' + (w.state === "งวดปัจจุบัน" ? "is-current" : "") + '"><td class="num" style="font-weight:700">' + w.n +
+        "</td><td>" + esc(w.name) + '</td><td class="n">' + baht(w.amount) + "</td><td>" + esc(w.month) +
+        '</td><td><span style="border-radius:999px;padding:3px 9px;font-size:.68rem;font-weight:800;' + tone + '">' + esc(w.state) + "</span></td></tr>";
+    }
+    body += '<tr><td></td><td style="font-weight:700;color:#123e4e">รวมทั้งสัญญา</td><td class="n">' + baht(sum) +
+      '</td><td colspan="2" style="color:#17604e;font-size:.78rem;font-weight:700">' +
+      (sum === CONTRACT.value ? "ตรงกับวงเงินตามสัญญา" : "ไม่ตรงกับวงเงินตามสัญญา") + "</td></tr>";
+    body += "</tbody></table></div>";
+    body += '<div class="note">ถ้างานล่าช้าโดยเป็นความผิดของผู้รับจ้าง ให้ใช้ค่า K ของ<b>เดือนสุดท้ายตามอายุสัญญา</b> หรือ<b>เดือนที่ส่งมอบจริง</b> แล้วแต่ตัวใดจะน้อยกว่า</div>';
+  }
+
+  if (state.step === 5) {
+    body += '<p style="margin:1.2rem 0 .2rem;color:#49606b;font-size:.9rem;line-height:1.7">ว 109 กำหนดให้ทำ<b>เลขสัมพันธ์ให้เป็นผลสำเร็จก่อน</b> แล้วจึงนำไปคูณสัมประสิทธิ์ และให้ใช้ทศนิยม 3 ตำแหน่งทุกขั้นตอน <b>โดยไม่มีการปัดเศษ</b></p>';
+    body += '<div class="terms">';
+    for (const t of k.terms) {
+      if (t.sym === null) {
+        body += '<div class="term"><b>' + t.coef.toFixed(2) + "</b><span>ส่วนคงที่ของสูตร " + esc(f.id) + "</span><u></u><em>" + fmt3(t.milli) + "</em></div>";
+      } else if (t.missing) {
+        body += '<div class="term"><b>' + t.coef.toFixed(2) + "</b><span>" + esc(VARS[t.sym].label) +
+          '</span><u style="color:#8a3b3b">ยังไม่มีชุดข้อมูล</u><em style="color:#8a3b3b">—</em></div>';
+      } else {
+        body += '<div class="term"><b>' + t.coef.toFixed(2) + "</b><span>" + esc(VARS[t.sym].label) + "</span><u>" +
+          t.px.now.toFixed(1) + " / " + t.px.base.toFixed(1) + " = " + fmt3(t.ratio) + "</u><em>" + fmt3(t.milli) + "</em></div>";
+      }
+    }
+    body += '<div class="term term--total"><span>ESCALATION FACTOR K</span><em>' + fmt3(k.kMilli) + "</em></div></div>";
+  }
+
+  if (state.step === 6) {
+    const drift = st.drift;
+    const t = st.rule.thresholdMilli;
+    const over = Math.abs(drift) > t;
+    const temp = st.rule.id === "temp2569";
+    const cf = counterfactual(k.kMilli, p);
+
+    body += '<div style="margin:1.3rem 0 1rem;border:1px solid ' + (temp ? "#cfc4ee" : "#bedbd7") +
+      ';border-radius:13px;padding:1.15rem;background:' + (temp ? "#f7f5fd" : "linear-gradient(135deg,#eff9f7,#f8fcfc)") + '">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+      '<span style="color:' + (temp ? "#4b3d86" : "#0b7777") + ';font-size:.66rem;font-weight:900;letter-spacing:.12em">' +
+      esc(st.rule.label) + "</span>" +
+      (st.rule.verified
+        ? ""
+        : '<span class="pill pill--warn" style="font-size:.63rem">' + ICONS.warn + " ยังไม่ได้ตรวจกับเอกสารต้นฉบับ</span>") +
+      "</div>" +
+      '<h3 class="num" style="margin:.4rem 0;color:#093d4b;font-size:1.05rem">| ' + fmt3(k.kMilli) + " − 1.000 | = " + fmt3(Math.abs(drift)) +
+      (over ? " มากกว่า " + fmt3(t) + " จึงปรับ" + (drift > 0 ? "เพิ่ม" : "ลด") + "ค่างาน" : " ไม่เกิน " + fmt3(t) + " จึงไม่ปรับค่างาน") + "</h3>" +
+      '<p style="max-width:66ch;margin:0;color:#688087;font-size:.82rem;line-height:1.6">' +
+      (temp
+        ? "งวดนี้ส่งมอบ <b>" + esc(p.month) + "</b> ซึ่งอยู่ในช่วง 28 ก.พ. – 30 ก.ย. 2569 จึงเข้าหลักเกณฑ์ที่ 1 ของมาตรการชั่วคราว ใช้เกณฑ์ <b>± 2%</b> แทน ± 4% ตามปกติ"
+        : "งวดนี้ส่งมอบ <b>" + esc(p.month) + "</b> ซึ่งอยู่นอกช่วงมาตรการชั่วคราว จึงใช้เกณฑ์ <b>± 4%</b> ตาม ว 109 ตามปกติ") +
+      " · นำ<b>เฉพาะส่วนที่เกินเกณฑ์</b>มาคำนวณ ไม่คิดส่วนแรกให้</p>" +
+      '<p style="margin:.5rem 0 0;color:#8794a0;font-size:.75rem">ที่มา ' + esc(st.rule.source) + "</p></div>";
+
+    body += '<div class="cards">' +
+      card("ค่างานงวดที่ " + p.n, baht(p.amount), "ราคาตามสัญญา Po") +
+      card("ค่า K หลังหักเกณฑ์", fmt3(st.adjMilli), fmt3(k.kMilli) + " − " + fmt3(t)) +
+      card("ค่างานที่ต้องจ่าย", baht(st.pay), "P = Po × K") +
+      "</div>";
+
+    body += '<div class="verdict"><div><h3>' +
+      (st.action === "add" ? "เงินเพิ่มงวดที่ " + p.n : st.action === "recover" ? "เรียกคืนงวดที่ " + p.n : "ไม่มีการปรับงวดที่ " + p.n) +
+      "</h3><p>" + baht(p.amount) + " × " + fmt3(st.adjMilli) + " = " + baht(st.pay) +
+      " บาท ส่วนต่างจากค่างานตามสัญญาคือเงินชดเชย</p></div>" +
+      '<div class="verdict__amount">' + (st.delta > 0 ? "+" : "") + baht(st.delta) + "</div></div>";
+
+    if (cf.delta !== st.delta) {
+      const gap = Math.abs(st.delta - cf.delta);
+      body += '<div class="note" style="border-left-color:#4b3d86;background:#f7f5fd;color:#5f5a7d">' +
+        "<b style='color:#4b3d86'>ถ้าใช้" + esc(cf.other.label) + "แทน</b> งวดนี้จะได้ <b class='num'>" + baht(cf.delta) +
+        "</b> บาท ต่างจากที่ถูกต้อง <b class='num'>" + baht(gap) + "</b> บาท ในงวดเดียว — " +
+        "นี่คือเหตุผลที่ระบบตัดสินเกณฑ์จากวันที่ส่งมอบให้อัตโนมัติ แทนที่จะให้คนจำเอง</div>";
+    }
+  }
+
+  if (state.step === 7) {
+    body += '<div class="sheet"><small>ตัวอย่างหัวกระดาษ</small>' +
+      "<h3>รายการคำนวณค่า K ตามสัญญาแบบปรับราคาได้</h3>" +
+      "<p>สัญญาเลขที่ " + esc(CONTRACT.no) + " · หมวดที่ " + (f.g + 1) + " " + esc(GROUPS[f.g]) + " สูตร " + esc(f.id) +
+      " · เดือนฐาน " + esc(bm.month) + " · งวดที่ " + p.n + " ส่งมอบ " + esc(p.month) + "<br>" +
+      "อ้างอิงมติคณะรัฐมนตรี ตามหนังสือสำนักเลขาธิการคณะรัฐมนตรี ที่ นร 0203/ว 109 ลงวันที่ 24 สิงหาคม 2532</p></div>";
+
+    body += '<div class="footrow"><div><b>' +
+      (state.canPrint ? "พิมพ์ได้ทั้งฉบับ ครบทุกขั้นตอน" : "สิทธิ์ระหว่างทดลองใช้งานยังพิมพ์ไม่ได้") + "</b><p>" +
+      (state.canPrint
+        ? "ใบรายการคำนวณพิมพ์ครบทั้ง 7 ขั้นตอน ไม่ใช่เฉพาะแท็บที่เปิดอยู่ พร้อมที่มาของดัชนีทุกค่า ส่งออกเป็น PDF เท่านั้น ไม่มีการส่งออกเป็นไฟล์ Word"
+        : "คำนวณและตรวจผลบนจอได้ทั้งหมด แต่การพิมพ์และการส่งออกถูกปิดไว้ตามสิทธิ์ที่ได้รับ") + "</p></div>" +
+      '<button class="btn btn--orange" ' + (state.canPrint ? "" : "disabled") + ">พิมพ์ หรือ บันทึกเป็น PDF</button></div>";
+  }
+
+  const prev = state.step > 1 ? '<button class="btn btn--ghost" data-go="' + (state.step - 1) + '">ย้อนกลับ</button>' : "<span></span>";
+  const next = state.step < 7 ? '<button class="btn btn--ink" data-go="' + (state.step + 1) + '">ไปขั้นต่อไป · ' + esc(STEPS[state.step].label) + "</button>" : "<span></span>";
+
+  return '<div class="panel__head"><div><small>ขั้นที่ ' + state.step + " จาก 7</small><h2>" +
+    esc(STEPS[state.step - 1].label) + "</h2></div>" + chip + "</div>" + body +
+    '<div class="footrow" style="justify-content:space-between">' + prev + next + "</div>";
+}
+
+function field(label, value) {
+  return '<label class="field"><span>' + esc(label) + '</span><input value="' + esc(value) + '"></label>';
+}
+function card(label, value, note) {
+  return '<div class="card"><span>' + esc(label) + "</span><strong>" + esc(value) + "</strong><small>" + esc(note) + "</small></div>";
+}
+
+function render() {
+  const f = currentFormula();
+  const p = currentPeriod();
+
+  if (!state.open) {
+    el("app").innerHTML =
+      '<div style="padding:4rem 0 5rem;text-align:center">' +
+      '<div class="pill pill--warn" style="margin-bottom:1rem">' + ICONS.clock + " กำลังเตรียมระบบ</div>" +
+      '<h1 style="font-size:clamp(2rem,4vw,3.2rem);letter-spacing:-.045em;color:#083a50;max-width:16ch;margin:0 auto 1rem">คำนวณหา Escalation factor (K)</h1>' +
+      '<p style="max-width:58ch;margin:0 auto;color:#49606b;line-height:1.75">แอปนี้ถูกประกาศไว้แล้วแต่ผู้ดูแลยังไม่เปิดใช้งาน หน้าทำงานจึงยังไม่เปิด ' +
+      "สถานะนี้มาจากทะเบียนแอปที่ผู้ดูแลแพลตฟอร์มประกาศไว้ ไม่ใช่จากบรรทัดในโค้ด</p>" +
+      '<p style="max-width:58ch;margin:1rem auto 0;color:#70858b;font-size:.85rem;line-height:1.7">' +
+      "นี่เป็นคำแถลงเรื่อง<b>ความพร้อม</b> ไม่ใช่ด่านอนุญาต หน้าจึงอธิบายว่าเกิดอะไรขึ้นแทนที่จะปฏิเสธเฉย ๆ " +
+      "ด่านจริงยังอยู่ที่สิทธิ์การใช้งานของแต่ละองค์กร และไม่ได้ย้ายมาที่นี่</p></div>";
+    return;
+  }
+
+  let html = '<div class="contract"><div>' +
+    '<div class="eyebrow">สัญญาแบบปรับราคาได้ · มติ ครม. ว 109 &nbsp;<span class="demo-tag">ตัวเลขสาธิต</span></div>' +
+    "<h1>" + esc(CONTRACT.name) + "</h1>" +
+    '<p class="contract__meta"><span>สัญญาเลขที่ <b>' + esc(CONTRACT.no) + "</b></span>" +
+    "<span>เดือนฐาน <b>" + esc(baseMonthRule().month) + "</b></span>" +
+    '<span>วงเงิน <b class="num">' + baht(CONTRACT.value) + "</b> บาท</span></p></div>" +
+    '<div class="gauge"><span>ขั้นตอน</span><strong class="num">' + state.step + " / 7</strong><small>" +
+    esc(STEPS[state.step - 1].short) + "</small></div></div>";
+
+  const bmr0 = baseMonthRule();
+  const tempPeriods = PERIODS.filter((w) => inWindow(w.date)).length;
+  html += '<div style="display:flex;flex-wrap:wrap;gap:.7rem 1.4rem;align-items:center;margin-top:1.2rem;border:1px solid #cfc4ee;border-left:4px solid #4b3d86;border-radius:12px;padding:.85rem 1.05rem;background:#f7f5fd">' +
+    '<div style="flex:1 1 320px;min-width:0">' +
+    '<b style="color:#4b3d86;font-size:.83rem">มาตรการชั่วคราวปี 2569 มีผลกับสัญญานี้</b>' +
+    '<p style="margin:.2rem 0 0;color:#5f5a7d;font-size:.79rem;line-height:1.55">' +
+    "เกณฑ์ส่วนต่างลดเหลือ <b>± 2%</b> สำหรับงวดที่ส่งมอบ 28 ก.พ. – 30 ก.ย. 2569 — สัญญานี้เข้าเงื่อนไข <b>" + tempPeriods + " จาก " + PERIODS.length + " งวด</b> · " +
+    "ส่วนเดือนฐานตัดสินที่วันลงนามสัญญา ซึ่งสัญญานี้<b>" + (bmr0.temporary ? "เข้า" : "ไม่เข้า") + "</b>เงื่อนไข</p></div>" +
+    '<span class="pill pill--warn" style="font-size:.68rem">' + ICONS.warn + " ต้นฉบับยังไม่อยู่ใน km/</span></div>";
+
+  html += '<div class="steps">';
+  for (const s of STEPS) {
+    html += '<button class="step' + (s.n < state.step ? " is-done" : "") + '" data-go="' + s.n + '"' +
+      (s.n === state.step ? ' aria-current="step"' : "") + '><span class="step__n">' + s.n + "</span>" +
+      "<b>" + esc(s.label) + "</b><i>" + esc(s.hint) + "</i></button>";
+  }
+  html += "</div>";
+
+  html += '<div class="board"><section class="panel">' + renderPanel() + "</section>" +
+    '<aside class="aide">' + renderAide() + "</aside></div>";
+
+  el("app").innerHTML = html;
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]");
+  if (go) { state.step = Number(go.dataset.go); state.suggestion = null; state.showWhy = false; render(); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+
+  const grp = e.target.closest("[data-group]");
+  if (grp) { state.group = Number(grp.dataset.group); render(); return; }
+
+  const pick = e.target.closest("[data-pick]");
+  if (pick) { state.formulaId = pick.dataset.pick; render(); return; }
+
+  const use = e.target.closest("[data-use]");
+  if (use) {
+    state.formulaId = use.dataset.use;
+    state.group = currentFormula().g;
+    state.suggestion = null;
+    render();
+    return;
+  }
+
+  const mode = e.target.closest("[data-mode]");
+  if (mode) { state.mode = mode.dataset.mode; render(); return; }
+
+  if (e.target.id === "why") { state.showWhy = !state.showWhy; render(); return; }
+
+  if (e.target.id === "ask-go") {
+    const box = el("ask");
+    state.askText = box ? box.value : "";
+    const m = matchFormula(state.askText);
+    if (m) {
+      const hit = m.f.tags.find((t) => state.askText.includes(t)) || m.f.name.split(/\s+/)[0];
+      state.suggestion = { f: m.f, score: m.score, hit };
+    } else {
+      state.suggestion = { f: null };
+    }
+    state.showWhy = false;
+    render();
+  }
+});
+
+for (const [id, key] of [["sw-open", "open"], ["sw-review", "reviewed"], ["sw-api", "api"], ["sw-print", "canPrint"]]) {
+  el(id).addEventListener("change", (e) => { state[key] = e.target.checked; render(); });
+}
+
+render();
+</script>
