@@ -290,3 +290,51 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .project-path__choice em { display: block; margin-top: .15rem; color: #4a656d; font-style: normal; font-size: .74rem; line-height: 1.45; }
 
 @media (max-width: 960px) { .takeoff-form, .evidence-form { grid-template-columns: 1fr 1fr; }.takeoff-form__wide { grid-column: 1 / -1; }.takeoff-form__submit, .evidence-form__submit { grid-column: 1 / -1; }.takeoff-form .button, .evidence-form .button { width: 100%; justify-content: center; }.measurement-form, .waste-form { grid-template-columns: 1fr 1fr; }.measurement-form__submit, .waste-form__submit, .waste-form__source { grid-column: 1 / -1; }.measurement-form .button, .waste-form .button { width: 100%; justify-content: center; } }
+
+/* Access and pricing page. The layout borrows the shape of a plan comparison, but the right-hand
+   column holds an account state rather than an order total, because no numeric price exists. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.button--ghost { background: transparent; border-color: var(--line); color: var(--ink); }.button--ghost:hover { border-color: var(--teal); color: var(--teal); }
+.section-heading h1 { font-size: clamp(1.9rem, 3.4vw, 2.9rem); letter-spacing: -.04em; line-height: 1.14; margin: 10px 0 0; }
+.access-intro { color: var(--muted); line-height: 1.75; max-width: 730px; margin: 16px 0 0; }
+.access-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(282px,338px); gap: 26px; align-items: start; margin-top: 34px; }
+.access-tiers { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.access-tier { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.access-tier--featured { border-color: var(--teal); box-shadow: 0 12px 30px rgba(13,130,130,.13); }
+.access-tier header { display: block; }
+.access-tier h2 { font-size: 1.3rem; letter-spacing: -.03em; margin: 6px 0 0; }
+.access-tier__note { color: var(--teal); font-weight: 800; font-size: 1.04rem; margin: 10px 0 0; }
+.access-tier__summary { color: var(--muted); line-height: 1.7; font-size: .92rem; margin: 0; }
+.access-tier__highlights { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+.access-tier__highlights li { position: relative; padding-left: 20px; color: var(--muted); font-size: .88rem; line-height: 1.62; }
+.access-tier__highlights li::before { content: ""; position: absolute; left: 0; top: .5em; width: 8px; height: 8px; border: 1.5px solid var(--teal); border-radius: 2px; }
+.access-tier .button { margin-top: auto; text-align: center; text-decoration: none; }
+.access-panel { background: var(--ink); color: white; border-radius: 14px; padding: 24px; position: sticky; top: 118px; display: grid; gap: 14px; }
+.access-panel h2 { font-size: 1.18rem; margin: 0; letter-spacing: -.02em; }
+.access-panel__lead { color: #cfe0e2; font-size: .87rem; line-height: 1.65; margin: 0; word-break: break-word; }
+.access-panel__facts { display: grid; gap: 12px; margin: 0; padding: 15px 0 0; border-top: 1px solid rgba(255,255,255,.17); }
+.access-panel__facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.access-panel__facts dt { color: #a9c4c7; font-size: .8rem; }
+.access-panel__facts dd { margin: 0; font-weight: 700; font-size: .9rem; text-align: right; }
+.access-panel__actions { display: grid; gap: 11px; padding-top: 4px; }
+.access-panel__actions .button { text-align: center; text-decoration: none; }
+.access-panel .text-link { color: var(--mist); font-size: .83rem; }
+.capability-table { margin-top: 34px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.capability-table > header { padding: 24px 24px 19px; border-bottom: 1px solid var(--line); }
+.capability-table h2 { font-size: 1.4rem; letter-spacing: -.03em; margin: 8px 0 10px; }
+.capability-table > header p { color: var(--muted); line-height: 1.7; font-size: .91rem; margin: 0; max-width: 700px; }
+.capability-table__scroll { overflow-x: auto; }
+.capability-table table { width: 100%; border-collapse: collapse; min-width: 580px; }
+.capability-table th, .capability-table td { padding: 13px 24px; border-bottom: 1px solid var(--line); font-size: .92rem; text-align: left; }
+.capability-table thead th { background: #f4f8f8; color: var(--ink); font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; }
+.capability-table thead th + th { text-align: center; }
+.capability-table tbody th { font-weight: 600; color: var(--ink); }
+.capability-table tbody td { text-align: center; font-weight: 800; font-size: 1.02rem; }
+.capability-table tbody td[data-allowed="true"] { color: var(--success); }
+.capability-table tbody td[data-allowed="false"] { color: #93a5ab; }
+.capability-table tbody tr:last-child th, .capability-table tbody tr:last-child td { border-bottom: 0; }
+.capability-table__count { padding: 13px 24px; margin: 0; color: var(--muted); font-size: .77rem; border-top: 1px solid var(--line); }
+.access-footnote { margin: 26px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.72; padding-left: 15px; border-left: 3px solid var(--mist); max-width: 760px; }
+
+@media (max-width: 1080px) { .access-layout { grid-template-columns: 1fr; } .access-panel { position: static; } }
+@media (max-width: 860px) { .access-tiers { grid-template-columns: 1fr; } }

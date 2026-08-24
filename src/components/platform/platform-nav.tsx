@@ -38,7 +38,7 @@ export function PlatformNav({ workspace }: { workspace?: string }) {
           {landingNavigationContract.map((item) => {
           const isActive = item.id === "apps"
             ? (pathname === "/" ? activeSection === item.id : pathname.startsWith("/market"))
-            : ["roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
+            : ["pricing", "roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
             const className = ["nav-pill", item.id === "enterprise" ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
           })}

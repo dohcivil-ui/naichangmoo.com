@@ -7,13 +7,15 @@ describe("Landing interaction contract", () => {
     expect(landingNavigationContract).toEqual([
       { id: "apps", label: "แอปของเรา", href: "/#apps" },
       { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
+      { id: "pricing", label: "ราคา", href: "/pricing" },
       { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
       { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise" }
     ]);
     expect(landingActionContract).toEqual({
       homeHref: "/",
       allAppsHref: "/#apps",
-      roadmapHref: "/roadmap"
+      roadmapHref: "/roadmap",
+      pricingHref: "/pricing"
     });
   });
 

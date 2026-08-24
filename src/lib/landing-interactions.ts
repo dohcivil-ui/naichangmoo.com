@@ -3,6 +3,7 @@ import type { PlatformApp } from "@/lib/platform";
 export const landingNavigationContract = [
   { id: "apps", label: "แอปของเรา", href: "/#apps" },
   { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
+  { id: "pricing", label: "ราคา", href: "/pricing" },
   { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
   { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise" }
 ] as const;
@@ -10,7 +11,8 @@ export const landingNavigationContract = [
 export const landingActionContract = {
   homeHref: "/",
   allAppsHref: "/#apps",
-  roadmapHref: "/roadmap"
+  roadmapHref: "/roadmap",
+  pricingHref: "/pricing"
 } as const;
 
 export function getAppInteractionContract(app: Pick<PlatformApp, "slug" | "href" | "status">) {
