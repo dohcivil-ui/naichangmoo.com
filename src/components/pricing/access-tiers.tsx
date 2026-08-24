@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import {
+  appPreparingLabel,
   dayPass,
   formatBaht,
+  memberFreeAppsPendingNote,
   paymentNotYetOpenNote,
   perDayBaht,
   vatInclusiveNote,
@@ -12,6 +14,7 @@ import {
   type PricePromotion,
   type PricingTier
 } from "@/lib/pricing";
+import type { AnnouncedApp } from "@/server/app-registry";
 
 export type VipPricing = { standard: number; promotion: PricePromotion | null; payable: number };
 
@@ -20,12 +23,17 @@ type AccessTiersProps = {
   /** Resolved on the server so a promotion cannot start mid-hydration and change the markup. */
   vip: Record<BillingPeriod, VipPricing>;
   saving: { baht: number; percent: number };
+  /**
+   * The apps an administrator has announced as free. `null` means the registry could not be read,
+   * and is rendered exactly like an empty list: the page names no app it cannot currently confirm.
+   */
+  memberFreeApps: AnnouncedApp[] | null;
 };
 
 const PERIOD_LABEL: Record<BillingPeriod, string> = { monthly: "รายเดือน", yearly: "รายปี" };
 const PERIOD_SUFFIX: Record<BillingPeriod, string> = { monthly: "/เดือน", yearly: "/ปี" };
 
-export function AccessTiers({ tiers, vip, saving }: AccessTiersProps) {
+export function AccessTiers({ tiers, vip, saving, memberFreeApps }: AccessTiersProps) {
   const [period, setPeriod] = useState<BillingPeriod>("yearly");
   const selected = vip[period];
 
@@ -87,6 +95,8 @@ export function AccessTiers({ tiers, vip, saving }: AccessTiersProps) {
               ))}
             </ul>
 
+            {tier.id === "member_free" ? <MemberFreeApps apps={memberFreeApps} /> : null}
+
             <Link
               className={`button micro-button ${tier.featured ? "button--orange" : "button--ghost"}`}
               href={tier.cta.href}
@@ -114,5 +124,34 @@ export function AccessTiers({ tiers, vip, saving }: AccessTiersProps) {
       <p className="price-note">{vatInclusiveNote}</p>
       <p className="price-note">{paymentNotYetOpenNote}</p>
     </>
+  );
+}
+
+/**
+ * The one part of this card that is data rather than copy. An app appears here because somebody
+ * announced it, and stops appearing the moment they withdraw that — which is the whole point of
+ * IP-090. An empty registry and an unreadable one produce the same sentence on purpose.
+ */
+function MemberFreeApps({ apps }: { apps: AnnouncedApp[] | null }) {
+  if (!apps || apps.length === 0) {
+    return (
+      <div className="tier-apps">
+        <p className="tier-apps__pending">{memberFreeAppsPendingNote}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tier-apps">
+      <p className="tier-apps__label">แอปที่ประกาศไว้ตอนนี้</p>
+      <ul>
+        {apps.map((app) => (
+          <li key={app.slug}>
+            <span>{app.name}</span>
+            {app.open ? null : <em>{appPreparingLabel}</em>}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

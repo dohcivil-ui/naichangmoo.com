@@ -169,11 +169,10 @@ export const pricingTiers: readonly PricingTier[] = [
     name: "สมาชิกใช้ฟรี",
     summary: "แอปคำนวณและตรวจทานงานออกแบบที่สมาชิกใช้ได้โดยไม่มีค่าใช้จ่าย",
     price: { kind: "free" },
-    highlights: [
-      "Retaining Wall Cantilever และ TRAFFIC SIGN",
-      "ส่งออกไฟล์และพิมพ์เอกสารได้",
-      "กำลังเตรียมระบบ จะเปิดเมื่อแอปที่ปรับโครงสร้างใหม่พร้อม"
-    ],
+    // No app is named here. ADR 0014: which apps are free is a statement an administrator makes in
+    // the registry, and this file may not make it on their behalf — a name typed here would still
+    // be on the page the day the app is withdrawn. The list is rendered from the registry instead.
+    highlights: ["ส่งออกไฟล์และพิมพ์เอกสารได้"],
     cta: { label: "ดูแอปทั้งหมด", href: landingActionContract.allAppsHref },
     state: "member_free",
     featured: false
@@ -272,9 +271,29 @@ export function pricingCapabilityRows(now = new Date()): CapabilityRow[] {
   }));
 }
 
-/** Stated as a footnote rather than a column: it is not something a reader can choose. */
-export const restrictedAccessNote =
-  "LAND ACQUISITION V2 เปิดให้เฉพาะบุคลากรกรมทางหลวงตามสิทธิ์ที่หน่วยงานกำหนด ไม่ได้เปิดให้สมัครใช้งานทั่วไป";
+/**
+ * Stated as a footnote rather than a column: it is not something a reader can choose.
+ *
+ * Composed from whatever the registry has announced under that access model, and returning null
+ * when nothing has been. A footnote exists to explain a particular app; with no app to explain
+ * there is nothing to say, and a paragraph about a restriction that never names what is restricted
+ * leaves the reader worse off than silence. See ADR 0014.
+ */
+export function restrictedAccessNote(appNames: readonly string[]): string | null {
+  if (appNames.length === 0) return null;
+  return `${appNames.join(" และ ")} เปิดให้เฉพาะบุคลากรกรมทางหลวงตามสิทธิ์ที่หน่วยงานกำหนด ไม่ได้เปิดให้สมัครใช้งานทั่วไป`;
+}
+
+/**
+ * Said when the registry holds no free app, and said again, word for word, when the registry could
+ * not be read at all. The two are deliberately indistinguishable to a visitor: a public page has no
+ * business reporting an outage, and a stale list recovered from source would be worse than silence
+ * because a withdrawn app would reappear every time the database hiccuped.
+ */
+export const memberFreeAppsPendingNote = "แอปที่สมาชิกใช้ได้ฟรีจะประกาศบนหน้านี้เมื่อเปิดใช้งาน";
+
+/** Marks an app that has been announced but is not open yet, so the card can say so honestly. */
+export const appPreparingLabel = "กำลังเตรียมระบบ";
 
 /**
  * ADR 0011 permits stating prices; it does not open payment collection. There is no payment

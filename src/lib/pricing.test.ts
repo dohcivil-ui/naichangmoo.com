@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { landingNavigationContract } from "@/lib/landing-interactions";
+import { platformApps } from "@/lib/platform";
 import {
   activePromotion,
   capabilityOrder,
@@ -15,6 +16,7 @@ import {
   vipPriceBaht,
   vipPriceNow,
   yearlySaving,
+  memberFreeAppsPendingNote,
   type PricePromotion
 } from "@/lib/pricing";
 
@@ -135,7 +137,19 @@ describe("access page content", () => {
 
   it("carries the restricted app as a footnote and never as a tier", () => {
     expect(pricingTiers.map((tier) => tier.id)).not.toContain("doh_staff_only");
-    expect(restrictedAccessNote).toContain("กรมทางหลวง");
+    expect(restrictedAccessNote(["LAND ACQUISITION V2"])).toContain("กรมทางหลวง");
+  });
+
+  it("has no footnote at all when nothing restricted has been announced", () => {
+    // ADR 0014. A footnote exists to explain one app; with no app to explain, a paragraph about a
+    // restriction that never names what is restricted leaves the reader worse off than silence.
+    expect(restrictedAccessNote([])).toBeNull();
+  });
+
+  it("names every announced app in the footnote rather than only the first", () => {
+    const note = restrictedAccessNote(["LAND ACQUISITION V2", "SURVEY V2"]);
+    expect(note).toContain("LAND ACQUISITION V2");
+    expect(note).toContain("SURVEY V2");
   });
 
   it("reaches the page from the main menu", () => {
@@ -167,5 +181,53 @@ describe("capability table", () => {
     for (const row of pricingCapabilityRows()) {
       expect(Object.keys(row.allowed).sort()).toEqual(pricingTiers.map((tier) => tier.id).sort());
     }
+  });
+});
+
+describe("no app is named in source", () => {
+  /**
+   * IP-090 / ADR 0014. Which apps are free, and which are restricted, is a statement an
+   * administrator makes in the registry. Before this, two app names sat in a highlights array and
+   * a third sat in the footnote, so the page kept advertising an app after it was withdrawn until
+   * somebody committed a fix.
+   *
+   * Scanned against the real catalogue rather than against a list of strings typed here, so an app
+   * added to the platform tomorrow is covered without anyone remembering to extend this test.
+   */
+  const appNames = platformApps.map((app) => app.name);
+
+  it("lets a tier name only the app it is a tier of, and no other", () => {
+    // The trial tier says ESTIMETR because it is that app's trial and its call to action goes to
+    // that app's own page. That is a description of the tier, not a claim about which apps come
+    // with it. The exception is therefore tied to a checkable fact — the tier links there — rather
+    // than to a name somebody remembered to allow, which is how a carve-out survives its reason.
+    for (const tier of pricingTiers) {
+      const ownApp = platformApps.find((app) => tier.cta.href === `/market/${app.slug}`);
+      const forbidden = appNames.filter((name) => name !== ownApp?.name);
+      for (const text of [tier.name, tier.summary, ...tier.highlights]) {
+        for (const name of forbidden) expect(text).not.toContain(name);
+      }
+    }
+  });
+
+  it("names no app at all in the tier that describes a set of apps", () => {
+    // member_free is the claim IP-090 exists to move: which apps are free is the registry's to say.
+    const tier = pricingTiers.find((item) => item.id === "member_free")!;
+    expect(tier.cta.href).not.toMatch(/^\/market\//);
+    for (const text of [tier.name, tier.summary, ...tier.highlights]) {
+      for (const name of appNames) expect(text).not.toContain(name);
+    }
+  });
+
+  it("keeps every app name out of the sentence shown when nothing is announced", () => {
+    // The fallback is the one place a stale list would be most tempting to keep.
+    for (const name of appNames) expect(memberFreeAppsPendingNote).not.toContain(name);
+  });
+
+  it("builds the restricted footnote from names it is given, never from names it holds", () => {
+    // Passing nothing must produce nothing. If this file still knew an app name, it would leak here.
+    expect(restrictedAccessNote([])).toBeNull();
+    const note = restrictedAccessNote(["ตัวอย่างแอป"]) ?? "";
+    for (const name of appNames) expect(note).not.toContain(name);
   });
 });

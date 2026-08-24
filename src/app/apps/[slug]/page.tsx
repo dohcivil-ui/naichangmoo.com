@@ -6,6 +6,7 @@ import { AppShell } from "@/components/platform/app-shell";
 import { getPlatformSessionUser } from "@/lib/auth-session";
 import { ESTIMETR_APP_SLUG } from "@/lib/estimeter-trial";
 import { platformApps } from "@/lib/platform";
+import { readAppOpenState } from "@/server/app-registry";
 
 export default async function AppBoundaryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -42,6 +43,34 @@ export default async function AppBoundaryPage({ params }: { params: Promise<{ sl
             <h1>{app.name}</h1>
             <p className="hero__note">{app.name} เปิดเฉพาะบุคลากรกรมทางหลวงที่ได้รับสิทธิ์ หากคุณควรเข้าถึงได้แต่ยังเปิดไม่ได้ กรุณาติดต่อผู้ดูแลสิทธิ์</p>
             <div className="hero__actions"><Link className="button button--orange micro-button" href="/">กลับหน้ารวมแอป</Link></div>
+          </div>
+        </section>
+      </AppShell>
+    );
+  }
+
+  /**
+   * ADR 0014: when the registry says an app is announced but not open, the door is shut here. A
+   * switch labelled off that lets people through teaches the administrator that the control is a
+   * decoration. `unknown` — no row, or a database that could not be read — keeps the behaviour the
+   * product had before the registry existed, because one outage must not close every app; and the
+   * authorization gate is `app_entitlements`, which is untouched either way.
+   */
+  const openState = await readAppOpenState(slug);
+  if (openState === "preparing") {
+    return (
+      <AppShell app={app}>
+        <section className="app-workspace-intro">
+          <div className="container">
+            <div className="eyebrow">{app.eyebrow}</div>
+            <h1>{app.name}</h1>
+            <p className="hero__note">
+              {app.name} ประกาศไว้แล้วแต่ยังกำลังเตรียมระบบอยู่ จึงยังเปิดหน้าทำงานไม่ได้
+              เมื่อผู้ดูแลเปิดใช้งาน หน้านี้จะเปิดให้ทันทีโดยไม่ต้องสมัครอะไรเพิ่ม
+            </p>
+            <div className="hero__actions">
+              <Link className="button button--orange micro-button" href="/">กลับหน้ารวมแอป</Link>
+            </div>
           </div>
         </section>
       </AppShell>

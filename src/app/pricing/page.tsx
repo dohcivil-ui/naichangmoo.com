@@ -12,14 +12,26 @@ import {
   vipPriceNow,
   yearlySaving
 } from "@/lib/pricing";
+import { readAnnouncedApps } from "@/server/app-registry";
 
 export const metadata = {
   title: "การเข้าใช้งานและราคา | นายช่างหมู",
   description: "ทดลองใช้งานฟรี 7 วัน สมาชิก VIP ใช้ได้ทุกแอป และช่องทางขอใบเสนอราคาสำหรับองค์กรและหน่วยงาน"
 };
 
-export default function PricingPage() {
+/**
+ * ADR 0014. Nothing on this page names an app unless an administrator announced it, and when the
+ * registry cannot be read the page names none at all — the card falls back to one sentence and the
+ * restricted-app footnote disappears entirely rather than becoming a vaguer version of itself.
+ */
+export default async function PricingPage() {
   const rows = pricingCapabilityRows();
+  const registry = await readAnnouncedApps();
+  const announced = registry.ok ? registry.apps : null;
+  const memberFreeApps = announced?.filter((app) => app.access === "member_free") ?? null;
+  const restrictedNote = restrictedAccessNote(
+    announced?.filter((app) => app.access === "doh_staff_only").map((app) => app.name) ?? []
+  );
   // Resolved here rather than in the client component so a promotion window cannot open between
   // the server render and hydration and leave two different prices on the same screen.
   const vip = { monthly: vipPriceNow("monthly"), yearly: vipPriceNow("yearly") };
@@ -45,7 +57,7 @@ export default function PricingPage() {
 
           <div className="access-layout">
             <div className="access-main">
-              <AccessTiers tiers={pricingTiers} vip={vip} saving={yearlySaving()} />
+              <AccessTiers tiers={pricingTiers} vip={vip} saving={yearlySaving()} memberFreeApps={memberFreeApps} />
             </div>
 
             <AccessStatePanel />
@@ -93,9 +105,11 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <p className="access-footnote" data-reveal>
-            {restrictedAccessNote}
-          </p>
+          {restrictedNote ? (
+            <p className="access-footnote" data-reveal>
+              {restrictedNote}
+            </p>
+          ) : null}
         </div>
       </section>
 

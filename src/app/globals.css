@@ -318,6 +318,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .access-tier__highlights { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
 .access-tier__highlights li { position: relative; padding-left: 20px; color: var(--muted); font-size: .88rem; line-height: 1.62; }
 .access-tier__highlights li::before { content: ""; position: absolute; left: 0; top: .5em; width: 8px; height: 8px; border: 1.5px solid var(--teal); border-radius: 2px; }
+/* The only data-driven block on the card: apps an administrator announced as free. */
+.tier-apps { border-top: 1px solid var(--mist); padding-top: 13px; display: grid; gap: 8px; }
+.tier-apps__label { margin: 0; color: var(--ink); font-size: .8rem; font-weight: 700; }
+.tier-apps__pending { margin: 0; color: #93a5ab; font-size: .85rem; line-height: 1.72; }
+.tier-apps ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tier-apps li { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink); font-size: .87rem; font-weight: 600; }
+.tier-apps li em { flex-shrink: 0; font-style: normal; background: #f1f5f5; color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: .7rem; font-weight: 700; }
 .access-tier .button { margin-top: auto; text-align: center; text-decoration: none; }
 .access-panel { background: var(--ink); color: white; border-radius: 14px; padding: 24px; position: sticky; top: 118px; display: grid; gap: 14px; }
 .access-panel h2 { font-size: 1.18rem; margin: 0; letter-spacing: -.02em; }
