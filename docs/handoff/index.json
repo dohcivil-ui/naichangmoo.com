@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.33.0",
+    "title": "The Closed Tables Are Closed By Test, Not By Habit",
+    "description": "เทสต์ที่สแกน source ของหลังบ้านและแดงเมื่อมีการอ่านคอลัมน์จากตารางที่ ADR 0013 ปิดไว้ พร้อมสรุปปิดเซสชันสำหรับทำงานต่อ",
+    "scope": [
+      "scan every back-office source file for column reads of the tables ADR 0013 closes",
+      "keep the counting exception honest: platform-admin-metrics may say .from(projects) and may not read a column off it",
+      "strip comments before scanning, so the documentation describing the rule does not trip it",
+      "distinguish the drizzle table from a property of the same name, so metrics.projects is not a false positive",
+      "assert the scanner itself detects a planted violation, so a guard that cannot fail is not shipped"
+    ],
+    "verification": [
+      "pnpm test 220 passed, 33 skipped",
+      "planted a real violation (projects.name inside entitlement-admin.ts) and confirmed two assertions turn red, then reverted and confirmed 23 green with a clean git diff",
+      "the suite asserts its own detectors against synthetic input, so it cannot pass by seeing nothing",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.32.0-entitlement-editor แล้วลบไฟล์เทสต์ เป็นการเพิ่มเทสต์อย่างเดียว ไม่มี production code เปลี่ยน",
+    "path": "docs/handoff/2026-08-24-session-close-admin-and-pricing.md"
+  },
+  {
     "version": "0.32.0",
     "title": "An Extension Nobody Can Grant Without Saying Why",
     "description": "หน้าจัดการสิทธิ์ลูกค้า พร้อมเหตุผลบังคับที่ตรวจฝั่งเซิร์ฟเวอร์ และ audit event ต่อการเปลี่ยนแปลงทุกครั้ง",
