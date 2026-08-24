@@ -374,13 +374,17 @@ const VARS = {
   W:   { label: "ดัชนีราคาสายไฟฟ้า", note: "" }
 };
 
-/* ตัวเลขดัชนีเป็นค่าสาธิต — ของจริงต้องดึงจากชุด Escalation factor ของกระทรวงพาณิชย์ */
+/* ดัชนีจริงจาก POST https://index-api.tpso.go.th/OpenApi/K/Month ฐานปี 2530
+   เดือนฐาน กันยายน 2568 เทียบเดือนส่งมอบ มิถุนายน 2569 ดึงเมื่อ 24 สิงหาคม 2569
+   เดือนล่าสุดที่ สนค. เผยแพร่คือ กรกฎาคม 2569 สิงหาคมยังไม่ออก */
 const INDEX = {
-  I: { base: 105.2, now: 108.4 },
-  C: { base: 104.9, now: 112.7 },
-  M: { base: 110.6, now: 119.3 },
-  S: { base: 103.4, now: 106.8 }
+  I: { base: 277.1, now: 284.7 },
+  C: { base: 211.7, now: 214.1 },
+  M: { base: 320.5, now: 348.0 },
+  S: { base: 262.0, now: 253.1 }
 };
+const INDEX_FETCHED = "24 สิงหาคม 2569";
+const INDEX_LATEST = "กรกฎาคม 2569";
 
 const CONTRACT = {
   no: "27/2569",
@@ -800,7 +804,7 @@ function renderPanel() {
 
   if (state.step === 3) {
     body += state.api
-      ? '<div class="note" style="border-left-color:#17604e;background:#e4f4f0;color:#17604e">ดึงจากกระทรวงพาณิชย์เมื่อ 24 สิงหาคม 2569 เวลา 19:42 น. ทุกค่าบันทึกรหัสดัชนีและเวลาที่ดึงไว้ในใบรายการคำนวณ</div>'
+      ? '<div class="note" style="border-left-color:#17604e;background:#e4f4f0;color:#17604e"><b>ดัชนีชุดนี้เป็นของจริง</b> ดึงจาก index-api.tpso.go.th ฐานปี 2530 เมื่อ ' + INDEX_FETCHED + ' เดือนล่าสุดที่ สนค. เผยแพร่คือ ' + INDEX_LATEST + ' ทุกค่าบันทึกรหัสดัชนีและเวลาที่ดึงไว้ในใบรายการคำนวณ</div>'
       : '<div class="note">การดึงอัตโนมัติถูกปิดอยู่ ทุกค่าต้องกรอกเองพร้อมระบุที่มา ระบบจะพิมพ์คำว่า <b>กรอกมือ</b> กำกับไว้ในใบรายการคำนวณทุกบรรทัด</div>';
 
     body += '<div class="tablewrap"><table><thead><tr><th>ตัวแปร</th><th>ดัชนีที่ใช้</th>' +
@@ -950,7 +954,7 @@ function render() {
   }
 
   let html = '<div class="contract"><div>' +
-    '<div class="eyebrow">สัญญาแบบปรับราคาได้ · มติ ครม. ว 109 &nbsp;<span class="demo-tag">ตัวเลขสาธิต</span></div>' +
+    '<div class="eyebrow">สัญญาแบบปรับราคาได้ · มติ ครม. ว 109 &nbsp;<span class="demo-tag">ดัชนีจริงจาก สนค. · สัญญาเป็นตัวอย่าง</span></div>' +
     "<h1>" + esc(CONTRACT.name) + "</h1>" +
     '<p class="contract__meta"><span>สัญญาเลขที่ <b>' + esc(CONTRACT.no) + "</b></span>" +
     "<span>เดือนฐาน <b>" + esc(baseMonthRule().month) + "</b></span>" +

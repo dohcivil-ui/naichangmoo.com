@@ -235,3 +235,49 @@ describe("ตัวอย่างเดินครบทาง — อาค�
     expect(settlement.deltaSatang).toBe(baht(320_600));
   });
 });
+
+describe("ตรวจกับดัชนีจริงที่ สนค. เผยแพร่", () => {
+  /**
+   * ดึงจาก POST https://index-api.tpso.go.th/OpenApi/K/Month ฐานปี 2530 เมื่อ 24 ส.ค. 2569
+   * เดือนฐาน กันยายน 2568 เทียบเดือนส่งมอบ มิถุนายน 2569
+   * เก็บเป็นค่าคงที่ในเทสต์โดยตั้งใจ เทสต์ที่ยิงเครือข่ายจริงจะแดงเมื่อเน็ตล่ม ไม่ใช่เมื่อโค้ดผิด
+   */
+  const PUBLISHED = {
+    I: { base: 277.1, current: 284.7 },
+    C: { base: 211.7, current: 214.1 },
+    M: { base: 320.5, current: 348.0 },
+    S: { base: 262.0, current: 253.1 }
+  };
+
+  const kFromPublished = () => {
+    const formula = findFormula("1")!;
+    let k = toMilli(formula.base!);
+    for (const [symbol, coefficient] of Object.entries(formula.terms!)) {
+      const reading = PUBLISHED[symbol as keyof typeof PUBLISHED];
+      k += termMilli(coefficient, ratioMilli(reading.current, reading.base));
+    }
+    return k;
+  };
+
+  it("ดัชนีเหล็กลดลงจริงในช่วงนี้ เลขสัมพันธ์จึงต่ำกว่าหนึ่ง", () => {
+    expect(ratioMilli(PUBLISHED.S.current, PUBLISHED.S.base)).toBe(966);
+  });
+
+  it("งานอาคารได้ K เท่ากับ 1.035", () => {
+    expect(formatMilli(kFromPublished())).toBe("1.035");
+  });
+
+  it("ค่า K นี้ตกคร่อมเกณฑ์พอดี มาตรการชั่วคราวจึงเป็นตัวชี้ขาดว่าได้เงินหรือไม่ได้เลย", () => {
+    const amount = baht(12_824_000);
+    const k = kFromPublished();
+
+    const underTemporary = settlePeriod(k, amount, "2569-06-20");
+    expect(underTemporary.rule.id).toBe("temp2569");
+    expect(underTemporary.deltaSatang).toBe(baht(192_360));
+
+    const underStandard = settlePeriod(k, amount, "2568-12-18");
+    expect(underStandard.rule.id).toBe("w109");
+    expect(underStandard.action).toBe("none");
+    expect(underStandard.deltaSatang).toBe(0n);
+  });
+});
