@@ -1,5 +1,26 @@
 [
   {
+    "version": "0.30.0",
+    "title": "Someone To Check Against: Platform Administration Becomes a Granted Row",
+    "description": "ADR 0012 ทำให้สิทธิ์ผู้ดูแลแพลตฟอร์มเป็นแถวที่ถูกมอบให้ ถอนได้ และมีร่องรอย พร้อมเปิด shell หลังบ้านที่แสดงเฉพาะตัวเลขที่นับได้จริง",
+    "scope": [
+      "ADR 0012 stores platform administration as a granted row with grantedBy, grantedAt and revokedAt rather than a flag or an env allowlist",
+      "add the platform_administrators table and migration 0005",
+      "add resolvePlatformAdmin which refuses on no session, no grant, a revoked grant and an unreadable database",
+      "bound the grant to platform content and aggregate counts, with no right to read an organization's work",
+      "ship the back-office shell and overview page in the site's own design language, with real counts only",
+      "add scripts/grant-platform-admin.mjs, which bootstraps the first administrator and refuses once one exists"
+    ],
+    "verification": [
+      "pnpm test 189 passed, 33 skipped; platform-admin.test.ts covers all four outcomes including the unreadable-database case that systems usually fail open on",
+      "browser check on localhost:3000/admin while signed out: the refusal renders, .admin-shell and .admin-sidebar are absent from the DOM, and no platform figure appears in the page text",
+      "drizzle migration 0005 adds one table and alters none",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.29.0-prompt-typeface และ revert commit ของ v0.30.0 ตาราง platform_administrators เป็นตารางใหม่ที่ไม่มีอะไรอ้างถึง การ drop จึงไม่กระทบข้อมูลเดิม แต่จะลบประวัติการมอบสิทธิ์ไปด้วย",
+    "path": "docs/handoff/2026-08-24-platform-administration.md"
+  },
+  {
     "version": "0.29.0",
     "title": "The Heavy Weights Stop Being Faked",
     "description": "เปลี่ยนเป็น Prompt และโหลดทุกน้ำหนักที่สเปคประกาศ จบปัญหา faux bold พร้อมตั้งน้ำหนักหัวข้อกลับมาที่ 600 หลัง Tailwind Preflight รีเซ็ตไว้ที่ 400",

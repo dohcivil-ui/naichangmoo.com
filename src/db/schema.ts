@@ -387,6 +387,28 @@ export const auditEvents = pgTable("audit_events", {
   createdAt
 }, (table) => [index("audit_events_resource_idx").on(table.resourceType, table.resourceId)]);
 
+/**
+ * ADR 0012. Platform administration is a granted row, not a flag on the account, because the
+ * question an audit asks is who could change a price on a given day — which a current-state
+ * column cannot answer. A revoked grant keeps its row; `revoked_at` is what ends it.
+ *
+ * The scope is deliberately narrow: platform content and aggregate counts. It carries no right to
+ * read another organization's projects, drawings, take-off lines or price sets, which stay behind
+ * `projects.organization_id` exactly as before.
+ */
+export const platformAdministrators = pgTable("platform_administrators", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  /** Null only for the break-glass grant, which has no administrator to attribute it to. */
+  grantedBy: text("granted_by").references(() => users.id),
+  grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedBy: text("revoked_by").references(() => users.id),
+  note: text("note"),
+  createdAt,
+  updatedAt
+}, (table) => [index("platform_administrators_user_idx").on(table.userId, table.revokedAt)]);
+
 // Portable fixed-window rate-limit counter. One row per (scope, identifier, window)
 // so abuse controls work identically on Vercel and the VPS without extra infrastructure.
 export const rateLimitCounters = pgTable("rate_limit_counters", {
@@ -424,5 +446,6 @@ export const schema = {
   hermesReviewJobs,
   approvalRequests,
   auditEvents,
+  platformAdministrators,
   rateLimitCounters
 };
