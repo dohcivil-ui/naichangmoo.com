@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.38.0",
+    "title": "Session Close: The Back Office Was Tested, and the Header Learned Who Is Looking",
+    "description": "handoff รวมงานทั้งวัน: ทดสอบหลังบ้าน แก้บั๊กสามตัว เมนูบัญชีและหน้า /account หัวแอปทุกแอป และผลตรวจคุกกี้",
+    "scope": [
+      "ทดสอบหลังบ้านครบทุกด่าน และ bootstrap ผู้ดูแลคนแรก",
+      "เมนูบัญชี /account หัวแอป และแอปค่า K",
+      "ผลตรวจคุกกี้: มีเฉพาะที่จำเป็นอย่างยิ่ง ยังไม่มีหน้านโยบายเลย"
+    ],
+    "verification": [
+      "pnpm test 264 passed, 33 skipped",
+      "pnpm typecheck, pnpm lint, pnpm security:check",
+      "node scripts/check-roadmap.mjs",
+      "ESTIMETR_DB_TESTS=1 33/33",
+      "ล็อกอิน Google จริง และตรวจสิทธิ์ผู้ดูแลในฐานข้อมูล"
+    ],
+    "rollback": "เอกสารล้วน ย้อนได้โดยไม่กระทบโค้ด; โค้ดย้อนที่ commit ก่อน e5f60b3 และต้อง DROP COLUMN accounts.issuer เอง",
+    "path": "docs/handoff/2026-08-24-session-close-back-office-and-account.md"
+  },
+  {
     "version": "0.37.0",
     "title": "The Header Knows Who Is Looking",
     "description": "เพิ่มเมนูบัญชีบนแถบบนและหน้า /account แก้บั๊กที่ทำให้ล็อกอิน Google ล้มเหลว และให้ทุกแอปมีชื่อโปรแกรมกับคำอธิบายในตำแหน่งเดียวกัน",
