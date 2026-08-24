@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.32.0",
+    "title": "An Extension Nobody Can Grant Without Saying Why",
+    "description": "หน้าจัดการสิทธิ์ลูกค้า พร้อมเหตุผลบังคับที่ตรวจฝั่งเซิร์ฟเวอร์ และ audit event ต่อการเปลี่ยนแปลงทุกครั้ง",
+    "scope": [
+      "add /admin/entitlements: search by member email or organization name, never by project name",
+      "edit entitlement state and expiry with a reason that is required on the server, not only in the form",
+      "write an audit event per change carrying organization, actor, before, after and reason",
+      "repeat the administrator check inside the server action, because an action is its own entry point",
+      "return nothing for an empty search, so opening the page is not a request to browse customers"
+    ],
+    "verification": [
+      "pnpm test 197 passed, 33 skipped; entitlement-admin.test.ts proves the reason and state checks refuse before the database is reached, by mocking getDb to throw",
+      "the same suite proves an empty or one-character search returns nothing without querying",
+      "browser check on /admin/entitlements?q=test while signed out: refusal renders, zero .admin-card and zero .admin-form in the DOM, and the page text reveals nothing about whether a match exists",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.31.0-admin-scope-and-cards แล้ว revert commit ของ v0.32.0 ไม่มี migration สิทธิ์ที่ถูกแก้ไปแล้วจะคงค่าที่แก้ไว้ แต่มี audit event บันทึกไว้ว่าใครแก้เมื่อไรและเพราะอะไร",
+    "path": "docs/handoff/2026-08-24-entitlement-editor.md"
+  },
+  {
     "version": "0.31.0",
     "title": "The Right To Use, Not The Work — and a Back Office Made Only of Cards",
     "description": "ADR 0013 แยกสิทธิ์การใช้งานออกจากตัวงานของลูกค้า และตรึงหลังบ้านไว้ที่ระบบการ์ดชุดเดียว",

@@ -28,6 +28,7 @@ export const adminNavigation = [
   {
     group: "การเข้าถึง",
     items: [
+      { id: "entitlements", label: "สิทธิ์การใช้งานของลูกค้า", href: "/admin/entitlements", ready: true },
       { id: "administrators", label: "ผู้ดูแลแพลตฟอร์ม", href: "/admin/administrators", ready: false },
       { id: "audit", label: "บันทึกการเปลี่ยนแปลง", href: "/admin/audit", ready: false }
     ]
