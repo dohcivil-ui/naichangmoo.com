@@ -1,5 +1,26 @@
 [
   {
+    "version": "0.31.0",
+    "title": "The Right To Use, Not The Work — and a Back Office Made Only of Cards",
+    "description": "ADR 0013 แยกสิทธิ์การใช้งานออกจากตัวงานของลูกค้า และตรึงหลังบ้านไว้ที่ระบบการ์ดชุดเดียว",
+    "scope": [
+      "ADR 0013 extends the administrator scope from platform content to the right to use, and forbids the work itself",
+      "list the tables an administrator may never read or write, by name",
+      "require an audit event with a stated reason on every entitlement change",
+      "hold the line that counting is not reading: the overview counts projects and never names one",
+      "build AdminCard, AdminGrid, AdminStat, AdminStatRow, AdminEmpty and AdminTable as the only markup an admin page may use",
+      "rebuild the overview page on those primitives and delete the bespoke panel and tile styles"
+    ],
+    "verification": [
+      "browser check on localhost:3000/admin while signed out: refusal renders, .admin-shell absent, zero .admin-card in the DOM, no platform figure in the page text",
+      "every admin class used in TSX has a matching rule in globals.css, checked by script rather than by eye",
+      "pnpm test 189 passed, 33 skipped; pnpm typecheck and pnpm lint pass",
+      "node scripts/check-roadmap.mjs reports Roadmap 0.31.0 valid"
+    ],
+    "rollback": "กลับไป tag v0.30.0-platform-administration แล้ว revert commit ของ v0.31.0 ไม่มี migration ในรอบนี้ ADR 0013 ขยายขอบเขตบนกระดาษ แต่ยังไม่มีหน้าจอใดที่เขียนสิทธิ์ได้จริง",
+    "path": "docs/handoff/2026-08-24-admin-scope-and-cards.md"
+  },
+  {
     "version": "0.30.0",
     "title": "Someone To Check Against: Platform Administration Becomes a Granted Row",
     "description": "ADR 0012 ทำให้สิทธิ์ผู้ดูแลแพลตฟอร์มเป็นแถวที่ถูกมอบให้ ถอนได้ และมีร่องรอย พร้อมเปิด shell หลังบ้านที่แสดงเฉพาะตัวเลขที่นับได้จริง",
