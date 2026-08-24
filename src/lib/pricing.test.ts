@@ -4,6 +4,7 @@ import {
   activePromotion,
   capabilityOrder,
   dayPass,
+  dayPassBreakEvenDays,
   dayPassPriceBaht,
   perDayBaht,
   pricePromotions,
@@ -69,6 +70,24 @@ describe("the day pass is a separate product", () => {
     for (const row of pricingCapabilityRows()) {
       expect(Object.keys(row.allowed)).not.toContain("day_pass");
     }
+  });
+
+  it("costs more per day than either subscription, which is the point of it", () => {
+    // The premium is the mechanism: it prices flexibility and pushes a regular user to subscribe.
+    // If someone later "corrects" the pass downward, the reason to subscribe goes with it, so the
+    // ordering is asserted rather than left as a comment nobody reads.
+    expect(dayPassPriceBaht).toBeGreaterThan(perDayBaht("monthly"));
+    expect(perDayBaht("monthly")).toBeGreaterThan(perDayBaht("yearly"));
+  });
+
+  it("breaks even against VIP monthly at 24 days, above a working month", () => {
+    // Recorded so the trade-off stays visible: a weekday-only buyer at 22 days still pays less on
+    // passes (1,078) than on VIP (1,170). Raising the pass to 55 would move break-even to 22 and
+    // close that gap. The owner chose 49 knowingly; this test makes the consequence surface if
+    // either price moves.
+    expect(dayPassBreakEvenDays("monthly")).toBe(24);
+    expect(22 * dayPassPriceBaht).toBeLessThan(vipPriceBaht.monthly);
+    expect(24 * dayPassPriceBaht).toBeGreaterThan(vipPriceBaht.monthly);
   });
 });
 

@@ -25,8 +25,24 @@ export const vipPriceBaht: Record<BillingPeriod, number> = {
   yearly: 10440
 };
 
-/** A day pass is a separate product, not a membership level. See ADR 0011. */
+/**
+ * A day pass is a separate product, not a membership level. See ADR 0011.
+ *
+ * The per-day figure is deliberately the highest of the three, above both VIP cycles. That is the
+ * product working, not a mistake to be tidied away: the pass buys flexibility for someone with one
+ * urgent job, and charging a premium for it is what keeps a regular user moving to a subscription.
+ * Lowering it to "look fairer" removes the reason to subscribe at all.
+ *
+ * Against VIP monthly it breaks even at 24 days, which is above a Thai working month of about 22 —
+ * so a weekday-only user is still ~92 baht better off on passes. The owner accepted that, on the
+ * view that few buyers run 22 days and that a two or three day pass should not feel punitive.
+ */
 export const dayPassPriceBaht = 49;
+
+/** Days of passes before subscribing is cheaper. Derived, so a price change moves it visibly. */
+export function dayPassBreakEvenDays(period: BillingPeriod = "monthly"): number {
+  return Math.ceil(vipPriceBaht[period] / dayPassPriceBaht);
+}
 
 /**
  * A month is billed as 30 days and a year as 365, so the per-day figure matches the billing cycle
