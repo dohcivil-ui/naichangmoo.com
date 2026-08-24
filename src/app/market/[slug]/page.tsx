@@ -43,7 +43,7 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
           </div>
           <section className="market-entry-panel">
             <div><div className="eyebrow">การเข้าใช้งาน</div><h2>{interaction.canEnter ? "เริ่มใช้งาน" : "กำลังเตรียมระบบ"}</h2><p>{app.marketDetail.availabilityNote}</p></div>
-            {interaction.canEnter && interaction.entryHref ? <Link className="button button--orange micro-button" href={interaction.entryHref}>ฟรี ทดลองใช้งาน 5 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>ดูรายละเอียดแอปได้</span></div>}
+            {interaction.canEnter && interaction.entryHref ? <Link className="button button--orange micro-button" href={interaction.entryHref}>ฟรี ทดลองใช้งาน 7 วัน</Link> : <div className="market-entry-panel__locked"><strong>{appStatusLabel[app.status]}</strong><span>ดูรายละเอียดแอปได้</span></div>}
           </section>
         </div>
       </section>

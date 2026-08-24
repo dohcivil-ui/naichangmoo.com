@@ -18,7 +18,11 @@ function Submit() {
 
 /**
  * The terms sit next to the control, because pressing it starts a clock that cannot be reset.
- * A member who reads this screen and closes it has spent none of the five days.
+ * A member who reads this screen and closes it has spent none of the seven days.
+ *
+ * The project cap is listed here on purpose. ADR 0009 removed it from the copy that runs before
+ * entry, where a limit is the wrong first thing to say about a tool, but this screen is where the
+ * member agrees to the terms. Dropping it here too would mean agreeing to a wall nobody mentioned.
  */
 export function TrialActivation() {
   const [state, formAction] = useActionState(startEstimeterTrial, initialState);

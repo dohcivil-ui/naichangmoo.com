@@ -154,7 +154,7 @@ export type TrialActivation =
   | { ok: false; reason: "unknown_member" | "already_activated" };
 
 /**
- * Gate 2 of ADR 0006: the member accepts the trial terms and the five-day clock starts here,
+ * Gate 2 of ADR 0006: the member accepts the trial terms and the seven-day clock starts here,
  * at the moment of the click. Repeating the click cannot extend or reissue anything, because
  * the unique index on (organization_id, app_id) refuses the second row.
  */

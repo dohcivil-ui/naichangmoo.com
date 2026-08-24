@@ -13,8 +13,11 @@ describe("Civil Apps Market registry", () => {
     ]);
     expect(platformApps).toHaveLength(4);
     expect(platformApps.every((app) => categoryIds.has(app.categoryId))).toBe(true);
-    // The project cap is a purchase-relevant limit, so it must appear before entry, not after the first block.
-    expect(accessLabel.paid_trial).toBe("ฟรี ทดลองใช้งาน 5 วัน · 1 โครงการ");
+    // ADR 0009 reverses the earlier rule that the project cap had to appear before entry. The cap
+    // is still enforced server-side and is still stated on the activation screen and the in-app
+    // counter; what changed is that a limit is no longer the first thing said about the tool.
+    expect(accessLabel.paid_trial).toBe("ฟรี ทดลองใช้งาน 7 วัน");
+    expect(accessLabel.paid_trial).not.toContain("โครงการ");
   });
 
   it("keeps a truthful pre-entry detail route and readiness content for every app", () => {

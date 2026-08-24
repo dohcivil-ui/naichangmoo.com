@@ -33,8 +33,10 @@ type StatePolicy = {
   aiEnabled: boolean;
 };
 
-// ADR 0003 defines the trial as five days, one project, export and print locked, with AI
-// review still available; expiry keeps read access and locks create/edit/AI/export/print.
+// ADR 0003 defines the trial as one project, export and print locked, with AI review still
+// available; expiry keeps read access and locks create/edit/AI/export/print. ADR 0009 changes
+// the length to seven days and stops advertising the project cap before entry, but the cap is
+// still enforced here — this is where it is enforced, not where it is advertised.
 // A null projectLimit means unlimited.
 const STATE_POLICY: Record<EffectiveEntitlementState, StatePolicy> = {
   trial: { read: true, mutate: true, projectLimit: 1, exportEnabled: false, printEnabled: false, aiEnabled: true },

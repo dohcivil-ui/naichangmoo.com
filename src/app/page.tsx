@@ -27,7 +27,7 @@ export default function LandingPage() {
             <h1 data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>แอปงานโยธา ใช้งานง่าย</h1>
             <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
-            <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
+            <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · ฟรี ทดลองใช้งาน 7 วัน</p>
           </div>
           <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
             <HeroEngineeringArt />

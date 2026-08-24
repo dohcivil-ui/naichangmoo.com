@@ -89,11 +89,11 @@ describe.skipIf(!enabled)("ESTIMETR trial activation against PostgreSQL", () => 
     expect(await db.select().from(auditEvents).where(eq(auditEvents.organizationId, organizationId))).toHaveLength(0);
   });
 
-  it("starts the five days at the moment of activation, not at registration", async () => {
+  it("starts the seven days at the moment of activation, not at registration", async () => {
     const { activateEstimeterTrial, getEstimeterAccess } = await import("@/server/estimeter-access");
     const { getDb } = await import("@/db");
     const { appEntitlements, auditEvents } = await import("@/db/schema");
-    // Registered on 1 August, activates on 20 August: the old rule would have expired on the 6th.
+    // Registered on 1 August, activates on 20 August: the old rule would have expired on the 8th.
     const userId = await createMember(new Date("2026-08-01T00:00:00.000Z"));
     const activatedAt = new Date("2026-08-20T10:00:00.000Z");
 
@@ -101,11 +101,11 @@ describe.skipIf(!enabled)("ESTIMETR trial activation against PostgreSQL", () => 
     if (!activation.ok) throw new Error(`expected activation to succeed, got ${activation.reason}`);
 
     expect(activation.startsAt.toISOString()).toBe("2026-08-20T10:00:00.000Z");
-    expect(activation.endsAt.toISOString()).toBe("2026-08-25T10:00:00.000Z");
+    expect(activation.endsAt.toISOString()).toBe("2026-08-27T10:00:00.000Z");
 
     const access = await getEstimeterAccess(userId, new Date("2026-08-21T10:00:00.000Z"));
     expect(access.state).toBe("trial");
-    expect(access.daysRemaining).toBe(4);
+    expect(access.daysRemaining).toBe(6);
     expect(access.projectLimit).toBe(1);
     expect(access.capabilities.create_project).toBe(true);
     expect(access.capabilities.export).toBe(false);

@@ -1,5 +1,26 @@
 [
   {
+    "version": "0.26.0",
+    "title": "A Seven-Day Trial That Does Not Lead With Its Limit",
+    "description": "ทดลองใช้ ESTIMETR เป็น 7 วันตาม ADR 0009 และถอดเพดาน 1 โครงการออกจากข้อความพาดหัวโดยที่การบังคับใช้ฝั่งเซิร์ฟเวอร์ไม่เปลี่ยน",
+    "scope": [
+      "ADR 0009 supersedes the five-day term set in ADR 0003 and re-affirmed in ADR 0006",
+      "ESTIMETR_TRIAL_DAYS 5 -> 7; the project cap, export and print locks and read-only retention are unchanged",
+      "remove the one-project cap from accessLabel.paid_trial, the landing hero and the market entry button",
+      "keep the cap on marketDetail.availabilityNote, the activation screen and the in-app project counter",
+      "update the approved commercial phrase in docs/requirements/civil-apps-market.md to seven days"
+    ],
+    "verification": [
+      "pnpm test 168 passed, 33 skipped; estimeter-trial.test.ts asserts the window ends 2026-08-30 for a 2026-08-23 activation",
+      "platform.test.ts asserts accessLabel.paid_trial is 'ฟรี ทดลองใช้งาน 7 วัน' and does not contain 'โครงการ'",
+      "estimeter-access.integration.test.ts expects endsAt 2026-08-27T10:00Z and daysRemaining 6 for a 2026-08-20T10:00Z activation",
+      "pnpm typecheck and pnpm lint pass; the one lint warning is the pre-existing unused formatSatang in thai-baht.test.ts",
+      "grep over src/ and docs/requirements/ finds no remaining '5 วัน' or 'five-day' other than the historical note in the requirement table"
+    ],
+    "rollback": "กลับไป tag v0.25.0-circular-readers และ revert commit ของ v0.26.0 ข้อควรระวัง: สิทธิ์ที่ออกไปแล้วเก็บ ends_at เป็นค่าคงที่ในฐานข้อมูล การ revert โค้ดไม่ย้อนแถวที่ออกด้วยเงื่อนไข 7 วัน ต้องเลือกระหว่างตัดสิทธิ์ที่ประกาศไว้กับปล่อยให้ข้อมูลไม่ตรงกับค่าคงที่",
+    "path": "docs/handoff/2026-08-24-trial-seven-days.md"
+  },
+  {
     "version": "0.25.0",
     "title": "The Tools That Read a Circular Live in the Repository",
     "description": "สคริปต์ดึงตาราง Factor F รันได้จาก clone ใหม่แล้ว และมีเครื่องมืออ่านหนังสือเวียนทั้งแบบตารางและแบบหน้าสแกน พร้อมสภาพ ณ เวลาปิด session.",

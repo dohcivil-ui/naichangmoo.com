@@ -62,7 +62,7 @@ export const platformApps: PlatformApp[] = [
       outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
       flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
-      availabilityNote: "ทดลองใช้ได้ 5 วัน 1 โครงการ โดยปิดการส่งออกและพิมพ์"
+      availabilityNote: "ทดลองใช้ได้ 7 วัน 1 โครงการ โดยปิดการส่งออกและพิมพ์"
     }
   },
   {
@@ -122,7 +122,7 @@ export const platformApps: PlatformApp[] = [
 ];
 
 export const accessLabel: Record<AppAccess, string> = {
-  paid_trial: "ฟรี ทดลองใช้งาน 5 วัน · 1 โครงการ",
+  paid_trial: "ฟรี ทดลองใช้งาน 7 วัน",
   member_free: "สมาชิกใช้ฟรี",
   doh_staff_only: "เฉพาะบุคลากรกรมทางหลวง",
   agent_service: "ผู้ช่วยทำงาน 24/7"
