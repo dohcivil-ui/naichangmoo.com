@@ -12,7 +12,7 @@ The marketplace does not replace the working application. It sits before the app
 |---|---|
 | Catalog scope | Show all four applications in one market. |
 | Discovery model | Present work categories first and retain each application’s own name in the catalog. |
-| Commercial message | Do not display numeric package pricing. Present **ทดลองใช้ฟรี 7 วัน** for ESTIMETR (ADR 0009; the term was five days until then); preserve truthful access labels for other apps. |
+| Commercial message | Display only prices approved in ADR 0011 and only from `src/lib/pricing.ts`, which is their single home; a figure written anywhere else is a defect. Present **ทดลองใช้ฟรี 7 วัน** for ESTIMETR (ADR 0009; the term was five days until then); preserve truthful access labels for other apps. |
 | Audience | Serve any user; do not gate the landing message to a single profession or organization. |
 | App education | Every application receives a detail experience before the user enters its workspace. |
 | Product integrity | Never make a coming-soon, restricted, or non-persistent feature appear immediately usable or production-certified. |
@@ -58,7 +58,7 @@ The landing supports conversion with a short, factual explanation of the single-
 
 The market should feel like a clean engineering instrument: restrained motion, tactile press feedback, high-contrast action states, keyboard-accessible controls and responsive layouts. Work-category sections remain visible and cards remain directly below their corresponding heading; no filter, launcher or hidden-category state is permitted. The mobile version must stack category sections and cards while preserving readable app actions without horizontal clipping.
 
-The key conversion phrase is **“ทดลองใช้ฟรี 7 วัน”** (ADR 0009). It must not introduce a numeric price, fabricated testimonials, ratings, usage metrics, customer logos, or claims of final document compliance. Per ADR 0009 the phrase no longer carries the one-project cap, and per ADR 0010 no surface before entry does: the cap is still enforced server-side and is still stated on the activation screen and the in-app counter, but every pre-entry surface — headline, entry button and the app's own detail page — says only that the trial is free for seven days.
+The key conversion phrase is **“ทดลองใช้ฟรี 7 วัน”** (ADR 0009). It must not introduce fabricated testimonials, ratings, usage metrics, customer logos, or claims of final document compliance. It may state a price, but only one approved in ADR 0011 and only by reading it from `src/lib/pricing.ts`: the per-day figure must be computed from the billing cycle on screen, because 29 baht is the yearly cycle and 39 is the monthly one. Per ADR 0009 the phrase no longer carries the one-project cap, and per ADR 0010 no surface before entry does: the cap is still enforced server-side and is still stated on the activation screen and the in-app counter, but every pre-entry surface — headline, entry button and the app's own detail page — says only that the trial is free for seven days.
 
 ## Acceptance Criteria for the First Market Release
 
@@ -67,6 +67,6 @@ The key conversion phrase is **“ทดลองใช้ฟรี 7 วัน�
 | Work-first discovery | A visitor sees the matching application card immediately below each work-category heading without knowing its name or making an extra selection. |
 | Complete but honest catalog | All four apps are visible and each displays its real availability/access state. |
 | Detail before execution | A market detail page/panel is reachable from every catalog card before the workspace route. |
-| Clear trial message | ESTIMETR communicates only the approved free 7-day trial message; there is no numeric package price. |
+| Clear trial message | ESTIMETR communicates only the approved free 7-day trial message. Prices approved in ADR 0011 are shown on the access page, VAT-inclusive and labelled as such, and no control on that page behaves as a checkout while payment collection remains closed. |
 | Responsive usability | Desktop and mobile layouts maintain readable categories, cards, buttons, navigation and focus states. |
 | No false product claim | Coming-soon/restricted states cannot be mistaken for live workspaces; no real price data/export certification is claimed. |

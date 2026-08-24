@@ -1,18 +1,28 @@
 import type { CSSProperties } from "react";
-import Link from "next/link";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { PlatformNav } from "@/components/platform/platform-nav";
 import { AccessStatePanel } from "@/components/pricing/access-state-panel";
-import { capabilityOrder, pricingCapabilityRows, pricingTiers, restrictedAccessNote } from "@/lib/pricing";
+import { AccessTiers } from "@/components/pricing/access-tiers";
+import {
+  capabilityOrder,
+  pricingCapabilityRows,
+  pricingTiers,
+  restrictedAccessNote,
+  vipPriceNow,
+  yearlySaving
+} from "@/lib/pricing";
 
 export const metadata = {
   title: "การเข้าใช้งานและราคา | นายช่างหมู",
-  description: "ทดลองใช้งานฟรี 7 วัน แอปที่สมาชิกใช้ได้ฟรี และช่องทางขอใบเสนอราคาสำหรับองค์กรและหน่วยงาน"
+  description: "ทดลองใช้งานฟรี 7 วัน สมาชิก VIP ใช้ได้ทุกแอป และช่องทางขอใบเสนอราคาสำหรับองค์กรและหน่วยงาน"
 };
 
 export default function PricingPage() {
   const rows = pricingCapabilityRows();
+  // Resolved here rather than in the client component so a promotion window cannot open between
+  // the server render and hydration and leave two different prices on the same screen.
+  const vip = { monthly: vipPriceNow("monthly"), yearly: vipPriceNow("yearly") };
 
   return (
     <main className="site-shell">
@@ -26,40 +36,16 @@ export default function PricingPage() {
               <div className="eyebrow" style={{ color: "var(--teal)" }}>การเข้าใช้งาน</div>
               <h1>เลือกตามสิทธิ์ที่ตรงกับงานของคุณ</h1>
               <p className="access-intro">
-                แพลตฟอร์มนี้ยังไม่ประกาศราคาเป็นตัวเลข งานขององค์กรและหน่วยงานตอบด้วยข้อเสนอที่จัดทำให้เป็นรายกรณี
-                เพราะจำนวนผู้ใช้ ขอบเขตงานและข้อกำหนดจัดซื้อของแต่ละหน่วยงานไม่เหมือนกัน
+                เริ่มจากทดลองใช้ฟรีก่อนได้ ถ้าใช้ทำงานจริงทุกวันก็ข้ามไปสมาชิก VIP ที่ใช้ได้ทุกแอป
+                ส่วนงานขององค์กรและหน่วยงานตอบด้วยข้อเสนอที่จัดทำให้เป็นรายกรณี เพราะจำนวนผู้ใช้
+                ขอบเขตงานและข้อกำหนดจัดซื้อของแต่ละหน่วยงานไม่เหมือนกัน
               </p>
             </div>
           </div>
 
           <div className="access-layout">
-            <div className="access-tiers">
-              {pricingTiers.map((tier, index) => (
-                <article
-                  className={`access-tier${tier.featured ? " access-tier--featured" : ""}`}
-                  key={tier.id}
-                  data-reveal
-                  style={{ "--reveal-delay": index } as CSSProperties}
-                >
-                  <header>
-                    <p className="eyebrow">{tier.eyebrow}</p>
-                    <h2>{tier.name}</h2>
-                    <p className="access-tier__note">{tier.accessNote}</p>
-                  </header>
-                  <p className="access-tier__summary">{tier.summary}</p>
-                  <ul className="access-tier__highlights">
-                    {tier.highlights.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                  <Link
-                    className={`button micro-button ${tier.featured ? "button--orange" : "button--ghost"}`}
-                    href={tier.cta.href}
-                  >
-                    {tier.cta.label}
-                  </Link>
-                </article>
-              ))}
+            <div className="access-main">
+              <AccessTiers tiers={pricingTiers} vip={vip} saving={yearlySaving()} />
             </div>
 
             <AccessStatePanel />

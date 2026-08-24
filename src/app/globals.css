@@ -298,7 +298,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .section-heading h1 { font-size: clamp(1.9rem, 3.4vw, 2.9rem); letter-spacing: -.04em; line-height: 1.14; margin: 10px 0 0; }
 .access-intro { color: var(--muted); line-height: 1.75; max-width: 730px; margin: 16px 0 0; }
 .access-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(282px,338px); gap: 26px; align-items: start; margin-top: 34px; }
-.access-tiers { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 16px; }
+.access-tiers { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
 .access-tier { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
 .access-tier--featured { border-color: var(--teal); box-shadow: 0 12px 30px rgba(13,130,130,.13); }
 .access-tier header { display: block; }
@@ -337,4 +337,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .access-footnote { margin: 26px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.72; padding-left: 15px; border-left: 3px solid var(--mist); max-width: 760px; }
 
 @media (max-width: 1080px) { .access-layout { grid-template-columns: 1fr; } .access-panel { position: static; } }
-@media (max-width: 860px) { .access-tiers { grid-template-columns: 1fr; } }
+@media (max-width: 1080px) { .access-tiers { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 720px) { .access-tiers { grid-template-columns: 1fr; } }
+
+/* Billing period switch, VIP price block and the day pass. ADR 0011 allows stated prices; the
+   per-day figure is computed from the selected cycle so 29 never appears beside the 39 cycle. */
+.access-main { display: grid; gap: 0; }
+.billing-switch { display: inline-flex; gap: 4px; padding: 4px; background: #eaf1f1; border: 1px solid var(--line); border-radius: 999px; margin: 0 0 20px; }
+.billing-switch__option { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 999px; padding: .5rem 1rem; font-weight: 700; font-size: .88rem; color: var(--muted); cursor: pointer; transition: background 160ms var(--ease-out), color 160ms var(--ease-out); }
+.billing-switch__option[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(7,48,71,.12); }
+.billing-switch__save { background: #ffe9d6; color: #8a4413; border-radius: 999px; padding: .16rem .5rem; font-size: .72rem; font-weight: 800; }
+.access-tier__price { margin-top: 12px; }
+.access-tier__was { margin: 0 0 4px; color: var(--muted); font-size: .82rem; }
+.access-tier__was s { color: #93a5ab; }
+.access-tier__amount { margin: 0; display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+.access-tier__amount strong { font-size: 2rem; letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.access-tier__amount span { color: var(--muted); font-size: .9rem; font-weight: 700; }
+.access-tier__perday { margin: 6px 0 0; color: var(--teal); font-size: .84rem; font-weight: 700; line-height: 1.55; }
+.day-pass { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 20px; align-items: center; margin-top: 18px; padding: 20px 22px; background: var(--paper); border: 1px dashed var(--line); border-radius: 14px; }
+.day-pass h3 { margin: 0 0 5px; font-size: 1.05rem; letter-spacing: -.02em; }
+.day-pass p { margin: 0; color: var(--muted); font-size: .87rem; line-height: 1.62; }
+.day-pass__price { white-space: nowrap; }
+.day-pass__price strong { font-size: 1.5rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.day-pass__price span { color: var(--muted); font-size: .85rem; font-weight: 700; }
+.day-pass .button { text-decoration: none; white-space: nowrap; }
+.price-note { margin: 14px 0 0; color: var(--muted); font-size: .82rem; line-height: 1.7; }
+.price-note + .price-note { margin-top: 6px; }
+
+@media (max-width: 720px) { .day-pass { grid-template-columns: 1fr; gap: 12px; } .billing-switch { width: 100%; } .billing-switch__option { flex: 1; justify-content: center; } }

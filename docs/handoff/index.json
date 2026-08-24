@@ -1,5 +1,26 @@
 [
   {
+    "version": "0.28.0",
+    "title": "The Platform States Its Prices, and the Day Pass Stops Competing With VIP",
+    "description": "ADR 0011 อนุญาตให้ประกาศราคา สมาชิก VIP 1,170/เดือน หรือ 10,440/ปี พร้อมสวิตช์ และราคาแยกแอปที่แพงกว่าเหมารวมถูกเปลี่ยนเป็นบัตรรายวัน",
+    "scope": [
+      "ADR 0011 supersedes the no-numeric-price rule in docs/requirements/civil-apps-market.md rows 15, 61 and 70",
+      "add the VIP tier with a monthly/yearly switch, priced 1,170 and 10,440 baht VAT-inclusive",
+      "derive the per-day figure from the selected cycle so 29 baht never appears beside the 39 baht cycle",
+      "sell the single app as a day pass rather than a subscription that VIP strictly dominates",
+      "model a promotion as a dated window that expires on its own instead of an edit to the standing price"
+    ],
+    "verification": [
+      "pnpm test 183 passed, 33 skipped; pricing.test.ts holds the approved figures and asserts the yearly saving is computed from them rather than typed in",
+      "pricing.test.ts asserts round(perDayBaht('yearly')) is 29 and round(perDayBaht('monthly')) is not, which is the rule the ad copy depends on",
+      "pricing.test.ts asserts no tier copy contains a baht figure, so a price has one home",
+      "browser check on localhost:3000/pricing: the switch moves the card between 1,170 บาท/เดือน with 39.00 a day and 10,440 บาท/ปี with 28.60 a day, and the coffee line appears only on the yearly cycle",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.27.0-access-page แล้ว revert commit ของ v0.28.0 ไม่มี migration และยังไม่มีการรับชำระเงิน จึงไม่มีรายการที่ค้างอยู่กับผู้ให้บริการชำระเงินใด",
+    "path": "docs/handoff/2026-08-24-stated-prices.md"
+  },
+  {
     "version": "0.27.0",
     "title": "An Access Page That Compares Rights, Not Prices",
     "description": "หน้า /pricing เทียบสิทธิ์การเข้าใช้งานสามแบบแทนราคา ตารางความสามารถ derive จาก listCapabilities และ ADR 0010 ทำให้ข้อความก่อนเข้าใช้งานเป็นประโยคเดียวทุกพื้นผิว",
