@@ -158,7 +158,7 @@ export const platformApps: PlatformApp[] = [
     // every other card wears its own reads as a mistake, not as a stand-in.
     iconSrc: visualAssetUrl("brand_mark"),
     iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปคำนวณค่า K",
-    seededAccess: "member_free",
+    seededAccess: "paid_trial",
     href: "/apps/escalation-k",
     status: "coming_soon",
     categoryId: "building-cost",
