@@ -1,5 +1,22 @@
 [
   {
+    "version": "0.39.0",
+    "title": "A Card Should Answer the Question Being Asked",
+    "description": "บันทึกการตัดสินใจเรื่องการ์ดแอป: ต้องตอบสี่คำถาม ใส่ราคาลงการ์ด แก้ gap ที่หายไป และใช้วันที่จริงแทนเปอร์เซ็นต์ความคืบหน้า",
+    "scope": [
+      "สี่คำถามที่การ์ดต้องตอบ และเหตุผลที่การซ่อนราคาไม่ใช่ความ simple",
+      "gap ที่หายไปใน .market-category__apps และป้ายที่อยู่ผิดคอลัมน์",
+      "ปฏิเสธเปอร์เซ็นต์ความคืบหน้า ใช้ apps.announced_at แทน"
+    ],
+    "verification": [
+      "อ่านค่า grid จริงจาก globals.css ไม่ได้ประมาณ",
+      "ยืนยันว่า announced_at มีอยู่แล้วจาก migration 0006",
+      "node scripts/check-roadmap.mjs"
+    ],
+    "rollback": "เอกสารล้วน revert commit นี้ได้ ไม่มีโค้ด ไม่มี schema ไม่มีข้อมูล",
+    "path": "docs/handoff/2026-08-25-what-a-card-may-claim.md"
+  },
+  {
     "version": "0.38.0",
     "title": "Session Close: The Back Office Was Tested, and the Header Learned Who Is Looking",
     "description": "handoff รวมงานทั้งวัน: ทดสอบหลังบ้าน แก้บั๊กสามตัว เมนูบัญชีและหน้า /account หัวแอปทุกแอป และผลตรวจคุกกี้",
