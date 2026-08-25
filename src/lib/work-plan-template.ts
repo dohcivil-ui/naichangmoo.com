@@ -76,7 +76,11 @@ const templates: Partial<Record<TemplateId, readonly TemplateLine[]>> = {
 export const templateSource = (id: TemplateId): string | null =>
   templateOptions.find((option) => option.id === id)?.source ?? null;
 
-export const hasTemplate = (id: TemplateId): boolean => templates[id] !== undefined;
+/**
+ * รับ string เพราะรหัสแม่แบบเดินทางกลับมาจากที่เก็บข้อมูลในรูปข้อความเสมอ
+ * และคืนเป็นตัวตรวจชนิด เพื่อให้ผู้เรียกได้ชนิดที่แคบลงโดยไม่ต้อง cast เอง
+ */
+export const hasTemplate = (id: string): id is TemplateId => templates[id as TemplateId] !== undefined;
 
 /**
  * ร่างรายการงานจากมูลค่าสัญญาและระยะเวลา

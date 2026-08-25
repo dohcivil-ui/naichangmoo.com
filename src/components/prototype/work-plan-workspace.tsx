@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition, type ReactNode } from "react";
 import {
   buildMilestoneSchedule,
   percentToPpm,
@@ -13,6 +13,30 @@ import { formatBaht, parseBaht } from "@/lib/thai-baht";
 import { formatThaiDate } from "@/lib/thai-format";
 import { PERIOD_DAYS, WEIGHT_SCALE, activityWeights, buildPlanCurve, formatPercent, sumCost, type PlanActivity } from "@/lib/work-plan";
 import { draftActivities, draftMilestones, hasTemplate, templateOptions, templateSource, type TemplateId } from "@/lib/work-plan-template";
+import {
+  buildActualSeries,
+  cashPosition,
+  checkDeductions,
+  countHiddenEvents,
+  daysBetween,
+  expectedNetForCertified,
+  latestRecordedDate,
+  milestoneStatuses,
+  type IsoDate,
+  type MilestoneActual,
+  type MilestoneStage,
+  type MoneyEvent
+} from "@/lib/work-plan-actuals";
+import {
+  getSaveFailed,
+  getSaveFailedOnServer,
+  getWorkPlanRaw,
+  getWorkPlanServerRaw,
+  parseWorkPlan,
+  saveWorkPlan,
+  subscribeWorkPlanStore,
+  type WorkPlanSnapshot
+} from "@/lib/work-plan-storage";
 import { askWorkPlanAssistant, reviewWorkPlan, type AssistantResult, type ReviewFinding } from "@/server/actions/work-plan-assistant";
 import { WorkPlanDocument } from "@/components/prototype/work-plan-document";
 
@@ -104,11 +128,37 @@ function LiveNumber({ children }: { children: ReactNode }) {
 /** ป้ายช่วงเวลาแบบ ด1/1 คือเดือนที่หนึ่ง ครึ่งแรก ตามหัวคอลัมน์ 15/30 ที่หนังสือใช้ */
 const periodLabel = (index: number) => `ด${Math.floor(index / 2) + 1}/${(index % 2) + 1}`;
 
+/**
+ * ชั้นนอกทำหน้าที่เดียว คืออ่านงานที่ค้างอยู่ในเบราว์เซอร์ แล้วส่งให้ชั้นในเป็นค่าตั้งต้น
+ *
+ * แยกออกมาเพราะที่เก็บของเบราว์เซอร์เป็นสิ่งที่เซิร์ฟเวอร์มองไม่เห็น `useSyncExternalStore`
+ * จึงจัดการการวาดสองรอบให้ถูกต้องเอง โดยรอบแรกใช้สแนปช็อตฝั่งเซิร์ฟเวอร์ แล้วค่อยสลับเป็นของจริง
+ * เป็นแบบแผนเดียวกับ `cookie-notice.tsx` และดีกว่าการอ่านใน effect แล้วเรียก setState
+ * ซึ่งทำให้หน้าจอกระพริบและถูกกฎ react-hooks ปฏิเสธ
+ *
+ * `key` ทำให้ชั้นในเกิดใหม่พร้อมค่าตั้งต้นชุดใหม่เมื่อของจริงมาถึง โดยไม่ต้องมี effect ที่ตั้งค่าย้อนกลับ
+ */
 export function WorkPlanWorkspace() {
+  const raw = useSyncExternalStore(subscribeWorkPlanStore, getWorkPlanRaw, getWorkPlanServerRaw);
+  const restored = useMemo(() => parseWorkPlan(raw === "" ? null : raw), [raw]);
+  return <WorkPlanBoard key={restored ? "restored" : "fresh"} restored={restored} />;
+}
+
+function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const [tab, setTab] = useState<TabId>(1);
-  const [setup, setSetup] = useState<SetupState>(initialSetup);
-  const [activities, setActivities] = useState<PlanActivity[]>([]);
-  const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [setup, setSetup] = useState<SetupState>(() => {
+    if (!restored) return initialSetup;
+    // ค่าที่เป็นตัวเลือกต้องตรวจก่อนใช้ ไฟล์ที่ถูกแก้เองมาอาจมีคำที่เราไม่รู้จัก
+    return {
+      ...initialSetup,
+      ...restored.setup,
+      templateId: hasTemplate(restored.setup.templateId) ? restored.setup.templateId : initialSetup.templateId,
+      advanceRecovery: restored.setup.advanceRecovery === "none" ? "none" : "proportional",
+      retentionMethod: restored.setup.retentionMethod === "final" ? "final" : "each"
+    };
+  });
+  const [activities, setActivities] = useState<PlanActivity[]>(() => restored?.activities ?? []);
+  const [milestones, setMilestones] = useState<Milestone[]>(() => restored?.milestones ?? []);
   const [draftedIds, setDraftedIds] = useState<ReadonlySet<string>>(new Set());
   const [notice, setNotice] = useState<string | null>(null);
   const [instruction, setInstruction] = useState("");
@@ -119,6 +169,10 @@ export function WorkPlanWorkspace() {
   const [reviewFindings, setReviewFindings] = useState<ReviewFinding[] | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewBusy, startReview] = useTransition();
+  const [actuals, setActuals] = useState<MilestoneActual[]>(() => restored?.actuals ?? []);
+  /** ว่างแปลว่ายังไม่เคยตั้งเอง ให้ไปใช้วันล่าสุดที่มีบันทึก หรือวันนี้ */
+  const [dataDateOverride, setDataDateOverride] = useState<IsoDate | "">(() => restored?.dataDate ?? "");
+  const saveFailed = useSyncExternalStore(subscribeWorkPlanStore, getSaveFailed, getSaveFailedOnServer);
 
   const contractParse = parseBaht(setup.contract);
   const contractSatang = contractParse.ok ? contractParse.satang : 0n;
@@ -148,6 +202,59 @@ export function WorkPlanWorkspace() {
     () => buildMilestoneSchedule(weights, milestones, terms),
     [weights, milestones, terms]
   );
+
+  /**
+   * วันตัดข้อมูลที่ใช้จริง — ค่าตั้งต้นคือวันล่าสุดที่มีบันทึก ถ้ายังไม่มีเลยก็ใช้วันนี้
+   * ผู้ใช้แก้ทับได้เสมอ เพราะเวลาทำรายงานส่งกรรมการต้องตรึงไว้ที่วันที่ระบุในรายงาน
+   */
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const dataDate: IsoDate = dataDateOverride || latestRecordedDate(actuals) || todayIso;
+
+  const actualSeries = useMemo(() => buildActualSeries(actuals, dataDate), [actuals, dataDate]);
+  const position = useMemo(() => cashPosition(actualSeries), [actualSeries]);
+  const statuses = useMemo(() => milestoneStatuses(actuals, dataDate), [actuals, dataDate]);
+  const deductionFindings = useMemo(
+    () => checkDeductions(schedule.rows, actuals, dataDate),
+    [schedule.rows, actuals, dataDate]
+  );
+  const hiddenEvents = countHiddenEvents(actuals, dataDate);
+  const actualById = new Map(actuals.map((entry) => [entry.milestoneId, entry]));
+  const statusById = new Map(statuses.map((entry) => [entry.milestoneId, entry]));
+
+  const updateActual = (milestoneId: string, patch: Partial<MilestoneActual>) =>
+    setActuals((current) => {
+      const existing = current.find((entry) => entry.milestoneId === milestoneId);
+      if (!existing) return [...current, { milestoneId, ...patch }];
+      return current.map((entry) => (entry.milestoneId === milestoneId ? { ...entry, ...patch } : entry));
+    });
+
+  /**
+   * เก็บลงเบราว์เซอร์ทุกครั้งที่มีอะไรเปลี่ยน
+   *
+   * เขียนอย่างเดียว ไม่ตั้งสถานะใด ๆ ในนี้ ผลของการเขียนอ่านผ่านที่เก็บภายนอกแทน
+   * เพราะการเรียก setState ใน effect ทำให้วาดหน้าจอสองรอบทุกครั้งที่พิมพ์หนึ่งตัวอักษร
+   */
+  useEffect(() => {
+    /*
+     * กติกาที่ห้ามพัง: **กระดานเปล่าห้ามเขียนทับงานที่ค้างอยู่**
+     *
+     * เขียนไว้เป็นกติกาของข้อมูล ไม่ใช่ตัวนับรอบ เพราะตัวนับรอบเอาไม่อยู่จริง —
+     * โหมดตรวจสอบของ React ในระหว่างพัฒนาเรียก effect สองรอบโดยที่ ref ยังอยู่ค่าเดิม
+     * ตัวกันแบบนับรอบจึงถูกข้ามในรอบที่สองแล้วลบงานของผู้ใช้ทิ้ง (เจอจริงตอนทดสอบ)
+     *
+     * กติกานี้ยังกันอีกกรณีที่เกิดจริง คือเปิดหน้านี้ไว้สองแท็บ แล้วแท็บที่ยังว่าง
+     * ไปลบงานที่อีกแท็บกำลังทำอยู่ทิ้ง
+     */
+    const boardIsEmpty =
+      activities.length === 0 &&
+      milestones.length === 0 &&
+      actuals.length === 0 &&
+      setup.projectName.trim() === "" &&
+      setup.contract.trim() === "";
+    if (boardIsEmpty && getWorkPlanRaw() !== "") return;
+
+    saveWorkPlan({ setup, activities, milestones, actuals, dataDate: dataDateOverride });
+  }, [setup, activities, milestones, actuals, dataDateOverride]);
 
   const activityCost = sumCost(activities);
   const costGap = activityCost - contractSatang;
@@ -324,8 +431,16 @@ export function WorkPlanWorkspace() {
         </header>
 
         <p className="work-plan__disclaimer">
-          หน้านี้เป็นต้นแบบสำหรับตัดสินใจ ยังไม่บันทึกข้อมูล รีโหลดแล้วข้อมูลจะหาย
+          หน้านี้เป็นต้นแบบสำหรับตัดสินใจ งานที่ทำค้างไว้เก็บในเบราว์เซอร์เครื่องนี้เท่านั้น
+          ยังไม่ขึ้นคลาวด์ และเปิดจากเครื่องอื่นไม่เห็น
         </p>
+
+        {saveFailed ? (
+          <p className="form-error work-plan__notice" role="alert">
+            บันทึกลงเบราว์เซอร์ไม่สำเร็จ อาจเพราะพื้นที่เต็มหรือเบราว์เซอร์ปิดการเก็บข้อมูลเว็บไว้ —
+            งานที่ทำอยู่จะหายเมื่อปิดหน้านี้
+          </p>
+        ) : null}
 
         <nav className="work-plan__tabs" aria-label="ขั้นตอนการทำงาน">
           {TABS.map((entry) => (
@@ -404,11 +519,28 @@ export function WorkPlanWorkspace() {
             reviewError={reviewError}
             onReview={runReview}
             onPrint={() => setShowDocument(true)}
+            actualById={actualById}
+            statusById={statusById}
+            onUpdateActual={updateActual}
+            dataDate={dataDate}
+            deductionFindings={deductionFindings}
           />
         ) : null}
 
         {tab === 4 ? (
-          <CurveTab curve={curve} schedule={schedule} contractSatang={contractSatang} startDate={setup.startDate} />
+          <CurveTab
+            curve={curve}
+            schedule={schedule}
+            contractSatang={contractSatang}
+            startDate={setup.startDate}
+            actualSeries={actualSeries}
+            position={position}
+            dataDate={dataDate}
+            dataDateOverride={dataDateOverride}
+            onDataDate={setDataDateOverride}
+            hiddenEvents={hiddenEvents}
+            todayIso={todayIso}
+          />
         ) : null}
       </div>
 
@@ -870,7 +1002,12 @@ function MilestonesTab({
   reviewFindings,
   reviewError,
   onReview,
-  onPrint
+  onPrint,
+  actualById,
+  statusById,
+  onUpdateActual,
+  dataDate,
+  deductionFindings
 }: {
   activities: PlanActivity[];
   schedule: ReturnType<typeof buildMilestoneSchedule>;
@@ -885,6 +1022,11 @@ function MilestonesTab({
   reviewError: string | null;
   onReview: () => void;
   onPrint: () => void;
+  actualById: Map<string, MilestoneActual>;
+  statusById: Map<string, ReturnType<typeof milestoneStatuses>[number]>;
+  onUpdateActual: (milestoneId: string, patch: Partial<MilestoneActual>) => void;
+  dataDate: IsoDate;
+  deductionFindings: ReturnType<typeof checkDeductions>;
 }) {
   const balanced = schedule.totalWorkSatang === contractSatang && contractSatang > 0n;
 
@@ -1019,6 +1161,15 @@ function MilestonesTab({
         </div>
       </Panel>
 
+      <ActualsPanel
+        rows={schedule.rows}
+        actualById={actualById}
+        statusById={statusById}
+        onUpdateActual={onUpdateActual}
+        dataDate={dataDate}
+        deductionFindings={deductionFindings}
+      />
+
       <Panel eyebrow="ผูกงานเข้างวด" title="งวดตัดด้วยงาน ไม่ใช่ด้วยเวลา">
         <p className="form-note">
           งวดงานราชการเขียนว่างานใดต้องแล้วเสร็จ ไม่ได้เขียนว่าครบกี่เปอร์เซ็นต์
@@ -1069,10 +1220,230 @@ function MilestonesTab({
   );
 }
 
+const STAGE_LABEL: Record<MilestoneStage, string> = {
+  planned: "ยังไม่ยื่น",
+  requested: "ยื่นขอเบิกแล้ว",
+  certified: "รับรองแล้ว",
+  paid: "เงินเข้าแล้ว"
+};
+
+/**
+ * บันทึกจริงต่องวด — สามยอด สามวัน
+ *
+ * รูปร่างของหน้าจอนี้ถอดมาจากของจริงที่ผู้รับเหมาไทยใช้ แล้วแก้จุดที่ของเขาสับสนเอง:
+ *
+ * หนึ่ง — **ทุกช่องเงินติดป้ายว่าเป็นยอดก่อนหักหรือยอดสุทธิ** ฟอร์มของเขาปนสองระดับในฟอร์มเดียว
+ * จนข้อมูลตัวอย่างของเขาเองกรอกเป็นมูลค่างาน ขณะที่ปุ่มเติมอัตโนมัติของเขาเติมยอดสุทธิ
+ *
+ * สอง — **สถานะอนุมานจากข้อมูล ไม่ใช่ช่องให้เลือก** ของเขาเป็นช่องเลือกที่เพี้ยนได้เมื่อผู้ใช้
+ * กรอกเงินเข้าแล้วลืมเปลี่ยนป้าย
+ *
+ * สาม — **เทียบยอดที่ควรได้กับเงินที่เข้าจริง แล้วทักเมื่อไม่ตรง** ของเขาเก็บตัวเลขครบทั้งสามยอด
+ * แต่ไม่เคยเอามาเทียบกันเลยสักครั้ง
+ */
+function ActualsPanel({
+  rows,
+  actualById,
+  statusById,
+  onUpdateActual,
+  dataDate,
+  deductionFindings
+}: {
+  rows: ReturnType<typeof buildMilestoneSchedule>["rows"];
+  actualById: Map<string, MilestoneActual>;
+  statusById: Map<string, ReturnType<typeof milestoneStatuses>[number]>;
+  onUpdateActual: (milestoneId: string, patch: Partial<MilestoneActual>) => void;
+  dataDate: IsoDate;
+  deductionFindings: ReturnType<typeof checkDeductions>;
+}) {
+  if (rows.length === 0) return null;
+
+  const findingById = new Map(deductionFindings.map((entry) => [entry.milestoneId, entry]));
+
+  /** แก้ยอดหรือวันของเหตุการณ์หนึ่ง โดยเก็บอีกช่องไว้เหมือนเดิม */
+  const patchEvent = (
+    milestoneId: string,
+    key: "requested" | "certified" | "received",
+    current: MoneyEvent | undefined,
+    next: Partial<MoneyEvent>
+  ) => {
+    const merged: MoneyEvent = {
+      satang: next.satang ?? current?.satang ?? 0n,
+      date: next.date ?? current?.date ?? ""
+    };
+    onUpdateActual(milestoneId, { [key]: merged.satang === 0n && merged.date === "" ? undefined : merged });
+  };
+
+  const MoneyCell = ({
+    milestoneId,
+    field,
+    event,
+    hint
+  }: {
+    milestoneId: string;
+    field: "requested" | "certified" | "received";
+    event: MoneyEvent | undefined;
+    hint: string;
+  }) => {
+    const future = event?.date !== undefined && event.date !== "" && daysBetween(event.date, dataDate) < 0;
+    // คิดนอก JSX เพราะตัวตรวจ a11y พยายามคำนวณค่าของแอตทริบิวต์เอง แล้วพังเมื่อเจอ BigInt
+    const bahtText = event && event.satang !== 0n ? (event.satang / 100n).toString() : "";
+    return (
+      <td className="number-cell">
+        <input
+          className="work-plan__cell work-plan__cell--number"
+          inputMode="numeric"
+          aria-label={hint}
+          value={bahtText}
+          placeholder="ยอดบาท"
+          onChange={(changed) => {
+            const digits = changed.target.value.replace(/[^\d]/g, "");
+            patchEvent(milestoneId, field, event, { satang: digits === "" ? 0n : BigInt(digits) * 100n });
+          }}
+        />
+        <input
+          type="date"
+          className={future ? "work-plan__cell work-plan__cell--future" : "work-plan__cell"}
+          aria-label={`วันที่ของ${hint}`}
+          value={event?.date ?? ""}
+          onChange={(changed) => patchEvent(milestoneId, field, event, { date: changed.target.value })}
+        />
+      </td>
+    );
+  };
+
+  return (
+    <Panel
+      eyebrow="บันทึกจริงต่องวด"
+      title="สามยอด สามวัน — ยื่นขอเบิก · ที่ปรึกษารับรอง · เงินเข้าบัญชี"
+      status={
+        <span className="status-chip status-chip--ready">
+          วันตัดข้อมูล {formatThaiDate(dataDate) ?? dataDate}
+        </span>
+      }
+    >
+      <p className="form-note">
+        <strong>ยอดที่ขอเบิกและยอดที่รับรองเป็นมูลค่างานก่อนหัก</strong> เพราะกรรมการตรวจการจ้างรับรองเนื้องาน
+        ไม่ได้รับรองยอดสุทธิ ส่วน <strong>เงินเข้าจริงเป็นยอดสุทธิที่เข้าบัญชี</strong> หลังหักทุกรายการแล้ว
+        ระบบคำนวณยอดที่ควรได้จากยอดที่รับรองให้ แล้วเทียบกับเงินที่เข้าจริงเพื่อทักเมื่อถูกหักเกิน
+      </p>
+
+      {deductionFindings.length > 0 ? (
+        <ul className="work-plan__findings">
+          {deductionFindings.map((finding) => {
+            const row = rows.find((entry) => entry.milestoneId === finding.milestoneId);
+            const short = finding.shortfallSatang > 0n;
+            return (
+              <li key={finding.milestoneId} className="work-plan__finding work-plan__finding--high">
+                <span className="work-plan__finding-tag">{short ? "ได้น้อยกว่าที่ควร" : "ได้เกินที่ควร"}</span>
+                <div>
+                  <strong>
+                    {row?.title ?? finding.milestoneId} ต่างจากที่ควรได้{" "}
+                    {formatBaht(finding.shortfallSatang < 0n ? -finding.shortfallSatang : finding.shortfallSatang)}
+                  </strong>
+                  <p>
+                    จากยอดที่รับรอง ระบบคำนวณว่าควรได้ {formatBaht(finding.expectedNetSatang)} แต่เงินเข้าจริง{" "}
+                    {formatBaht(finding.receivedSatang)} — ตรวจกับหนังสือแจ้งการหักของผู้ว่าจ้างก่อนรับ
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+
+      <div className="takeoff-table-wrap">
+        <table className="takeoff-table work-plan__table">
+          <thead>
+            <tr>
+              <th>งวด</th>
+              <th>สถานะ</th>
+              <th className="number-cell">ยอดที่ขอเบิก (ก่อนหัก)</th>
+              <th className="number-cell">ยอดที่รับรอง (ก่อนหัก)</th>
+              <th className="number-cell">เงินเข้าจริง (สุทธิ)</th>
+              <th className="number-cell">ควรได้จากยอดที่รับรอง</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => {
+              const actual = actualById.get(row.milestoneId);
+              const status = statusById.get(row.milestoneId);
+              const stage = status?.stage ?? "planned";
+              const expected = actual?.certified ? expectedNetForCertified(row, actual.certified.satang) : null;
+              const finding = findingById.get(row.milestoneId);
+              return (
+                <tr key={row.milestoneId}>
+                  <td>
+                    {row.title}
+                    <br />
+                    <small className="form-note">มูลค่างานงวดนี้ {formatBaht(row.periodWorkSatang)}</small>
+                  </td>
+                  <td>
+                    <span className={`status-chip ${stage === "paid" ? "status-chip--ready" : "status-chip--attention"}`}>
+                      {STAGE_LABEL[stage]}
+                    </span>
+                    {status?.awaitingPaymentDays !== null && status?.awaitingPaymentDays !== undefined ? (
+                      <>
+                        <br />
+                        <small className="form-note">รับรองแล้ว {status.awaitingPaymentDays.toLocaleString("th-TH")} วัน ยังไม่ได้เงิน</small>
+                      </>
+                    ) : null}
+                  </td>
+                  <MoneyCell milestoneId={row.milestoneId} field="requested" event={actual?.requested} hint={`ยอดที่ขอเบิกของ${row.title}`} />
+                  <MoneyCell milestoneId={row.milestoneId} field="certified" event={actual?.certified} hint={`ยอดที่รับรองของ${row.title}`} />
+                  <MoneyCell milestoneId={row.milestoneId} field="received" event={actual?.received} hint={`เงินเข้าจริงของ${row.title}`} />
+                  <td className="number-cell">
+                    {expected === null ? (
+                      <small className="form-note">รอยอดที่รับรอง</small>
+                    ) : (
+                      <>
+                        <LiveNumber>{formatBaht(expected)}</LiveNumber>
+                        {finding ? (
+                          <>
+                            <br />
+                            <small className="form-error">ต่าง {formatBaht(finding.shortfallSatang < 0n ? -finding.shortfallSatang : finding.shortfallSatang)}</small>
+                          </>
+                        ) : null}
+                        {!actual?.received ? (
+                          <>
+                            <br />
+                            <button
+                              type="button"
+                              className="button button--ghost micro-button"
+                              onClick={() =>
+                                patchEvent(row.milestoneId, "received", actual?.received, {
+                                  satang: expected,
+                                  date: actual?.received?.date || dataDate
+                                })
+                              }
+                            >
+                              เติมยอดนี้เป็นเงินเข้า
+                            </button>
+                          </>
+                        ) : null}
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  );
+}
+
 type Series = {
-  id: "plan" | "cash" | "certified";
+  id: "plan" | "cash" | "certified" | "requested";
   label: string;
-  /** ขั้นบันไดใช้กับเงิน เพราะเงินเข้าเป็นก้อนตามงวด ไม่ได้ไหลต่อเนื่องเหมือนเนื้องาน */
+  /**
+   * เส้นโค้งทั้งหมดตามมติของเจ้าของงานเมื่อ 2026-08-26 (เดิมเส้นเงินเป็นขั้นบันได)
+   *
+   * เงื่อนไขที่ตามมาและห้ามละเลย: พอเป็นเส้นโค้ง รูปทรงจะไม่บอกอีกต่อไปว่าเงินเข้าเป็นก้อนกี่ครั้ง
+   * **จึงต้องมีหมุดจุดที่ทุกเหตุการณ์เงินเสมอ** เพราะหมุดคือสิ่งเดียวที่เหลืออยู่ซึ่งบอกว่า
+   * ค่าระหว่างสองหมุดเป็นการลากเส้นเชื่อม ไม่ใช่เงินที่ไหลเข้าทุกวัน
+   */
   shape: "curve" | "step";
   points: { period: number; satang: bigint }[];
 };
@@ -1093,12 +1464,26 @@ function CurveTab({
   curve,
   schedule,
   contractSatang,
-  startDate
+  startDate,
+  actualSeries,
+  position,
+  dataDate,
+  dataDateOverride,
+  onDataDate,
+  hiddenEvents,
+  todayIso
 }: {
   curve: ReturnType<typeof buildPlanCurve>;
   schedule: ReturnType<typeof buildMilestoneSchedule>;
   contractSatang: bigint;
   startDate: string;
+  actualSeries: ReturnType<typeof buildActualSeries>;
+  position: ReturnType<typeof cashPosition>;
+  dataDate: IsoDate;
+  dataDateOverride: IsoDate | "";
+  onDataDate: (value: IsoDate | "") => void;
+  hiddenEvents: number;
+  todayIso: string;
 }) {
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const [hover, setHover] = useState<number | null>(null);
@@ -1112,18 +1497,38 @@ function CurveTab({
     );
   }
 
+  /**
+   * วางเหตุการณ์จริงลงแกนเวลาด้วย **วันที่ของเหตุการณ์นั้น** ไม่ใช่ด้วยลำดับงวด
+   *
+   * รอบก่อนใช้ตำแหน่งจากน้ำหนักงานสะสม ซึ่งเป็นการเดาจากแผน ไม่ใช่ของจริง
+   * เส้นเงินจึงไปโผล่ผิดเดือนเสมอเมื่อการเบิกจริงเร็วหรือช้ากว่าแผน
+   */
+  /** ตำแหน่งของหมุดงวดบนเส้นแผน — งวดเป็นของแผน จึงวางด้วยน้ำหนักงานสะสม ไม่ใช่ด้วยวันจริง */
   const periodOf = (weightPpm: bigint) => {
     const found = curve.cumulativePpm.findIndex((ppm) => ppm >= weightPpm);
     return Math.min(curve.periodCount - 1, found < 0 ? curve.periodCount - 1 : found);
   };
 
-  const runningTotals = (pick: (row: (typeof schedule.rows)[number]) => bigint) => {
-    let running = 0n;
-    return schedule.rows.map((row) => {
-      running += pick(row);
-      return { period: periodOf(row.cumulativeWeightPpm), satang: running };
-    });
+  const periodOfDate = (date: IsoDate) => {
+    if (!startDate || !date) return 0;
+    const offset = daysBetween(startDate, date);
+    return Math.max(0, Math.min(curve.periodCount - 1, Math.floor(offset / PERIOD_DAYS)));
   };
+
+  /**
+   * ยึดเส้นเงินไว้ที่ศูนย์ตรงวันเริ่มสัญญาเสมอ
+   *
+   * เพราะยอดสะสมย่อมเริ่มจากศูนย์จริง ๆ และถ้าไม่ยึด งวดแรกที่มีเหตุการณ์เดียวจะได้จุดเดียว
+   * ซึ่งวาดเป็นเส้นไม่ได้เลย ผู้ใช้จึงเห็นแค่จุดลอย ๆ โดยไม่รู้ว่าเส้นนั้นมีอยู่ (เจอตอนทดสอบจริง)
+   */
+  const pointsFrom = (points: ReturnType<typeof buildActualSeries>["requested"]) => {
+    const mapped = points.map((point) => ({ period: periodOfDate(point.date), satang: point.cumulativeSatang }));
+    if (mapped.length === 0) return mapped;
+    return mapped[0]!.period === 0 ? mapped : [{ period: 0, satang: 0n }, ...mapped];
+  };
+
+  /** ช่วงที่วันตัดข้อมูลตกอยู่ — ทุกอย่างหลังจากนี้คืออนาคต ไม่ใช่ข้อมูล */
+  const dataDatePeriod = periodOfDate(dataDate);
 
   const series: Series[] = [
     {
@@ -1132,8 +1537,9 @@ function CurveTab({
       shape: "curve",
       points: curve.cumulativePpm.map((ppm, period) => ({ period, satang: (contractSatang * ppm) / WEIGHT_SCALE }))
     },
-    { id: "certified", label: "มูลค่างานที่ตรวจรับสะสม", shape: "step", points: runningTotals((row) => row.periodWorkSatang) },
-    { id: "cash", label: "เงินรับจริงสะสม", shape: "step", points: runningTotals((row) => row.netSatang) }
+    { id: "requested", label: "ยอดที่ขอเบิกสะสม", shape: "curve", points: pointsFrom(actualSeries.requested) },
+    { id: "certified", label: "มูลค่างานที่รับรองสะสม", shape: "curve", points: pointsFrom(actualSeries.certified) },
+    { id: "cash", label: "เงินรับจริงสะสม", shape: "curve", points: pointsFrom(actualSeries.received) }
   ];
 
   const visible = series.filter((entry) => !hidden.has(entry.id));
@@ -1169,8 +1575,9 @@ function CurveTab({
   };
 
   const planSeries = series[0]!;
-  const certifiedSeries = series[1]!;
-  /** ต้นแบบยังไม่มีบันทึกหน้างาน งวดท้ายจึงตรวจรับครบก่อนแผน ค่าติดลบเล็กน้อยจากตรงนั้นไม่ใช่หนี้ */
+  const certifiedSeries = series[2]!;
+  const cashSeries = series[3]!;
+  /** ยอดที่ทำแล้วยังไม่ได้รับ ติดลบไม่ได้ในความเป็นจริง */
   const clampZero = (satang: bigint) => (satang < 0n ? 0n : satang);
 
   /**
@@ -1202,7 +1609,12 @@ function CurveTab({
     return passed.length === 0 ? 0n : passed[passed.length - 1]!.satang;
   };
 
-  const readPeriod = hover ?? curve.periodCount - 1;
+  /**
+   * ไม่ชี้อะไรอยู่ ให้อ่านค่าที่วันตัดข้อมูล ไม่ใช่ช่วงสุดท้ายของโครงการ
+   * เพราะช่วงสุดท้ายเป็นแผนล้วน ส่วนวันตัดข้อมูลคือจุดที่ของจริงกับแผนมาบรรจบกัน
+   * ซึ่งเป็นตัวเลขที่ผู้ใช้เปิดหน้านี้มาเพื่อดู
+   */
+  const readPeriod = hover ?? dataDatePeriod;
 
   /**
    * ขั้นของแกนตั้งเป็นเลขกลมเสมอ เช่นทีละหนึ่งล้านหรือสองล้าน
@@ -1285,15 +1697,64 @@ function CurveTab({
           ))}
         </div>
 
+        <div className="work-plan__datadate">
+          <label htmlFor="work-plan-data-date">
+            วันตัดข้อมูล
+            <input
+              id="work-plan-data-date"
+              type="date"
+              className="work-plan__cell"
+              value={dataDate}
+              max={todayIso}
+              onChange={(event) => onDataDate(event.target.value)}
+            />
+          </label>
+          <p className="form-note">
+            เส้นข้อมูลจริงหยุดที่วันนี้ ไม่ลากต่อเป็นแผน — งวดที่เงินเข้าหลังวันตัดข้อมูลจะยังไม่ขึ้นบนเส้นเงินรับจริง
+            แม้ยอดขอเบิกของงวดเดียวกันจะขึ้นไปแล้วก็ตาม
+            {dataDateOverride === "" ? " ตอนนี้ใช้วันล่าสุดที่มีบันทึกให้อัตโนมัติ" : null}
+          </p>
+          {dataDateOverride !== "" ? (
+            <button type="button" className="button button--ghost micro-button" onClick={() => onDataDate("")}>
+              กลับไปใช้วันล่าสุดที่มีบันทึก
+            </button>
+          ) : null}
+        </div>
+
+        <dl className="work-plan__readout">
+          <div>
+            <dt>ยื่นขอเบิกแล้ว (ก่อนหัก)</dt>
+            <dd><LiveNumber>{formatBaht(position.requestedSatang)}</LiveNumber></dd>
+          </div>
+          <div>
+            <dt>รับรองแล้ว (ก่อนหัก)</dt>
+            <dd><LiveNumber>{formatBaht(position.certifiedSatang)}</LiveNumber></dd>
+          </div>
+          <div>
+            <dt>เงินเข้าบัญชีแล้ว (สุทธิ)</dt>
+            <dd><LiveNumber>{formatBaht(position.receivedSatang)}</LiveNumber></dd>
+          </div>
+          <div>
+            <dt>ทำแล้วยังไม่ได้รับ</dt>
+            <dd><LiveNumber>{formatBaht(clampZero(position.certifiedNotPaidSatang))}</LiveNumber></dd>
+          </div>
+          <div>
+            <dt>ยื่นแล้วยังไม่มีใครรับรอง</dt>
+            <dd><LiveNumber>{formatBaht(clampZero(position.requestedNotCertifiedSatang))}</LiveNumber></dd>
+          </div>
+        </dl>
+
         <p className="form-note work-plan__chart-note">
-          เส้นเงินหักเป็นขั้น เพราะเงินเข้าเป็นก้อนเมื่อวางบิลผ่าน ไม่ได้ไหลต่อเนื่องเหมือนเนื้องาน
-          ระยะห่างระหว่างเส้นบนกับเส้นล่างคือเงินที่ทำงานไปแล้วแต่ยังไม่ได้รับ
+          หมุดบนเส้นเงินคือเหตุการณ์จริงแต่ละครั้ง เส้นระหว่างหมุดเป็นการลากเชื่อม ไม่ใช่เงินที่ไหลเข้าทุกวัน
+          ระยะห่างระหว่างเส้นรับรองกับเส้นเงินเข้าคือเงินที่ทำงานไปแล้วแต่ยังไม่ได้รับ
         </p>
 
-        <p className="work-plan__sim-note">
-          เส้น &ldquo;มูลค่างานที่ตรวจรับสะสม&rdquo; และ &ldquo;เงินรับจริงสะสม&rdquo; ตอนนี้จำลองตามแผน
-          ยังไม่ใช่ข้อมูลที่บันทึกจากหน้างานจริง
-        </p>
+        {hiddenEvents > 0 ? (
+          <p className="work-plan__sim-note">
+            ซ่อน {hiddenEvents.toLocaleString("th-TH")} บันทึกที่ลงวันที่หลังวันตัดข้อมูล
+            ข้อมูลยังอยู่ครบ เลื่อนวันตัดข้อมูลไปข้างหน้าแล้วจะเห็น
+          </p>
+        ) : null}
 
         <div className="work-plan__chart-wrap">
           <svg
@@ -1331,9 +1792,41 @@ function CurveTab({
               ) : null;
             })}
 
+            {/* แถบอนาคตหลังวันตัดข้อมูล เห็นทันทีว่าตรงไหนคือของจริง ตรงไหนคือแผน */}
+            {dataDatePeriod < curve.periodCount - 1 ? (
+              <>
+                <rect
+                  className="work-plan__future"
+                  x={x(dataDatePeriod)}
+                  y={padTop}
+                  width={x(curve.periodCount - 1) - x(dataDatePeriod)}
+                  height={plotHeight}
+                />
+                <line className="work-plan__datadate-line" x1={x(dataDatePeriod)} y1={padTop} x2={x(dataDatePeriod)} y2={padTop + plotHeight} />
+                <text className="work-plan__datadate-tag" x={x(dataDatePeriod)} y={padTop - 5} textAnchor="middle">
+                  วันตัดข้อมูล
+                </text>
+              </>
+            ) : null}
+
             {visible.map((entry) => (
               <path key={entry.id} className={`work-plan__line work-plan__line--${entry.id}`} d={pathOf(entry)} />
             ))}
+
+            {/* หมุดเหตุการณ์เงิน — สิ่งเดียวที่บอกว่าเงินเข้าเป็นก้อนกี่ครั้ง หลังเปลี่ยนเส้นเป็นเส้นโค้ง */}
+            {visible
+              .filter((entry) => entry.id !== "plan")
+              .flatMap((entry) =>
+                entry.points.map((point) => (
+                  <circle
+                    key={`${entry.id}-${point.period}-${point.satang}`}
+                    className={`work-plan__event work-plan__event--${entry.id}`}
+                    cx={x(point.period)}
+                    cy={y(point.satang)}
+                    r={4}
+                  />
+                ))
+              )}
 
             {hidden.has("plan")
               ? null
@@ -1371,7 +1864,7 @@ function CurveTab({
         <dl className="work-plan__readbar">
           <div>
             <dt>ช่วงเวลา</dt>
-            <dd>{timeLabel(readPeriod)}{hover === null ? " (ช่วงสุดท้าย)" : ""}</dd>
+            <dd>{timeLabel(readPeriod)}{hover === null ? " (ณ วันตัดข้อมูล)" : ""}</dd>
           </div>
           {visible.map((entry) => (
             <div key={entry.id}>
@@ -1379,9 +1872,15 @@ function CurveTab({
               <dd>{formatBaht(valueAt(entry, readPeriod))}</dd>
             </div>
           ))}
+          {hidden.has("certified") || hidden.has("cash") ? null : (
+            <div className="work-plan__readbar-gap">
+              <dt>ทำแล้วยังไม่ได้รับ</dt>
+              <dd>{formatBaht(clampZero(valueAt(certifiedSeries, readPeriod) - valueAt(cashSeries, readPeriod)))}</dd>
+            </div>
+          )}
           {hidden.has("plan") || hidden.has("certified") ? null : (
             <div className="work-plan__readbar-gap">
-              <dt>งานตามแผนที่ยังไม่ได้ตรวจรับ</dt>
+              <dt>งานตามแผนที่ยังไม่ได้รับรอง</dt>
               <dd>{formatBaht(clampZero(valueAt(planSeries, readPeriod) - valueAt(certifiedSeries, readPeriod)))}</dd>
             </div>
           )}

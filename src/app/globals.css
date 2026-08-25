@@ -21,6 +21,15 @@
   --ease-reveal: cubic-bezier(.25, .1, .25, 1);
   --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   --focus: rgba(244, 119, 33, .72);
+
+  /* จานสีของกราฟเท่านั้น — ข้อยกเว้นที่เจ้าของงานอนุญาตไว้ ธีมของหน้าจอยังเป็น teal/ส้ม/หมึกเหมือนเดิม
+     ตรวจด้วย validate_palette.js ของ skill dataviz แล้วผ่านครบหกข้อ:
+     ตาบอดสีแยกออกที่ dE 15.0 (เกณฑ์ 8) และสายตาปกติแยกออกที่ dE 19.6 (เกณฑ์ 15)
+     สีส้มมีความต่างกับพื้นต่ำกว่า 3:1 จึงต้องมีป้ายชื่อและตารางใต้กราฟรองรับเสมอ ห้ามเอาออก */
+  --series-plan: #0aa0a0;
+  --series-requested: #f47721;
+  --series-certified: #2f7fe0;
+  --series-cash: #2f9e5f;
 }
 
 * { box-sizing: border-box; }
@@ -728,9 +737,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__chip:hover { border-color: var(--teal); }
 .work-plan__chip.is-off { opacity: .42; }
 .work-plan__chip-swatch { width: 20px; height: 3px; border-radius: 2px; }
-.work-plan__chip--plan .work-plan__chip-swatch { background: var(--teal); }
-.work-plan__chip--certified .work-plan__chip-swatch { background: repeating-linear-gradient(90deg, var(--orange) 0 5px, transparent 5px 9px); }
-.work-plan__chip--cash .work-plan__chip-swatch { background: var(--success); }
+.work-plan__chip--plan .work-plan__chip-swatch { background: var(--series-plan); }
+.work-plan__chip--requested .work-plan__chip-swatch { background: repeating-linear-gradient(90deg, var(--series-requested) 0 5px, transparent 5px 9px); }
+.work-plan__chip--certified .work-plan__chip-swatch { background: var(--series-certified); }
+.work-plan__chip--cash .work-plan__chip-swatch { background: var(--series-cash); }
 .work-plan__chart-note { margin: .3rem 0 .8rem; }
 /* ป้ายเตือนว่าเส้นตรวจรับและเงินรับจริงยังจำลองจากแผน ไม่ให้อ่านเป็นข้อมูลบันทึกจริง */
 .work-plan__sim-note { margin: 0 0 .8rem; padding: .5rem .75rem; border-left: 3px solid var(--orange); border-radius: 6px; background: var(--canvas); color: var(--muted); font-size: .76rem; font-weight: 600; line-height: 1.6; }
@@ -742,18 +752,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__axis { fill: var(--muted); font-size: 11px; font-weight: 600; }
 
 .work-plan__line { fill: none; stroke-linejoin: round; stroke-linecap: round; }
-.work-plan__line--plan { stroke: var(--teal); stroke-width: 3; }
-/* เส้นตรวจรับเป็นขั้นและเป็นเส้นประ เพราะเป็นยอดที่ยังไม่ใช่เงินสดในมือ */
-.work-plan__line--certified { stroke: var(--orange); stroke-width: 2; stroke-dasharray: 6 4; }
-.work-plan__line--cash { stroke: var(--success); stroke-width: 2.4; }
+.work-plan__line--plan { stroke: var(--series-plan); stroke-width: 3; }
+/* ยอดขอเบิกเป็นเส้นประ เพราะเป็นเงินที่ยังไม่มีใครรับรอง ยังไม่ใช่สิทธิ์ในมือ */
+.work-plan__line--requested { stroke: var(--series-requested); stroke-width: 2.2; stroke-dasharray: 7 5; }
+.work-plan__line--certified { stroke: var(--series-certified); stroke-width: 2.4; }
+.work-plan__line--cash { stroke: var(--series-cash); stroke-width: 2.8; }
 
 .work-plan__marker-dot { fill: var(--paper); stroke: var(--teal); stroke-width: 2.4; }
 .work-plan__marker-number { fill: var(--teal); font-size: 10px; font-weight: 800; }
 
 .work-plan__hover-line { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
-.work-plan__hover-dot--plan { fill: var(--teal); }
-.work-plan__hover-dot--certified { fill: var(--orange); }
-.work-plan__hover-dot--cash { fill: var(--success); }
+.work-plan__hover-dot--plan { fill: var(--series-plan); }
+.work-plan__hover-dot--requested { fill: var(--series-requested); }
+.work-plan__hover-dot--certified { fill: var(--series-certified); }
+.work-plan__hover-dot--cash { fill: var(--series-cash); }
 .work-plan__hover-dot { stroke: var(--paper); stroke-width: 2; }
 
 /* แถบอ่านค่าอยู่ใต้กราฟ ไม่ใช่ทับบนกราฟ
@@ -833,3 +845,90 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .work-plan__doc-scroll { overflow: visible; padding: 0; }
   .work-plan__paper { width: 100%; box-shadow: none; border-radius: 0; padding: 0; }
 }
+
+/* ============================================================================
+   ปฏิกิริยาของสิ่งที่กดได้ — ชี้แล้วต้องขยับ กดแล้วต้องยุบ
+
+   คำสั่งของเจ้าของงาน 2026-08-26: ทุกปุ่มทุกการกระทำต้องมีปฏิกิริยา
+   ตรวจของเดิมแล้วพบว่ามีสิ่งที่ `cursor: pointer` แต่ไม่มี :hover เลย 8 จุด
+   และทั้งไฟล์มี :active แค่ 2 จุดจากที่กดได้ 17 จุด บล็อกนี้ปิดช่องว่างนั้นทั้งหมด
+
+   หลักที่ใช้: ปฏิกิริยาต้องตอบคำถามในหัวผู้ใช้ข้อใดข้อหนึ่ง — กดติดไหม /
+   ระบบทำอะไรอยู่ / อะไรเพิ่งเปลี่ยน ถ้าไม่ตอบข้อไหนเลยคือของประดับ ให้ตัดทิ้ง
+   ใช้เฉพาะ transform กับสีเท่านั้น เพื่อไม่ให้เบราว์เซอร์คำนวณผังใหม่
+   ทั้งบล็อกอยู่ใต้ prefers-reduced-motion ที่ประกาศไว้แล้วด้านบนของไฟล์
+   ============================================================================ */
+
+/* ตัวเลือกแบบแบ่งช่อง — ชี้แล้วพื้นเปลี่ยน ตัวอักษรเข้มขึ้น */
+.segment-control button,
+.status-tabs button,
+.work-plan__view button,
+.billing-switch__option {
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out), transform 90ms var(--ease-out);
+}
+.segment-control button:hover:not([aria-pressed="true"]),
+.work-plan__view button:hover:not(.is-on) { background: var(--canvas); color: var(--ink); }
+.status-tabs button:hover { color: var(--ink); border-bottom-color: var(--mist); }
+.billing-switch__option:hover:not([aria-pressed="true"]) { background: rgba(13, 130, 130, .09); color: var(--ink); }
+
+/* ปุ่มเส้นขอบบาง — ชี้แล้วขอบเข้ม ยกขึ้นเล็กน้อย */
+.assistant-toggle,
+.calibration-check { transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), transform 90ms var(--ease-out); }
+.assistant-toggle:hover { border-color: var(--teal); background: #f2fafa; }
+.calibration-check:hover { border-color: var(--teal); background: #f2fafa; }
+
+/* ตัวเลือกที่เป็นป้ายครอบปุ่มวิทยุ — ทั้งแถวต้องรู้ตัวว่าถูกชี้ ไม่ใช่แค่วงกลมเล็ก ๆ */
+.project-path__choice { border-radius: 9px; padding: .35rem .45rem; margin: -.35rem -.45rem; transition: background 150ms var(--ease-out); }
+.project-path__choice:hover { background: rgba(13, 130, 130, .07); }
+
+/* ตัวเปิดรายละเอียด — ทำตัวเหมือนลิงก์ เพราะผู้ใช้อ่านมันเป็นลิงก์ */
+.evidence-details summary { border-radius: 5px; transition: color 150ms var(--ease-out); }
+.evidence-details summary:hover { color: var(--ink); text-decoration: underline; }
+.evidence-details summary:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus); }
+
+/* ปฏิกิริยาตอนกด — ทุกอย่างที่กดได้ต้องยุบรับนิ้ว ภายใน 120 มิลลิวินาที
+   ไม่รวม .button กับ .nav-pill ที่มีของตัวเองอยู่แล้วและละเอียดกว่านี้ */
+.account-trigger:active,
+.account-panel__signout:active,
+.assistant-toggle:active,
+.billing-switch__option:active,
+.calibration-check:active,
+.cookie-notice__ack:active,
+.cookie-notice__close:active,
+.estimation-step:enabled:active,
+.project-path-control button:active,
+.assistant-mode button:active,
+.segment-control button:active,
+.status-tabs button:active,
+.work-plan__chip:active,
+.work-plan__tab:active,
+.work-plan__view button:active { transform: scale(.96); transition-duration: 80ms; }
+
+/* วงแหวนโฟกัสสำหรับคนที่เดินด้วยแป้นพิมพ์ — ต้องเห็นชัดเท่ากับที่เมาส์เห็น */
+.segment-control button:focus-visible,
+.status-tabs button:focus-visible,
+.work-plan__view button:focus-visible,
+.billing-switch__option:focus-visible,
+.assistant-toggle:focus-visible,
+.calibration-check:focus-visible,
+.project-path__choice:focus-within { outline: none; box-shadow: 0 0 0 3px var(--focus); }
+
+/* สองตัวนี้ไม่ใช่ปุ่ม จึงให้ปฏิกิริยาคนละแบบ:
+   ป้ายตัวเลือกยุบทั้งแถวรับนิ้ว ส่วนตัวเปิดรายละเอียดใช้พื้นเข้มขึ้นแทนการยุบ
+   เพราะการย่อตัวอักษรบรรทัดเดียวตอนกดอ่านแล้วเหมือนจอสั่น */
+.project-path__choice:active { transform: scale(.985); transition-duration: 80ms; }
+.evidence-details summary:active { background: rgba(13, 130, 130, .12); }
+
+/* แถบอนาคตหลังวันตัดข้อมูล และหมุดเหตุการณ์เงิน (IP-135) */
+.work-plan__future { fill: var(--canvas); opacity: .85; }
+.work-plan__datadate-line { stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 5 4; opacity: .5; }
+.work-plan__datadate-tag { fill: var(--ink); font-size: 10px; font-weight: 800; }
+.work-plan__event { stroke: var(--paper); stroke-width: 2; }
+.work-plan__event--requested { fill: var(--series-requested); }
+.work-plan__event--certified { fill: var(--series-certified); }
+.work-plan__event--cash { fill: var(--series-cash); }
+.work-plan__datadate { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin: .2rem 0 .9rem; padding: .7rem .9rem; border: 1px solid var(--line); border-radius: 11px; background: var(--canvas); }
+.work-plan__datadate label { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--ink); font-size: .78rem; font-weight: 700; }
+.work-plan__datadate .form-note { flex: 1 1 260px; margin: 0; }
+/* ช่องวันที่ที่ลงไว้หลังวันตัดข้อมูล ต้องเห็นได้ว่าถูกซ่อนจากกราฟ ไม่ใช่หายไปเงียบ */
+.work-plan__cell--future { border-color: var(--orange); background: #fff8f2; }
