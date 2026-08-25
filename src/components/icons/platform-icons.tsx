@@ -42,3 +42,37 @@ export function QuoteIcon(props: IconProps) {
 export function ShieldIcon(props: IconProps) {
   return <BaseIcon {...props}><path d="M24 5 39 11v11c0 9-6.4 16.2-15 20-8.6-3.8-15-11-15-20V11z" /><path d="m18 24 4 4 8-9" /></BaseIcon>;
 }
+
+/**
+ * The four below are commissioned but not yet drawn.
+ *
+ * Each one stands for a symbol the interface currently spells with a character — a check mark, an
+ * empty circle, an em dash and an arrow — every one of them wrapped in `aria-hidden`, which is the
+ * admission that the character was doing an icon's job. The house rule is that symbols are drawn
+ * artwork, never characters, so those sites are waiting on these.
+ *
+ * They render nothing on purpose. An empty frame is honest about being unfinished, where a stand-in
+ * glyph would quietly become the thing it was meant to replace. Nothing calls them yet, so the
+ * interface is unchanged until the artwork lands and the swap happens deliberately.
+ *
+ * The prompt that produces the path data, and the subject line written for each one, are in
+ * `docs/design-system/icon-prompts.md`. Paste only the inner elements: `BaseIcon` above already
+ * supplies the `<svg>`, the 48-unit grid and the stroke, and a second wrapper would cost the icon
+ * its colour inheritance.
+ */
+
+export function CheckIcon(props: IconProps) {
+  return <BaseIcon {...props} />;
+}
+
+export function PendingIcon(props: IconProps) {
+  return <BaseIcon {...props} />;
+}
+
+export function NotIncludedIcon(props: IconProps) {
+  return <BaseIcon {...props} />;
+}
+
+export function ArrowRightIcon(props: IconProps) {
+  return <BaseIcon {...props} />;
+}
