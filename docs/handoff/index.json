@@ -1,5 +1,23 @@
 [
   {
+    "version": "0.45.0",
+    "title": "Work-Plan App Prototype — Real AI, Stepped Chart, Government Document",
+    "description": "แอปที่สามของแพลตฟอร์ม ต้นแบบเดินครบสี่แท็บ ต่อ AI จริงที่ร่าง แก้ และตรวจแผน กราฟเส้นเงินขั้นบันไดแกนเดือนปฏิทิน เอกสารบัญชีงวดงานพิมพ์แนบสัญญาราชการได้ ยังไม่ต่อฐานข้อมูล",
+    "scope": [
+      "ชั้นคำนวณ BigInt satang พร้อม test 37 ข้อ",
+      "รอยต่อแบบจำลอง 4 ค่าย และ AI สาม action",
+      "กราฟ S-Curve และเอกสารราชการ",
+      "tour คู่แข่งครบ 10 เมนู"
+    ],
+    "verification": [
+      "pnpm test typecheck lint ผ่าน",
+      "node scripts/check-roadmap.mjs",
+      "เปิด /prototype/work-plan กดร่างแผนด้วย AI จริงในเบราว์เซอร์ Edge"
+    ],
+    "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด โฟลเดอร์ prototype เป็นของทิ้งได้ ไม่มี migration.",
+    "path": "docs/handoff/2026-08-26-work-plan-app-ai-and-chart.md"
+  },
+  {
     "version": "0.44.0",
     "title": "Session Close — Claims, Navigation and Disclosure",
     "description": "เอกสารปิดเซสชัน รวมสามเวอร์ชันที่ทำในวันเดียวกันไว้ฉบับเดียว พร้อมสภาพแวดล้อมที่ทิ้งไว้ งานที่ต้องทำต่อ และคำเตือนว่ามีอีกเซสชันทำงานบนสาขาเดียวกัน",
