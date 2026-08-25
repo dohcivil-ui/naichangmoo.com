@@ -1,5 +1,22 @@
 [
   {
+    "version": "0.40.0",
+    "title": "Open Questions Before the Card Work",
+    "description": "เอกสารส่งต่อสำหรับเปิดแชทใหม่: คำถามกริลสี่ข้อที่ยังไม่ได้ถาม และข้อค้นพบสองข้อเรื่อง glossary กับ announced_at",
+    "scope": [
+      "คำถามกริลรอบ 1 (Q1–Q4) เรื่องการ์ดแอป",
+      "glossary 'ประกาศแล้ว' ขัดกับหน้าแรกที่เอ่ยชื่อ 5 แอปที่ยังไม่ประกาศ",
+      "announced_at ไม่ใช่วันที่ทำงานล่าสุด"
+    ],
+    "verification": [
+      "node scripts/check-roadmap.mjs",
+      "pnpm security:check",
+      "query ตาราง apps ยืนยันว่ามีแถวเดียว"
+    ],
+    "rollback": "เอกสารล้วน revert commit นี้ได้โดยไม่กระทบโค้ด",
+    "path": "docs/handoff/2026-08-25-open-questions-before-the-card-work.md"
+  },
+  {
     "version": "0.39.0",
     "title": "A Card Should Answer the Question Being Asked",
     "description": "บันทึกการตัดสินใจเรื่องการ์ดแอป: ต้องตอบสี่คำถาม ใส่ราคาลงการ์ด แก้ gap ที่หายไป และใช้วันที่จริงแทนเปอร์เซ็นต์ความคืบหน้า",
