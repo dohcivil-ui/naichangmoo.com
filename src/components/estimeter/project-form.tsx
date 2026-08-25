@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { PROJECT_NAME_MAX, PROJECT_NAME_MIN, PROJECT_PATHS } from "@/lib/estimeter-project";
+import { AGENCY_NAME_MAX, PROJECT_NAME_MAX, PROJECT_NAME_MIN, PROJECT_PATHS, SITE_LOCATION_MAX } from "@/lib/estimeter-project";
 import { createEstimeterProject, type ProjectActionState } from "@/server/actions/estimeter-project";
 
 const initialState: ProjectActionState = { ok: false, message: "" };
@@ -41,6 +41,36 @@ export function ProjectForm() {
         <p className="form-note" id="project-name-hint">ใช้ชื่อที่ระบุงานได้ชัดเจน เพราะชื่อนี้จะไปปรากฏบนหัวเอกสาร BOQ</p>
       )}
 
+      <label>
+        สถานที่ก่อสร้าง
+        <input
+          name="siteLocation"
+          autoComplete="off"
+          maxLength={SITE_LOCATION_MAX}
+          placeholder="เช่น โรงพยาบาลกุสุมาลย์ จ.สกลนคร"
+          aria-invalid={state.errors?.siteLocation ? true : undefined}
+        />
+      </label>
+      {state.errors?.siteLocation ? <p className="form-error" role="alert">{state.errors.siteLocation}</p> : null}
+
+      <label>
+        หน่วยงาน
+        <input
+          name="agencyName"
+          autoComplete="off"
+          maxLength={AGENCY_NAME_MAX}
+          placeholder="เช่น โรงพยาบาลกุสุมาลย์"
+          aria-invalid={state.errors?.agencyName ? true : undefined}
+        />
+      </label>
+      {state.errors?.agencyName ? (
+        <p className="form-error" role="alert">{state.errors.agencyName}</p>
+      ) : (
+        <p className="form-note">
+          สองช่องนี้พิมพ์อยู่บนหัวแบบ ปร.4 ปร.5 และ ปร.6 กรอกทีหลังได้ แต่ออกเอกสารไม่ได้จนกว่าจะครบ
+        </p>
+      )}
+
       <fieldset className="project-path" aria-invalid={state.errors?.path ? true : undefined}>
         <legend>สายงาน</legend>
         {PROJECT_PATHS.map((path, index) => (
@@ -62,7 +92,7 @@ export function ProjectForm() {
         </p>
       )}
 
-      {state.message && !state.errors?.name && !state.errors?.path ? (
+      {state.message && Object.keys(state.errors ?? {}).length === 0 ? (
         <p className="form-error" role="alert">{state.message}</p>
       ) : null}
 

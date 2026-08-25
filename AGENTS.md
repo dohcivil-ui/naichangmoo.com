@@ -20,6 +20,14 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 - Do not make a customer-visible or irreversible change without an explicit user authorization recorded in an approval/audit record.
 - Prefer server-side authorization checks over hiding UI controls.
 
+## Browser control
+
+- Drive the browser only through the `chrome-devtools` MCP server. Do not write a throwaway Puppeteer or Playwright script to automate a page.
+- Call `take_snapshot` before every `click` or `fill`. Element uids come from the most recent snapshot and go stale after a navigation.
+- On a login page, navigate to it and then stop. Tell the user the Chrome window is open and waiting, ask them to type the credentials themselves, and wait for their confirmation before continuing.
+- Never read `.env*` to obtain a credential and type it into `fill` or `fill_form`. This is the first Safety rule applied to the browser.
+- Chrome keeps a persistent profile at `~/.cache/chrome-devtools-mcp/chrome-profile`, so a login survives across sessions. When a session expires, ask the user to log in again instead of working around it.
+
 ## Design rules
 
 - The UI must remain an engineering tool: one work objective, a short form, validation close to input, visible calculation/evidence and one primary action per state.

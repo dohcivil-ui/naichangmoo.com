@@ -1,6 +1,6 @@
 {
   "name": "naichangmoo-com",
-  "version": "0.16.0",
+  "version": "0.33.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.20.0",
@@ -13,10 +13,12 @@
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "prepare": "node scripts/setup-git-hooks.mjs",
     "hooks:setup": "node scripts/setup-git-hooks.mjs",
     "security:check": "node scripts/security-check.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.120.0",
     "@aws-sdk/client-s3": "^3.1115.0",
     "@aws-sdk/s3-request-presigner": "^3.1115.0",
     "@better-auth/drizzle-adapter": "^1.7.1",
@@ -25,6 +27,7 @@
     "drizzle-orm": "^0.45.2",
     "ioredis": "^6.0.0",
     "next": "16.3.2",
+    "openai": "^7.5.0",
     "pg": "^8.16.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -32,6 +35,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@napi-rs/canvas": "^1.0.8",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
@@ -40,9 +44,15 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.2",
     "eslint-config-next": "16.3.2",
+    "pdfjs-dist": "^4.10.38",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.19.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "overrides": {
+      "@esbuild-kit/core-utils>esbuild": "^0.25.0"
+    }
   }
 }

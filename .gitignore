@@ -9,10 +9,12 @@ coverage/
 *.log
 pnpm-debug.log*
 .DS_Store
-uploads/
-exports/
-tmp/
-data/
+# Runtime working directories at the repository root. Anchored with a leading slash:
+# an unanchored data/ also matched src/data, which holds source-controlled reference tables.
+/uploads/
+/exports/
+/tmp/
+/data/
 
 # Reference knowledge base: licensed textbooks, official price/labour circulars and
 # working screenshots. Read locally, never published with the source.

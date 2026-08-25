@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Capability } from "@/lib/entitlement";
-import { PROJECT_NAME_MAX, parseProjectForm, projectCreationDenial } from "@/lib/estimeter-project";
+import { PROJECT_NAME_MAX, SITE_LOCATION_MAX, parseProjectForm, projectCreationDenial } from "@/lib/estimeter-project";
 
 function form(name: unknown, path: string | null = "government"): FormData {
   const data = new FormData();
@@ -22,7 +22,7 @@ describe("project form parsing", () => {
   it("trims the name and accepts it", () => {
     const parsed = parseProjectForm(form("  อาคารสำนักงาน 3 ชั้น  "));
 
-    expect(parsed).toEqual({ ok: true, value: { name: "อาคารสำนักงาน 3 ชั้น", path: "government" } });
+    expect(parsed).toEqual({ ok: true, value: { name: "อาคารสำนักงาน 3 ชั้น", path: "government", siteLocation: null, agencyName: null } });
   });
 
   it("requires the costing path, because it decides how the project is priced", () => {
@@ -34,10 +34,53 @@ describe("project form parsing", () => {
     expect(unknown.ok).toBe(false);
   });
 
+  it("takes the two header fields the official form prints, and trims them", () => {
+    const data = form("อาคารฟอกไต ปุญโญภาส");
+    data.set("siteLocation", "  โรงพยาบาลกุสุมาลย์  ");
+    data.set("agencyName", "โรงพยาบาลกุสุมาลย์");
+
+    const parsed = parseProjectForm(data);
+
+    expect(parsed).toEqual({
+      ok: true,
+      value: {
+        name: "อาคารฟอกไต ปุญโญภาส",
+        path: "government",
+        siteLocation: "โรงพยาบาลกุสุมาลย์",
+        agencyName: "โรงพยาบาลกุสุมาลย์"
+      }
+    });
+  });
+
+  it("does not block a project over paperwork that is not settled yet", () => {
+    const parsed = parseProjectForm(form("อาคารที่ยังไม่รู้สถานที่"));
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.value.siteLocation).toBeNull();
+      expect(parsed.value.agencyName).toBeNull();
+    }
+  });
+
+  it("refuses a header field the column cannot hold or that spans lines", () => {
+    const tooLong = form("อาคารทดสอบ");
+    tooLong.set("siteLocation", "ก".repeat(SITE_LOCATION_MAX + 1));
+    const multiline = form("อาคารทดสอบ");
+    multiline.set("agencyName", "โรงพยาบาล\nกุสุมาลย์");
+
+    const first = parseProjectForm(tooLong);
+    const second = parseProjectForm(multiline);
+
+    expect(first.ok).toBe(false);
+    if (!first.ok) expect(first.errors.siteLocation).toBeTruthy();
+    expect(second.ok).toBe(false);
+    if (!second.ok) expect(second.errors.agencyName).toBeTruthy();
+  });
+
   it("accepts the private path as well as the government one", () => {
     const parsed = parseProjectForm(form("บ้านพักอาศัย 2 ชั้น", "private"));
 
-    expect(parsed).toEqual({ ok: true, value: { name: "บ้านพักอาศัย 2 ชั้น", path: "private" } });
+    expect(parsed).toEqual({ ok: true, value: { name: "บ้านพักอาศัย 2 ชั้น", path: "private", siteLocation: null, agencyName: null } });
   });
 
   it("rejects a missing, blank or too-short name with a field message", () => {

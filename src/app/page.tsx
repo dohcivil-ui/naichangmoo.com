@@ -1,40 +1,91 @@
+import type { CSSProperties } from "react";
 import { AppCard } from "@/components/landing/app-card";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { PlatformNav } from "@/components/platform/platform-nav";
-import { marketCategories, platformApps } from "@/lib/platform";
+import { SiteHeader } from "@/components/platform/site-header";
+import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract } from "@/lib/landing-interactions";
+import { readCatalogueClaims } from "@/server/app-registry";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
+  // open only as far as the registry has been made to say so. One read serves every category.
+  const claims = await readCatalogueClaims();
+  const estimeter = claims.estimeter;
+
   return (
     <main className="site-shell">
       <LandingMotion />
-      <PlatformNav />
+      <SiteHeader />
 
       <section className="hero" id="top">
         <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>
         <div className="container hero__grid">
-          <div className="hero__copy" data-reveal>
-            <div className="eyebrow">นายช่างหมู · แอปงานโยธา</div>
-            <h1>แอปงานโยธา ใช้งานง่าย</h1>
-            <p>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
-          <div className="hero__actions"><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
-            <p className="hero__note">ESTIMETR · ฟรี ทดลองใช้งาน 5 วัน</p>
+          {/* The hero introduces itself a line at a time rather than as one block: the eyebrow
+              settles down from above, then everything under it rises, so the eye is led to the
+              headline instead of meeting the whole panel at once. */}
+          <div className="hero__copy">
+            <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
+            <h1 data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>แอปงานโยธา ใช้งานง่าย</h1>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
+          <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
+            {/* The same violation as the cards, in the most prominent place on the site: an app
+                named in source beside its commercial terms, also typed into source. ADR 0015 —
+                naming ESTIMETR is fine, stating what it costs is a claim. The line returns
+                unchanged the moment an administrator announces the app and opens it. */}
+            {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
           </div>
-          <div className="hero__side" data-reveal data-reveal-delay="1">
+          <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
             <HeroEngineeringArt />
-            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--white" id="why">
+        <div className="container">
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
+            <div>
+              <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
+              <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
+            </div>
+          </div>
+          <div className="evidence-gap">
+            {[
+              {
+                title: "ปริมาณที่ตรวจย้อนกลับไม่ได้",
+                problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม หน้าตาเหมือนกันหมดในตาราง ไม่มีอะไรบอกว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00 หรือมาจากนิ้วที่พลาด",
+                answer: "ปริมาณเป็นผลรวมของบรรทัดวัด จำนวน × กว้าง × ยาว × หนา ที่อ่านออกจากแบบได้ ไม่ใช่ตัวเลขที่พิมพ์เข้าไปเฉย ๆ",
+              },
+              {
+                title: "ค่าเผื่อที่ไม่รู้ว่ามาจากเกณฑ์ข้อไหน",
+                problem: "เผื่อ 7% ใส่ไว้ตั้งแต่เมื่อไหร่ ใครใส่ อ้างหลักเกณฑ์ฉบับไหน วันที่ถูกซัก ถ้าชี้เอกสารต้นทางไม่ได้ ตัวเลขนั้นก็ยืนไม่ได้",
+                answer: "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึกลงฐานข้อมูล ไม่ใช่แค่ข้อความเตือนบนหน้าจอที่กดข้ามได้",
+              },
+              {
+                title: "ตัวคูณที่หยิบมาจากไฟล์เดิม",
+                problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ โครงการที่คิดบนอัตราหนึ่งจะใช้ค่าจากตารางอีกอัตราไม่ได้ ผลลัพธ์จะออกมาหน้าตาเป็นทางการและผิด",
+                answer: "ทุกค่าที่เข้าการคำนวณต้องผูกกับเอกสารที่ระบุผู้ออก เลขที่หนังสือและวันที่ — ชั้นราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
+              },
+            ].map((item, index) => (
+              <article className="evidence-gap__item" key={item.title} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
+                <span className="evidence-gap__index">0{index + 1}</span>
+                <h3>{item.title}</h3>
+                <p className="evidence-gap__problem">{item.problem}</p>
+                <p className="evidence-gap__answer">{item.answer}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="section" id="apps">
         <div className="container">
-          <div className="section-heading" data-reveal><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
           <div className="market-category-stack">
             {marketCategories.map((category, index) => {
               const apps = platformApps.filter((app) => app.categoryId === category.id);
@@ -43,7 +94,7 @@ export default function LandingPage() {
                   <span className="market-category__index">0{index + 1}</span>
                   <div><p className="eyebrow">หมวดงาน</p><h3>{category.label}</h3><p>{category.description}</p></div>
                 </header>
-                <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} />)}</div>
+                <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} claim={claims[app.slug]} />)}</div>
               </section>;
             })}
           </div>

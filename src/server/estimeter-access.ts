@@ -20,6 +20,7 @@ import {
   trialDaysRemaining
 } from "@/lib/estimeter-trial";
 import { platformApps } from "@/lib/platform";
+import { appRowId } from "@/server/app-registry";
 
 type Database = ReturnType<typeof getDb>;
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -48,8 +49,9 @@ type EntitlementRecord = {
 };
 
 // Identifiers are derived from the member and the app slug so a concurrent or repeated
-// activation collides on the primary key instead of issuing a second trial.
-const appRowId = (slug: string) => `app_${slug}`;
+// activation collides on the primary key instead of issuing a second trial. The app row id comes
+// from the registry module rather than being spelled out again here, because two copies of an id
+// convention drift the day one of them is changed.
 const personalOrgId = (userId: string) => `org_personal_${userId}`;
 const membershipId = (organizationId: string, userId: string) => `member_${organizationId}_${userId}`;
 const entitlementRowId = (organizationId: string, appId: string) => `ent_${organizationId}_${appId}`;
@@ -154,7 +156,7 @@ export type TrialActivation =
   | { ok: false; reason: "unknown_member" | "already_activated" };
 
 /**
- * Gate 2 of ADR 0006: the member accepts the trial terms and the five-day clock starts here,
+ * Gate 2 of ADR 0006: the member accepts the trial terms and the seven-day clock starts here,
  * at the moment of the click. Repeating the click cannot extend or reissue anything, because
  * the unique index on (organization_id, app_id) refuses the second row.
  */
@@ -172,7 +174,7 @@ export async function activateEstimeterTrial(userId: string, now = new Date()): 
   return db.transaction(async (tx) => {
     await tx
       .insert(apps)
-      .values({ id: appRowId(app.slug), slug: app.slug, displayName: app.name, accessModel: app.access })
+      .values({ id: appRowId(app.slug), slug: app.slug, displayName: app.name, accessModel: app.seededAccess })
       .onConflictDoNothing();
 
     // A row may already exist under a different id from an earlier seed, so the slug decides.

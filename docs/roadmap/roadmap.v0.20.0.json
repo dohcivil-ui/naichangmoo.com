@@ -1,0 +1,54 @@
+{
+  "version": "0.20.0",
+  "title": "ESTIMETR Can Hold a Real ปร.4",
+  "description": "ตรวจงานจริงที่ประมาณราคาเสร็จแล้ว (อาคารฟอกไต ปุญโญภาส โรงพยาบาลกุสุมาลย์ 20 มิถุนายน 2569) แล้วปิดช่องว่างที่ทำให้เอกสารจริงกรอกเข้าระบบไม่ได้ เพิ่มหน่วยที่ใบราคากลางใช้จริงโดยเฉพาะ ท่อน ซึ่งเป็นหน่วยที่ใช้บ่อยเป็นอันดับสอง รองรับงานเหมารวมที่ไม่มีอะไรให้วัด จัดรายการเป็นลำดับชั้นพร้อมลำดับที่ที่คำนวณจากตำแหน่ง เก็บสถานที่ก่อสร้างและหน่วยงานที่หัวฟอร์มต้องใช้ และวางกฎการอ่านจำนวนเงินเป็นภาษาไทยกับกฎปัดลงหลักร้อยที่พิสูจน์กับเอกสารจริงแล้ว",
+  "scope": [
+    "record the gap check against a complete real ปร.4/ปร.5/ปร.6 set in docs/research",
+    "add ท่อน, ม้วน, ถัง and งาน as units, and print ตัว as itself instead of a generic label",
+    "add a lump dimension whose count is fixed at one, for work priced as a whole with nothing to measure",
+    "widen the work categories to the eight divisions the real sheet uses, including งานอื่นๆ",
+    "add takeoff_groups so a run carries the งานส่วน and หมวดงาน headings the sheet is organised under",
+    "derive ลำดับที่ from position instead of storing it, so removing a heading renumbers the rest",
+    "keep a heading's items when the heading is removed, as ungrouped rather than deleted",
+    "add projects.site_location and projects.agency_name, which every ปร. sheet prints in its header",
+    "read a baht amount into Thai words and floor a total to the hundred baht, both checked against the real sheet"
+  ],
+  "updatedAt": "2026-08-23T23:05:00+07:00",
+  "status": "local_verification_passed_push_pending",
+  "verification": [
+    "the real sheet reconciles through the model: ค่าวัสดุ 2,063,850.95 + ค่าแรงงาน 465,379.25 = ค่างานต้นทุน 2,529,230.20, and flooring 3,296,598.64 gives the printed ยอดสุทธิ 3,296,500.00",
+    "bahtText reproduces the sheet's own wording exactly: สามล้านสองแสนเก้าหมื่นหกพันห้าร้อยบาทถ้วน",
+    "outline numbering reproduces the sheet's headings 1 through 1.8, and removing 1.2 moves 1.3 up to 1.2 with nothing stored to correct",
+    "unit tests cover the lump sum refusing a count above one, ท่อน needing no length, and the new units counting cleanly",
+    "opt-in PostgreSQL tests cover heading depth stopping at two, items surviving their heading's removal as ungrouped, and another organization being refused on every heading write",
+    "pnpm typecheck, pnpm lint, pnpm test (180 passed with the opt-in database suites enabled), pnpm build and pnpm security:check pass; migration 0004 applied to the local database"
+  ],
+  "rollback": "Revert the v0.20.0 commit and drop migration 0004, which is additive only: takeoff_groups, takeoff_items.group_id, projects.site_location and projects.agency_name. No existing row is rewritten, so take-off items keep their quantities and simply show as ungrouped.",
+  "constraints": [
+    "Headings nest two levels and no further, because ปร.4 prints ลำดับที่ as 1 and 1.1 and has no column for 1.1.1.",
+    "ลำดับที่ is never stored. It is a position, and a stored copy would disagree with the sheet the first time a heading is removed.",
+    "สถานที่ก่อสร้าง and หน่วยงาน stay optional at project creation; their absence has to stop document release, not naming a project.",
+    "No pricing is introduced. The baht reading and the flooring rule are present and tested, but nothing computes money yet.",
+    "The mass path from v0.17.0 stays. The real sheet prices reinforcement by the bar, but weight per metre is still how a length becomes a number of bars."
+  ],
+  "adrReferences": [
+    "0002-postgresql-drizzle-and-r2-data-boundary",
+    "0003-platform-membership-entitlement-and-trial",
+    "0006-trial-clock-starts-at-explicit-activation",
+    "0007-two-costing-stacks-over-one-takeoff"
+  ],
+  "items": [
+    { "id": "IP-059", "title": "Cover the units a real ปร.4 uses, including ท่อน for reinforcement and งาน for lump-sum work", "status": "done", "phase": "implementation" },
+    { "id": "IP-060", "title": "Organise a take-off run under งานส่วน and หมวดงาน headings with ลำดับที่ derived from position", "status": "done", "phase": "schema" },
+    { "id": "IP-061", "title": "Hold the สถานที่ก่อสร้าง and หน่วยงาน the ปร. sheet headers print", "status": "done", "phase": "schema" },
+    { "id": "IP-062", "title": "Read a baht amount in Thai words and floor a ราคากลาง total to the hundred baht", "status": "done", "phase": "implementation" },
+    { "id": "IP-063", "title": "Obtain the Factor F table at the announced 6% loan interest rate; the table held today is 7% only and cannot price a current project", "status": "planned", "phase": "data" },
+    { "id": "IP-064", "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate revision, where they belong, rather than on the project", "status": "planned", "phase": "schema" },
+    { "id": "IP-065", "title": "Retire takeoff_items.category once headings carry the same meaning, so a line is filed in one place only", "status": "planned", "phase": "schema" },
+    { "id": "IP-050", "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, source checksum and reviewer", "status": "planned", "phase": "data" },
+    { "id": "IP-051", "title": "Give price observations a unit, a material and labour split, and a condition, and distinguish a column that does not apply from one that is zero", "status": "planned", "phase": "schema" },
+    { "id": "IP-052", "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation", "status": "planned", "phase": "governance" },
+    { "id": "IP-042", "title": "Validate the official DPT source for ปร.4, ปร.5 and ปร.6 before claiming export compliance", "status": "planned", "phase": "governance" },
+    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" }
+  ]
+}

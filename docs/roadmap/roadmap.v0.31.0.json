@@ -1,0 +1,153 @@
+{
+  "version": "0.31.0",
+  "title": "The Right To Use, Not The Work — and a Back Office Made Only of Cards",
+  "description": "ADR 0012 จำกัดขอบเขตผู้ดูแลไว้ที่เนื้อหาและตัวเลขสรุป ซึ่งแคบเกินกว่างานจริง เพราะการต่ออายุหรือระงับสิทธิ์ต้องเขียนแถวที่ผูกกับลูกค้า ADR 0013 ขยายขอบเขตด้วยเส้นแบ่งที่ตรงกว่า: สิทธิ์การใช้งานทำได้ ตัวงานของลูกค้าทำไม่ได้ พร้อมกันนั้นหลังบ้านถูกทำให้ประกอบจากการ์ดชุดเดียวทั้งหมด เพื่อให้การเพิ่มหัวข้อใหม่เป็นการวางการ์ด ไม่ใช่การเขียน markup ใหม่",
+  "scope": [
+    "ADR 0013 extends the administrator scope from platform content to the right to use, and forbids the work itself",
+    "list the tables an administrator may never read or write, by name",
+    "require an audit event with a stated reason on every entitlement change",
+    "hold the line that counting is not reading: the overview counts projects and never names one",
+    "build AdminCard, AdminGrid, AdminStat, AdminStatRow, AdminEmpty and AdminTable as the only markup an admin page may use",
+    "rebuild the overview page on those primitives and delete the bespoke panel and tile styles"
+  ],
+  "updatedAt": "2026-08-24T16:05:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "browser check on localhost:3000/admin while signed out: refusal renders, .admin-shell absent, zero .admin-card in the DOM, no platform figure in the page text",
+    "every admin class used in TSX has a matching rule in globals.css, checked by script rather than by eye",
+    "pnpm test 189 passed, 33 skipped; pnpm typecheck and pnpm lint pass",
+    "node scripts/check-roadmap.mjs reports Roadmap 0.31.0 valid"
+  ],
+  "rollback": "กลับไป tag v0.30.0-platform-administration แล้ว revert commit ของ v0.31.0 ไม่มี migration ในรอบนี้ ADR 0013 ขยายขอบเขตบนกระดาษ แต่ยังไม่มีหน้าจอใดที่เขียนสิทธิ์ได้จริง",
+  "constraints": [
+    "An admin page writes no markup of its own. Every section is a card primitive, so a change to the card moves every section at once.",
+    "Counting is not reading. The overview may count projects and may never render a project name.",
+    "The tables listed in ADR 0013 are closed to administrators for both read and write. Repository functions keep taking organizationId; the administrator grant adds no new way in.",
+    "Every entitlement change writes an audit event carrying the customer organization, the acting administrator and a stated reason. A reason field that accepts empty will be filled empty."
+  ],
+  "adrReferences": [
+    "0013-an-administrator-manages-the-right-to-use-never-the-work"
+  ],
+  "items": [
+    {
+      "id": "IP-086",
+      "title": "Extend the administrator scope to the right to use, and fix the back office to a single card system",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-087",
+      "title": "Build the entitlement editor: find a customer by email or organization, change state and expiry, and require a reason",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-088",
+      "title": "Prove by test that an administrator cannot reach a customer's project rows, not merely that the UI hides them",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-085",
+      "title": "Build the pricing and promotion editors behind the administrator check, writing an audit event per change",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-081",
+      "title": "Open payment collection: choose a provider, tie a settled invoice to an entitlement state, and write the ADR that governs it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-079",
+      "title": "Move the access tier copy out of source and into content the back-office owns",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-076",
+      "title": "Decide whether trial entitlements issued under the five-day term are migrated to seven days",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

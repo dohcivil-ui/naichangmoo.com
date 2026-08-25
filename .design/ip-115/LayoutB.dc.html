@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap">
+  <style>
+/* ค่าจริงจาก src/app/globals.css — ไม่ใช่ค่าที่ตั้งใหม่ */
+:root {
+  --ink: #073047; --teal: #0d8282; --canvas: #f4f7f7; --paper: #ffffff;
+  --mist: #d8e4e4; --muted: #5f7178; --line: #c9d8d9; --success: #32765d;
+}
+body { margin: 0; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; color: var(--ink); background: var(--canvas); }
+.board { padding: 34px 40px 40px; }
+.board__label { margin: 0 0 6px; color: var(--teal); font-size: .72rem; font-weight: 800; letter-spacing: .16em; }
+.board__title { margin: 0 0 8px; font-size: 1.32rem; font-weight: 600; letter-spacing: -.02em; }
+.board__note { margin: 0 0 26px; color: var(--muted); font-size: .87rem; line-height: 1.72; max-width: 900px; }
+.board__note b, .callout b { color: var(--ink); }
+code { background: #eef3f3; border-radius: 4px; padding: 1px 5px; font-size: .92em; }
+.category { background: var(--paper); border: 1px solid var(--line); border-radius: 24px; padding: 22px; }
+.category__head { display: flex; align-items: baseline; gap: 12px; margin: 0 0 16px; padding: 0 2px; }
+.category__head h2 { margin: 0; font-size: 1.06rem; font-weight: 600; letter-spacing: -.02em; }
+.category__head span { color: var(--muted); font-size: .82rem; }
+
+/* IP-116: gap ที่หายไป — .app-grid ในไฟล์เดียวกันใช้ 16px, ที่นี่เคยเป็น 0 */
+.apps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; display: grid; align-items: center; gap: 21px; }
+.icon { --accent: var(--teal); width: 88px; height: 88px; border-radius: 22px; display: grid; place-items: center; position: relative; overflow: hidden; padding: 7px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 11%, white), #fffdf9);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 5px 11px rgba(7,48,71,.08); }
+.icon::before { content: ""; position: absolute; inset: 7px; border-radius: 18px; opacity: .38;
+  background-image: linear-gradient(color-mix(in srgb, var(--accent) 19%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--accent) 19%, transparent) 1px, transparent 1px);
+  background-size: 12px 12px; }
+.icon::after { content: ""; position: absolute; width: 24px; height: 3px; left: 12px; bottom: 10px; border-radius: 999px; background: var(--accent); opacity: .92; }
+.icon b { position: relative; z-index: 1; font-size: .78rem; font-weight: 800; letter-spacing: .08em; color: var(--accent); }
+.icon--estimeter { --accent: #0d8282; } .icon--k { --accent: #8a6d3b; }
+
+.eyebrow { color: var(--muted); font-size: .65rem; font-weight: 800; letter-spacing: .1em; margin: 0; }
+.card h3 { margin: 0; font-size: 1.14rem; font-weight: 600; letter-spacing: -.02em; }
+.progname { color: var(--muted); font-size: .78rem; font-weight: 500; margin: 2px 0 0; }
+.purpose { color: var(--muted); font-size: .9rem; line-height: 1.68; margin: 7px 0 0; max-width: 720px; }
+
+.access { display: inline-flex; padding: 4px 9px; border-radius: 999px; white-space: nowrap; font-size: .61rem; font-weight: 800; letter-spacing: .03em; }
+.access--paid_trial { background: #fff0e3; color: #955012; }
+
+.status { display: inline-flex; align-items: center; border-radius: 999px; padding: 5px 9px; font-size: .67rem; font-weight: 850; letter-spacing: .06em; white-space: nowrap; }
+.status--available { color: #0b635e; background: #e5f4f1; }
+.status--coming_soon { color: #7b5a20; background: #fff5d9; }
+
+.since { color: #93a5ab; font-size: .72rem; margin: 0; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; padding: .6rem 1rem; font-size: .84rem; font-weight: 700; white-space: nowrap; text-decoration: none; }
+.btn--go { background: var(--teal); color: #fff; }
+.btn--quiet { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+
+.callout { margin: 22px 0 0; padding: 15px 18px; border-left: 3px solid var(--teal); background: #eef5f5; border-radius: 0 10px 10px 0; color: var(--muted); font-size: .84rem; line-height: 1.74; }
+</style>
+</helmet>
+
+<div class="board">
+  <p class="board__label">IP-115 · เลย์เอาต์ B</p>
+  <h1 class="board__title">คำแถลงอยู่ในบรรทัดที่กำลังอ่าน — ขอบขวาเหลือแค่ปุ่ม</h1>
+  <p class="board__note">ป้ายความพร้อมและป้ายสิทธิ์ย้ายมาอยู่เหนือชื่อ ในลำดับที่ตาอ่านอยู่แล้ว คนรู้ว่าใช้ได้ไหมและต้องจ่ายไหมก่อนจะอ่านจบด้วยซ้ำ ส่วนขอบขวาสงวนไว้ให้ของอย่างเดียว คือสิ่งที่ต้องกด</p>
+
+  <div class="category">
+    <div class="category__head"><h2>หมวดประมาณราคา</h2><span>งานประมาณราคาอาคาร</span></div>
+    <div class="apps">
+
+      <article class="card" style="grid-template-columns: 104px minmax(0,1fr) 190px;">
+        <div class="icon icon--estimeter"><b>EST</b></div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 9px;">
+            <p class="eyebrow" style="margin-right: 2px;">ประมาณราคา</p>
+            <span class="status status--available">เริ่มใช้ได้</span>
+            <span class="access access--paid_trial">ฟรี ทดลองใช้งาน 7 วัน</span>
+          </div>
+          <h3>ESTIMETR</h3>
+          <p class="progname">แอปประมาณราคางานอาคาร</p>
+          <p class="purpose">สำหรับถอดปริมาณและประมาณราคางานอาคารอย่างเป็นลำดับ</p>
+        </div>
+        <div style="display: grid; justify-items: end; gap: 9px;">
+          <a class="btn btn--go" href="#">เริ่มใช้งาน</a>
+          
+        </div>
+      </article>
+
+      <article class="card" style="grid-template-columns: 104px minmax(0,1fr) 190px;">
+        <div class="icon icon--k"><b>K</b></div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 9px;">
+            <p class="eyebrow" style="margin-right: 2px;">ประมาณราคา</p>
+            <span class="status status--coming_soon">กำลังเตรียมระบบ</span>
+            <span class="access access--paid_trial">ฟรี ทดลองใช้งาน 7 วัน</span>
+          </div>
+          <h3>ค่า K</h3>
+          <p class="progname">แอปคำนวณค่า K</p>
+          <p class="purpose">สำหรับคำนวณค่างานตามสัญญาแบบปรับราคาได้ตามสูตรที่ราชการประกาศ</p>
+        </div>
+        <div style="display: grid; justify-items: end; gap: 9px;">
+          <a class="btn btn--quiet" href="#">ดูรายละเอียดแอป</a>
+          <p class="since">ประกาศเมื่อ ส.ค. 2569</p>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <p class="callout"><b>ข้อแลกของ B</b> — อ่านลื่นกว่าเพราะไม่ต้องกวาดตาสองรอบ แต่ขอบขวาของการ์ดสองใบจะไม่ตรงกันเมื่อปุ่มยาวไม่เท่ากัน และป้ายสองอันในบรรทัดเดียวจะตกบรรทัดบนจอแคบ ส่วน A ขอบขวาตรงกันเสมอ แลกกับการที่ตาต้องกวาดสองรอบ</p>
+</div>
+</x-dc>
+</body>
+</html>

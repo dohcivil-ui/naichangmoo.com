@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -53,6 +54,13 @@ export const sessions = pgTable("sessions", {
 export const accounts = pgTable("accounts", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
+  // better-auth 1.7 scopes an account's identity by the issuer that vouched for it, and looks a
+  // returning member up by (issuer, account_id) rather than by (provider_id, account_id). The
+  // column is required by the library, not optional decoration: without it the Drizzle adapter
+  // cannot resolve the field and emits a WHERE clause with the column name missing, so every
+  // OAuth callback fails at the database. `provider_id` stays because it names which configured
+  // provider was used, which is our own concern; the issuer is Google's claim about itself.
+  issuer: text("issuer").notNull(),
   providerId: text("provider_id").notNull(),
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
@@ -92,12 +100,24 @@ export const organizationMembers = pgTable("organization_members", {
   updatedAt
 }, (table) => [uniqueIndex("organization_members_unique").on(table.organizationId, table.userId)]);
 
+/**
+ * The registry of what the platform says about an app publicly. See ADR 0014.
+ *
+ * A row is not an announcement: `activateEstimeterTrial` inserts one the first time a customer
+ * starts a trial, with no administrator involved. `announcedAt` is what an administrator sets, and
+ * it is the only thing a public surface may read as a statement. Revoking clears it rather than
+ * deleting the row, because `app_entitlements.app_id` cascades and a customer's right to use is not
+ * something a copy change may take away.
+ */
 export const apps = pgTable("apps", {
   id: text("id").primaryKey(),
   slug: text("slug").notNull(),
   displayName: text("display_name").notNull(),
   accessModel: text("access_model").notNull(),
+  /** Whether the app is open for use, as opposed to announced and still being prepared. */
   enabled: boolean("enabled").notNull().default(true),
+  announcedAt: timestamp("announced_at", { withTimezone: true }),
+  announcedBy: text("announced_by").references(() => users.id),
   createdAt,
   updatedAt
 }, (table) => [uniqueIndex("apps_slug_unique").on(table.slug)]);
@@ -139,6 +159,11 @@ export const projects = pgTable("projects", {
   name: text("name").notNull(),
   workType: text("work_type").notNull().default("building"),
   path: projectPath("project_path").notNull().default("government"),
+  // ปร.4, ปร.5 and ปร.6 all print สถานที่ก่อสร้าง and หน่วยงาน in their headers. They are nullable
+  // because a project is named before its paperwork is known; the document readiness check that
+  // gates output is where their absence has to stop something, not project creation.
+  siteLocation: text("site_location"),
+  agencyName: text("agency_name"),
   state: projectState("state").notNull().default("draft"),
   createdAt,
   updatedAt
@@ -169,9 +194,34 @@ export const takeoffRuns = pgTable("takeoff_runs", {
   updatedAt
 });
 
+/**
+ * The งานส่วน / หมวดงาน headings a ปร.4 sheet is organised under.
+ *
+ * A real sheet is not a flat list: อาคารฟอกไต ปุญโญภาส runs 1 งานส่วนที่1 over 1.1 งานดินขุด-ดินถม,
+ * 1.2 งานโครงสร้าง, 1.3 งานโครงหลังคา and so on, and prints a subtotal on each heading row. The
+ * ลำดับที่ that appears on the form is deliberately NOT stored: it is a position, so deleting 1.2
+ * has to renumber everything below it. Storing it would let the paper and the database disagree.
+ */
+export const takeoffGroups = pgTable("takeoff_groups", {
+  id: text("id").primaryKey(),
+  runId: text("run_id").notNull().references(() => takeoffRuns.id, { onDelete: "cascade" }),
+  parentId: text("parent_id").references((): AnyPgColumn => takeoffGroups.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt,
+  updatedAt
+}, (table) => [
+  index("takeoff_groups_run_idx").on(table.runId),
+  index("takeoff_groups_parent_idx").on(table.parentId),
+  check("takeoff_groups_title_present", sql`length(btrim(${table.title})) > 0`)
+]);
+
 export const takeoffItems = pgTable("takeoff_items", {
   id: text("id").primaryKey(),
   runId: text("run_id").notNull().references(() => takeoffRuns.id, { onDelete: "cascade" }),
+  // A line whose heading is removed becomes ungrouped rather than disappearing: the measurement
+  // and its evidence outlive whatever heading someone filed it under.
+  groupId: text("group_id").references(() => takeoffGroups.id, { onDelete: "set null" }),
   category: text("category").notNull(),
   description: text("description").notNull(),
   unit: text("unit").notNull(),
@@ -356,6 +406,28 @@ export const auditEvents = pgTable("audit_events", {
   createdAt
 }, (table) => [index("audit_events_resource_idx").on(table.resourceType, table.resourceId)]);
 
+/**
+ * ADR 0012. Platform administration is a granted row, not a flag on the account, because the
+ * question an audit asks is who could change a price on a given day — which a current-state
+ * column cannot answer. A revoked grant keeps its row; `revoked_at` is what ends it.
+ *
+ * The scope is deliberately narrow: platform content and aggregate counts. It carries no right to
+ * read another organization's projects, drawings, take-off lines or price sets, which stay behind
+ * `projects.organization_id` exactly as before.
+ */
+export const platformAdministrators = pgTable("platform_administrators", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  /** Null only for the break-glass grant, which has no administrator to attribute it to. */
+  grantedBy: text("granted_by").references(() => users.id),
+  grantedAt: timestamp("granted_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  revokedBy: text("revoked_by").references(() => users.id),
+  note: text("note"),
+  createdAt,
+  updatedAt
+}, (table) => [index("platform_administrators_user_idx").on(table.userId, table.revokedAt)]);
+
 // Portable fixed-window rate-limit counter. One row per (scope, identifier, window)
 // so abuse controls work identically on Vercel and the VPS without extra infrastructure.
 export const rateLimitCounters = pgTable("rate_limit_counters", {
@@ -381,6 +453,7 @@ export const schema = {
   projects,
   drawingDocuments,
   takeoffRuns,
+  takeoffGroups,
   takeoffItems,
   takeoffMeasurements,
   evidenceReferences,
@@ -392,5 +465,6 @@ export const schema = {
   hermesReviewJobs,
   approvalRequests,
   auditEvents,
+  platformAdministrators,
   rateLimitCounters
 };

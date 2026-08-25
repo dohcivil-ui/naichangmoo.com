@@ -1,0 +1,119 @@
+{
+  "version": "0.22.0",
+  "title": "Factor F Stops Being a Number Someone Typed",
+  "description": "ตาราง Factor F เข้ามาอยู่ใน repository เป็นชุดข้อมูลที่ตรวจสอบได้ พร้อมหนังสือเวียนที่ประกาศมัน เลขที่ วันที่ ผู้ออก อัตราดอกเบี้ยที่ประกาศ ค่าเฉลี่ย MLR ที่ใช้ กฎการปัด และ sha256 ของไฟล์ต้นทาง โมดูลที่อ่านชุดข้อมูลนี้ปฏิเสธเมื่อโครงการคิดบนอัตราดอกเบี้ยหรือ VAT ที่ไม่ตรงกับตาราง แทนที่จะหยิบตารางที่ใกล้เคียงมาใช้ และคืนธงบอกเมื่อค่างานอยู่ระหว่างสองแถว แทนที่จะตัดสินแทนผู้มีคุณวุฒิ",
+  "scope": [
+    "extract all 48 tables and 1,644 rows from the 6% circular with an extractor that checks itself before writing",
+    "carry the circular that announces the tables: number, date, issuer, the authority it acts under, the MLR survey behind the rate, the rounding rule and the file checksum",
+    "refuse a lookup whose loan interest rate or VAT rate does not match the dataset, and say what the dataset holds",
+    "return the governing row together with the next row and a flag when a cost of work falls between two printed rows",
+    "record that no qualified person has certified the dataset yet, rather than leaving the field absent",
+    "reproduce the ปร.4 of the ปุญโญภาส dialysis building to the satang as a test"
+  ],
+  "updatedAt": "2026-08-24T00:20:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "the extractor verifies that every VAT column equals its factor column times 1.07 within 0.0002, that each work type has exactly twelve tables with distinct advance/retention pairs, one interest rate and one row count, and that irrigation heavy-rain columns increase",
+    "unit tests re-check the same invariants through the public module, in every quality gate",
+    "unit tests reproduce the real ปร.4: cost of work 2,529,230.20 x 1.3034 = 3,296,598.64, floored to 3,296,500",
+    "unit tests confirm the module refuses a 7% project, a 10% VAT project and an advance/retention pair the circular does not publish",
+    "pnpm typecheck, pnpm lint and pnpm test pass (161 passed, 33 skipped)",
+    "pushed on feature/estimeter-measurement-breakdown and tagged v0.22.0-factor-f-dataset; the Quality Gate run for 069e2aa, which contains this work, passed including the opt-in PostgreSQL suites"
+  ],
+  "rollback": "Revert the v0.22.0 commit. The dataset, its module and its tests are additive; nothing reads Factor F yet, so no existing behaviour changes.",
+  "constraints": [
+    "No value enters the dataset that is not printed in the circular. The extractor derives nothing.",
+    "The dataset is not certified: reviewedBy is null and the module exposes it, so a caller can refuse to price on an unreviewed table.",
+    "Effective date ranges are deliberately absent. ว481 is dated 26 June 2569 while the real project priced on 20 June 2569 already used the 6% table, so an earlier circular exists that we do not have.",
+    "Whether a cost of work between two printed rows interpolates or takes the lower row is not decided in code. The table note says interpolate; the audited ปร.4 did not."
+  ],
+  "adrReferences": [
+    "0007-two-costing-stacks-over-one-takeoff"
+  ],
+  "items": [
+    {
+      "id": "IP-050",
+      "title": "Bring the Factor F tables into the repository as a checked dataset with its circular, checksum and reviewer field",
+      "status": "done",
+      "phase": "data"
+    },
+    {
+      "id": "IP-068",
+      "title": "Obtain the 6% circular that preceded ว481 so each Factor F table can carry the dates it was in force",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-069",
+      "title": "Decide whether a cost of work between two printed rows interpolates or takes the lower row, and record the decision with the authority for it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-050",
+      "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, effective dates, source checksum and reviewer",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-051",
+      "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

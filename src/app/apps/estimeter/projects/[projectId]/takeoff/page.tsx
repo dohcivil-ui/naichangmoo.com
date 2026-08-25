@@ -4,9 +4,11 @@ import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { AddEvidenceForm } from "@/components/estimeter/takeoff/add-evidence-form";
 import { AddItemForm } from "@/components/estimeter/takeoff/add-item-form";
 import { AddMeasurementForm } from "@/components/estimeter/takeoff/add-measurement-form";
+import { AddGroupForm, ItemGroupSelect } from "@/components/estimeter/takeoff/group-forms";
 import { TakeoffActionButton } from "@/components/estimeter/takeoff/takeoff-action-button";
 import { WasteForm } from "@/components/estimeter/takeoff/waste-form";
 import { itemConfirmationBlocker } from "@/lib/takeoff-item";
+import { buildOutline, type OutlineNode } from "@/lib/takeoff-outline";
 import { formatQuantity } from "@/lib/takeoff-quantity";
 import { summarizeConfirmedQuantities } from "@/lib/takeoff-summary";
 import { categoryLabel, unitLabel } from "@/lib/takeoff-units";
@@ -14,6 +16,7 @@ import { formatThaiDateTime } from "@/lib/thai-format";
 import {
   closeTakeoffRun,
   confirmTakeoffItem,
+  removeTakeoffGroup,
   removeTakeoffItem,
   removeTakeoffMeasurement,
   startManualTakeoff
@@ -25,6 +28,7 @@ import {
   listEvidenceForItems,
   listManualRuns,
   listMeasurementsForItems,
+  listRunGroups,
   listRunItems
 } from "@/server/estimeter/takeoff-repository";
 
@@ -62,6 +66,24 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
   const items = openRun ? await listRunItems(organizationId, openRun.id) : [];
   const evidence = await listEvidenceForItems(items.map((item) => item.id));
   const measurements = await listMeasurementsForItems(items.map((item) => item.id));
+  const groups = openRun ? await listRunGroups(organizationId, openRun.id) : [];
+  const outline = buildOutline(groups);
+  const topLevelGroups = outline.filter((node) => node.depth === 1);
+  const filedGroupIds = new Set(outline.map((node) => node.id));
+
+  // The sheet reads heading, then the lines filed under it, then the next heading. Anything not
+  // filed yet is shown last rather than hidden, because an unfiled line is still measured work.
+  type SheetRow = { kind: "heading"; node: OutlineNode } | { kind: "item"; item: (typeof items)[number] };
+  const sheetRows: SheetRow[] = [];
+  for (const node of outline) {
+    sheetRows.push({ kind: "heading", node });
+    for (const item of items) if (item.groupId === node.id) sheetRows.push({ kind: "item", item });
+  }
+  const unfiled = items.filter((item) => item.groupId === null || !filedGroupIds.has(item.groupId));
+  if (unfiled.length > 0) {
+    sheetRows.push({ kind: "heading", node: { id: "", parentId: null, title: "ยังไม่จัดหมวดงาน", number: "", depth: 1 } });
+    for (const item of unfiled) sheetRows.push({ kind: "item", item });
+  }
   const summary = summarizeConfirmedQuantities(items);
   const confirmedCount = items.filter((item) => item.reviewState === "confirmed").length;
 
@@ -131,7 +153,29 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                         </td>
                       </tr>
                     ) : (
-                      items.map((item) => {
+                      sheetRows.map((row) => {
+                        if (row.kind === "heading") {
+                          return (
+                            <tr key={`heading-${row.node.id || "unfiled"}`} className="takeoff-heading-row">
+                              <td colSpan={canEdit ? 8 : 7}>
+                                <strong>
+                                  {row.node.number ? `${row.node.number} ` : ""}
+                                  {row.node.title}
+                                </strong>
+                                {canEdit && row.node.id ? (
+                                  <TakeoffActionButton
+                                    action={removeTakeoffGroup}
+                                    fields={{ groupId: row.node.id }}
+                                    label="ลบหมวด"
+                                    pendingLabel="กำลังลบ..."
+                                  />
+                                ) : null}
+                              </td>
+                            </tr>
+                          );
+                        }
+
+                        const item = row.item;
                         const itemEvidence = evidence.filter((entry) => entry.takeoffItemId === item.id);
                         const itemMeasurements = measurements.filter((entry) => entry.takeoffItemId === item.id);
                         const blocker = itemConfirmationBlocker({
@@ -255,6 +299,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                                         label="ลบ"
                                         pendingLabel="กำลังลบ..."
                                       />
+                                      <ItemGroupSelect itemId={item.id} groupId={item.groupId} options={outline} />
                                     </>
                                   )}
                                 </div>
@@ -268,6 +313,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                 </table>
               </div>
 
+              {canEdit ? <AddGroupForm runId={openRun.id} parents={topLevelGroups} /> : null}
               {canEdit ? <AddItemForm runId={openRun.id} /> : null}
 
               <div className="workspace-callout">

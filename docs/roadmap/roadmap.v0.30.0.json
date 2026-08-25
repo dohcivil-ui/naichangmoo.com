@@ -1,0 +1,141 @@
+{
+  "version": "0.30.0",
+  "title": "Someone To Check Against: Platform Administration Becomes a Granted Row",
+  "description": "ก่อนหน้านี้ระบบไม่มีแนวคิดผู้ดูแลแพลตฟอร์มเลย member_role ที่มีอยู่ผูกกับ organization_members คือ admin ขององค์กรหนึ่ง ไม่ใช่ของแพลตฟอร์ม จึงไม่มีใครให้ตรวจสิทธิ์ด้วยเมื่อมีคนขอแก้ราคา ADR 0012 ทำให้สิทธิ์นี้เป็นแถวที่ถูกมอบให้ พร้อมผู้มอบ เวลาที่มอบ และเวลาที่ถอน และเปิดหลังบ้านหน้าแรกที่แสดงเฉพาะตัวเลขที่นับได้จริง",
+  "scope": [
+    "ADR 0012 stores platform administration as a granted row with grantedBy, grantedAt and revokedAt rather than a flag or an env allowlist",
+    "add the platform_administrators table and migration 0005",
+    "add resolvePlatformAdmin which refuses on no session, no grant, a revoked grant and an unreadable database",
+    "bound the grant to platform content and aggregate counts, with no right to read an organization's work",
+    "ship the back-office shell and overview page in the site's own design language, with real counts only",
+    "add scripts/grant-platform-admin.mjs, which bootstraps the first administrator and refuses once one exists"
+  ],
+  "updatedAt": "2026-08-24T15:30:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "pnpm test 189 passed, 33 skipped; platform-admin.test.ts covers all four outcomes including the unreadable-database case that systems usually fail open on",
+    "browser check on localhost:3000/admin while signed out: the refusal renders, .admin-shell and .admin-sidebar are absent from the DOM, and no platform figure appears in the page text",
+    "drizzle migration 0005 adds one table and alters none",
+    "pnpm typecheck and pnpm lint pass"
+  ],
+  "rollback": "กลับไป tag v0.29.0-prompt-typeface และ revert commit ของ v0.30.0 ตาราง platform_administrators เป็นตารางใหม่ที่ไม่มีอะไรอ้างถึง การ drop จึงไม่กระทบข้อมูลเดิม แต่จะลบประวัติการมอบสิทธิ์ไปด้วย",
+  "constraints": [
+    "requirePlatformAdmin is the only way a back-office surface may decide access, and it refuses on anything short of an unrevoked grant. An unreadable table is not evidence of permission.",
+    "The grant covers platform content and aggregate counts. It never reads an organization's projects, drawings, take-off lines or price sets, which stay behind projects.organization_id.",
+    "A support role that can see customer data is a different grant with consent and an expiry, not a widening of this one.",
+    "scripts/grant-platform-admin.mjs works only while no unrevoked administrator exists. It is a bootstrap, not a back door."
+  ],
+  "adrReferences": [
+    "0012-platform-administration-is-a-granted-row-not-a-flag"
+  ],
+  "items": [
+    {
+      "id": "IP-084",
+      "title": "Make platform administration a granted, revocable, audited row and open the back-office shell behind it",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-085",
+      "title": "Build the pricing and promotion editors behind the administrator check, writing an audit event per change",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-081",
+      "title": "Open payment collection: choose a provider, tie a settled invoice to an entitlement state, and write the ADR that governs it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-079",
+      "title": "Move the access tier copy out of source and into content the back-office owns",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-076",
+      "title": "Decide whether trial entitlements issued under the five-day term are migrated to seven days",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

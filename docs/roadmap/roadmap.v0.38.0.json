@@ -1,0 +1,252 @@
+{
+  "version": "0.38.0",
+  "title": "Session Close: The Back Office Was Tested, and the Header Learned Who Is Looking",
+  "description": "ปิดวันด้วย handoff ที่รวมงานทั้งสองช่วง: ช่วงแรกทดสอบหลังบ้านที่สร้างไว้แล้วแต่ไม่เคยเปิดใช้จริงสักครั้ง และพบว่ามันเปิดไม่ได้เลยด้วยเหตุผลสามชั้นซ้อนกัน ช่วงที่สองแก้เรื่องแถบบนที่ล็อกอินแล้วแต่ไม่เคยแสดงว่าใครล็อกอินอยู่ ระหว่างทางเจอบั๊กจริงสามตัว รวมถึงตัวที่ทำให้ล็อกอิน Google ล้มเหลวทุกครั้งตั้งแต่ตั้งค่าเสร็จ เวอร์ชันนี้เพิ่มงานความเป็นส่วนตัวและคุกกี้เข้า roadmap หลังตรวจพบว่าเว็บยังไม่มีหน้านโยบายใดเลย",
+  "scope": [
+    "collect both stretches of the day into one handoff, so the next session reads one document instead of joining two",
+    "record what the cookie audit actually found: only strictly necessary cookies, no analytics anywhere, and no privacy page at all",
+    "plan disclosure before consent, because a banner asking permission for cookies that are set regardless is consent theatre",
+    "keep the consent record and the news-consent record as one system, since PDPA asks the same questions of both",
+    "name the two back-office tests that were displaced by the UI work, so they are picked up rather than assumed done"
+  ],
+  "updatedAt": "2026-08-24T23:10:00+07:00",
+  "status": "implementation_verified_by_tests_account_page_still_unseen",
+  "verification": [
+    "pnpm test 264 passed, 33 skipped (ฐานตอนเริ่มเซสชัน 220)",
+    "pnpm typecheck, pnpm lint, node scripts/check-roadmap.mjs, pnpm security:check ผ่านทั้งหมด",
+    "ESTIMETR_DB_TESTS=1 33/33 หลังแก้เทสค้างที่ยังยึดทดลองใช้ 5 วัน",
+    "ล็อกอิน Google จริงสำเร็จ และ doh.civil@gmail.com เป็นผู้ดูแลแพลตฟอร์มแล้ว ตรวจในฐานข้อมูลพร้อม audit",
+    "หน้าแรกเรนเดอร์การ์ดแอปครบ 5 ใบ รวมแอปค่า K พร้อมป้ายกำลังพัฒนา",
+    "ตรวจคุกกี้ด้วยการยิง request จริง ไม่ใช่การอ่านโค้ด",
+    "NOT VERIFIED: /account ยังไม่มีใครเปิดดู ปุ่มปิดอุปกรณ์อื่นยังไม่เคยถูกกด และรูปโปรไฟล์ Google ยังไม่ถูกเห็นว่าโหลดขึ้น",
+    "NOT DONE: ยิง server action โดยไม่มี cookie และทดสอบถอนสิทธิ์ผู้ดูแลตัวเอง ถูกงาน UI แทรกจนตกไป"
+  ],
+  "rollback": "เอกสารล้วน ย้อนได้โดยไม่กระทบโค้ด ส่วนโค้ดของวันนี้ย้อนได้ที่ commit ก่อน e5f60b3 บน feature/account-menu-and-app-identity โดยต้อง DROP COLUMN accounts.issuer เอง และการย้อนทำให้ล็อกอิน Google ใช้ไม่ได้อีกครั้ง",
+  "constraints": [
+    "An announcement is a statement, never a grant. What a member may actually use is decided by app_entitlements and nothing else.",
+    "The registry is the single switchboard. A second flag mechanism for the same app would be two switches on one lamp.",
+    "Revoking an announcement clears announced_at and never deletes the row, because app_entitlements.app_id cascades.",
+    "This version ships unseen. The next session verifies it in a browser before anything is called released."
+  ],
+  "adrReferences": [
+    "docs/adr/0014-an-app-is-free-because-an-administrator-said-so-not-because-source-says-so.md"
+  ],
+  "items": [
+    {
+      "id": "IP-094",
+      "title": "Verify the announced app registry in a browser end to end, since v0.34.0 shipped without a single screen ever being looked at",
+      "status": "planned",
+      "phase": "verification"
+    },
+    {
+      "id": "IP-090",
+      "title": "Scope member_free to the apps an administrator has announced, moving the list out of platform.ts into the apps registry",
+      "status": "done",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-092",
+      "title": "Route the landing page and /market app labels through the registry too, so a seeded default stops being a public claim anywhere",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-093",
+      "title": "Issue a member_free entitlement when a member enters an app the registry announces as free, so an announcement can become an open app",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-091",
+      "title": "Prove by source scan that the back office reads no column of a closed table, and that the scanner itself can fail",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-085",
+      "title": "Build the pricing and promotion editors behind the administrator check, writing an audit event per change",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-081",
+      "title": "Open payment collection: choose a provider, tie a settled invoice to an entitlement state, and write the ADR that governs it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-079",
+      "title": "Move the access tier copy out of source and into content the back-office owns",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-076",
+      "title": "Decide whether trial entitlements issued under the five-day term are migrated to seven days",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-100",
+      "title": "Give the site header an account menu that names the viewer and offers a way out",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-101",
+      "title": "Let a member read their own entitlements, organizations and open sessions at /account",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-102",
+      "title": "Add accounts.issuer so better-auth 1.7 can identify an account and Google sign-in completes",
+      "status": "done",
+      "phase": "auth"
+    },
+    {
+      "id": "IP-103",
+      "title": "Give every app a Thai program name and a one-line purpose in one fixed position",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-104",
+      "title": "Register the ค่า K app as coming_soon so it is named before it is routed",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-105",
+      "title": "Let a member edit their own profile: real name, uploaded photo, contact details and an explicit, recorded consent to receive news — PDPA makes the consent record part of the feature, not a checkbox beside it",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-106",
+      "title": "Publish the platform's own channels (LINE OA, Facebook page, TikTok, Instagram, YouTube) from one place, so a channel is added without editing pages",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-107",
+      "title": "Replace the placeholder badge the ค่า K app borrowed from the platform mark",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-108",
+      "title": "Refresh the provider avatar and name on every sign-in, not only on the first one, so a changed Google photo is not stale forever",
+      "status": "planned",
+      "phase": "auth"
+    },
+    {
+      "id": "IP-109",
+      "title": "Decide whether an expired or trial member may print a read-only PDF — today ADR 0003 locks export and print for the whole trial, which is deliberate and needs a superseding ADR to change",
+      "status": "planned",
+      "phase": "product"
+    },
+    {
+      "id": "IP-110",
+      "title": "Publish a privacy and cookie disclosure page and link it from the footer — the site sets only strictly necessary cookies today, which need disclosing rather than consenting, and there is no such page at all",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-111",
+      "title": "Build consent as a mechanism that actually withholds a script until it is granted, not a banner that hides itself — required before the first LINE, Facebook, TikTok, Instagram or YouTube embed, never after",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-112",
+      "title": "ADR: how consent is recorded — against a user or a device, since someone not signed in must be able to consent; which policy version it was given against; and when a policy change must ask again. Covers both cookie consent and the news consent in IP-105, because they are one question asked twice",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-113",
+      "title": "Finish the two back-office tests displaced by the UI work: post to changeEntitlement with no cookie, and revoke the administrator grant from the account holding it, confirming the break-glass script becomes runnable again",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-114",
+      "title": "Look at /account and press the sign-out-other-devices button — the page has only ever been checked for a 200, and the button has never been pressed",
+      "status": "planned",
+      "phase": "platform"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # ADR 0007: Two costing stacks over one take-off
 
-**Status:** Accepted
+**Status:** Superseded by ADR 0008 — วิธีคิดราคาย้ายจากโครงการไปอยู่ที่ revision
 
 ## Context
 

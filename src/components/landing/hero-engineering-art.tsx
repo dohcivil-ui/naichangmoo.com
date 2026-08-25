@@ -22,7 +22,16 @@ export function HeroEngineeringArt() {
       <g className="hero-engineering-art__accent">
         <path d="M320 342L352 314L382 342" />
         <circle cx="656" cy="108" r="26" />
-        <path d="M656 68V148M616 108H696" />
+        {/* The cross hairs turn; the ring does not, because a circle turning on its own centre reads as still. */}
+        <g className="hero-engineering-art__scope">
+          <path d="M656 68V148M616 108H696" />
+        </g>
+      </g>
+      {/* A survey sweep rather than decoration: the line reads the drawing left to right the way a
+          take-off does, and the dimension tick rides the deck it is measuring. */}
+      <g className="hero-engineering-art__sweep" aria-hidden="true">
+        <path d="M0 54V368" />
+        <circle cx="0" cy="316" r="4" />
       </g>
     </svg>
   );

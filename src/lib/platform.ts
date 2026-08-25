@@ -32,9 +32,25 @@ export type PlatformApp = {
   name: string;
   eyebrow: string;
   description: string;
+  /**
+   * What the app is called in Thai, and what it is for in one line. These two are what a person
+   * sees at the top of the app itself, in the same place in every app, so someone who arrives from
+   * a link knows what they opened. `name` is the brand and `description` is a browsing blurb;
+   * neither answers "what does this program do" on its own.
+   *
+   * Both are required. A new app without them ships an anonymous header, and the contract test
+   * fails rather than letting that reach a page.
+   */
+  programName: string;
+  purpose: string;
   iconSrc: string;
   iconAlt: string;
-  access: AppAccess;
+  /**
+   * What the team intended this app's access to be when the code was written. ADR 0014: this is a
+   * default for an administrator to consider and a category label on the browsing pages, never an
+   * announcement. When it disagrees with the registry, the registry is right.
+   */
+  seededAccess: AppAccess;
   href: string;
   status: "available" | "coming_soon" | "restricted";
   categoryId: MarketCategoryId;
@@ -52,9 +68,11 @@ export const platformApps: PlatformApp[] = [
     name: "ESTIMETR",
     eyebrow: "ประมาณราคา",
     description: "ประมาณราคางานอาคาร",
+    programName: "แอปประมาณราคางานอาคาร",
+    purpose: "สำหรับถอดปริมาณและประมาณราคางานอาคารอย่างเป็นลำดับ",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
-    access: "paid_trial",
+    seededAccess: "paid_trial",
     href: "/apps/estimeter",
     status: "available",
     categoryId: "building-cost",
@@ -62,7 +80,9 @@ export const platformApps: PlatformApp[] = [
       outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
       flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
-      availabilityNote: "ทดลองใช้ได้ 5 วัน 1 โครงการ โดยปิดการส่งออกและพิมพ์"
+      // ADR 0010: every surface before entry says this one sentence. The project cap and the
+      // export/print locks are still enforced and are still stated on the activation screen.
+      availabilityNote: "ทดลองใช้งานฟรี 7 วัน"
     }
   },
   {
@@ -70,9 +90,11 @@ export const platformApps: PlatformApp[] = [
     name: "Retaining Wall Cantilever",
     eyebrow: "OPTIMIZE BY BISECTION ALGORITHM",
     description: "Optimize cantilever dimensions with a bounded bisection search, then review stability checks and the calculation trail before confirmation.",
+    programName: "แอปออกแบบกำแพงกันดินแบบ cantilever",
+    purpose: "สำหรับคำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
     iconSrc: visualAssetUrl("retaining_wall"),
     iconAlt: "Retaining Wall Cantilever optimization icon",
-    access: "member_free",
+    seededAccess: "member_free",
     href: "/apps/rcopt",
     status: "coming_soon",
     categoryId: "civil-design",
@@ -88,9 +110,11 @@ export const platformApps: PlatformApp[] = [
     name: "TRAFFIC SIGN",
     eyebrow: "MATERIAL CALCULATOR",
     description: "คำนวณรายการวัสดุป้ายจราจรแบบ form → list → BOQ สำหรับสมาชิก",
+    programName: "แอปคำนวณวัสดุป้ายจราจร",
+    purpose: "สำหรับจัดทำรายการวัสดุป้ายจราจรจนถึง BOQ",
     iconSrc: visualAssetUrl("traffic_sign"),
     iconAlt: "สัญลักษณ์คำนวณวัสดุป้ายจราจร",
-    access: "member_free",
+    seededAccess: "member_free",
     href: "/apps/traffic-sign",
     status: "coming_soon",
     categoryId: "safety-equipment",
@@ -106,9 +130,11 @@ export const platformApps: PlatformApp[] = [
     name: "LAND ACQUISITION V2",
     eyebrow: "DOH STAFF WORKSPACE",
     description: "ระบบงานจัดกรรมสิทธิ์ที่ดินสำหรับบุคลากรกรมทางหลวงตามสิทธิ์ที่ได้รับ",
+    programName: "แอปงานจัดกรรมสิทธิ์ที่ดิน",
+    purpose: "สำหรับงานจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง ตามสิทธิ์ที่ได้รับ",
     iconSrc: visualAssetUrl("land_acquisition"),
     iconAlt: "สัญลักษณ์งานจัดกรรมสิทธิ์ที่ดิน",
-    access: "doh_staff_only",
+    seededAccess: "doh_staff_only",
     href: "/apps/land-acquisition",
     status: "restricted",
     categoryId: "land-acquisition",
@@ -118,11 +144,35 @@ export const platformApps: PlatformApp[] = [
       flow: ["ยืนยันสิทธิ์", "เลือกงาน", "ดำเนินงาน", "ทบทวน"],
       availabilityNote: "สำหรับบุคลากรกรมทางหลวง"
     }
+  },
+  {
+    slug: "escalation-k",
+    name: "ESCALATION K",
+    eyebrow: "ปรับราคาสัญญา",
+    description: "คำนวณค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้",
+    programName: "แอปคำนวณค่า K งานก่อสร้าง",
+    purpose:
+      "สำหรับคำนวณเงินชดเชยค่างานก่อสร้างตามสัญญาแบบปรับราคาได้ (Escalation Factor) ตามมติคณะรัฐมนตรี ว 109",
+    // PLACEHOLDER: this app has no badge of its own yet, so it borrows the platform mark. Replace
+    // it with a real asset before the app is announced — a card wearing the platform logo where
+    // every other card wears its own reads as a mistake, not as a stand-in.
+    iconSrc: visualAssetUrl("brand_mark"),
+    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปคำนวณค่า K",
+    seededAccess: "paid_trial",
+    href: "/apps/escalation-k",
+    status: "coming_soon",
+    categoryId: "building-cost",
+    marketDetail: {
+      outcome: "คำนวณค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้",
+      preparation: ["ข้อมูลสัญญาและวงเงิน", "เดือนฐานและเดือนที่ส่งมอบแต่ละงวด", "สูตร K ที่ตรงกับประเภทงาน"],
+      flow: ["กรอกข้อมูลสัญญา", "เลือกสูตร K", "ใส่ดัชนีราคา", "คำนวณเงินชดเชย"],
+      availabilityNote: "กำลังพัฒนา ยังไม่เปิดใช้งาน"
+    }
   }
 ];
 
 export const accessLabel: Record<AppAccess, string> = {
-  paid_trial: "ฟรี ทดลองใช้งาน 5 วัน · 1 โครงการ",
+  paid_trial: "ฟรี ทดลองใช้งาน 7 วัน",
   member_free: "สมาชิกใช้ฟรี",
   doh_staff_only: "เฉพาะบุคลากรกรมทางหลวง",
   agent_service: "ผู้ช่วยทำงาน 24/7"
@@ -132,4 +182,18 @@ export const appStatusLabel: Record<PlatformApp["status"], string> = {
   available: "เริ่มใช้ได้",
   coming_soon: "กำลังเตรียมระบบ",
   restricted: "จำกัดสิทธิ์"
+};
+
+/**
+ * Readiness as the registry is able to state it. ADR 0015: this is a claim, so it has only the two
+ * values an administrator has actually said something about — an app nobody announced has no
+ * readiness at all, which is why there is no third member here and no "unknown".
+ *
+ * The strings come from `appStatusLabel` rather than being typed again, so the two never drift.
+ */
+export type AppReadiness = "open" | "preparing";
+
+export const appReadinessLabel: Record<AppReadiness, string> = {
+  open: appStatusLabel.available,
+  preparing: appStatusLabel.coming_soon
 };

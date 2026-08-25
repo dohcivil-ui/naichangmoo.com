@@ -1,0 +1,280 @@
+{
+  "version": "0.39.0",
+  "title": "A Card Should Answer the Question Being Asked",
+  "description": "บันทึกการตัดสินใจเรื่องการ์ดแอปบนหน้าแรก หลังเจอว่ามันไม่ตอบคำถามที่คนกำลังถามอยู่ คนที่เลื่อนดูรายการแอปถามอยู่สี่ข้อ — นี่คืออะไร ใช้ได้เลยไหม เท่าไร กดอะไรต่อ — การ์ดปัจจุบันตอบสองข้อครึ่ง และซ่อนราคาไว้อีกหน้าหนึ่ง เวอร์ชันนี้ยังบันทึกบั๊ก gap ที่หายไปซึ่งซ่อนตัวมาตลอดจนกระทั่งหมวดหนึ่งมีการ์ดสองใบ และเหตุผลที่เราจะไม่ลอกเปอร์เซ็นต์ความคืบหน้าของคู่แข่ง แต่จะใช้วันที่จริงแทน",
+  "scope": [
+    "state the four questions a catalogue card must answer, and stop it answering fewer",
+    "put the price on the card, because sending someone to another page to learn it is not simplicity",
+    "use the app's own purpose line on the card instead of the three-word browsing blurb",
+    "restore the missing gap between cards in a category, which read as one box with a hairline",
+    "align the card's right edge into one column: status, price, action, top to bottom",
+    "replace a competitor's development-progress percentage with a real date from the registry",
+    "defer search and filtering until the catalogue is large enough to need it, and say what large enough means"
+  ],
+  "updatedAt": "2026-08-25T03:40:00+07:00",
+  "status": "decision_recorded_implementation_not_started",
+  "verification": [
+    "อ่านค่า grid จริงจาก globals.css: การ์ดแนวนอนเป็น 104px | 1fr | 180px และคอลัมน์กลางกว้าง 790px ในคอนเทนเนอร์ 1160px",
+    ".market-category__apps ไม่มี gap เลย ต่างจาก .app-grid (16px) และ .market-category-stack (18px) ในไฟล์เดียวกัน",
+    "ยืนยันว่า announced_at มีอยู่จริงในตาราง apps แล้ว จาก migration 0006 ของ IP-090",
+    "NOT STARTED: ยังไม่มีการแก้โค้ดใด ๆ ในเวอร์ชันนี้ เป็นการบันทึกการตัดสินใจล้วน"
+  ],
+  "rollback": "เอกสารล้วน ย้อนได้โดยไม่กระทบโค้ด",
+  "constraints": [
+    "An announcement is a statement, never a grant. What a member may actually use is decided by app_entitlements and nothing else.",
+    "The registry is the single switchboard. A second flag mechanism for the same app would be two switches on one lamp.",
+    "Revoking an announcement clears announced_at and never deletes the row, because app_entitlements.app_id cascades.",
+    "This version ships unseen. The next session verifies it in a browser before anything is called released."
+  ],
+  "adrReferences": [
+    "docs/adr/0014-an-app-is-free-because-an-administrator-said-so-not-because-source-says-so.md"
+  ],
+  "items": [
+    {
+      "id": "IP-094",
+      "title": "Verify the announced app registry in a browser end to end, since v0.34.0 shipped without a single screen ever being looked at",
+      "status": "planned",
+      "phase": "verification"
+    },
+    {
+      "id": "IP-090",
+      "title": "Scope member_free to the apps an administrator has announced, moving the list out of platform.ts into the apps registry",
+      "status": "done",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-092",
+      "title": "Route the landing page and /market app labels through the registry too, so a seeded default stops being a public claim anywhere",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-093",
+      "title": "Issue a member_free entitlement when a member enters an app the registry announces as free, so an announcement can become an open app",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-091",
+      "title": "Prove by source scan that the back office reads no column of a closed table, and that the scanner itself can fail",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-085",
+      "title": "Build the pricing and promotion editors behind the administrator check, writing an audit event per change",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-081",
+      "title": "Open payment collection: choose a provider, tie a settled invoice to an entitlement state, and write the ADR that governs it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-079",
+      "title": "Move the access tier copy out of source and into content the back-office owns",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-076",
+      "title": "Decide whether trial entitlements issued under the five-day term are migrated to seven days",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-100",
+      "title": "Give the site header an account menu that names the viewer and offers a way out",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-101",
+      "title": "Let a member read their own entitlements, organizations and open sessions at /account",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-102",
+      "title": "Add accounts.issuer so better-auth 1.7 can identify an account and Google sign-in completes",
+      "status": "done",
+      "phase": "auth"
+    },
+    {
+      "id": "IP-103",
+      "title": "Give every app a Thai program name and a one-line purpose in one fixed position",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-104",
+      "title": "Register the ค่า K app as coming_soon so it is named before it is routed",
+      "status": "done",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-105",
+      "title": "Let a member edit their own profile: real name, uploaded photo, contact details and an explicit, recorded consent to receive news — PDPA makes the consent record part of the feature, not a checkbox beside it",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-106",
+      "title": "Publish the platform's own channels (LINE OA, Facebook page, TikTok, Instagram, YouTube) from one place, so a channel is added without editing pages",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-107",
+      "title": "Replace the placeholder badge the ค่า K app borrowed from the platform mark",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-108",
+      "title": "Refresh the provider avatar and name on every sign-in, not only on the first one, so a changed Google photo is not stale forever",
+      "status": "planned",
+      "phase": "auth"
+    },
+    {
+      "id": "IP-109",
+      "title": "Decide whether an expired or trial member may print a read-only PDF — today ADR 0003 locks export and print for the whole trial, which is deliberate and needs a superseding ADR to change",
+      "status": "planned",
+      "phase": "product"
+    },
+    {
+      "id": "IP-110",
+      "title": "Publish a privacy and cookie disclosure page and link it from the footer — the site sets only strictly necessary cookies today, which need disclosing rather than consenting, and there is no such page at all",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-111",
+      "title": "Build consent as a mechanism that actually withholds a script until it is granted, not a banner that hides itself — required before the first LINE, Facebook, TikTok, Instagram or YouTube embed, never after",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-112",
+      "title": "ADR: how consent is recorded — against a user or a device, since someone not signed in must be able to consent; which policy version it was given against; and when a policy change must ask again. Covers both cookie consent and the news consent in IP-105, because they are one question asked twice",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-113",
+      "title": "Finish the two back-office tests displaced by the UI work: post to changeEntitlement with no cookie, and revoke the administrator grant from the account holding it, confirming the break-glass script becomes runnable again",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-114",
+      "title": "Look at /account and press the sign-out-other-devices button — the page has only ever been checked for a 200, and the button has never been pressed",
+      "status": "planned",
+      "phase": "platform"
+    },
+    {
+      "id": "IP-115",
+      "title": "Make the catalogue card answer all four questions a visitor is actually asking — what it is, whether it is open, what it costs, what to press — and put the price on the card rather than a page away",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-116",
+      "title": "Restore the missing gap in .market-category__apps: two cards in one category currently touch, reading as a single box divided by a hairline. Hidden until a category held more than one app",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-117",
+      "title": "Show a real 'last updated' date from apps.announced_at on an unreleased app instead of a development-progress percentage — the percentage proves nothing, has to be invented weekly, and stalls at 90%; a stale date indicts us honestly",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-118",
+      "title": "Add search and category filtering to the app list once the catalogue reaches roughly ten apps — at five, four categories on one scrollable page is already the simpler answer",
+      "status": "planned",
+      "phase": "design"
+    },
+    {
+      "id": "IP-119",
+      "title": "ADR: what a catalogue card may claim. Records why a progress percentage is refused where a date is accepted, so the question is answered once rather than re-argued each time a competitor ships one",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

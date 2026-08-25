@@ -1,0 +1,45 @@
+{
+  "version": "0.21.0",
+  "title": "The Landing Says What the Tool Is For, and Shows It Working",
+  "description": "หน้าแรกเดิมบอกว่า \"แอปงานโยธา ใช้งานง่าย\" แล้วให้เลือกแอปทันที โดยไม่เคยบอกว่าปัญหาที่เครื่องมือนี้แก้คืออะไร และภาพแผนผังฝั่งขวาเป็นภาพนิ่งที่ไม่สื่อว่าเครื่องมือนี้ทำงานเป็นลำดับ รอบนี้เพิ่มสองอย่าง: ลำดับ 01-04 ที่เดินให้เห็นพร้อมเส้นสำรวจที่อ่านแผนผังไปเรื่อย ๆ และหัวข้อปัญหาสามข้อที่มาจากงานประมาณราคาจริง ไม่ใช่ข้อความการตลาด",
+  "scope": [
+    "draw the hero blueprint on load in the order a drawing is drawn, then keep a survey sweep and its dimension tick reading across it",
+    "walk the start rail from 01 to 04 so the sequence the product is built around is visible before a word is read, and pause it the moment a pointer or keyboard focus lands on a step",
+    "state the three failures a defensible estimate has to answer for, each paired with what the product does about it",
+    "keep the pricing claim honest: the third card says the costing layer is still in development rather than implying it exists",
+    "hold every new motion inside the existing reduced-motion contract so a reader who asks for stillness gets a complete, static drawing"
+  ],
+  "updatedAt": "2026-08-23T23:55:00+07:00",
+  "status": "implementation_in_progress",
+  "verification": [
+    "screenshots at two points in the same animation show the rail on step 01 and later on step 04, and the sweep tick at two different positions on the deck",
+    "a run with prefers-reduced-motion forced shows the complete drawing with no highlight, no sweep and no partial strokes",
+    "measured through the DevTools protocol at 1440 and at 390 with mobile emulation, documentElement.scrollWidth equals innerWidth, so neither viewport scrolls sideways",
+    "the same measurement confirms all four rail steps and the sweep carry a running animation name rather than only being styled for it",
+    "pnpm typecheck, pnpm lint and pnpm test pass"
+  ],
+  "rollback": "Revert the v0.21.0 commit. The change is three presentation files: the hero art component, the landing page and the stylesheet. No schema, no server behaviour and no product claim outside the landing copy.",
+  "constraints": [
+    "The problem statements are drawn from docs/research/kusumal-hospital-real-project-gap-2026-08-23.md and from the audit, not invented for the page.",
+    "No layout, wording or asset is taken from any competitor page; the three-card shape is a common one and the content is this project's own.",
+    "Motion must not compete with the primary action: a step under the pointer or keyboard focus stops animating.",
+    "The landing may not describe the costing layer as available while estimation-workspace.tsx still simulates price approval in client state."
+  ],
+  "adrReferences": [
+    "0007-two-costing-stacks-over-one-takeoff"
+  ],
+  "items": [
+    { "id": "IP-066", "title": "Make the landing hero move the way the tool works, and name the problem it solves", "status": "done", "phase": "implementation" },
+    { "id": "IP-063", "title": "Obtain the Factor F table at the announced 6% loan interest rate, with the circular that announces it", "status": "done", "phase": "data" },
+    { "id": "IP-050", "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, effective dates, source checksum and reviewer", "status": "planned", "phase": "data" },
+    { "id": "IP-064", "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled", "status": "planned", "phase": "schema" },
+    { "id": "IP-065", "title": "Retire takeoff_items.category once headings carry the same meaning", "status": "planned", "phase": "schema" },
+    { "id": "IP-051", "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates", "status": "planned", "phase": "schema" },
+    { "id": "IP-052", "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation", "status": "planned", "phase": "governance" },
+    { "id": "IP-054", "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes", "status": "planned", "phase": "implementation" },
+    { "id": "IP-058", "title": "Order organization selection deterministically before a member can belong to more than one organization", "status": "planned", "phase": "implementation" },
+    { "id": "IP-042", "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority", "status": "planned", "phase": "governance" },
+    { "id": "IP-043", "title": "Apply GitHub branch protection once the plan upgrade allows it", "status": "planned", "phase": "governance" },
+    { "id": "IP-067", "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work", "status": "planned", "phase": "governance" }
+  ]
+}

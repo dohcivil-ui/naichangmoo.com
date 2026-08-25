@@ -1,5 +1,499 @@
 [
   {
+    "version": "0.45.0",
+    "title": "Work-Plan App Prototype — Real AI, Stepped Chart, Government Document",
+    "description": "แอปที่สามของแพลตฟอร์ม ต้นแบบเดินครบสี่แท็บ ต่อ AI จริงที่ร่าง แก้ และตรวจแผน กราฟเส้นเงินขั้นบันไดแกนเดือนปฏิทิน เอกสารบัญชีงวดงานพิมพ์แนบสัญญาราชการได้ ยังไม่ต่อฐานข้อมูล",
+    "scope": [
+      "ชั้นคำนวณ BigInt satang พร้อม test 37 ข้อ",
+      "รอยต่อแบบจำลอง 4 ค่าย และ AI สาม action",
+      "กราฟ S-Curve และเอกสารราชการ",
+      "tour คู่แข่งครบ 10 เมนู"
+    ],
+    "verification": [
+      "pnpm test typecheck lint ผ่าน",
+      "node scripts/check-roadmap.mjs",
+      "เปิด /prototype/work-plan กดร่างแผนด้วย AI จริงในเบราว์เซอร์ Edge"
+    ],
+    "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด โฟลเดอร์ prototype เป็นของทิ้งได้ ไม่มี migration.",
+    "path": "docs/handoff/2026-08-26-work-plan-app-ai-and-chart.md"
+  },
+  {
+    "version": "0.44.0",
+    "title": "Session Close — Claims, Navigation and Disclosure",
+    "description": "เอกสารปิดเซสชัน รวมสามเวอร์ชันที่ทำในวันเดียวกันไว้ฉบับเดียว พร้อมสภาพแวดล้อมที่ทิ้งไว้ งานที่ต้องทำต่อ และคำเตือนว่ามีอีกเซสชันทำงานบนสาขาเดียวกัน",
+    "scope": [
+      "รวม v0.41.0 v0.42.0 v0.43.0 ให้เซสชันใหม่อ่านฉบับเดียวจบ",
+      "เส้นเรื่องร่วม: หาผู้มีอำนาจให้เจอก่อนวาดสิ่งที่อ้างอำนาจนั้น",
+      "คำสั่งยืน: แถบคุกกี้ห้ามปิดตัวเอง",
+      "งานที่ต้องทำต่อ เริ่มที่ประกาศแอปห้าตัวในหลังบ้าน ซึ่งเป็นการกระทำของคน"
+    ],
+    "verification": [
+      "tsc สะอาด · lint ไม่มี output · 297 เทสต์ผ่าน · check-roadmap และ security:check ผ่าน",
+      "ตรวจด้วยตาในเบราว์เซอร์ครบทั้งสามเวอร์ชัน"
+    ],
+    "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด ไม่มี migration",
+    "path": "docs/handoff/2026-08-25-session-close-claims-navigation-and-disclosure.md"
+  },
+  {
+    "version": "0.43.0",
+    "title": "Telling People What Is Stored, Instead of Asking a Question With One Answer",
+    "description": "แถบแจ้งเรื่องคุกกี้แบบแจ้งล้วน ไม่มีปุ่มยอมรับ เพราะคุกกี้ทุกตัวที่เว็บนี้ตั้งจำเป็นต่อการเข้าสู่ระบบและถูกตั้งไม่ว่าจะกดอะไร พร้อมหน้า /cookies ที่ทุกแถวอ่านจาก Set-Cookie จริงและตาราง sessions จริง",
+    "scope": [
+      "แถบแจ้งที่ RootLayout ครอบทุก route รวม /admin และ /apps ที่ไม่มี SiteHeader",
+      "จำการกดรับทราบด้วย localStorage คีย์มีเลขรุ่น อ่านไม่ได้เมื่อไรให้แสดงไว้ก่อน",
+      "หน้า /cookies พร้อมชื่อที่ better-auth สั่งลบตอนออกจากระบบแต่ไม่เคยตั้ง",
+      "ลิงก์จาก footer และจากเมนูบัญชีของสมาชิกที่เข้าสู่ระบบแล้ว",
+      "ยังไม่ทำนโยบายความเป็นส่วนตัวและข้อกำหนดการใช้งาน เพราะต้องใช้ข้อมูลนิติบุคคลที่ยังไม่ตัดสิน"
+    ],
+    "verification": [
+      "อ่าน Set-Cookie จริง: better-auth.state Max-Age=300 HttpOnly SameSite=Lax และชื่อ session_token จาก header ตอนออกจากระบบ",
+      "อายุ session 7 วัน จาก expires_at - created_at ในตาราง sessions",
+      "curl -D - ที่หน้าแรกไม่มี Set-Cookie สักบรรทัด",
+      "ดักการเขียน localStorage ก่อนสคริปต์แรกด้วย initScript ได้ writeCount 0 ยืนยันว่าแถบไม่เขียนเองตอน mount",
+      "pnpm test ผ่าน 296 เทสต์ รวมเคสอ่าน localStorage ไม่ได้",
+      "npx tsc --noEmit สะอาด, check-roadmap และ security:check ผ่าน"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration เหลือแค่ค่าใน localStorage ของผู้ใช้ที่ไม่มีผลอะไร",
+    "path": "docs/handoff/2026-08-25-telling-people-what-is-stored.md"
+  },
+  {
+    "version": "0.42.0",
+    "title": "One Way Home, Called the Same Thing Everywhere",
+    "description": "มีปุ่มกลับหน้าแรกอยู่แล้วเกือบทุกหน้าคือโลโก้ แต่ไม่มีอะไรบนจอเขียนคำว่าหน้าแรก และปลายทางเดียวกันถูกเรียกด้วยห้าชื่อ พร้อมวางโมดูลเครื่องหมายรับรองไว้ว่างเปล่าโดยตั้งใจตาม ADR 0016",
+    "scope": [
+      "เพิ่มปุ่ม 'หน้าแรก' เป็นปุ่มแรกของเมนู แทนที่จะมีแต่โลโก้ที่ไม่มีคำ",
+      "เหลือสองคำ สองปลายทาง เก็บคู่กับ href ที่เดียว ไม่ให้หน้าไหนพิมพ์เอง",
+      "/roadmap ได้ SiteHeader และ PlatformFooter เป็นครั้งแรก",
+      "ADR 0016 เครื่องหมายรับรองคือคำแถลง ผู้ออกเป็นเจ้าของ โมดูลว่างเปล่าโดยตั้งใจ",
+      "แก้ตกค้างจาก v0.41.0: AppShell ติดป้ายสิทธิ์จาก seededAccess เป็นที่ที่สี่"
+    ],
+    "verification": [
+      "pnpm test ผ่าน 285 เทสต์ รวมเทสต์สแกน src ว่าไม่มีคำที่เลิกใช้เหลืออยู่",
+      "ดูด้วยตา: /roadmap มี header แล้ว ปุ่มหน้าแรกไฮไลต์ถูกที่ และหกปุ่มเห็นครบทั้ง 1440px และ 390px",
+      "footer__trust ไม่ปรากฏใน HTML ของหน้าใดเลย เพราะยังไม่มีเครื่องหมายที่ได้รับจริง",
+      "npx tsc --noEmit สะอาด, check-roadmap และ security:check ผ่าน"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูล",
+    "path": "docs/handoff/2026-08-25-one-way-home-called-the-same-thing-everywhere.md"
+  },
+  {
+    "version": "0.41.0",
+    "title": "A Card Introduces an App; the Registry Makes the Claims",
+    "description": "ปิดงานค้าง IP-092 ที่ ADR 0014 ตั้งชื่อไว้เอง: หน้าแรกเคยแถลงเงื่อนไขสิทธิ์ของแอปที่ไม่มีใครประกาศ ADR 0015 แยกการแนะนำออกจากคำแถลง แล้วเดินคำแถลงทั้งหมดผ่านทะเบียน",
+    "scope": [
+      "ADR 0015 แก้เส้นของ §2 ADR 0014 โดยอ้างถึง: กติกาคุมสิทธิ์ ราคา ความพร้อม ไม่ได้คุมการเอ่ยชื่อ",
+      "ป้ายสิทธิ์ ป้ายความพร้อม ถ้อยคำปุ่ม และวันที่ มาจากทะเบียนทั้งหมด ทั้งหน้าแรกและ /market/[slug]",
+      "ไม่มีคำประกาศ หรืออ่านฐานข้อมูลไม่ได้ ให้ผลเดียวกันคือการ์ดเงียบเรื่องคำแถลง แต่ยังมีชื่อและ purpose",
+      "gap ที่หายไปใน .market-category__apps และเลย์เอาต์การ์ดที่ตอบสี่คำถามครบ",
+      "CONTEXT.md: 'ประกาศแล้ว' แคบลง และ Trial 5 วัน เป็น 7 วัน"
+    ],
+    "verification": [
+      "pnpm test ผ่าน 275 เทสต์ รวมชุดใหม่เรื่องแอปที่ยังไม่ประกาศและฐานข้อมูลที่อ่านไม่ได้",
+      "ดูด้วยตาที่ localhost:3000 ก่อนประกาศ: การ์ดห้าใบเงียบครบ และ gap กลับมา",
+      "หน้าแรกที่เรนเดอร์จริงเหลือคำว่า 'ทดลองใช้งาน 7 วัน' ศูนย์ครั้ง จากเดิมสองครั้ง",
+      "npx tsc --noEmit สะอาด, node scripts/check-roadmap.mjs และ pnpm security:check ผ่าน",
+      "ยังไม่ได้ดูสถานะ 'ประกาศแล้ว' ด้วยตา เพราะการประกาศเป็นการกระทำของคนตาม ADR 0014"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ถ้าประกาศไปแล้วให้ถอนที่หลังบ้านซึ่งล้าง announced_at โดยไม่ลบแถว",
+    "path": "docs/handoff/2026-08-25-a-card-introduces-an-app-the-registry-makes-the-claims.md"
+  },
+  {
+    "version": "0.40.0",
+    "title": "Open Questions Before the Card Work",
+    "description": "เอกสารส่งต่อสำหรับเปิดแชทใหม่: คำถามกริลสี่ข้อที่ยังไม่ได้ถาม และข้อค้นพบสองข้อเรื่อง glossary กับ announced_at",
+    "scope": [
+      "คำถามกริลรอบ 1 (Q1–Q4) เรื่องการ์ดแอป",
+      "glossary 'ประกาศแล้ว' ขัดกับหน้าแรกที่เอ่ยชื่อ 5 แอปที่ยังไม่ประกาศ",
+      "announced_at ไม่ใช่วันที่ทำงานล่าสุด"
+    ],
+    "verification": [
+      "node scripts/check-roadmap.mjs",
+      "pnpm security:check",
+      "query ตาราง apps ยืนยันว่ามีแถวเดียว"
+    ],
+    "rollback": "เอกสารล้วน revert commit นี้ได้โดยไม่กระทบโค้ด",
+    "path": "docs/handoff/2026-08-25-open-questions-before-the-card-work.md"
+  },
+  {
+    "version": "0.39.0",
+    "title": "A Card Should Answer the Question Being Asked",
+    "description": "บันทึกการตัดสินใจเรื่องการ์ดแอป: ต้องตอบสี่คำถาม ใส่ราคาลงการ์ด แก้ gap ที่หายไป และใช้วันที่จริงแทนเปอร์เซ็นต์ความคืบหน้า",
+    "scope": [
+      "สี่คำถามที่การ์ดต้องตอบ และเหตุผลที่การซ่อนราคาไม่ใช่ความ simple",
+      "gap ที่หายไปใน .market-category__apps และป้ายที่อยู่ผิดคอลัมน์",
+      "ปฏิเสธเปอร์เซ็นต์ความคืบหน้า ใช้ apps.announced_at แทน"
+    ],
+    "verification": [
+      "อ่านค่า grid จริงจาก globals.css ไม่ได้ประมาณ",
+      "ยืนยันว่า announced_at มีอยู่แล้วจาก migration 0006",
+      "node scripts/check-roadmap.mjs"
+    ],
+    "rollback": "เอกสารล้วน revert commit นี้ได้ ไม่มีโค้ด ไม่มี schema ไม่มีข้อมูล",
+    "path": "docs/handoff/2026-08-25-what-a-card-may-claim.md"
+  },
+  {
+    "version": "0.38.0",
+    "title": "Session Close: The Back Office Was Tested, and the Header Learned Who Is Looking",
+    "description": "handoff รวมงานทั้งวัน: ทดสอบหลังบ้าน แก้บั๊กสามตัว เมนูบัญชีและหน้า /account หัวแอปทุกแอป และผลตรวจคุกกี้",
+    "scope": [
+      "ทดสอบหลังบ้านครบทุกด่าน และ bootstrap ผู้ดูแลคนแรก",
+      "เมนูบัญชี /account หัวแอป และแอปค่า K",
+      "ผลตรวจคุกกี้: มีเฉพาะที่จำเป็นอย่างยิ่ง ยังไม่มีหน้านโยบายเลย"
+    ],
+    "verification": [
+      "pnpm test 264 passed, 33 skipped",
+      "pnpm typecheck, pnpm lint, pnpm security:check",
+      "node scripts/check-roadmap.mjs",
+      "ESTIMETR_DB_TESTS=1 33/33",
+      "ล็อกอิน Google จริง และตรวจสิทธิ์ผู้ดูแลในฐานข้อมูล"
+    ],
+    "rollback": "เอกสารล้วน ย้อนได้โดยไม่กระทบโค้ด; โค้ดย้อนที่ commit ก่อน e5f60b3 และต้อง DROP COLUMN accounts.issuer เอง",
+    "path": "docs/handoff/2026-08-24-session-close-back-office-and-account.md"
+  },
+  {
+    "version": "0.37.0",
+    "title": "The Header Knows Who Is Looking",
+    "description": "เพิ่มเมนูบัญชีบนแถบบนและหน้า /account แก้บั๊กที่ทำให้ล็อกอิน Google ล้มเหลว และให้ทุกแอปมีชื่อโปรแกรมกับคำอธิบายในตำแหน่งเดียวกัน",
+    "scope": [
+      "accounts.issuer และ migration สามสเต็ป",
+      "account menu, /account และ SiteHeader ที่อ่าน session ที่เดียว",
+      "programName/purpose ของทุกแอป และแอปค่า K เป็น coming_soon"
+    ],
+    "verification": [
+      "pnpm test 264 passed, 33 skipped",
+      "pnpm typecheck, pnpm lint",
+      "ESTIMETR_DB_TESTS=1 33/33",
+      "ล็อกอิน Google จริงและ bootstrap ผู้ดูแลสำเร็จ",
+      "node scripts/check-roadmap.mjs"
+    ],
+    "rollback": "กลับไป commit ก่อนหน้าบน feature/app-registry-announced; ต้อง DROP COLUMN accounts.issuer เอง และการย้อนทำให้ล็อกอิน Google ใช้ไม่ได้",
+    "path": "docs/handoff/2026-08-24-header-knows-who-is-looking.md"
+  },
+  {
+    "version": "0.34.0",
+    "title": "An App Is Free Because An Administrator Said So",
+    "description": "โค้ดของ IP-090 เสร็จครบและผ่านทุก gate แล้ว ทะเบียนแอปเป็นเจ้าของคำแถลงต่อสาธารณะแทน source มีหน้า /admin/apps ที่บังคับเหตุผลและเขียน audit ทุกครั้ง หน้าราคาและเชิงอรรถ derive จากทะเบียน และ /apps/<slug> ปิดเมื่อทะเบียนบอกว่ายังไม่เปิดใช้ เวอร์ชันนี้ปิดเพื่อส่งมอบ โดยยังไม่ได้ตรวจด้วยตาในเบราว์เซอร์แม้แต่ครั้งเดียว ซึ่งระบุไว้ตรง ๆ ในช่อง verification",
+    "scope": [
+      "add announced_at and announced_by to apps, so an announcement is an act with an owner rather than a side effect of a row existing",
+      "route every read and write of the registry through one module, so no page queries the apps table itself",
+      "build /admin/apps from the card primitives, with a mandatory reason and an audit event per announcement and per revocation",
+      "derive the member-free app list and the restricted-app footnote on /pricing from the registry, naming no app in source",
+      "refuse to mark a member_free app as open until a path exists that actually issues the entitlement",
+      "close the app entry page when the registry says an app is not open, while an unreadable database keeps the previous behaviour",
+      "rename platform.ts access to seededAccess, so a default stops reading as a declaration"
+    ],
+    "verification": [
+      "pnpm test 252 passed, 33 skipped (ฐานก่อนหน้า 220)",
+      "pnpm typecheck, pnpm lint (0 error) และ pnpm build ผ่านทั้งหมด",
+      "planted both app names back into the member_free highlights, confirmed two assertions turn red, reverted and confirmed green with a clean git diff",
+      "NOT VERIFIED: ไม่มีขั้นตอนใดถูกเปิดดูในเบราว์เซอร์จริง ไม่มีการรัน pnpm db:migrate และไม่มีผู้ดูแลคนใดถูก grant — ทุกอย่างที่ต้องใช้ฐานข้อมูลจริงยังไม่ถูกตรวจ"
+    ],
+    "rollback": "กลับไป tag v0.33.0-closed-tables-by-test migration 0006 เพิ่มคอลัมน์ nullable สองตัว ถอยได้โดยไม่เสียข้อมูล แถวที่ประกาศไปแล้วจะค้างอยู่โดยไม่มีใครอ่าน",
+    "path": "docs/handoff/2026-08-24-announced-app-registry.md"
+  },
+  {
+    "version": "0.33.0",
+    "title": "The Closed Tables Are Closed By Test, Not By Habit",
+    "description": "เทสต์ที่สแกน source ของหลังบ้านและแดงเมื่อมีการอ่านคอลัมน์จากตารางที่ ADR 0013 ปิดไว้ พร้อมสรุปปิดเซสชันสำหรับทำงานต่อ",
+    "scope": [
+      "scan every back-office source file for column reads of the tables ADR 0013 closes",
+      "keep the counting exception honest: platform-admin-metrics may say .from(projects) and may not read a column off it",
+      "strip comments before scanning, so the documentation describing the rule does not trip it",
+      "distinguish the drizzle table from a property of the same name, so metrics.projects is not a false positive",
+      "assert the scanner itself detects a planted violation, so a guard that cannot fail is not shipped"
+    ],
+    "verification": [
+      "pnpm test 220 passed, 33 skipped",
+      "planted a real violation (projects.name inside entitlement-admin.ts) and confirmed two assertions turn red, then reverted and confirmed 23 green with a clean git diff",
+      "the suite asserts its own detectors against synthetic input, so it cannot pass by seeing nothing",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.32.0-entitlement-editor แล้วลบไฟล์เทสต์ เป็นการเพิ่มเทสต์อย่างเดียว ไม่มี production code เปลี่ยน",
+    "path": "docs/handoff/2026-08-24-session-close-admin-and-pricing.md"
+  },
+  {
+    "version": "0.32.0",
+    "title": "An Extension Nobody Can Grant Without Saying Why",
+    "description": "หน้าจัดการสิทธิ์ลูกค้า พร้อมเหตุผลบังคับที่ตรวจฝั่งเซิร์ฟเวอร์ และ audit event ต่อการเปลี่ยนแปลงทุกครั้ง",
+    "scope": [
+      "add /admin/entitlements: search by member email or organization name, never by project name",
+      "edit entitlement state and expiry with a reason that is required on the server, not only in the form",
+      "write an audit event per change carrying organization, actor, before, after and reason",
+      "repeat the administrator check inside the server action, because an action is its own entry point",
+      "return nothing for an empty search, so opening the page is not a request to browse customers"
+    ],
+    "verification": [
+      "pnpm test 197 passed, 33 skipped; entitlement-admin.test.ts proves the reason and state checks refuse before the database is reached, by mocking getDb to throw",
+      "the same suite proves an empty or one-character search returns nothing without querying",
+      "browser check on /admin/entitlements?q=test while signed out: refusal renders, zero .admin-card and zero .admin-form in the DOM, and the page text reveals nothing about whether a match exists",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.31.0-admin-scope-and-cards แล้ว revert commit ของ v0.32.0 ไม่มี migration สิทธิ์ที่ถูกแก้ไปแล้วจะคงค่าที่แก้ไว้ แต่มี audit event บันทึกไว้ว่าใครแก้เมื่อไรและเพราะอะไร",
+    "path": "docs/handoff/2026-08-24-entitlement-editor.md"
+  },
+  {
+    "version": "0.31.0",
+    "title": "The Right To Use, Not The Work — and a Back Office Made Only of Cards",
+    "description": "ADR 0013 แยกสิทธิ์การใช้งานออกจากตัวงานของลูกค้า และตรึงหลังบ้านไว้ที่ระบบการ์ดชุดเดียว",
+    "scope": [
+      "ADR 0013 extends the administrator scope from platform content to the right to use, and forbids the work itself",
+      "list the tables an administrator may never read or write, by name",
+      "require an audit event with a stated reason on every entitlement change",
+      "hold the line that counting is not reading: the overview counts projects and never names one",
+      "build AdminCard, AdminGrid, AdminStat, AdminStatRow, AdminEmpty and AdminTable as the only markup an admin page may use",
+      "rebuild the overview page on those primitives and delete the bespoke panel and tile styles"
+    ],
+    "verification": [
+      "browser check on localhost:3000/admin while signed out: refusal renders, .admin-shell absent, zero .admin-card in the DOM, no platform figure in the page text",
+      "every admin class used in TSX has a matching rule in globals.css, checked by script rather than by eye",
+      "pnpm test 189 passed, 33 skipped; pnpm typecheck and pnpm lint pass",
+      "node scripts/check-roadmap.mjs reports Roadmap 0.31.0 valid"
+    ],
+    "rollback": "กลับไป tag v0.30.0-platform-administration แล้ว revert commit ของ v0.31.0 ไม่มี migration ในรอบนี้ ADR 0013 ขยายขอบเขตบนกระดาษ แต่ยังไม่มีหน้าจอใดที่เขียนสิทธิ์ได้จริง",
+    "path": "docs/handoff/2026-08-24-admin-scope-and-cards.md"
+  },
+  {
+    "version": "0.30.0",
+    "title": "Someone To Check Against: Platform Administration Becomes a Granted Row",
+    "description": "ADR 0012 ทำให้สิทธิ์ผู้ดูแลแพลตฟอร์มเป็นแถวที่ถูกมอบให้ ถอนได้ และมีร่องรอย พร้อมเปิด shell หลังบ้านที่แสดงเฉพาะตัวเลขที่นับได้จริง",
+    "scope": [
+      "ADR 0012 stores platform administration as a granted row with grantedBy, grantedAt and revokedAt rather than a flag or an env allowlist",
+      "add the platform_administrators table and migration 0005",
+      "add resolvePlatformAdmin which refuses on no session, no grant, a revoked grant and an unreadable database",
+      "bound the grant to platform content and aggregate counts, with no right to read an organization's work",
+      "ship the back-office shell and overview page in the site's own design language, with real counts only",
+      "add scripts/grant-platform-admin.mjs, which bootstraps the first administrator and refuses once one exists"
+    ],
+    "verification": [
+      "pnpm test 189 passed, 33 skipped; platform-admin.test.ts covers all four outcomes including the unreadable-database case that systems usually fail open on",
+      "browser check on localhost:3000/admin while signed out: the refusal renders, .admin-shell and .admin-sidebar are absent from the DOM, and no platform figure appears in the page text",
+      "drizzle migration 0005 adds one table and alters none",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.29.0-prompt-typeface และ revert commit ของ v0.30.0 ตาราง platform_administrators เป็นตารางใหม่ที่ไม่มีอะไรอ้างถึง การ drop จึงไม่กระทบข้อมูลเดิม แต่จะลบประวัติการมอบสิทธิ์ไปด้วย",
+    "path": "docs/handoff/2026-08-24-platform-administration.md"
+  },
+  {
+    "version": "0.29.0",
+    "title": "The Heavy Weights Stop Being Faked",
+    "description": "เปลี่ยนเป็น Prompt และโหลดทุกน้ำหนักที่สเปคประกาศ จบปัญหา faux bold พร้อมตั้งน้ำหนักหัวข้อกลับมาที่ 600 หลัง Tailwind Preflight รีเซ็ตไว้ที่ 400",
+    "scope": [
+      "replace IBM Plex Sans Thai with Prompt through next/font/google, which self-hosts at build",
+      "load 400, 500, 600, 700, 800 and 900 so no declared weight is synthesised by the browser",
+      "restore a heading weight after Tailwind Preflight reset it to inherit, at 600 for optical reasons",
+      "leave the downloaded font files under km/ unused, because km/ is gitignored and a local font would build on one machine only"
+    ],
+    "verification": [
+      "browser check with document.fonts.ready: real faces loaded are Prompt 400, 600, 700, 800 and 900, so no weight is synthesised",
+      "computed styles read from the running page: hero h1 is Prompt 600 at 72px, section h2 Prompt 600 at 42px, .eyebrow Prompt 800 at 12px, body Prompt 400 at 18px",
+      "grep over src/ finds no remaining reference to IBM Plex",
+      "pnpm test 185 passed, 33 skipped; pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.28.0-stated-prices แล้ว revert สอง commit ของ v0.29.0 เป็นการเปลี่ยนเฉพาะการนำเสนอ ไม่มี migration และไม่มีข้อมูลใดเกี่ยวข้อง",
+    "path": "docs/handoff/2026-08-24-prompt-typeface.md"
+  },
+  {
+    "version": "0.28.0",
+    "title": "The Platform States Its Prices, and the Day Pass Stops Competing With VIP",
+    "description": "ADR 0011 อนุญาตให้ประกาศราคา สมาชิก VIP 1,170/เดือน หรือ 10,440/ปี พร้อมสวิตช์ และราคาแยกแอปที่แพงกว่าเหมารวมถูกเปลี่ยนเป็นบัตรรายวัน",
+    "scope": [
+      "ADR 0011 supersedes the no-numeric-price rule in docs/requirements/civil-apps-market.md rows 15, 61 and 70",
+      "add the VIP tier with a monthly/yearly switch, priced 1,170 and 10,440 baht VAT-inclusive",
+      "derive the per-day figure from the selected cycle so 29 baht never appears beside the 39 baht cycle",
+      "sell the single app as a day pass rather than a subscription that VIP strictly dominates",
+      "model a promotion as a dated window that expires on its own instead of an edit to the standing price"
+    ],
+    "verification": [
+      "pnpm test 183 passed, 33 skipped; pricing.test.ts holds the approved figures and asserts the yearly saving is computed from them rather than typed in",
+      "pricing.test.ts asserts round(perDayBaht('yearly')) is 29 and round(perDayBaht('monthly')) is not, which is the rule the ad copy depends on",
+      "pricing.test.ts asserts no tier copy contains a baht figure, so a price has one home",
+      "browser check on localhost:3000/pricing: the switch moves the card between 1,170 บาท/เดือน with 39.00 a day and 10,440 บาท/ปี with 28.60 a day, and the coffee line appears only on the yearly cycle",
+      "pnpm typecheck and pnpm lint pass"
+    ],
+    "rollback": "กลับไป tag v0.27.0-access-page แล้ว revert commit ของ v0.28.0 ไม่มี migration และยังไม่มีการรับชำระเงิน จึงไม่มีรายการที่ค้างอยู่กับผู้ให้บริการชำระเงินใด",
+    "path": "docs/handoff/2026-08-24-stated-prices.md"
+  },
+  {
+    "version": "0.27.0",
+    "title": "An Access Page That Compares Rights, Not Prices",
+    "description": "หน้า /pricing เทียบสิทธิ์การเข้าใช้งานสามแบบแทนราคา ตารางความสามารถ derive จาก listCapabilities และ ADR 0010 ทำให้ข้อความก่อนเข้าใช้งานเป็นประโยคเดียวทุกพื้นผิว",
+    "scope": [
+      "ADR 0010 supersedes the marketDetail.availabilityNote row of ADR 0009: no surface before entry names the project cap",
+      "add /pricing with three access tiers and a fifth main-menu entry",
+      "derive the capability table from listCapabilities rather than authoring ticks",
+      "replace the reference layout's order-total column with the visitor's own entitlement state, failing closed",
+      "keep the restricted DOH app as a footnote rather than a tier"
+    ],
+    "verification": [
+      "pnpm test 175 passed, 33 skipped; pricing.test.ts asserts no baht/THB/EUR figure and no digit other than the trial length appears in tier copy",
+      "pricing.test.ts asserts the export and print rows are false for trial and true for the other tiers, read from the real policy",
+      "platform.test.ts asserts no marketDetail.availabilityNote contains โครงการ",
+      "pnpm typecheck and pnpm lint pass; the one warning is the pre-existing unused formatSatang",
+      "browser check on localhost:3000/pricing: five nav pills including ราคา, and the derived table shows ส่งออกไฟล์ and พิมพ์เอกสาร false only under ทดลองใช้งาน"
+    ],
+    "rollback": "กลับไป tag v0.26.0-trial-seven-days แล้ว revert สอง commit ของ v0.27.0 หน้า /pricing เป็นหน้าใหม่ ไม่มี migration และไม่มีข้อมูลผู้ใช้เกี่ยวข้อง",
+    "path": "docs/handoff/2026-08-24-access-page.md"
+  },
+  {
+    "version": "0.26.0",
+    "title": "A Seven-Day Trial That Does Not Lead With Its Limit",
+    "description": "ทดลองใช้ ESTIMETR เป็น 7 วันตาม ADR 0009 และถอดเพดาน 1 โครงการออกจากข้อความพาดหัวโดยที่การบังคับใช้ฝั่งเซิร์ฟเวอร์ไม่เปลี่ยน",
+    "scope": [
+      "ADR 0009 supersedes the five-day term set in ADR 0003 and re-affirmed in ADR 0006",
+      "ESTIMETR_TRIAL_DAYS 5 -> 7; the project cap, export and print locks and read-only retention are unchanged",
+      "remove the one-project cap from accessLabel.paid_trial, the landing hero and the market entry button",
+      "keep the cap on marketDetail.availabilityNote, the activation screen and the in-app project counter",
+      "update the approved commercial phrase in docs/requirements/civil-apps-market.md to seven days"
+    ],
+    "verification": [
+      "pnpm test 168 passed, 33 skipped; estimeter-trial.test.ts asserts the window ends 2026-08-30 for a 2026-08-23 activation",
+      "platform.test.ts asserts accessLabel.paid_trial is 'ฟรี ทดลองใช้งาน 7 วัน' and does not contain 'โครงการ'",
+      "estimeter-access.integration.test.ts expects endsAt 2026-08-27T10:00Z and daysRemaining 6 for a 2026-08-20T10:00Z activation",
+      "pnpm typecheck and pnpm lint pass; the one lint warning is the pre-existing unused formatSatang in thai-baht.test.ts",
+      "grep over src/ and docs/requirements/ finds no remaining '5 วัน' or 'five-day' other than the historical note in the requirement table"
+    ],
+    "rollback": "กลับไป tag v0.25.0-circular-readers และ revert commit ของ v0.26.0 ข้อควรระวัง: สิทธิ์ที่ออกไปแล้วเก็บ ends_at เป็นค่าคงที่ในฐานข้อมูล การ revert โค้ดไม่ย้อนแถวที่ออกด้วยเงื่อนไข 7 วัน ต้องเลือกระหว่างตัดสิทธิ์ที่ประกาศไว้กับปล่อยให้ข้อมูลไม่ตรงกับค่าคงที่",
+    "path": "docs/handoff/2026-08-24-trial-seven-days.md"
+  },
+  {
+    "version": "0.25.0",
+    "title": "The Tools That Read a Circular Live in the Repository",
+    "description": "สคริปต์ดึงตาราง Factor F รันได้จาก clone ใหม่แล้ว และมีเครื่องมืออ่านหนังสือเวียนทั้งแบบตารางและแบบหน้าสแกน พร้อมสภาพ ณ เวลาปิด session.",
+    "scope": [
+      "pdfjs-dist declared as a devDependency",
+      "scripts/read-circular.mjs with text, image and hash modes",
+      "hand-written PNG encoder because the canvas backend segfaults",
+      "session close: work delivered, work outstanding, open questions"
+    ],
+    "verification": [
+      "the committed extractor now runs and reports 48 tables, 1,644 rows",
+      "read-circular hash matches the checksum recorded in the Factor F dataset",
+      "typecheck/lint pass; vitest 168 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.25.0 commit and remove pdfjs-dist. The dataset already committed is unaffected.",
+    "path": "docs/handoff/2026-08-24-circular-readers-and-session-close.md"
+  },
+  {
+    "version": "0.24.0",
+    "title": "A Factor Between Two Steps Is Now a Rule, Not a Habit",
+    "description": "ค่างานที่ตกระหว่างขั้นของตาราง Factor F ให้เทียบอัตราส่วนตามหมายเหตุข้อ 1 ของ ว481 ปัดสี่ตำแหน่งก่อนคูณ และผลลัพธ์ต้องบอกที่มาของตัวคูณได้.",
+    "scope": [
+      "interpolation rule recorded beside the latest-circular rule",
+      "four-decimal rounding before multiplying",
+      "one factor per section, chosen from the section total",
+      "result must show printed step or interpolation",
+      "note 2: no-VAT work reads the รวมในรูป Factor column"
+    ],
+    "verification": [
+      "engineering rules carry both notes with the reason each exists",
+      "resolveFactorF already implements them (26fd55a)",
+      "the audited project resolves to 1.3028 interpolated, 3,295,081.10, net 3,295,000",
+      "check-roadmap passes"
+    ],
+    "rollback": "Revert the v0.24.0 commit. Rule text only; the resolver is a separate commit.",
+    "path": "docs/handoff/2026-08-24-factor-f-interpolation-rule.md"
+  },
+  {
+    "version": "0.23.0",
+    "title": "The Latest Circular Wins, and the Dataset Says Which One It Is",
+    "description": "หนังสือเวียนกรมบัญชีกลางต้องใช้ฉบับล่าสุดเสมอ ว480 และ ว481 แทน ว809 และ ว499 และการตามหาตาราง 6% ฉบับก่อนหน้าไม่ใช่เงื่อนไขของการคำนวณอีกต่อไป.",
+    "scope": [
+      "latest-circular rule recorded in engineering rules",
+      "reference datasets must carry issuer, number, date, criteria and checksum",
+      "IP-068 replaced by a currency check",
+      "ว480 noted as the labour source superseding ว809"
+    ],
+    "verification": [
+      "engineering rules name ว480 and ว481 as current",
+      "the provenance research carries both circulars and the 2565-2569 timeline",
+      "check-roadmap passes with pointer matching the versioned file"
+    ],
+    "rollback": "Revert the v0.23.0 commit. Documentation and plan only.",
+    "path": "docs/handoff/2026-08-24-latest-circular-rule.md"
+  },
+  {
+    "version": "0.22.0",
+    "title": "Factor F Stops Being a Number Someone Typed",
+    "description": "ตาราง Factor F 48 ตาราง 1,644 แถว จาก ว481 เข้า repository พร้อมที่มาครบและ sha256 โมดูลปฏิเสธเมื่ออัตราไม่ตรงแทนที่จะหยิบตารางใกล้เคียง.",
+    "scope": [
+      "48 tables extracted with a self-checking extractor",
+      "full circular provenance including the MLR survey and rounding rule",
+      "lookup refuses a mismatched interest or VAT rate",
+      "betweenRows flag instead of deciding interpolation",
+      "reviewedBy recorded as null"
+    ],
+    "verification": [
+      "extractor self-checks all 1,644 rows against factor x 1.07",
+      "14 unit tests re-check the invariants in every gate",
+      "the real ปร.4 reproduced: 2,529,230.20 x 1.3034 = 3,296,598.64 -> 3,296,500",
+      "typecheck/lint pass; vitest 161 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.22.0 commit. Nothing reads Factor F yet, so no existing behaviour changes.",
+    "path": "docs/handoff/2026-08-24-factor-f-dataset.md"
+  },
+  {
+    "version": "0.21.0",
+    "title": "The Landing Says What the Tool Is For, and Shows It Working",
+    "description": "ลำดับ 01-04 เดินให้เห็นพร้อมเส้นสำรวจที่อ่านแผนผัง และหัวข้อปัญหาสามข้อจากงานประมาณราคาจริง โดยระบุตรง ๆ ว่าชั้นราคายังไม่เปิดใช้งาน.",
+    "scope": [
+      "hero drawn on load then a survey sweep",
+      "start rail walking 01 to 04, paused on hover or focus",
+      "three problem cards paired with what the product does",
+      "honest statement that the costing layer is not available",
+      "reduced-motion contract preserved"
+    ],
+    "verification": [
+      "screenshots at two animation points show the rail on 01 then on 04",
+      "forced reduced-motion shows a complete static drawing",
+      "scrollWidth equals innerWidth at 1440 and at 390 with mobile emulation",
+      "typecheck/lint pass; vitest 147 passed, 33 skipped"
+    ],
+    "rollback": "Revert the v0.21.0 commit. Three presentation files only; no schema or server change.",
+    "path": "docs/handoff/2026-08-23-landing-hero-motion-and-problem.md"
+  },
+  {
+    "version": "0.20.0",
+    "title": "ESTIMETR Can Hold a Real ปร.4",
+    "description": "ตรวจกับงานจริงที่ประมาณราคาเสร็จแล้ว แล้วปิดช่องว่างเรื่องหน่วย งานเหมารวม ลำดับชั้นหมวดงาน หัวฟอร์ม การอ่านเงินเป็นภาษาไทย และกฎปัดลงหลักร้อย.",
+    "scope": [
+      "real-project gap check",
+      "units the sheet actually uses",
+      "lump sum",
+      "takeoff_groups with derived ลำดับที่",
+      "project header fields",
+      "Thai baht text and floor-to-hundred"
+    ],
+    "verification": [
+      "typecheck/lint/build/security:check passed",
+      "vitest 23 files / 180 tests passed with the opt-in PostgreSQL suites enabled",
+      "reconciled against the real ปร.4/5/6 for อาคารฟอกไต ปุญโญภาส"
+    ],
+    "rollback": "Return to tag v0.19.0-design-language-file and drop migration 0004, which is additive only.",
+    "path": "docs/handoff/2026-08-23-estimeter-pr4-representable.md"
+  },
+  {
+    "version": "0.18.0",
+    "title": "The Quality Gate Becomes Something That Actually Runs",
+    "description": "hook ติดตั้งตัวเองตอน pnpm install, CI รันบน feature branch พร้อม PostgreSQL 16 service และเปิดชุดทดสอบฐานข้อมูลที่เคยถูก skip, และ check-roadmap ปฏิเสธ pointer ที่แตกจากไฟล์เวอร์ชัน.",
+    "scope": [
+      "prepare lifecycle sets core.hooksPath",
+      "CI on feature/**",
+      "digest-pinned PostgreSQL 16 service with migrations",
+      "ESTIMETR_DB_TESTS enabled in CI",
+      "check-roadmap compares pointer with versioned file",
+      "tests covering the workflow contract and the checker"
+    ],
+    "verification": [
+      "typecheck/lint/security:check passed",
+      "vitest 21 files / 149 tests: 120 passed, 29 skipped locally without a database",
+      "pnpm install proved to set core.hooksPath from an unset value",
+      "check-roadmap reports the pointer matches roadmap.v0.18.0.json",
+      "CI run 32649341753: 21 files / 149 tests passed with no skips against PostgreSQL 16"
+    ],
+    "rollback": "Revert the v0.18.0 commit and run git config --unset core.hooksPath. No schema or product behaviour changed.",
+    "path": "docs/handoff/2026-08-23-quality-gate-enforced.md"
+  },
+  {
     "version": "0.17.0",
     "title": "ESTIMETR Take-off Quantities Become Re-checkable",
     "description": "ปริมาณกลายเป็นผลรวมของบรรทัดวัด จำนวน × ระยะ ค่าเผื่อแยกออกมาและต้องอ้างอิงหลักเกณฑ์ พร้อมวางรอยต่อของสองชั้นราคาไว้ที่ projects.project_path ตาม ADR 0007.",
@@ -20,6 +514,23 @@
     ],
     "rollback": "Return to tag v0.16.0-estimeter-trial-activation and drop migrations 0003 and 0002, which are additive only.",
     "path": "docs/handoff/2026-08-23-estimeter-measurement-breakdown.md"
+  },
+  {
+    "version": "planning-harness",
+    "title": "A Planning Gate Before the First Line of Code",
+    "description": "ติดตั้ง grill-with-docs พร้อม dependency เป็นด่านวางแผนก่อนแตะ source code และบันทึกผลตรวจว่ากฎที่ประกาศไว้ถูกบังคับจริงแค่ไหน.",
+    "scope": [
+      "grill-with-docs, grilling, domain-modeling installed as copies",
+      "AGENTS.md planning gate and ADR override",
+      "harness audit S1-S14"
+    ],
+    "verification": [
+      "typecheck/lint/test passed at the time of the change",
+      "skills installed as real files, not symlinks",
+      "npx skills list shows all three"
+    ],
+    "rollback": "Revert commit 2727ac7 and remove .claude/skills, .agents/skills and skills-lock.json.",
+    "path": "docs/handoff/2026-08-23-planning-harness.md"
   },
   {
     "version": "vscode-continuation",

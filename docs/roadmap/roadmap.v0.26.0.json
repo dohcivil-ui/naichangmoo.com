@@ -1,0 +1,122 @@
+{
+  "version": "0.26.0",
+  "title": "A Seven-Day Trial That Does Not Lead With Its Limit",
+  "description": "สิทธิ์ทดลองใช้ ESTIMETR เปลี่ยนจาก 5 วันเป็น 7 วัน เพราะผู้ใช้ที่กดเริ่มวันศุกร์เหลือเวลาทำงานจริงสองวัน ซึ่งไม่พอสำหรับลำดับงานที่ต้องมีแบบก่อสร้างอยู่ในมือก่อนถอดปริมาณ พร้อมกันนั้นเพดาน 1 โครงการถูกถอดออกจากข้อความพาดหัว แต่ยังบังคับใช้ฝั่งเซิร์ฟเวอร์เหมือนเดิม และยังบอกครบบนหน้ารายละเอียดแอป หน้าจอกดเริ่ม และตัวนับในแอป เส้นแบ่งคือพาดหัวกับรายละเอียด ไม่ใช่ก่อนเข้ากับหลังเข้า",
+  "scope": [
+    "ADR 0009 supersedes the five-day term set in ADR 0003 and re-affirmed in ADR 0006",
+    "ESTIMETR_TRIAL_DAYS 5 -> 7; the project cap, export and print locks and read-only retention are unchanged",
+    "remove the one-project cap from accessLabel.paid_trial, the landing hero and the market entry button",
+    "keep the cap on marketDetail.availabilityNote, the activation screen and the in-app project counter",
+    "update the approved commercial phrase in docs/requirements/civil-apps-market.md to seven days"
+  ],
+  "updatedAt": "2026-08-24T13:20:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "pnpm test 168 passed, 33 skipped; estimeter-trial.test.ts asserts the window ends 2026-08-30 for a 2026-08-23 activation",
+    "platform.test.ts asserts accessLabel.paid_trial is 'ฟรี ทดลองใช้งาน 7 วัน' and does not contain 'โครงการ'",
+    "estimeter-access.integration.test.ts expects endsAt 2026-08-27T10:00Z and daysRemaining 6 for a 2026-08-20T10:00Z activation",
+    "pnpm typecheck and pnpm lint pass; the one lint warning is the pre-existing unused formatSatang in thai-baht.test.ts",
+    "grep over src/ and docs/requirements/ finds no remaining '5 วัน' or 'five-day' other than the historical note in the requirement table"
+  ],
+  "rollback": "กลับไป tag v0.25.0-circular-readers และ revert commit ของ v0.26.0 ข้อควรระวัง: สิทธิ์ที่ออกไปแล้วเก็บ ends_at เป็นค่าคงที่ในฐานข้อมูล การ revert โค้ดไม่ย้อนแถวที่ออกด้วยเงื่อนไข 7 วัน ต้องเลือกระหว่างตัดสิทธิ์ที่ประกาศไว้กับปล่อยให้ข้อมูลไม่ตรงกับค่าคงที่",
+  "constraints": [
+    "The project cap is enforced in STATE_POLICY.trial and ESTIMETR_TRIAL_LIMITS, not in copy. This version changes where the cap is mentioned and never where it is applied.",
+    "Trial entitlements issued before this version keep an ends_at computed from five days. Bringing them to seven days would need its own migration and is not part of this version.",
+    "There is still no numeric package price anywhere in the product. ADR 0009 does not touch that requirement."
+  ],
+  "adrReferences": [
+    "0009-trial-runs-seven-days-and-stops-advertising-the-project-limit"
+  ],
+  "items": [
+    {
+      "id": "IP-075",
+      "title": "Run the ESTIMETR trial for seven days and stop leading with the one-project cap",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-076",
+      "title": "Decide whether trial entitlements issued under the five-day term are migrated to seven days",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

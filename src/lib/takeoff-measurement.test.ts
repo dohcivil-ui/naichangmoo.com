@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DIMENSION_RANK,
   grossQuantity,
+  measurementMatchesUnit,
   measurementSubtotal,
   netQuantity,
   parseMeasurementForm,
@@ -234,5 +235,52 @@ describe("item totals", () => {
 
   it("leaves the measured total alone when no allowance is claimed", () => {
     expect(netQuantity("29.304", "0")).toBe("29.304");
+  });
+});
+
+describe("units the real sheet uses", () => {
+  it("counts a bar without asking for a length, because ปร.4 prices reinforcement by the bar", () => {
+    const parsed = parseMeasurementForm(measurementForm({ label: "เหล็ก DB 16 mm.", count: "344" }), "bar");
+
+    expect(parsed.ok).toBe(true);
+    if (parsed.ok) {
+      expect(parsed.value.dimensions).toEqual([]);
+      expect(measurementSubtotal({ ...parsed.value, conversionFactor: null })).toBe("344");
+    }
+  });
+
+  it("counts rolls, tanks and sheets the same way", () => {
+    for (const unit of ["roll", "tank", "sheet", "set", "each"]) {
+      const parsed = parseMeasurementForm(measurementForm({ label: "รายการ", count: "6" }), unit);
+      expect(parsed.ok).toBe(true);
+      if (parsed.ok) expect(measurementSubtotal({ ...parsed.value, conversionFactor: null })).toBe("6");
+    }
+  });
+});
+
+describe("lump sum", () => {
+  it("is always exactly one, whatever the form sends", () => {
+    const blank = parseMeasurementForm(measurementForm({ label: "ระบบกำจัดปลวก" }), "lump");
+    const explicit = parseMeasurementForm(measurementForm({ label: "ระบบกำจัดปลวก", count: "1" }), "lump");
+
+    expect(blank.ok).toBe(true);
+    if (blank.ok) {
+      expect(blank.value.count).toBe(1);
+      expect(blank.value.dimensions).toEqual([]);
+      expect(measurementSubtotal({ ...blank.value, conversionFactor: null })).toBe("1");
+    }
+    expect(explicit.ok).toBe(true);
+  });
+
+  it("refuses more than one, because that is a second line nobody wrote", () => {
+    const parsed = parseMeasurementForm(measurementForm({ label: "งานตัวอักษรป้าย", count: "3" }), "lump");
+
+    expect(parsed.ok).toBe(false);
+    if (!parsed.ok) expect(parsed.errors.count).toBeTruthy();
+  });
+
+  it("is refused on the write path too when the count is not one", () => {
+    expect(measurementMatchesUnit({ count: 2, dimensions: [], conversionFactor: null }, "lump")).toBe(false);
+    expect(measurementMatchesUnit({ count: 1, dimensions: [], conversionFactor: null }, "lump")).toBe(true);
   });
 });

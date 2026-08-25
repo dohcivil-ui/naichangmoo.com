@@ -11,6 +11,8 @@ export type ProjectSummary = {
   state: string;
   workType: string;
   path: string;
+  siteLocation: string | null;
+  agencyName: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -20,6 +22,8 @@ export type CreateProjectInput = {
   ownerId: string;
   name: string;
   path: ProjectPathCode;
+  siteLocation: string | null;
+  agencyName: string | null;
   projectLimit: number | null;
   entitlementState: EffectiveEntitlementState;
 };
@@ -34,6 +38,8 @@ const summaryColumns = {
   state: projects.state,
   workType: projects.workType,
   path: projects.path,
+  siteLocation: projects.siteLocation,
+  agencyName: projects.agencyName,
   createdAt: projects.createdAt,
   updatedAt: projects.updatedAt
 };
@@ -89,6 +95,8 @@ export async function createProjectWithinLimit(input: CreateProjectInput): Promi
       name: input.name,
       workType: ESTIMETR_WORK_TYPE,
       path: input.path,
+      siteLocation: input.siteLocation,
+      agencyName: input.agencyName,
       state: "draft"
     });
 

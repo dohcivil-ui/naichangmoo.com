@@ -25,7 +25,9 @@ describe("ESTIMETR trial entitlement", () => {
     expect(canUseCapability(trial, "print", now)).toBe(false);
   });
 
-  it("retains read access and locks all mutations after the five-day trial", () => {
+  // The fixture carries its own endsAt, so this covers expiry behaviour and not the trial length
+  // that ADR 0009 changed; estimeter-trial.test.ts is where the length is asserted.
+  it("retains read access and locks all mutations once the trial window closes", () => {
     const expired = new Date("2026-08-27T00:00:00.000Z");
     expect(resolveEntitlement(trial, expired)).toBe("expired_read_only");
     expect(canUseCapability(trial, "read", expired)).toBe(true);

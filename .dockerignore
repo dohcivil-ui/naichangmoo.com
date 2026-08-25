@@ -1,0 +1,51 @@
+# Written before the Dockerfile on purpose. Everything below either must not
+# reach the build daemon or must not survive into an image layer.
+
+# Licensed textbooks, government circulars and working screenshots. .gitignore
+# records that these are "never published with the source", and the directory is
+# 1.9 GB. It is absent from a CI checkout because git already ignores it, so the
+# case this guards is a `docker build` run from someone's own machine, where the
+# whole 1.9 GB would otherwise be handed to the daemon and could land in a layer
+# that gets pushed to a registry.
+km/
+
+# Real credentials. A secret copied into a layer stays in that layer even if a
+# later step deletes the file.
+.env
+.env.*
+!.env.example
+
+# Rebuilt inside the image. Copying a host build in would mix a Windows-built
+# tree into a Linux image.
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Unrelated design reference, per .gitignore.
+skill/
+
+# Agent and editor state the application never reads.
+.git/
+.github/
+.claude/
+.agents/
+.agent/
+.design/
+*.log
+.DS_Store
+
+# The one large file under docs/. Nothing reads it, and it is 3.5 MB of the
+# 5.1 MB that directory weighs.
+#
+# The rest of docs/ stays, and that is deliberate: src/server/project-status.ts
+# reads docs/roadmap/roadmap.json and docs/handoff/ at request time, through a
+# path built from process.cwd(). Next's tracer cannot see a path assembled at
+# runtime, so those files are not pulled into the standalone output on their own
+# and the Dockerfile has to copy them in. Excluding docs/ here would make
+# /roadmap and /api/project-status throw in production while passing every test.
+docs/SLA-License-Apple.pdf
+
+# drizzle/ is NOT excluded. `drizzle-kit migrate` needs both the .sql files and
+# drizzle/meta/_journal.json to know which migrations have already run.

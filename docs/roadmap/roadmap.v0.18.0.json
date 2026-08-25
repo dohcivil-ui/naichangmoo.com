@@ -1,0 +1,103 @@
+{
+  "version": "0.18.0",
+  "title": "The Quality Gate Becomes Something That Actually Runs",
+  "description": "กฎคุณภาพของโปรเจกต์ถูกประกาศไว้ครบแต่ไม่มีอะไรบังคับ: pre-commit hook ไม่เคยถูกเปิดใช้เพราะ core.hooksPath เก็บอยู่ใน .git/config ซึ่ง commit ไม่ได้, CI ไม่ครอบ feature branch ที่งานจริงเกิดขึ้น, ชุดทดสอบฐานข้อมูลที่ handoff อ้างเป็นหลักฐานถูก skip ทุกครั้งใน CI, และ roadmap pointer แตกจากไฟล์เวอร์ชันได้โดย checker มองไม่เห็น รอบนี้ทำให้ทั้งสามอย่างบังคับได้ด้วยเครื่อง ไม่ใช่ด้วยความจำของคน",
+  "scope": [
+    "run the hook setup from the prepare lifecycle so a fresh clone gets the gate without anyone remembering a command",
+    "skip hook setup silently when there is no Git work tree, so a tarball or export install does not fail a deployment",
+    "run the quality gate on feature branches, where the commits actually land",
+    "give CI a PostgreSQL 16 service pinned by digest, matching the production target in ADR 0002, and apply migrations before the suites run",
+    "set ESTIMETR_DB_TESTS in CI so the suites the handoff notes claim as verification are the suites that run",
+    "make check-roadmap refuse a pointer that has drifted from its versioned file, or that names a version with no file",
+    "cover both the workflow contract and the checker behaviour with tests that run in every gate, including the local hook"
+  ],
+  "updatedAt": "2026-08-23T22:50:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "pnpm install prints the prepare step and git config core.hooksPath reports hooks afterwards, starting from an unset value",
+    "tests assert the workflow carries a digest-pinned postgres image, sets ESTIMETR_DB_TESTS, applies migrations before the suites and triggers on feature branches",
+    "tests drive scripts/check-roadmap.mjs against fixtures: a matching pair passes, an edited pointer fails with drifted, a missing versioned file fails, and a pointer missing required fields still fails",
+    "the same checker passes against this repository as it stands",
+    "pnpm typecheck, pnpm lint and pnpm test pass",
+    "hooks/pre-commit ran for the first time in this repository during commit 6f33db6: vitest and tsc executed inside git commit, which is the behaviour IP-055 exists to produce",
+    "CI run 32649341753, triggered by push on the feature branch for the first time, reported Test Files 21 passed (21) and Tests 149 passed (149) with no skips: the 29 database tests that had never run in CI passed against PostgreSQL 16, including the project-cap row lock and the take-off item lock"
+  ],
+  "rollback": "Revert the v0.18.0 commit. The hook stays configured on machines where pnpm install already ran; git config --unset core.hooksPath removes it. No schema, migration or product behaviour changes in this version.",
+  "constraints": [
+    "The no-database part of the gate keeps running with the database environment variables stripped, because nothing in lint, build or the unit tests may depend on a database.",
+    "The CI database is PostgreSQL 16 to match the production target recorded in ADR 0002 and docs/architecture/ARCHITECTURE.md, even though the development machine currently runs 18.6.",
+    "check-roadmap stays a content comparison between the pointer and its versioned file; comparing package.json and requiring a handoff entry is deliberately left to IP-059 so this version ships the cheapest check that closes the observed failure.",
+    "IP-050 and IP-051 are blocked, not merely unscheduled: both hang on which authority publishes the schedule this product follows, which docs/architecture/estimeter-operating-policy.md and IP-042 currently answer differently. Designing the document baseline against the wrong authority means migrating it once customer data sits in it."
+  ],
+  "adrReferences": [
+    "0002-postgresql-drizzle-and-r2-data-boundary"
+  ],
+  "items": [
+    {
+      "id": "IP-053",
+      "title": "Run the opt-in PostgreSQL suites in CI so the row lock, entitlement and trial-clock guarantees are machine-checked instead of hand-verified",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-055",
+      "title": "Enable the pre-commit hook on every clone and run the quality gate on feature branches",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-056",
+      "title": "Make check-roadmap refuse a pointer that has drifted from its versioned file",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-059",
+      "title": "Extend check-roadmap further: compare package.json version with the roadmap pointer and require the handoff the roadmap claims to exist",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-050",
+      "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, source checksum and reviewer",
+      "status": "blocked",
+      "phase": "data"
+    },
+    {
+      "id": "IP-051",
+      "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates",
+      "status": "blocked",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 before claiming export compliance, starting by settling which authority publishes the schedule this product follows",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

@@ -2,9 +2,12 @@ import type { EntitlementLimits } from "@/lib/entitlement";
 
 export const ESTIMETR_APP_SLUG = "estimeter";
 
-// ADR 0003 sets the trial terms: five days, one project, export and print locked. ADR 0006
-// sets when the five days begin. Changing any of these values needs a superseding ADR.
-export const ESTIMETR_TRIAL_DAYS = 5;
+// ADR 0003 set the trial terms and ADR 0006 set when the clock begins. ADR 0009 supersedes the
+// length: seven days, so a member who activates on a Friday still gets a full working week. The
+// project cap, the export and print locks and the read-only retention are unchanged, and the cap
+// is still enforced — ADR 0009 only stops advertising it before entry. Changing any of these
+// values needs a superseding ADR.
+export const ESTIMETR_TRIAL_DAYS = 7;
 
 export const ESTIMETR_TRIAL_LIMITS: EntitlementLimits = {
   projectLimit: 1,
@@ -18,8 +21,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 /**
  * The window runs from the moment the member activates the trial, which is the second of the
  * two access gates: authentication makes someone a platform member, and activation starts the
- * app entitlement. Deriving it from the registration date instead would spend the five days
- * while the member has not opened the app, and someone arriving on day six would find an
+ * app entitlement. Deriving it from the registration date instead would spend the seven days
+ * while the member has not opened the app, and someone arriving on day eight would find an
  * expired trial they never used. See ADR 0006, which supersedes this point in ADR 0003.
  */
 export function computeTrialWindow(activatedAt: Date): { startsAt: Date; endsAt: Date } {

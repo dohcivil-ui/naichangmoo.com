@@ -1,0 +1,115 @@
+{
+  "version": "0.24.0",
+  "title": "A Factor Between Two Steps Is Now a Rule, Not a Habit",
+  "description": "เจ้าของงานตัดสินว่าค่างานที่ตกระหว่างขั้นของตาราง Factor F ให้เทียบอัตราส่วนตามหมายเหตุข้อ 1 ของ ว481 ไม่ใช่หยิบค่าของขั้นที่ต่ำกว่ามาใช้อย่างที่ ปร.4 ของโครงการจริงทำ คำตัดสินถูกบันทึกเป็นกฎคู่กับกฎเรื่องหนังสือเวียนฉบับล่าสุด พร้อมข้อกำหนดที่ตามมา: ปัดเป็นทศนิยมสี่ตำแหน่งก่อนคูณเพราะ ปร.5 พิมพ์ไว้สี่ตำแหน่ง ใช้ Factor F หนึ่งค่าต่อหนึ่งหมวดงานโดยเลือกจากค่างานรวมของหมวด และผลลัพธ์ต้องบอกได้ว่าค่ามาจากขั้นที่พิมพ์หรือจากการเทียบอัตราส่วน",
+  "scope": [
+    "record the interpolation rule from note 1 in the engineering rules, beside the latest-circular rule",
+    "record that the interpolated factor is rounded to four decimals before it multiplies anything",
+    "record that one factor governs a section, chosen from the section total, not per line",
+    "record that a result must show whether its factor came from a printed step or from interpolation, with the two steps it sits between",
+    "record note 2: work that pays no VAT reads the รวมในรูป Factor column"
+  ],
+  "updatedAt": "2026-08-24T01:20:00+07:00",
+  "status": "pushed_tagged_and_released",
+  "verification": [
+    "docs/rules/engineering.md carries both notes as rules, with the reason each one exists",
+    "resolveFactorF in src/lib/factor-f.ts already implements them, committed as 26fd55a",
+    "running the resolver against the audited project returns factor 1.3028 on basis interpolated, giving 3,295,081.10 and a net of 3,295,000",
+    "node scripts/check-roadmap.mjs passes with the pointer matching the versioned file",
+    "pushed and tagged v0.24.0-factor-f-interpolation-rule"
+  ],
+  "rollback": "Revert the v0.24.0 commit. The rule text is removed; the resolver that implements it is a separate commit and is unaffected.",
+  "constraints": [
+    "The audited ปร.4 of the ปุญโญภาส dialysis building used the row below and reached 3,296,500. Following the note gives 3,295,000. The product will therefore differ from a hand-prepared sheet by 1,500 baht on that project, and the difference must be explainable rather than hidden.",
+    "Rounding happens once, at four decimals, before the multiplication. Carrying more precision than the sheet prints would make the sheet fail its own arithmetic check."
+  ],
+  "adrReferences": [
+    "0007-two-costing-stacks-over-one-takeoff"
+  ],
+  "items": [
+    {
+      "id": "IP-069",
+      "title": "Decide whether a cost of work between two printed rows interpolates or takes the lower row, and record the decision with the authority for it",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}

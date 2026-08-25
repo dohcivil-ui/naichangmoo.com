@@ -1,11 +1,22 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_Thai } from "next/font/google";
+import { Prompt } from "next/font/google";
 import "@/app/globals.css";
+import { CookieNotice } from "@/components/platform/cookie-notice";
 
-const ibmPlexThai = IBM_Plex_Sans_Thai({
-  variable: "--font-ibm-plex-thai",
+/**
+ * Loaded through next/font, which downloads the files at build time and serves them from this
+ * origin — no request leaves the visitor's browser for a font host, and there is no swap flash.
+ *
+ * The weight list is not padding. globals.css asks for 800 in twenty-three places and 900 in
+ * eleven, and the previous face shipped only 400 to 700, so every heavier declaration was being
+ * faked by the browser. Faux bold is what made the headings look smeared. These six weights are
+ * the ones the stylesheet actually uses; 650, 750 and 850 land on the nearest real neighbour.
+ */
+const prompt = Prompt({
+  variable: "--font-prompt",
   subsets: ["thai", "latin"],
-  weight: ["400", "500", "600", "700"]
+  weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap"
 });
 
 export const metadata: Metadata = {
@@ -14,5 +25,16 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th"><body className={ibmPlexThai.variable}>{children}</body></html>;
+  return <html lang="th"><body className={prompt.variable}>
+    {/* Everything carrying data-reveal starts at opacity 0 and is revealed by script. Without
+        this, a visitor with no JavaScript gets a hero that never arrives. */}
+    <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>
+    {children}
+    {/*
+      Mounted here rather than in SiteHeader because /admin and /apps carry their own chrome and
+      never render it — exactly the pages a notice would otherwise silently skip. One mount point
+      also means a page added later cannot forget it.
+    */}
+    <CookieNotice />
+  </body></html>;
 }

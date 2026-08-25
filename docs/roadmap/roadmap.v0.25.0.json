@@ -1,0 +1,113 @@
+{
+  "version": "0.25.0",
+  "title": "The Tools That Read a Circular Live in the Repository",
+  "description": "scripts/extract-factor-f.mjs ถูก commit ไปตั้งแต่ v0.22.0 โดยที่ pdfjs-dist ไม่ได้อยู่ใน dependency ของโปรเจกต์ สคริปต์นั้นจึงรันไม่ได้จาก clone ใหม่ รอบนี้แก้ให้รันได้จริง และเพิ่ม scripts/read-circular.mjs ที่อ่านหนังสือเวียนได้ทั้งสองแบบ: ตารางที่มี text layer และหน้าที่เป็นภาพสแกนซึ่งเป็นที่อยู่ของเลขที่หนังสือ วันที่ และหน่วยงานผู้ออก งานถัดไปคือ ว480 ซึ่งเป็นบัญชีค่าแรง 45 หน้า และต้องใช้เครื่องมือชุดนี้",
+  "scope": [
+    "add pdfjs-dist as a devDependency so the committed extractor runs from a fresh clone",
+    "ship scripts/read-circular.mjs with text, image and hash modes",
+    "write the PNG by hand in image mode, because the canvas backend segfaults on this machine",
+    "verify the checksum the reader reports matches the one recorded in the Factor F dataset"
+  ],
+  "updatedAt": "2026-08-24T01:35:00+07:00",
+  "status": "implementation_in_progress",
+  "verification": [
+    "node scripts/extract-factor-f.mjs on the ว481 file now runs from the repository and reports 48 tables, 1,644 rows, all self-checks passing",
+    "node scripts/read-circular.mjs hash returns 809fe26f…0575, the same checksum recorded in src/data/factor-f/cgd-w481-be2569.json",
+    "node scripts/read-circular.mjs text reads page 4 of ว481 as rows",
+    "pnpm typecheck and pnpm lint pass; pnpm test 168 passed, 33 skipped"
+  ],
+  "rollback": "Revert the v0.25.0 commit and remove pdfjs-dist from devDependencies. The Factor F dataset already in the repository is unaffected; only the ability to regenerate it from a PDF is lost.",
+  "constraints": [
+    "The circulars themselves stay out of the repository under km/. Only the numbers printed in them, and the checksum that ties those numbers to a file, are committed.",
+    "Image mode reads the embedded scan rather than rendering the page. A page whose content is vector rather than a scan will report that it carries no image and should be read in text mode."
+  ],
+  "adrReferences": [
+    "0002-postgresql-drizzle-and-r2-data-boundary"
+  ],
+  "items": [
+    {
+      "id": "IP-074",
+      "title": "Make the circular readers runnable from the repository, with the PDF dependency declared",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-073",
+      "title": "Show in the estimate where a Factor F came from: printed step or interpolation, and the two steps it sits between",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-072",
+      "title": "Give the product a way to tell that the Factor F and labour circulars it holds are still the current ones",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-051",
+      "title": "Bring the ว480 labour rate schedule in as a dataset, keeping the conditions that change a rate (quantity bands, area, method) as data rather than notes",
+      "status": "planned",
+      "phase": "data"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-070",
+      "title": "Have a qualified person certify the Factor F dataset and record the name, so pricing can require a reviewed table",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-064",
+      "title": "Record ประมาณราคาเมื่อวันที่ and ประมาณราคาโดย on the estimate so the sheet header can be filled",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-065",
+      "title": "Retire takeoff_items.category once headings carry the same meaning",
+      "status": "planned",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 against the Comptroller General's Department, which ว499 and ว481 confirm is the issuing authority",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-067",
+      "title": "Give roadmap item ids a single owner: IP-059 was issued twice, in v0.18.0 and again in v0.20.0, for unrelated work",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}
