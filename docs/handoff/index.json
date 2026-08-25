@@ -1,5 +1,85 @@
 [
   {
+    "version": "0.44.0",
+    "title": "Session Close — Claims, Navigation and Disclosure",
+    "description": "เอกสารปิดเซสชัน รวมสามเวอร์ชันที่ทำในวันเดียวกันไว้ฉบับเดียว พร้อมสภาพแวดล้อมที่ทิ้งไว้ งานที่ต้องทำต่อ และคำเตือนว่ามีอีกเซสชันทำงานบนสาขาเดียวกัน",
+    "scope": [
+      "รวม v0.41.0 v0.42.0 v0.43.0 ให้เซสชันใหม่อ่านฉบับเดียวจบ",
+      "เส้นเรื่องร่วม: หาผู้มีอำนาจให้เจอก่อนวาดสิ่งที่อ้างอำนาจนั้น",
+      "คำสั่งยืน: แถบคุกกี้ห้ามปิดตัวเอง",
+      "งานที่ต้องทำต่อ เริ่มที่ประกาศแอปห้าตัวในหลังบ้าน ซึ่งเป็นการกระทำของคน"
+    ],
+    "verification": [
+      "tsc สะอาด · lint ไม่มี output · 297 เทสต์ผ่าน · check-roadmap และ security:check ผ่าน",
+      "ตรวจด้วยตาในเบราว์เซอร์ครบทั้งสามเวอร์ชัน"
+    ],
+    "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด ไม่มี migration",
+    "path": "docs/handoff/2026-08-25-session-close-claims-navigation-and-disclosure.md"
+  },
+  {
+    "version": "0.43.0",
+    "title": "Telling People What Is Stored, Instead of Asking a Question With One Answer",
+    "description": "แถบแจ้งเรื่องคุกกี้แบบแจ้งล้วน ไม่มีปุ่มยอมรับ เพราะคุกกี้ทุกตัวที่เว็บนี้ตั้งจำเป็นต่อการเข้าสู่ระบบและถูกตั้งไม่ว่าจะกดอะไร พร้อมหน้า /cookies ที่ทุกแถวอ่านจาก Set-Cookie จริงและตาราง sessions จริง",
+    "scope": [
+      "แถบแจ้งที่ RootLayout ครอบทุก route รวม /admin และ /apps ที่ไม่มี SiteHeader",
+      "จำการกดรับทราบด้วย localStorage คีย์มีเลขรุ่น อ่านไม่ได้เมื่อไรให้แสดงไว้ก่อน",
+      "หน้า /cookies พร้อมชื่อที่ better-auth สั่งลบตอนออกจากระบบแต่ไม่เคยตั้ง",
+      "ลิงก์จาก footer และจากเมนูบัญชีของสมาชิกที่เข้าสู่ระบบแล้ว",
+      "ยังไม่ทำนโยบายความเป็นส่วนตัวและข้อกำหนดการใช้งาน เพราะต้องใช้ข้อมูลนิติบุคคลที่ยังไม่ตัดสิน"
+    ],
+    "verification": [
+      "อ่าน Set-Cookie จริง: better-auth.state Max-Age=300 HttpOnly SameSite=Lax และชื่อ session_token จาก header ตอนออกจากระบบ",
+      "อายุ session 7 วัน จาก expires_at - created_at ในตาราง sessions",
+      "curl -D - ที่หน้าแรกไม่มี Set-Cookie สักบรรทัด",
+      "ดักการเขียน localStorage ก่อนสคริปต์แรกด้วย initScript ได้ writeCount 0 ยืนยันว่าแถบไม่เขียนเองตอน mount",
+      "pnpm test ผ่าน 296 เทสต์ รวมเคสอ่าน localStorage ไม่ได้",
+      "npx tsc --noEmit สะอาด, check-roadmap และ security:check ผ่าน"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration เหลือแค่ค่าใน localStorage ของผู้ใช้ที่ไม่มีผลอะไร",
+    "path": "docs/handoff/2026-08-25-telling-people-what-is-stored.md"
+  },
+  {
+    "version": "0.42.0",
+    "title": "One Way Home, Called the Same Thing Everywhere",
+    "description": "มีปุ่มกลับหน้าแรกอยู่แล้วเกือบทุกหน้าคือโลโก้ แต่ไม่มีอะไรบนจอเขียนคำว่าหน้าแรก และปลายทางเดียวกันถูกเรียกด้วยห้าชื่อ พร้อมวางโมดูลเครื่องหมายรับรองไว้ว่างเปล่าโดยตั้งใจตาม ADR 0016",
+    "scope": [
+      "เพิ่มปุ่ม 'หน้าแรก' เป็นปุ่มแรกของเมนู แทนที่จะมีแต่โลโก้ที่ไม่มีคำ",
+      "เหลือสองคำ สองปลายทาง เก็บคู่กับ href ที่เดียว ไม่ให้หน้าไหนพิมพ์เอง",
+      "/roadmap ได้ SiteHeader และ PlatformFooter เป็นครั้งแรก",
+      "ADR 0016 เครื่องหมายรับรองคือคำแถลง ผู้ออกเป็นเจ้าของ โมดูลว่างเปล่าโดยตั้งใจ",
+      "แก้ตกค้างจาก v0.41.0: AppShell ติดป้ายสิทธิ์จาก seededAccess เป็นที่ที่สี่"
+    ],
+    "verification": [
+      "pnpm test ผ่าน 285 เทสต์ รวมเทสต์สแกน src ว่าไม่มีคำที่เลิกใช้เหลืออยู่",
+      "ดูด้วยตา: /roadmap มี header แล้ว ปุ่มหน้าแรกไฮไลต์ถูกที่ และหกปุ่มเห็นครบทั้ง 1440px และ 390px",
+      "footer__trust ไม่ปรากฏใน HTML ของหน้าใดเลย เพราะยังไม่มีเครื่องหมายที่ได้รับจริง",
+      "npx tsc --noEmit สะอาด, check-roadmap และ security:check ผ่าน"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูล",
+    "path": "docs/handoff/2026-08-25-one-way-home-called-the-same-thing-everywhere.md"
+  },
+  {
+    "version": "0.41.0",
+    "title": "A Card Introduces an App; the Registry Makes the Claims",
+    "description": "ปิดงานค้าง IP-092 ที่ ADR 0014 ตั้งชื่อไว้เอง: หน้าแรกเคยแถลงเงื่อนไขสิทธิ์ของแอปที่ไม่มีใครประกาศ ADR 0015 แยกการแนะนำออกจากคำแถลง แล้วเดินคำแถลงทั้งหมดผ่านทะเบียน",
+    "scope": [
+      "ADR 0015 แก้เส้นของ §2 ADR 0014 โดยอ้างถึง: กติกาคุมสิทธิ์ ราคา ความพร้อม ไม่ได้คุมการเอ่ยชื่อ",
+      "ป้ายสิทธิ์ ป้ายความพร้อม ถ้อยคำปุ่ม และวันที่ มาจากทะเบียนทั้งหมด ทั้งหน้าแรกและ /market/[slug]",
+      "ไม่มีคำประกาศ หรืออ่านฐานข้อมูลไม่ได้ ให้ผลเดียวกันคือการ์ดเงียบเรื่องคำแถลง แต่ยังมีชื่อและ purpose",
+      "gap ที่หายไปใน .market-category__apps และเลย์เอาต์การ์ดที่ตอบสี่คำถามครบ",
+      "CONTEXT.md: 'ประกาศแล้ว' แคบลง และ Trial 5 วัน เป็น 7 วัน"
+    ],
+    "verification": [
+      "pnpm test ผ่าน 275 เทสต์ รวมชุดใหม่เรื่องแอปที่ยังไม่ประกาศและฐานข้อมูลที่อ่านไม่ได้",
+      "ดูด้วยตาที่ localhost:3000 ก่อนประกาศ: การ์ดห้าใบเงียบครบ และ gap กลับมา",
+      "หน้าแรกที่เรนเดอร์จริงเหลือคำว่า 'ทดลองใช้งาน 7 วัน' ศูนย์ครั้ง จากเดิมสองครั้ง",
+      "npx tsc --noEmit สะอาด, node scripts/check-roadmap.mjs และ pnpm security:check ผ่าน",
+      "ยังไม่ได้ดูสถานะ 'ประกาศแล้ว' ด้วยตา เพราะการประกาศเป็นการกระทำของคนตาม ADR 0014"
+    ],
+    "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ถ้าประกาศไปแล้วให้ถอนที่หลังบ้านซึ่งล้าง announced_at โดยไม่ลบแถว",
+    "path": "docs/handoff/2026-08-25-a-card-introduces-an-app-the-registry-makes-the-claims.md"
+  },
+  {
     "version": "0.40.0",
     "title": "Open Questions Before the Card Work",
     "description": "เอกสารส่งต่อสำหรับเปิดแชทใหม่: คำถามกริลสี่ข้อที่ยังไม่ได้ถาม และข้อค้นพบสองข้อเรื่อง glossary กับ announced_at",

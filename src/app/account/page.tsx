@@ -49,7 +49,7 @@ export default async function AccountPage() {
             <h1>ต้องเข้าสู่ระบบก่อน</h1>
             <p>หน้านี้แสดงข้อมูลบัญชีของผู้ที่เข้าสู่ระบบแล้ว</p>
             <Link className="button button--ghost" href={landingActionContract.homeHref}>
-              กลับหน้าแรก
+              {landingActionContract.homeLabel}
             </Link>
           </section>
         </div>

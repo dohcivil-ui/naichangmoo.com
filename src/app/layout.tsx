@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
 import "@/app/globals.css";
+import { CookieNotice } from "@/components/platform/cookie-notice";
 
 /**
  * Loaded through next/font, which downloads the files at build time and serves them from this
@@ -29,5 +30,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         this, a visitor with no JavaScript gets a hero that never arrives. */}
     <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>
     {children}
+    {/*
+      Mounted here rather than in SiteHeader because /admin and /apps carry their own chrome and
+      never render it — exactly the pages a notice would otherwise silently skip. One mount point
+      also means a page added later cannot forget it.
+    */}
+    <CookieNotice />
   </body></html>;
 }

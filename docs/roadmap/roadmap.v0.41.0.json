@@ -1,25 +1,30 @@
 {
-  "version": "0.44.0",
-  "title": "Session Close — Claims, Navigation and Disclosure",
-  "description": "ปิดเซสชันด้วยเอกสารฉบับเดียวที่รวมสามเวอร์ชันไว้ เพราะทั้งสามเป็นเรื่องเดียวกันที่เพิ่งมองเห็นตอนทำ: หน้าเว็บแนะนำอะไรก็ได้ แต่พอจะแถลง ต้องมีคนเป็นเจ้าของคำแถลงนั้น เริ่มจากคำถามเรื่องการ์ดแอป แล้วลามไปคุมป้ายสิทธิ์ เครื่องหมายรับรอง และคุกกี้ ไม่มีโค้ดใหม่ในเวอร์ชันนี้",
+  "version": "0.41.0",
+  "title": "A Card Introduces an App; the Registry Makes the Claims",
+  "description": "ปิดงานค้างที่ ADR 0014 ตั้งชื่อไว้เองว่า IP-092 และไม่เคยถูกทำ หน้าแรกแถลง 'ฟรี ทดลองใช้งาน 7 วัน' ให้แอปที่ไม่มีผู้ดูแลคนไหนเคยประกาศมาตลอด ADR 0015 แยกการแนะนำออกจากคำแถลง — ชื่อและ purpose มาจาก source ได้เสมอ ส่วนสิทธิ์ ความพร้อม ถ้อยคำของปุ่ม และวันที่ ต้องมาจากทะเบียน ไม่มีคำประกาศแปลว่าเงียบ ไม่ใช่หาย พร้อมแก้ gap ที่หายไปใน .market-category__apps และยกการ์ดขึ้นเป็นเลย์เอาต์ที่ตอบสี่คำถามครบ",
   "scope": [
-    "รวมเอกสารส่งต่อของ v0.41.0 v0.42.0 v0.43.0 ไว้ที่เดียว ให้เซสชันใหม่อ่านฉบับเดียวจบ",
-    "บันทึกเส้นเรื่องร่วม: หาผู้มีอำนาจให้เจอ ก่อนวาดสิ่งที่อ้างอำนาจนั้น",
-    "บันทึกสภาพแวดล้อมที่ทิ้งไว้ รวมถึงว่ายังไม่มีแอปไหนถูกประกาศ และ chrome-devtools ค้าง",
-    "บันทึกคำสั่งยืนของเจ้าของ: แถบคุกกี้ห้ามปิดตัวเอง",
-    "บันทึกว่ามีอีกเซสชันทำงานบนสาขาเดียวกันและ commit ไปแล้วสี่ครั้ง งานที่ยังค้างของเขาไม่ถูกรวมมา",
-    "บันทึกการด่วนสรุปว่าเจอบั๊กสองครั้งทั้งที่ยังวัดไม่นิ่ง เป็นบทเรียนเรื่องวิธี"
+    "ADR 0015 แก้เส้นของ §2 ADR 0014 โดยอ้างถึง ไม่ใช่แก้ทับ: กติกาคุมคำแถลงเรื่องสิทธิ์ ราคา และความพร้อม ไม่ได้คุมการเอ่ยชื่อ",
+    "เดินป้ายสิทธิ์ ป้ายความพร้อม ถ้อยคำของปุ่ม และวันที่ผ่านทะเบียนทั้งหมด ทั้งหน้าแรกและ /market/[slug]",
+    "ปิดคำแถลงใน hero ที่พิมพ์ชื่อแอปคู่กับเงื่อนไขไว้ใน source มาตั้งแต่ต้น",
+    "อ่านฐานข้อมูลไม่ได้ ให้ผลเหมือนกันทุกประการกับยังไม่มีอะไรถูกประกาศ",
+    "ใส่ gap ที่หายไปใน .market-category__apps การ์ดสองใบในหมวดเดียวเลิกชนกัน",
+    "การ์ดใช้ purpose แทนคำอธิบายสามคำ และรวมคำแถลงเป็นเสาเดียวที่ขอบขวา",
+    "วันที่บนการ์ดคือ 'ประกาศเมื่อ' จาก announced_at แสดงเฉพาะตอนประกาศแล้วแต่ยังไม่เปิด",
+    "CONTEXT.md: 'ประกาศแล้ว' แคบลงเท่าที่ระบบบังคับใช้จริง และ Trial 5 วัน เป็น 7 วัน ให้ตรงกับ ADR 0009"
   ],
-  "updatedAt": "2026-08-25T22:50:00+07:00",
-  "status": "session_closed_three_versions_shipped",
+  "updatedAt": "2026-08-25T18:10:00+07:00",
+  "status": "implemented_and_seen_in_a_browser_before_any_announcement",
   "verification": [
-    "npx tsc --noEmit สะอาด",
-    "npm run lint ไม่มี output เลย ไม่มีทั้ง error และ warning",
-    "pnpm test ผ่าน 297 เทสต์",
+    "pnpm test ผ่าน 275 เทสต์ รวมชุดใหม่ที่ยืนยันว่าแอปที่ไม่ได้ประกาศไม่มีป้ายสิทธิ์ ป้ายความพร้อม หรือวันที่เลย",
+    "ยืนยันว่าอ่านฐานข้อมูลไม่ได้ให้ผลเท่ากับทะเบียนว่างทุกฟิลด์",
+    "ยืนยันว่าเมื่อทะเบียนขัดกับ seededAccess การ์ดแสดงค่าของทะเบียน",
+    "ดูด้วยตาที่ localhost:3000 ก่อนประกาศ: การ์ดห้าใบมีชื่อและ purpose ครบ ไม่มีคำแถลงสักอัน และ gap กลับมาแล้ว",
+    "grep หน้าแรกที่เรนเดอร์จริง: คำว่า 'ทดลองใช้งาน 7 วัน' เหลือศูนย์ครั้ง จากเดิมสองครั้ง",
+    "npx tsc --noEmit สะอาด, npm run lint เหลือ warning เดิมหนึ่งข้อในไฟล์ที่ไม่ได้แตะ",
     "node scripts/check-roadmap.mjs และ pnpm security:check ผ่าน",
-    "ตรวจด้วยตาในเบราว์เซอร์ครบทั้งสามเวอร์ชัน รวมถึงวัดว่าแถบคุกกี้มองเห็นและกดได้จริง ไม่ใช่แค่มีใน DOM"
+    "ยังไม่ได้ดูสถานะ 'ประกาศแล้ว' ด้วยตา เพราะ ADR 0014 กำหนดว่าการประกาศเป็นการกระทำของคน ครอบด้วยเทสต์แทน"
   ],
-  "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูลฝั่งเซิร์ฟเวอร์ ถ้ามีการประกาศแอปไปแล้วให้ถอนที่หลังบ้านด้วย",
+  "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูล ถ้ามีการประกาศไปแล้วให้ถอนที่หลังบ้านด้วย ซึ่งล้าง announced_at โดยไม่ลบแถว",
   "constraints": [
     "An announcement is a statement, never a grant. What a member may actually use is decided by app_entitlements and nothing else.",
     "The registry is the single switchboard. A second flag mechanism for the same app would be two switches on one lamp.",
@@ -28,8 +33,7 @@
   ],
   "adrReferences": [
     "docs/adr/0014-an-app-is-free-because-an-administrator-said-so-not-because-source-says-so.md",
-    "docs/adr/0015-a-card-introduces-an-app-but-only-the-registry-may-make-a-claim.md",
-    "docs/adr/0016-a-trustmark-is-a-claim-and-the-issuer-owns-it.md"
+    "docs/adr/0015-a-card-introduces-an-app-but-only-the-registry-may-make-a-claim.md"
   ],
   "items": [
     {
@@ -301,42 +305,6 @@
       "title": "Retire the .app-card rules under .app-grid, or bring the grid back. No component has rendered a card in .app-grid since the landing page moved to category rows — the four-across sizing, the nth-child reveal delays and two media queries are styling nothing",
       "status": "planned",
       "phase": "design"
-    },
-    {
-      "id": "IP-124",
-      "title": "Give every page a way home that uses the word: a labelled หน้าแรก in the navigation instead of only a logo, one name per destination instead of five, and a header on /roadmap which had none",
-      "status": "done",
-      "phase": "platform"
-    },
-    {
-      "id": "IP-125",
-      "title": "The mobile navigation's horizontal scroller has never worked: '.site-nav .nav-links' sets flex-wrap:wrap at specificity 0-2-0 and the overflow-x rule in @media (max-width:760px) is only '.nav-links' at 0-1-0, so the media query loses. Decide whether wrapping is the wanted behaviour and delete the dead rule, or raise its specificity",
-      "status": "planned",
-      "phase": "design"
-    },
-    {
-      "id": "IP-126",
-      "title": "Register the e-commerce trade registration and fill the mark in: business-identity.ts holds the entry with a null registration number, and granting one plus the issuer's own artwork is the whole remaining step. Depends on the owner deciding between a new company and a natural person, which is theirs and their accountant's",
-      "status": "planned",
-      "phase": "governance"
-    },
-    {
-      "id": "IP-127",
-      "title": "Decide whether to publish the operating entity's legal name in the footer. businessOperator.publish is false: the fact is recorded, the decision is not made, and no payment is collected anywhere yet (IP-081)",
-      "status": "planned",
-      "phase": "governance"
-    },
-    {
-      "id": "IP-128",
-      "title": "Disclose what the site stores in a browser: a site-wide notice mounted in RootLayout that informs rather than asks, remembered once acknowledged, and a /cookies page listing every cookie observed off real response headers",
-      "status": "done",
-      "phase": "governance"
-    },
-    {
-      "id": "IP-129",
-      "title": "Write the terms of use. The account menu the owner asked to match carries three documents — terms of use, privacy policy, sign out — and the platform has only the cookie disclosure. A link to a page that does not exist is the same failure as a trustmark nobody granted",
-      "status": "planned",
-      "phase": "governance"
     }
   ]
 }

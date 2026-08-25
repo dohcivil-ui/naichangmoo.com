@@ -3,6 +3,10 @@ import { entitlementStateLabel } from "@/lib/platform-admin-labels";
 import { formatThaiDate } from "@/lib/thai-format";
 
 export const landingNavigationContract = [
+  // First, and labelled. The logo has always linked here, but a logo says nothing: someone who has
+  // navigated away has to already know it is clickable. Every other page in the product now has a
+  // way home that uses the word.
+  { id: "home", label: "หน้าแรก", href: "/" },
   { id: "apps", label: "แอปของเรา", href: "/#apps" },
   { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
   { id: "pricing", label: "ราคา", href: "/pricing" },
@@ -10,18 +14,40 @@ export const landingNavigationContract = [
   { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise" }
 ] as const;
 
+/**
+ * Two ways back and two words for them, kept here so no page invents a third.
+ *
+ * They had drifted into five — กลับหน้ารวมแอป, กลับหน้า Landing, กลับหน้าแรก, ดูเว็บไซต์ and
+ * กลับไปดูทุกแอป — spread across two destinations, so the same journey was named differently
+ * depending on which page you happened to be leaving. The label belongs beside the href for the
+ * same reason the price lives in one file: two copies means one of them is wrong later.
+ *
+ * `หน้าแรก` is the top of the site. `แอปทั้งหมด` is the catalogue section within it, and is the
+ * better destination when someone is being turned away from an app — they want the list, not the
+ * hero.
+ */
 export const landingActionContract = {
   homeHref: "/",
+  homeLabel: "หน้าแรก",
   allAppsHref: "/#apps",
+  allAppsLabel: "แอปทั้งหมด",
   roadmapHref: "/roadmap",
-  pricingHref: "/pricing"
+  pricingHref: "/pricing",
+  cookiesHref: "/cookies",
+  cookiesLabel: "นโยบายการใช้คุกกี้"
 } as const;
 
-export function getAppInteractionContract(app: Pick<PlatformApp, "slug" | "href" | "status">) {
+/**
+ * `open` comes from the registry, never from `app.status`. ADR 0015: offering a way in is a claim
+ * that there is one, so the same authority that states readiness has to decide it. The `status`
+ * field is not read here at all any more — a caller that has not consulted the registry cannot
+ * accidentally get an entry link out of this function.
+ */
+export function getAppInteractionContract(app: Pick<PlatformApp, "slug" | "href">, open: boolean) {
   return {
     detailHref: `/market/${app.slug}`,
-    canEnter: app.status === "available",
-    entryHref: app.status === "available" ? app.href : null
+    canEnter: open,
+    entryHref: open ? app.href : null
   };
 }
 
@@ -138,6 +164,11 @@ export function getAccountInteractionContract({
     accountLabel: "ตั้งค่าบัญชี",
     adminHref: isPlatformAdmin ? ("/admin" as const) : null,
     adminLabel: "หลังบ้าน",
+    // A signed-in member is the person with the most at stake in what is stored about them, and the
+    // one least likely to scroll to the footer looking for it. The link sits above sign out rather
+    // than beside it, because sign out ends the session and should stay last.
+    cookiesHref: landingActionContract.cookiesHref,
+    cookiesLabel: landingActionContract.cookiesLabel,
     signOutLabel: "ออกจากระบบ",
     signingOutLabel: "กำลังออก…",
     afterSignOutHref: landingActionContract.homeHref

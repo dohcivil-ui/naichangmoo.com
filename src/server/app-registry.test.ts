@@ -283,3 +283,70 @@ describe("the entry page's readiness is three-valued on purpose", () => {
     expect(await readAppOpenState("rcopt")).toBe("open");
   });
 });
+
+/**
+ * IP-092 / ADR 0015. The catalogue surfaces get a fourth reader with a different bargain: it has no
+ * failure case, because ADR 0015 §3 decided once that "nothing announced" and "nothing readable"
+ * produce the same card. That is the one place in this module where the two are deliberately the
+ * same, so the tests below pin it rather than leaving it to look like a swallowed error.
+ */
+describe("the catalogue card says nothing the registry has not said", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    getDb.mockClear();
+    failReads = false;
+    appRows = [];
+  });
+
+  it("returns an entry for every app in the catalogue, all silent, when nothing is announced", async () => {
+    const { readCatalogueClaims } = await import("@/server/app-registry");
+    const claims = await readCatalogueClaims();
+
+    expect(Object.keys(claims).sort()).toEqual(platformApps.map((app) => app.slug).sort());
+    for (const app of platformApps) {
+      expect(claims[app.slug]).toEqual({ announced: false, access: null, open: false, announcedAt: null });
+    }
+  });
+
+  it("stays silent about an app seeded member_free whose row was never announced", async () => {
+    // The exact case that has been on the landing page since ADR 0014: a seeded access model and
+    // an unannounced row. The card may name rcopt; it may not say what rcopt costs.
+    appRows = [{ slug: "rcopt", accessModel: "member_free", enabled: true, announcedAt: null, announcedBy: null }];
+
+    const { readCatalogueClaims } = await import("@/server/app-registry");
+    const claims = await readCatalogueClaims();
+
+    expect(claims.rcopt).toEqual({ announced: false, access: null, open: false, announcedAt: null });
+  });
+
+  it("gives an unreadable database exactly the same answer as an empty registry", async () => {
+    const { readCatalogueClaims } = await import("@/server/app-registry");
+    const empty = await readCatalogueClaims();
+
+    vi.resetModules();
+    failReads = true;
+    const { readCatalogueClaims: readAgain } = await import("@/server/app-registry");
+    expect(await readAgain()).toEqual(empty);
+  });
+
+  it("reports the registry's access model, not the seeded one, when they disagree", async () => {
+    const announcedAt = new Date("2026-08-24T12:00:00.000Z");
+    // estimeter is seeded paid_trial; an administrator is entitled to announce otherwise.
+    appRows = [{ slug: "estimeter", accessModel: "member_free", enabled: false, announcedAt, announcedBy: "admin-1" }];
+
+    const { readCatalogueClaims } = await import("@/server/app-registry");
+    const claims = await readCatalogueClaims();
+
+    expect(platformApps.find((app) => app.slug === "estimeter")?.seededAccess).toBe("paid_trial");
+    expect(claims.estimeter).toEqual({ announced: true, access: "member_free", open: false, announcedAt });
+  });
+
+  it("ignores a row whose slug left the catalogue instead of inventing a card for it", async () => {
+    appRows = [{ slug: "retired-app", accessModel: "paid_trial", enabled: true, announcedAt: new Date(), announcedBy: "a" }];
+
+    const { readCatalogueClaims } = await import("@/server/app-registry");
+    const claims = await readCatalogueClaims();
+
+    expect(claims["retired-app"]).toBeUndefined();
+  });
+});

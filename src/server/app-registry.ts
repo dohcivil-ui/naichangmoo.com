@@ -80,6 +80,70 @@ export async function readAnnouncedApps(): Promise<AnnouncedAppsResult> {
   }
 }
 
+/**
+ * What the registry says about one app, for the surfaces that render claims about it.
+ *
+ * `announced` false means every other field is meaningless and the surface must say nothing about
+ * access, readiness or dates — not that the app is hidden. See ADR 0015.
+ */
+export type AppClaim = {
+  announced: boolean;
+  access: AppAccess | null;
+  open: boolean;
+  announcedAt: Date | null;
+};
+
+/** Keyed by slug, and holding an entry for every app in the catalogue, so no caller handles a miss. */
+export type CatalogueClaims = Record<string, AppClaim>;
+
+const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null };
+
+/**
+ * Reads the registry for the public catalogue surfaces — the landing page cards and the app detail
+ * page. Unlike every other reader here it returns no failure case, and that is a decision rather
+ * than a swallowed error.
+ *
+ * ADR 0014 §2 kept "nothing is announced" separate from "nothing could be read" so the page could
+ * choose what to do about each. ADR 0015 §3 made that choice, once, for these surfaces: both mean
+ * the card renders its introduction and stays silent about every claim. Collapsing it here is what
+ * stops the rule from being re-decided per page — the same reason this module is the only door.
+ *
+ * The catalogue is small enough to read whole; the filtering that matters is the announcement rule
+ * below, which stays in code where a test can hold it rather than in a WHERE clause.
+ */
+export async function readCatalogueClaims(): Promise<CatalogueClaims> {
+  const claims: CatalogueClaims = {};
+  for (const app of platformApps) claims[app.slug] = UNANNOUNCED;
+
+  try {
+    const db = getDb();
+    const rows = await db
+      .select({
+        slug: apps.slug,
+        accessModel: apps.accessModel,
+        enabled: apps.enabled,
+        announcedAt: apps.announcedAt
+      })
+      .from(apps);
+
+    for (const row of rows) {
+      if (!claims[row.slug]) continue;
+      if (!row.announcedAt) continue;
+      if (!isAppAccess(row.accessModel)) continue;
+      claims[row.slug] = {
+        announced: true,
+        access: row.accessModel,
+        open: row.enabled,
+        announcedAt: row.announcedAt
+      };
+    }
+  } catch {
+    // Deliberately the same result as an empty registry. See the note above.
+  }
+
+  return claims;
+}
+
 export type RegistryEntry = {
   slug: string;
   name: string;

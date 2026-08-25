@@ -3,7 +3,6 @@ import {
   bahtText,
   floorToThousandBaht,
   formatBaht,
-  formatSatang,
   parseBaht
 } from "@/lib/thai-baht";
 

@@ -5,6 +5,7 @@ import { platformApps } from "@/lib/platform";
 describe("Landing interaction contract", () => {
   it("keeps every primary navigation action on an allowed route or anchor", () => {
     expect(landingNavigationContract).toEqual([
+      { id: "home", label: "หน้าแรก", href: "/" },
       { id: "apps", label: "แอปของเรา", href: "/#apps" },
       { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
       { id: "pricing", label: "ราคา", href: "/pricing" },
@@ -13,18 +14,37 @@ describe("Landing interaction contract", () => {
     ]);
     expect(landingActionContract).toEqual({
       homeHref: "/",
+      homeLabel: "หน้าแรก",
       allAppsHref: "/#apps",
+      allAppsLabel: "แอปทั้งหมด",
       roadmapHref: "/roadmap",
-      pricingHref: "/pricing"
+      pricingHref: "/pricing",
+      cookiesHref: "/cookies",
+      cookiesLabel: "นโยบายการใช้คุกกี้"
     });
   });
 
-  it("always gives an app card a detail route while locking direct entry until ready", () => {
+  it("always gives an app card a detail route while locking direct entry until the registry opens it", () => {
     for (const app of platformApps) {
-      const contract = getAppInteractionContract(app);
-      expect(contract.detailHref).toBe(`/market/${app.slug}`);
-      expect(contract.canEnter).toBe(app.status === "available");
-      expect(contract.entryHref).toBe(app.status === "available" ? app.href : null);
+      const closed = getAppInteractionContract(app, false);
+      expect(closed.detailHref).toBe(`/market/${app.slug}`);
+      expect(closed.canEnter).toBe(false);
+      expect(closed.entryHref).toBeNull();
+
+      const open = getAppInteractionContract(app, true);
+      expect(open.detailHref).toBe(`/market/${app.slug}`);
+      expect(open.canEnter).toBe(true);
+      expect(open.entryHref).toBe(app.href);
+    }
+  });
+
+  // ADR 0015: `status` is a seeded default, and offering a way into an app is a claim that there
+  // is one. An app seeded "available" that no administrator announced must still be shut.
+  it("refuses to open an app on the strength of its seeded status alone", () => {
+    const seededAvailable = platformApps.filter((app) => app.status === "available");
+    expect(seededAvailable.length).toBeGreaterThan(0);
+    for (const app of seededAvailable) {
+      expect(getAppInteractionContract(app, false).entryHref).toBeNull();
     }
   });
 
@@ -56,6 +76,15 @@ describe("the account corner tells a member where they stand", () => {
   it("offers a way in when nobody is signed in", () => {
     expect(getAccountInteractionContract({ user: null })).toEqual({ kind: "signed_out" });
     expect(getAccountInteractionContract({ user: null, isPlatformAdmin: true })).toEqual({ kind: "signed_out" });
+  });
+
+  // A signed-in member is the person most affected by what is stored about them, and the least
+  // likely to go hunting in the footer for it. The menu carries the same link the footer does.
+  it("offers a signed-in member the cookie disclosure without making them find the footer", () => {
+    const contract = signedIn({ user: member });
+
+    expect(contract.cookiesHref).toBe(landingActionContract.cookiesHref);
+    expect(contract.cookiesLabel).toBe(landingActionContract.cookiesLabel);
   });
 
   it("always offers a signed-in member a way out", () => {

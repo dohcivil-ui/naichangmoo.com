@@ -1,25 +1,27 @@
 {
-  "version": "0.44.0",
-  "title": "Session Close — Claims, Navigation and Disclosure",
-  "description": "ปิดเซสชันด้วยเอกสารฉบับเดียวที่รวมสามเวอร์ชันไว้ เพราะทั้งสามเป็นเรื่องเดียวกันที่เพิ่งมองเห็นตอนทำ: หน้าเว็บแนะนำอะไรก็ได้ แต่พอจะแถลง ต้องมีคนเป็นเจ้าของคำแถลงนั้น เริ่มจากคำถามเรื่องการ์ดแอป แล้วลามไปคุมป้ายสิทธิ์ เครื่องหมายรับรอง และคุกกี้ ไม่มีโค้ดใหม่ในเวอร์ชันนี้",
+  "version": "0.42.0",
+  "title": "One Way Home, Called the Same Thing Everywhere",
+  "description": "เจ้าของชนกำแพงจริง: เปลี่ยนหน้าไปแล้วไม่มีทางลัดกลับหน้าแรก ปรากฏว่ามีปุ่มอยู่แล้วเกือบทุกหน้า คือโลโก้ แต่ไม่มีอะไรบนจอที่เขียนคำว่าหน้าแรกเลย และปลายทางเดียวกันถูกเรียกด้วยห้าชื่อกระจายบนสองปลายทาง เวอร์ชันนี้เพิ่มปุ่มที่มีคำ รวมถ้อยคำเหลือสองคำสองปลายทางเก็บไว้ที่เดียว ให้ /roadmap มี header เป็นครั้งแรก และวางโมดูลเครื่องหมายรับรองไว้แบบว่างเปล่าโดยตั้งใจตาม ADR 0016",
   "scope": [
-    "รวมเอกสารส่งต่อของ v0.41.0 v0.42.0 v0.43.0 ไว้ที่เดียว ให้เซสชันใหม่อ่านฉบับเดียวจบ",
-    "บันทึกเส้นเรื่องร่วม: หาผู้มีอำนาจให้เจอ ก่อนวาดสิ่งที่อ้างอำนาจนั้น",
-    "บันทึกสภาพแวดล้อมที่ทิ้งไว้ รวมถึงว่ายังไม่มีแอปไหนถูกประกาศ และ chrome-devtools ค้าง",
-    "บันทึกคำสั่งยืนของเจ้าของ: แถบคุกกี้ห้ามปิดตัวเอง",
-    "บันทึกว่ามีอีกเซสชันทำงานบนสาขาเดียวกันและ commit ไปแล้วสี่ครั้ง งานที่ยังค้างของเขาไม่ถูกรวมมา",
-    "บันทึกการด่วนสรุปว่าเจอบั๊กสองครั้งทั้งที่ยังวัดไม่นิ่ง เป็นบทเรียนเรื่องวิธี"
+    "เพิ่มปุ่ม 'หน้าแรก' เป็นปุ่มแรกของเมนู เพราะโลโก้ที่กดได้แต่ไม่มีคำ ไม่ใช่ทางกลับที่คนมองเห็น",
+    "เหลือสองคำ สองปลายทาง เก็บคู่กับ href ใน landingActionContract ไม่ให้หน้าไหนพิมพ์คำเอง",
+    "/roadmap ได้ SiteHeader และ PlatformFooter เป็นครั้งแรก ทั้งที่ทุกหน้าลิงก์มาหามัน",
+    "ADR 0016: เครื่องหมายรับรองคือคำแถลง ผู้ออกเป็นเจ้าของ โมดูลถูกสร้างไว้และว่างเปล่าโดยตั้งใจ",
+    "footer มีแถวเครื่องหมาย แต่ไม่เรนเดอร์เลยจนกว่าจะมีเลขทะเบียนและรูปจากผู้ออกครบทั้งสองอย่าง",
+    "แก้ตกค้างจาก v0.41.0: AppShell ยังติดป้ายสิทธิ์จาก seededAccess เป็นที่ที่สี่ที่ ADR 0014 ไม่ได้เอ่ยถึง",
+    "เทสต์สแกน source กันคำแตกอีก แบบเดียวกับที่ ADR 0013 ใช้กับตารางที่ปิด"
   ],
-  "updatedAt": "2026-08-25T22:50:00+07:00",
-  "status": "session_closed_three_versions_shipped",
+  "updatedAt": "2026-08-25T21:10:00+07:00",
+  "status": "implemented_and_seen_in_a_browser",
   "verification": [
-    "npx tsc --noEmit สะอาด",
-    "npm run lint ไม่มี output เลย ไม่มีทั้ง error และ warning",
-    "pnpm test ผ่าน 297 เทสต์",
-    "node scripts/check-roadmap.mjs และ pnpm security:check ผ่าน",
-    "ตรวจด้วยตาในเบราว์เซอร์ครบทั้งสามเวอร์ชัน รวมถึงวัดว่าแถบคุกกี้มองเห็นและกดได้จริง ไม่ใช่แค่มีใน DOM"
+    "pnpm test ผ่าน 285 เทสต์ รวมชุดใหม่เรื่องทางกลับหน้าแรกและเรื่องเครื่องหมายรับรอง",
+    "เทสต์สแกน src ทั้งหมด ยืนยันว่าไม่มีคำที่เลิกใช้แล้วเหลืออยู่ในข้อความที่เรนเดอร์",
+    "ดูด้วยตา: /roadmap มี header แล้ว, ปุ่มหน้าแรกไฮไลต์ที่หัวหน้าแรก, สถานะโครงการไฮไลต์ที่ /roadmap",
+    "ยืนยันว่า footer__trust ไม่ปรากฏใน HTML ของทุกหน้า เพราะยังไม่มีเครื่องหมายที่ได้รับจริง",
+    "ตรวจเมนูที่ 1440px และ 390px ปุ่มทั้งหกเห็นครบทั้งสองความกว้าง",
+    "npx tsc --noEmit สะอาด, npm run lint เหลือ warning เดิมหนึ่งข้อในไฟล์ที่ไม่ได้แตะ"
   ],
-  "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูลฝั่งเซิร์ฟเวอร์ ถ้ามีการประกาศแอปไปแล้วให้ถอนที่หลังบ้านด้วย",
+  "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูล",
   "constraints": [
     "An announcement is a statement, never a grant. What a member may actually use is decided by app_entitlements and nothing else.",
     "The registry is the single switchboard. A second flag mechanism for the same app would be two switches on one lamp.",
@@ -323,18 +325,6 @@
     {
       "id": "IP-127",
       "title": "Decide whether to publish the operating entity's legal name in the footer. businessOperator.publish is false: the fact is recorded, the decision is not made, and no payment is collected anywhere yet (IP-081)",
-      "status": "planned",
-      "phase": "governance"
-    },
-    {
-      "id": "IP-128",
-      "title": "Disclose what the site stores in a browser: a site-wide notice mounted in RootLayout that informs rather than asks, remembered once acknowledged, and a /cookies page listing every cookie observed off real response headers",
-      "status": "done",
-      "phase": "governance"
-    },
-    {
-      "id": "IP-129",
-      "title": "Write the terms of use. The account menu the owner asked to match carries three documents — terms of use, privacy policy, sign out — and the platform has only the cookie disclosure. A link to a page that does not exist is the same failure as a trustmark nobody granted",
       "status": "planned",
       "phase": "governance"
     }

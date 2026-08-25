@@ -6,11 +6,17 @@ import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { SiteHeader } from "@/components/platform/site-header";
-import { marketCategories, platformApps } from "@/lib/platform";
+import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract } from "@/lib/landing-interactions";
+import { readCatalogueClaims } from "@/server/app-registry";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
+  // open only as far as the registry has been made to say so. One read serves every category.
+  const claims = await readCatalogueClaims();
+  const estimeter = claims.estimeter;
+
   return (
     <main className="site-shell">
       <LandingMotion />
@@ -27,7 +33,11 @@ export default function LandingPage() {
             <h1 data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>แอปงานโยธา ใช้งานง่าย</h1>
             <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
-            <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · ฟรี ทดลองใช้งาน 7 วัน</p>
+            {/* The same violation as the cards, in the most prominent place on the site: an app
+                named in source beside its commercial terms, also typed into source. ADR 0015 —
+                naming ESTIMETR is fine, stating what it costs is a claim. The line returns
+                unchanged the moment an administrator announces the app and opens it. */}
+            {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
           </div>
           <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
             <HeroEngineeringArt />
@@ -84,7 +94,7 @@ export default function LandingPage() {
                   <span className="market-category__index">0{index + 1}</span>
                   <div><p className="eyebrow">หมวดงาน</p><h3>{category.label}</h3><p>{category.description}</p></div>
                 </header>
-                <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} />)}</div>
+                <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} claim={claims[app.slug]} />)}</div>
               </section>;
             })}
           </div>

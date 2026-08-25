@@ -56,11 +56,17 @@ export function PlatformNav({
         <Link className="brand" href={landingActionContract.homeHref} aria-label="นายช่างหมู — CIVIL APPS ASSISTANT"><BrandLogo />{workspace ? <span className="brand__workspace">{workspace}</span> : null}</Link>
         <div className="nav-links" aria-label="ทางลัด platform">
           {landingNavigationContract.map((item) => {
-          const isActive = item.id === "apps"
+          // `home` is the top of the landing page rather than a section of it, so it lights when we
+          // are on `/` and no section has been scrolled into, and hands over to `แอปของเรา` the
+          // moment one has. Clicking it therefore has to CLEAR the section: setting it to "home"
+          // like the others would switch the pill off on its own click.
+          const isActive = item.id === "home"
+            ? pathname === "/" && !activeSection
+            : item.id === "apps"
             ? (pathname === "/" ? activeSection === item.id : pathname.startsWith("/market"))
             : ["pricing", "roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
             const className = ["nav-pill", item.id === "enterprise" ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
-            return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id)}>{item.label}</Link>;
+            return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id === "home" ? null : item.id)}>{item.label}</Link>;
           })}
         </div>
         <div className="site-nav__account"><AccountMenu user={user} isPlatformAdmin={isPlatformAdmin} apps={apps} /></div>

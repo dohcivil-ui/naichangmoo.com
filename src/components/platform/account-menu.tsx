@@ -190,6 +190,11 @@ export function AccountMenu({
             </Link>
           ) : null}
 
+          <Link className="account-panel__link" href={contract.cookiesHref} onClick={() => setOpen(false)}>
+            {contract.cookiesLabel}
+            <span aria-hidden="true">→</span>
+          </Link>
+
           <button className="account-panel__signout" type="button" onClick={signOut} disabled={signingOut}>
             {signingOut ? contract.signingOutLabel : contract.signOutLabel}
           </button>

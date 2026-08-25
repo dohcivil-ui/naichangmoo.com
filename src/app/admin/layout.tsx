@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <h1>{copy.title}</h1>
           <p>{copy.detail}</p>
           <Link className="button button--ghost micro-button" href={landingActionContract.homeHref}>
-            กลับหน้าแรก
+            {landingActionContract.homeLabel}
           </Link>
         </div>
       </main>
@@ -63,7 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <span>{result.admin.email}</span>
             </div>
             <Link className="text-link" href={landingActionContract.homeHref}>
-              ดูเว็บไซต์<span aria-hidden="true">→</span>
+              {landingActionContract.homeLabel}<span aria-hidden="true">→</span>
             </Link>
           </div>
         </header>

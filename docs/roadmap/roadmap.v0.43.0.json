@@ -1,25 +1,30 @@
 {
-  "version": "0.44.0",
-  "title": "Session Close — Claims, Navigation and Disclosure",
-  "description": "ปิดเซสชันด้วยเอกสารฉบับเดียวที่รวมสามเวอร์ชันไว้ เพราะทั้งสามเป็นเรื่องเดียวกันที่เพิ่งมองเห็นตอนทำ: หน้าเว็บแนะนำอะไรก็ได้ แต่พอจะแถลง ต้องมีคนเป็นเจ้าของคำแถลงนั้น เริ่มจากคำถามเรื่องการ์ดแอป แล้วลามไปคุมป้ายสิทธิ์ เครื่องหมายรับรอง และคุกกี้ ไม่มีโค้ดใหม่ในเวอร์ชันนี้",
+  "version": "0.43.0",
+  "title": "Telling People What Is Stored, Instead of Asking a Question With One Answer",
+  "description": "เว็บนี้ตั้งคุกกี้เฉพาะที่จำเป็นต่อการเข้าสู่ระบบ และเปิดดูเฉย ๆ ไม่ตั้งอะไรเลยสักตัว ตรวจแล้วด้วยการอ่าน header จริง PDPA จึงขอให้ 'แจ้ง' ไม่ใช่ 'ขอความยินยอม' — ปุ่มยอมรับสำหรับสิ่งที่เกิดขึ้นอยู่แล้วคือการทำให้เข้าใจผิดว่าควบคุมได้ และสอนคนให้กดยอมรับโดยไม่อ่านก่อนที่ของจริงจะมาตอนฝังเนื้อหาภายนอก เวอร์ชันนี้จึงเป็นการแจ้งล้วน ติดตั้งที่ RootLayout ครอบทุกหน้า จำเมื่อกดรับทราบ และมีหน้ารายละเอียดที่ทุกแถวมาจากการสังเกตจริง",
   "scope": [
-    "รวมเอกสารส่งต่อของ v0.41.0 v0.42.0 v0.43.0 ไว้ที่เดียว ให้เซสชันใหม่อ่านฉบับเดียวจบ",
-    "บันทึกเส้นเรื่องร่วม: หาผู้มีอำนาจให้เจอ ก่อนวาดสิ่งที่อ้างอำนาจนั้น",
-    "บันทึกสภาพแวดล้อมที่ทิ้งไว้ รวมถึงว่ายังไม่มีแอปไหนถูกประกาศ และ chrome-devtools ค้าง",
-    "บันทึกคำสั่งยืนของเจ้าของ: แถบคุกกี้ห้ามปิดตัวเอง",
-    "บันทึกว่ามีอีกเซสชันทำงานบนสาขาเดียวกันและ commit ไปแล้วสี่ครั้ง งานที่ยังค้างของเขาไม่ถูกรวมมา",
-    "บันทึกการด่วนสรุปว่าเจอบั๊กสองครั้งทั้งที่ยังวัดไม่นิ่ง เป็นบทเรียนเรื่องวิธี"
+    "แถบแจ้งเรื่องคุกกี้ที่ไม่มีปุ่มยอมรับหรือปฏิเสธ เพราะไม่มีอะไรให้ตัดสินใจอย่างมีความหมาย",
+    "ติดตั้งที่ RootLayout ครอบทุก route รวม /admin และ /apps ที่ไม่เคยเรนเดอร์ SiteHeader",
+    "จำการกดรับทราบด้วย localStorage ที่มีเลขรุ่นในคีย์ และอ่านไม่ได้เมื่อไรให้แสดงไว้ก่อน",
+    "หน้า /cookies ที่ทุกแถวอ่านจาก Set-Cookie จริงและจากตาราง sessions จริง ไม่ใช่จากคู่มือ",
+    "ระบุชื่อที่ better-auth สั่งลบตอนออกจากระบบแต่ไม่เคยตั้ง เพื่อไม่ให้คนที่เห็นชื่อสงสัย",
+    "ลิงก์จาก footer และจากเมนูบัญชีของสมาชิกที่เข้าสู่ระบบแล้ว",
+    "แถบแจ้งเรื่องที่เก็บในเบราว์เซอร์ ต้องแจ้งที่เก็บที่ตัวมันเองสร้างขึ้นด้วย",
+    "ไม่แสดงแถบบนหน้า /cookies เอง เพราะเป็นการชวนให้ไปอ่านหน้าที่กำลังอ่านอยู่ และมันบังตาราง — เป็นการไม่แสดง ไม่ใช่ถือว่ารับทราบ"
   ],
-  "updatedAt": "2026-08-25T22:50:00+07:00",
-  "status": "session_closed_three_versions_shipped",
+  "updatedAt": "2026-08-25T21:35:00+07:00",
+  "status": "implemented_and_seen_in_a_browser",
   "verification": [
-    "npx tsc --noEmit สะอาด",
-    "npm run lint ไม่มี output เลย ไม่มีทั้ง error และ warning",
-    "pnpm test ผ่าน 297 เทสต์",
-    "node scripts/check-roadmap.mjs และ pnpm security:check ผ่าน",
-    "ตรวจด้วยตาในเบราว์เซอร์ครบทั้งสามเวอร์ชัน รวมถึงวัดว่าแถบคุกกี้มองเห็นและกดได้จริง ไม่ใช่แค่มีใน DOM"
+    "อ่าน Set-Cookie จริง: better-auth.state มี Max-Age=300 HttpOnly SameSite=Lax จากคำขอที่เริ่มล็อกอิน",
+    "อ่านชื่อ better-auth.session_token จาก header ตอนออกจากระบบ และอายุ 7 วันจาก expires_at - created_at ในตาราง sessions",
+    "ยืนยันจาก source ของ better-auth ว่า session_data เปิดเมื่อตั้ง cookieCache และ dont_remember ตั้งเมื่อไม่ให้จำ ทั้งคู่เว็บนี้ไม่ได้ตั้ง",
+    "curl -D - ที่หน้าแรก ไม่มี Set-Cookie สักบรรทัด",
+    "pnpm test ผ่าน 296 เทสต์ รวมเคสอ่าน localStorage ไม่ได้ต้องแสดงแถบ",
+    "ดักการเขียน localStorage ตั้งแต่ก่อนสคริปต์แรกด้วย initScript ยืนยันว่าแถบไม่เขียนอะไรเองตอน mount",
+    "ดูด้วยตา: แถบขึ้นที่หน้าแรกและ /pricing กดรับทราบแล้วจำข้ามการโหลดหน้า ล้างค่าแล้วกลับมา",
+    "npx tsc --noEmit สะอาด, check-roadmap และ security:check ผ่าน"
   ],
-  "rollback": "revert commit ของเซสชันนี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูลฝั่งเซิร์ฟเวอร์ ถ้ามีการประกาศแอปไปแล้วให้ถอนที่หลังบ้านด้วย",
+  "rollback": "revert commit นี้ได้ทั้งชุด ไม่มี migration ไม่มีการเขียนข้อมูลฝั่งเซิร์ฟเวอร์",
   "constraints": [
     "An announcement is a statement, never a grant. What a member may actually use is decided by app_entitlements and nothing else.",
     "The registry is the single switchboard. A second flag mechanism for the same app would be two switches on one lamp.",
@@ -27,7 +32,6 @@
     "This version ships unseen. The next session verifies it in a browser before anything is called released."
   ],
   "adrReferences": [
-    "docs/adr/0014-an-app-is-free-because-an-administrator-said-so-not-because-source-says-so.md",
     "docs/adr/0015-a-card-introduces-an-app-but-only-the-registry-may-make-a-claim.md",
     "docs/adr/0016-a-trustmark-is-a-claim-and-the-issuer-owns-it.md"
   ],

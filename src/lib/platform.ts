@@ -183,3 +183,17 @@ export const appStatusLabel: Record<PlatformApp["status"], string> = {
   coming_soon: "กำลังเตรียมระบบ",
   restricted: "จำกัดสิทธิ์"
 };
+
+/**
+ * Readiness as the registry is able to state it. ADR 0015: this is a claim, so it has only the two
+ * values an administrator has actually said something about — an app nobody announced has no
+ * readiness at all, which is why there is no third member here and no "unknown".
+ *
+ * The strings come from `appStatusLabel` rather than being typed again, so the two never drift.
+ */
+export type AppReadiness = "open" | "preparing";
+
+export const appReadinessLabel: Record<AppReadiness, string> = {
+  open: appStatusLabel.available,
+  preparing: appStatusLabel.coming_soon
+};
