@@ -83,7 +83,7 @@ describe("ผู้ใช้แก้ปฏิทินเองได้", () =
   it("เพิ่มวันหยุดของโครงการเองได้ เช่น วันที่หน่วยงานสั่งหยุด", () => {
     const custom: WorkCalendar = {
       ...calendar(),
-      holidays: [...calendar().holidays, { date: "2026-09-14", name: "หยุดตามคำสั่งผู้ว่าจ้าง" }]
+      added: [{ date: "2026-09-14", name: "หยุดตามคำสั่งผู้ว่าจ้าง" }]
     };
     expect(isWorkingDay(calendar(), "2026-09-14")).toBe(true);
     expect(nonWorkingReason(custom, "2026-09-14")?.name).toBe("หยุดตามคำสั่งผู้ว่าจ้าง");
@@ -143,7 +143,7 @@ describe("แปลงระหว่างวันทำงานกับว�
 
   it("ปฏิทินที่ไม่เหลือวันทำงานเลย ต้องหยุดเองไม่วนค้าง", () => {
     const closed: WorkCalendar = { ...calendar(), worksSaturday: false, worksSunday: false,
-      holidays: Array.from({ length: 420 }, (_unused, index) => ({
+      added: Array.from({ length: 420 }, (_unused, index) => ({
         date: shiftDays("2026-08-03", index), name: "ปิดงาน"
       })) };
     expect(() => nextWorkingDay(closed, "2026-08-03")).not.toThrow();

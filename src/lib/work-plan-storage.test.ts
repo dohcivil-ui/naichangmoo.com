@@ -6,6 +6,7 @@ import {
   type WorkPlanSnapshot
 } from "./work-plan-storage";
 import { defaultDocumentMeta } from "./work-plan-document-meta";
+import { defaultWorkCalendar } from "./work-calendar";
 
 const baht = (amount: number) => BigInt(amount) * 100n;
 
@@ -52,7 +53,14 @@ const snapshot: WorkPlanSnapshot = {
     siteName: "ต.ในเมือง อ.เมือง จ.นครราชสีมา",
     contractor: { name: "นายสมชาย ใจดี", position: "กรรมการผู้จัดการ" },
     employer: { name: "นางสาวมาลี ตรวจการ", position: "นายกเทศมนตรี" }
-  }
+  },
+  calendar: {
+    ...defaultWorkCalendar(),
+    added: [{ date: "2026-09-14", name: "หยุดตามคำสั่งผู้ว่าจ้าง" }],
+    removed: ["2026-10-16"],
+    worksSaturday: false
+  },
+  rainPercent: 10
 };
 
 describe("serialiseWorkPlan", () => {
@@ -213,5 +221,50 @@ describe("ไฟล์รุ่นเก่า", () => {
     const future = JSON.parse(serialiseWorkPlan(snapshot));
     future.schemaVersion = WORK_PLAN_SCHEMA_VERSION + 1;
     expect(parseWorkPlan(JSON.stringify(future))).toBeNull();
+  });
+});
+
+describe("ปฏิทินวันทำงาน", () => {
+  it("เขียนแล้วอ่านกลับได้ครบ ทั้งวันที่เพิ่มเอง วันที่เอาออก และการตั้งวันทำงาน", () => {
+    const restored = parseWorkPlan(serialiseWorkPlan(snapshot))!;
+
+    expect(restored.calendar.added).toEqual([{ date: "2026-09-14", name: "หยุดตามคำสั่งผู้ว่าจ้าง", substitute: false }]);
+    expect(restored.calendar.removed).toEqual(["2026-10-16"]);
+    expect(restored.calendar.worksSaturday).toBe(false);
+    expect(restored.calendar.worksSunday).toBe(false);
+    expect(restored.rainPercent).toBe(10);
+  });
+
+  it("ไม่เก็บชุดวันหยุดตั้งต้นซ้ำลงไป เก็บเฉพาะส่วนที่ผู้ใช้แก้", () => {
+    const written = JSON.parse(serialiseWorkPlan(snapshot));
+    expect(written.calendar.added).toHaveLength(1);
+    expect(JSON.stringify(written.calendar)).not.toContain("วันรัฐธรรมนูญ");
+  });
+
+  it("วันหยุดที่ไม่มีชื่อถูกทิ้ง เพราะเอาไปบอกผู้ใช้ไม่ได้ว่าหยุดเพราะอะไร", () => {
+    const broken = JSON.parse(serialiseWorkPlan(snapshot));
+    broken.calendar.added = [{ date: "2026-09-20", name: "" }, { date: "2026-09-21", name: "ตรวจงาน" }];
+    const restored = parseWorkPlan(JSON.stringify(broken))!;
+    expect(restored.calendar.added.map((one) => one.date)).toEqual(["2026-09-21"]);
+  });
+
+  it("เผื่อฝนที่ผิดรูปตกไปเป็นศูนย์ ไม่ปล่อยค่าประหลาดเข้าไปคูณกับระยะเวลา", () => {
+    for (const bad of [-5, 150, 7.5, "10", null]) {
+      const broken = JSON.parse(serialiseWorkPlan(snapshot));
+      broken.rainPercent = bad;
+      expect(parseWorkPlan(JSON.stringify(broken))!.rainPercent, String(bad)).toBe(0);
+    }
+  });
+
+  it("ไฟล์รุ่นก่อนหน้าที่ยังไม่มีปฏิทิน ได้ค่าตั้งต้นและงานยังอยู่ครบ", () => {
+    const older = JSON.parse(serialiseWorkPlan(snapshot));
+    older.schemaVersion = 2;
+    delete older.calendar;
+    delete older.rainPercent;
+    const restored = parseWorkPlan(JSON.stringify(older))!;
+
+    expect(restored.calendar).toEqual(defaultWorkCalendar());
+    expect(restored.rainPercent).toBe(0);
+    expect(restored.activities).toHaveLength(2);
   });
 });

@@ -40,6 +40,8 @@ import {
 } from "@/lib/work-plan-storage";
 import { askWorkPlanAssistant, reviewWorkPlan, type AssistantResult, type ReviewFinding } from "@/server/actions/work-plan-assistant";
 import { WorkPlanDocument } from "@/components/prototype/work-plan-document";
+import { WorkCalendarPanel } from "@/components/prototype/work-calendar-panel";
+import { defaultWorkCalendar, type WorkCalendar } from "@/lib/work-calendar";
 
 /**
  * ต้นแบบแอปผู้ช่วยสร้างแผนงานและ S-Curve
@@ -174,6 +176,8 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   /** ว่างแปลว่ายังไม่เคยตั้งเอง ให้ไปใช้วันล่าสุดที่มีบันทึก หรือวันนี้ */
   const [dataDateOverride, setDataDateOverride] = useState<IsoDate | "">(() => restored?.dataDate ?? "");
   const [documentMeta, setDocumentMeta] = useState<WorkPlanDocumentMeta>(() => restored?.document ?? defaultDocumentMeta());
+  const [workCalendar, setWorkCalendar] = useState<WorkCalendar>(() => restored?.calendar ?? defaultWorkCalendar());
+  const [rainPercent, setRainPercent] = useState<number>(() => restored?.rainPercent ?? 0);
   const saveFailed = useSyncExternalStore(subscribeWorkPlanStore, getSaveFailed, getSaveFailedOnServer);
 
   const contractParse = parseBaht(setup.contract);
@@ -255,8 +259,12 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
       setup.contract.trim() === "";
     if (boardIsEmpty && getWorkPlanRaw() !== "") return;
 
-    saveWorkPlan({ setup, activities, milestones, actuals, dataDate: dataDateOverride, document: documentMeta });
-  }, [setup, activities, milestones, actuals, dataDateOverride, documentMeta]);
+    saveWorkPlan({
+      setup, activities, milestones, actuals,
+      dataDate: dataDateOverride, document: documentMeta,
+      calendar: workCalendar, rainPercent
+    });
+  }, [setup, activities, milestones, actuals, dataDateOverride, documentMeta, workCalendar, rainPercent]);
 
   const activityCost = sumCost(activities);
   const costGap = activityCost - contractSatang;
@@ -487,6 +495,16 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
             durationDays={durationDays}
             canDraft={canDraft}
             onDraft={runDraft}
+            calendarPanel={
+              <WorkCalendarPanel
+                calendar={workCalendar}
+                onCalendar={setWorkCalendar}
+                rainPercent={rainPercent}
+                onRainPercent={setRainPercent}
+                startDate={setup.startDate}
+                durationDays={durationValid ? durationDays : 0}
+              />
+            }
           />
         ) : null}
 
@@ -666,7 +684,8 @@ function SetupTab({
   durationValid,
   durationDays,
   canDraft,
-  onDraft
+  onDraft,
+  calendarPanel
 }: {
   setup: SetupState;
   setSetup: (updater: (current: SetupState) => SetupState) => void;
@@ -676,6 +695,8 @@ function SetupTab({
   durationDays: number;
   canDraft: boolean;
   onDraft: () => void;
+  /** แผงปฏิทินวันทำงาน ส่งมาจากผู้เรียกเพราะสถานะของมันอยู่ระดับเดียวกับที่เก็บข้อมูล */
+  calendarPanel: ReactNode;
 }) {
   const set = <K extends keyof SetupState>(key: K, value: SetupState[K]) =>
     setSetup((current) => ({ ...current, [key]: value }));
@@ -828,6 +849,8 @@ function SetupTab({
           </button>
         </div>
       </Panel>
+
+      {calendarPanel}
     </>
   );
 }

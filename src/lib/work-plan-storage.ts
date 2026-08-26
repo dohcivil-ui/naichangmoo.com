@@ -2,6 +2,8 @@ import type { PlanActivity } from "./work-plan";
 import type { Milestone } from "./payment-milestone";
 import type { IsoDate, MilestoneActual, MoneyEvent } from "./work-plan-actuals";
 import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "./work-plan-document-meta";
+import { defaultWorkCalendar, type WorkCalendar } from "./work-calendar";
+import type { ThaiHoliday } from "./thai-holidays";
 
 /**
  * เก็บงานที่ทำค้างไว้ในเบราว์เซอร์ ให้รีโหลดแล้วไม่หาย
@@ -34,10 +36,10 @@ export const WORK_PLAN_STORAGE_KEY = "naichangmoo.work-plan.v1";
  * **ไฟล์รุ่น 1 ต้องยังอ่านได้** เพราะผู้ใช้ที่กรอกงานค้างไว้ก่อนรุ่นนี้จะเปิดมาเจอกระดานเปล่าไม่ได้
  * ตัวอ่านจึงเติมค่าตั้งต้นของเอกสารให้ แล้วบันทึกครั้งถัดไปจะเป็นรุ่น 2 เอง
  */
-export const WORK_PLAN_SCHEMA_VERSION = 2;
+export const WORK_PLAN_SCHEMA_VERSION = 3;
 
 /** รุ่นที่ยังอ่านได้ ไม่ใช่แค่รุ่นปัจจุบัน */
-const READABLE_VERSIONS = new Set([1, 2]);
+const READABLE_VERSIONS = new Set([1, 2, 3]);
 
 export type StoredSetup = {
   projectName: string;
@@ -62,6 +64,10 @@ export type WorkPlanSnapshot = {
   dataDate: IsoDate | "";
   /** ข้อมูลประกอบเอกสารที่พิมพ์ออกไปใช้ เพิ่มในรุ่น 2 */
   document: WorkPlanDocumentMeta;
+  /** ปฏิทินวันทำงานของโครงการ เก็บเฉพาะส่วนที่ต่างจากชุดตั้งต้น เพิ่มในรุ่น 3 */
+  calendar: WorkCalendar;
+  /** เผื่อวันฝนเป็นเปอร์เซ็นต์ของระยะเวลา เพิ่มในรุ่น 3 */
+  rainPercent: number;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -117,6 +123,39 @@ const readDocument = (value: unknown): WorkPlanDocumentMeta => {
 };
 
 /**
+ * อ่านปฏิทินของโครงการ ไฟล์รุ่นก่อน 3 ที่ยังไม่มีช่องนี้ได้ค่าตั้งต้น
+ *
+ * รับเฉพาะวันหยุดที่มีทั้งวันที่และชื่อ วันที่ไม่มีชื่อเอาไปแสดงให้ผู้ใช้ตรวจไม่ได้
+ * ซึ่งขัดกับเหตุผลที่ปฏิทินนี้มีอยู่ คือให้ตอบได้ว่าวันที่หายไปหายเพราะวันอะไร
+ */
+const readCalendar = (value: unknown): WorkCalendar => {
+  const fallback = defaultWorkCalendar();
+  if (!isRecord(value)) return fallback;
+
+  const added: ThaiHoliday[] = [];
+  if (Array.isArray(value.added)) {
+    for (const entry of value.added) {
+      if (!isRecord(entry)) continue;
+      const date = str(entry.date);
+      const name = str(entry.name);
+      if (date === "" || name === "") continue;
+      added.push({ date, name, substitute: entry.substitute === true });
+    }
+  }
+
+  return {
+    added,
+    removed: Array.isArray(value.removed) ? value.removed.filter((one): one is string => typeof one === "string") : [],
+    worksSunday: typeof value.worksSunday === "boolean" ? value.worksSunday : fallback.worksSunday,
+    worksSaturday: typeof value.worksSaturday === "boolean" ? value.worksSaturday : fallback.worksSaturday
+  };
+};
+
+/** เผื่อวันฝนต้องเป็นจำนวนเต็มไม่ติดลบและไม่เกินร้อย ค่าที่ผิดรูปตกไปเป็นศูนย์ */
+const readRainPercent = (value: unknown): number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100 ? value : 0;
+
+/**
  * แปลงภาพรวมทั้งใบเป็นข้อความ พร้อมกำกับรุ่นของรูปร่างข้อมูล
  *
  * ไม่ใช้ตัวแทนค่าของ `JSON.stringify` เพราะตัวแทนค่าที่แปลง BigInt ให้เองทั้งไฟล์
@@ -128,6 +167,8 @@ export function serialiseWorkPlan(snapshot: WorkPlanSnapshot): string {
     setup: snapshot.setup,
     dataDate: snapshot.dataDate,
     document: snapshot.document,
+    calendar: snapshot.calendar,
+    rainPercent: snapshot.rainPercent,
     activities: snapshot.activities.map((activity) => ({
       id: activity.id,
       number: activity.number,
@@ -243,7 +284,16 @@ export function parseWorkPlan(raw: string | null): WorkPlanSnapshot | null {
     }
   }
 
-  return { setup, activities, milestones, actuals, dataDate: str(value.dataDate), document: readDocument(value.document) };
+  return {
+    setup,
+    activities,
+    milestones,
+    actuals,
+    dataDate: str(value.dataDate),
+    document: readDocument(value.document),
+    calendar: readCalendar(value.calendar),
+    rainPercent: readRainPercent(value.rainPercent)
+  };
 }
 
 /**

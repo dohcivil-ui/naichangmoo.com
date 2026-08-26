@@ -24,9 +24,16 @@ import { defaultHolidays, type ThaiHoliday } from "./thai-holidays";
  * เพื่อไม่ให้เขตเวลาของเครื่องผู้ใช้เข้ามาเปลี่ยนคำตอบ ซึ่งเป็นที่มาของบั๊กวันเหลื่อมหนึ่งวัน
  */
 
+/**
+ * ปฏิทินของโครงการหนึ่ง เก็บเฉพาะส่วนที่ต่างจากชุดตั้งต้น
+ *
+ * ไม่ถือรายการวันหยุดเต็มชุด เพราะชุดตั้งต้นเป็นของโปรแกรมที่อัปเดตได้เมื่อมีประกาศใหม่
+ * ถ้าคัดลอกทั้งชุดไปเก็บไว้กับโครงการ โครงการเก่าจะค้างอยู่กับประกาศรุ่นเก่าตลอดไป
+ * และที่เก็บของเบราว์เซอร์จะถูกเปลืองไปกับข้อมูลเดิมซ้ำทุกโครงการ
+ */
 export type WorkCalendar = {
-  /** วันหยุดของโครงการนี้ รวมชุดตั้งต้นที่ยังเปิดอยู่และที่ผู้ใช้เพิ่มเอง */
-  holidays: ThaiHoliday[];
+  /** วันหยุดที่ผู้ใช้เพิ่มเองสำหรับโครงการนี้ */
+  added: ThaiHoliday[];
   /** วันในชุดตั้งต้นที่โครงการนี้ไม่หยุด เก็บเป็นวันที่ */
   removed: string[];
   /** ทำงานวันอาทิตย์หรือไม่ ค่าเริ่มต้นคือไม่ */
@@ -36,11 +43,21 @@ export type WorkCalendar = {
 };
 
 export const defaultWorkCalendar = (): WorkCalendar => ({
-  holidays: defaultHolidays(),
+  added: [],
   removed: [],
   worksSunday: false,
   worksSaturday: true
 });
+
+/** วันหยุดทั้งหมดที่ใช้จริงกับโครงการนี้ เรียงตามวันที่ */
+export const calendarHolidays = (calendar: WorkCalendar): ThaiHoliday[] => {
+  const removed = new Set(calendar.removed);
+  const merged = new Map<string, ThaiHoliday>();
+  for (const holiday of defaultHolidays()) if (!removed.has(holiday.date)) merged.set(holiday.date, holiday);
+  // วันที่ผู้ใช้เพิ่มเองทับของตั้งต้นได้ เผื่อกรณีที่ชื่อของหน่วยงานต่างจากชื่อทางการ
+  for (const holiday of calendar.added) if (!removed.has(holiday.date)) merged.set(holiday.date, holiday);
+  return [...merged.values()].sort((a, b) => a.date.localeCompare(b.date));
+};
 
 /** เลื่อนวันแบบปฏิทิน โดยไม่ให้เขตเวลาของเครื่องเข้ามาเปลี่ยนคำตอบ */
 export function shiftDays(date: string, days: number): string {
@@ -56,15 +73,8 @@ export function weekdayOf(date: string): number {
 }
 
 /** ดัชนีวันหยุดที่ใช้จริง หลังหักวันที่โครงการนี้เอาออกแล้ว */
-const activeHolidays = (calendar: WorkCalendar): Map<string, ThaiHoliday> => {
-  const removed = new Set(calendar.removed);
-  const map = new Map<string, ThaiHoliday>();
-  for (const holiday of calendar.holidays) {
-    if (removed.has(holiday.date)) continue;
-    map.set(holiday.date, holiday);
-  }
-  return map;
-};
+const activeHolidays = (calendar: WorkCalendar): Map<string, ThaiHoliday> =>
+  new Map(calendarHolidays(calendar).map((holiday) => [holiday.date, holiday]));
 
 export type NonWorkingReason =
   | { kind: "weekend"; name: string }

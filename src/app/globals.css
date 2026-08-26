@@ -1053,3 +1053,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .work-plan__doc-body.is-open { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .work-plan__doc-settings { border-right: 0; border-bottom: 1px solid var(--line); max-height: 45vh; }
 }
+
+/* ปฏิทินวันทำงานของโครงการ (IP-142) */
+.work-plan__calendar-controls { display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: end; margin: 1rem 0 .2rem; }
+.work-plan__calendar-controls label { display: grid; gap: 6px; margin: 0; color: var(--ink); font-size: .78rem; font-weight: 700; }
+.work-plan__switch { display: inline-flex !important; align-items: center; gap: 8px; cursor: pointer; }
+.work-plan__switch input { width: 16px; height: 16px; accent-color: var(--teal); cursor: pointer; }
+.work-plan__calendar-add { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 1rem; }
+.work-plan__calendar-add label { display: grid; gap: 6px; margin: 0; color: var(--ink); font-size: .78rem; font-weight: 700; }
+/* แถวที่ถูกเอาออกจากปฏิทินต้องยังเห็นอยู่ ไม่ใช่หายไป ผู้ใช้จะได้เอากลับมาได้ */
+.work-plan__calendar-removed td { background: var(--canvas); color: var(--muted); }
+.work-plan__calendar-disputed { color: var(--orange); font-weight: 600; }
