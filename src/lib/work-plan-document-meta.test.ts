@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   acceptLogo,
   dataUriBytes,
+  DEFAULT_LOGO_SRC,
   defaultDocumentMeta,
+  isBundledLogo,
+  newPlanDocumentMeta,
   logoVisible,
   MAX_LOGO_BYTES,
   mimeOfDataUri,
@@ -118,5 +121,38 @@ describe("logoVisible", () => {
 
   it("มีรูปและเปิดสวิตช์ จึงแสดง", () => {
     expect(logoVisible({ ...defaultDocumentMeta(), showLogo: true, logoDataUri: logoOf(100) })).toBe(true);
+  });
+});
+
+describe("โลโก้ที่มากับโปรแกรม", () => {
+  it("โครงการใหม่ได้ตราตัวอย่างมาให้ ส่วนค่าตั้งต้นของไฟล์เก่ายังไม่มีตรา", () => {
+    expect(newPlanDocumentMeta().logoDataUri).toBe(DEFAULT_LOGO_SRC);
+    expect(newPlanDocumentMeta().showLogo).toBe(true);
+    expect(defaultDocumentMeta().logoDataUri).toBe("");
+  });
+
+  it("ตราตัวอย่างผ่านตัวตรวจของตัวเอง และแสดงบนกระดาษได้", () => {
+    expect(isBundledLogo(DEFAULT_LOGO_SRC)).toBe(true);
+    expect(logoVisible(newPlanDocumentMeta())).toBe(true);
+  });
+
+  it("รับเฉพาะรูปที่มากับโปรแกรม ไม่ใช่เส้นทางอะไรก็ได้ที่ขึ้นต้นด้วยทับ", () => {
+    for (const bad of [
+      "/brand/../../etc/passwd",
+      "/brand/x.svg",
+      "/brand/a/b.png",
+      "//evil.example/x.png",
+      "https://evil.example/x.png",
+      "/other/x.png",
+      "brand/x.png",
+      "javascript:alert(1)",
+      ""
+    ]) {
+      expect(isBundledLogo(bad), bad).toBe(false);
+    }
+  });
+
+  it("ตราของแพลตฟอร์มที่มีอยู่แล้วก็นับเป็นรูปที่มากับโปรแกรม", () => {
+    expect(isBundledLogo("/brand/naichangmoo-nm-mark.png")).toBe(true);
   });
 });

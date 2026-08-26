@@ -1,7 +1,7 @@
 import type { PlanActivity } from "./work-plan";
 import type { Milestone } from "./payment-milestone";
 import type { IsoDate, MilestoneActual, MoneyEvent } from "./work-plan-actuals";
-import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "./work-plan-document-meta";
+import { defaultDocumentMeta, isBundledLogo, type WorkPlanDocumentMeta } from "./work-plan-document-meta";
 import { defaultWorkCalendar, type WorkCalendar } from "./work-calendar";
 import { LEGACY_DURATION_UNIT, type DurationUnit } from "./work-plan-schedule";
 import type { ThaiHoliday } from "./thai-holidays";
@@ -117,7 +117,8 @@ const readDocument = (value: unknown): WorkPlanDocumentMeta => {
   if (!isRecord(value)) return fallback;
   const logoDataUri = str(value.logoDataUri);
   return {
-    logoDataUri: logoDataUri.startsWith("data:") ? logoDataUri : "",
+    // รับสองแบบเท่านั้น คือรูปที่ผู้ใช้อัปโหลดเป็น data URI กับรูปที่มากับโปรแกรมเอง
+    logoDataUri: logoDataUri.startsWith("data:") || isBundledLogo(logoDataUri) ? logoDataUri : "",
     showLogo: typeof value.showLogo === "boolean" ? value.showLogo : fallback.showLogo,
     employerName: str(value.employerName),
     contractNumber: str(value.contractNumber),

@@ -5,7 +5,7 @@ import {
   WORK_PLAN_SCHEMA_VERSION,
   type WorkPlanSnapshot
 } from "./work-plan-storage";
-import { defaultDocumentMeta } from "./work-plan-document-meta";
+import { DEFAULT_LOGO_SRC, defaultDocumentMeta } from "./work-plan-document-meta";
 import { defaultWorkCalendar } from "./work-calendar";
 
 const baht = (amount: number) => BigInt(amount) * 100n;
@@ -254,6 +254,22 @@ describe("ปฏิทินวันทำงาน", () => {
       const broken = JSON.parse(serialiseWorkPlan(snapshot));
       broken.rainPercent = bad;
       expect(parseWorkPlan(JSON.stringify(broken))!.rainPercent, String(bad)).toBe(0);
+    }
+  });
+
+  it("โลโก้ที่มากับโปรแกรมเก็บเป็นเส้นทางและเดินทางไปกลับได้", () => {
+    const written = serialiseWorkPlan({
+      ...snapshot,
+      document: { ...snapshot.document, logoDataUri: DEFAULT_LOGO_SRC }
+    });
+    expect(parseWorkPlan(written)!.document.logoDataUri).toBe(DEFAULT_LOGO_SRC);
+  });
+
+  it("เส้นทางรูปที่ไม่ได้มากับโปรแกรมถูกทิ้ง ไม่ถูกเอาไปใส่ src ของรูป", () => {
+    for (const bad of ["/brand/../../etc/passwd", "https://evil.example/x.png", "/uploads/x.png", "javascript:alert(1)"]) {
+      const broken = JSON.parse(serialiseWorkPlan(snapshot));
+      broken.document.logoDataUri = bad;
+      expect(parseWorkPlan(JSON.stringify(broken))!.document.logoDataUri, bad).toBe("");
     }
   });
 

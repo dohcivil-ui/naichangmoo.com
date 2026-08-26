@@ -28,6 +28,25 @@ export const MAX_LOGO_BYTES = 200 * 1024;
 /** ด้านกว้างและสูงของกรอบโลโก้บนหัวกระดาษ หน่วยมิลลิเมตร */
 export const LOGO_BOX_MM = 28;
 
+/**
+ * โลโก้ตั้งต้นของโครงการที่สร้างใหม่ เก็บเป็นเส้นทางไฟล์ ไม่ใช่ data URI
+ *
+ * เป็นตราตัวอย่างที่เขียนคำว่า COMPANY ไว้บนตัวมันเอง จึงอ่านออกว่าเป็นช่องรอใส่ตราจริง
+ * ไม่ใช่การอ้างว่าเอกสารนี้เป็นของใคร
+ *
+ * เก็บเป็นเส้นทางเพราะที่เก็บของเบราว์เซอร์มีเพดานราว 5 MB และรูปเดียวกันฝังซ้ำลงทุกโครงการ
+ * เป็น base64 ราว 150 กิโลไบต์ต่อใบ คือการกินโควตาของผู้ใช้ไปกับข้อมูลที่โปรแกรมมีอยู่แล้ว
+ */
+export const DEFAULT_LOGO_SRC = "/brand/work-plan-default-logo.png";
+
+/**
+ * รูปที่มากับโปรแกรมเอง แยกจากรูปที่ผู้ใช้อัปโหลด
+ *
+ * รับเฉพาะรูปแบบที่ตรงตามนี้เท่านั้น ไม่ใช่เส้นทางอะไรก็ได้ที่ขึ้นต้นด้วยทับ เพราะค่านี้ถูกอ่าน
+ * กลับมาจากที่เก็บของเบราว์เซอร์ซึ่งผู้ใช้แก้เองได้ แล้วเอาไปใส่ `src` ของรูปโดยตรง
+ */
+export const isBundledLogo = (src: string): boolean => /^\/brand\/[a-z0-9-]+\.(png|jpg|webp)$/.test(src);
+
 export type DocumentSignatory = {
   name: string;
   position: string;
@@ -58,6 +77,18 @@ export const defaultDocumentMeta = (): WorkPlanDocumentMeta => ({
   siteName: "",
   contractor: emptySignatory(),
   employer: emptySignatory()
+});
+
+/**
+ * ข้อมูลเอกสารของโครงการที่เพิ่งสร้าง ต่างจาก `defaultDocumentMeta` ตรงโลโก้ตั้งต้น
+ *
+ * แผนที่บันทึกไว้ก่อนรุ่นนี้ต้องไม่มีตราโผล่ขึ้นมาเอง เพราะเอกสารที่พิมพ์ส่งราชการไปแล้ว
+ * ห้ามเปลี่ยนหน้าตาเพราะการอัปเกรด ตัวอ่านไฟล์เก่าจึงใช้ `defaultDocumentMeta` ต่อไป
+ * และค่าตั้งต้นที่มีตราใช้เฉพาะกระดานที่ยังไม่เคยมีอะไรอยู่เลย
+ */
+export const newPlanDocumentMeta = (): WorkPlanDocumentMeta => ({
+  ...defaultDocumentMeta(),
+  logoDataUri: DEFAULT_LOGO_SRC
 });
 
 /**

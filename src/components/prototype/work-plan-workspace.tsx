@@ -27,7 +27,7 @@ import {
   type MilestoneStage,
   type MoneyEvent
 } from "@/lib/work-plan-actuals";
-import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "@/lib/work-plan-document-meta";
+import { newPlanDocumentMeta, type WorkPlanDocumentMeta } from "@/lib/work-plan-document-meta";
 import {
   getSaveFailed,
   getSaveFailedOnServer,
@@ -185,7 +185,7 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const [actuals, setActuals] = useState<MilestoneActual[]>(() => restored?.actuals ?? []);
   /** ว่างแปลว่ายังไม่เคยตั้งเอง ให้ไปใช้วันล่าสุดที่มีบันทึก หรือวันนี้ */
   const [dataDateOverride, setDataDateOverride] = useState<IsoDate | "">(() => restored?.dataDate ?? "");
-  const [documentMeta, setDocumentMeta] = useState<WorkPlanDocumentMeta>(() => restored?.document ?? defaultDocumentMeta());
+  const [documentMeta, setDocumentMeta] = useState<WorkPlanDocumentMeta>(() => restored?.document ?? newPlanDocumentMeta());
   const [workCalendar, setWorkCalendar] = useState<WorkCalendar>(() => restored?.calendar ?? defaultWorkCalendar());
   const [rainPercent, setRainPercent] = useState<number>(() => restored?.rainPercent ?? 0);
   /** แผนที่บันทึกไว้ก่อนมีสวิตช์นี้ถูกอ่านกลับมาเป็น contract เสมอ ค่า working เป็นของโครงการใหม่เท่านั้น */
