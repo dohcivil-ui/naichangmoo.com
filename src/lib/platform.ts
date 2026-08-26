@@ -85,8 +85,9 @@ export const platformApps: PlatformApp[] = [
       outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
       flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
-      // ADR 0010: every surface before entry says this one sentence. The project cap and the
-      // export/print locks are still enforced and are still stated on the activation screen.
+      // ADR 0010 fixed this sentence; ADR 0018 moved its public copy into the registry. What is
+      // written here is only the suggestion an administrator sees in the back office - the public
+      // pages render the registry's sentence, or nothing at all.
       availabilityNote: "ทดลองใช้งานฟรี 7 วัน"
     }
   },

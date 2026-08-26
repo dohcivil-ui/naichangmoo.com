@@ -1,6 +1,6 @@
 # ADR 0010: ข้อความทดลองใช้เป็นประโยคเดียวทุกที่ก่อนเข้าใช้งาน
 
-**Status:** Accepted — supersedes the `marketDetail.availabilityNote` row in the ADR 0009 decision table
+**Status:** Accepted — supersedes the `marketDetail.availabilityNote` row in the ADR 0009 decision table · amended by ADR 0018 (2026-08-26): the sentence's public copy now lives in the registry as `apps.availability_note`, and the value in `platform.ts` is only the suggestion an administrator sees in the back office
 
 ## Context
 

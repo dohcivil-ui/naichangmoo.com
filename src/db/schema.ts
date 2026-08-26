@@ -116,6 +116,12 @@ export const apps = pgTable("apps", {
   accessModel: text("access_model").notNull(),
   /** Whether the app is open for use, as opposed to announced and still being prepared. */
   enabled: boolean("enabled").notNull().default(true),
+  /**
+   * The one pre-entry availability sentence (ADR 0010), owned by the registry since ADR 0018.
+   * Null means the platform says nothing; the seeded copy in `platform.ts` is only a suggestion
+   * an administrator sees in the back office.
+   */
+  availabilityNote: text("availability_note"),
   announcedAt: timestamp("announced_at", { withTimezone: true }),
   announcedBy: text("announced_by").references(() => users.id),
   createdAt,

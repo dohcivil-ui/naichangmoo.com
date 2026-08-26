@@ -91,12 +91,14 @@ export type AppClaim = {
   access: AppAccess | null;
   open: boolean;
   announcedAt: Date | null;
+  /** ADR 0018: the pre-entry availability sentence. Null means the platform says nothing. */
+  availabilityNote: string | null;
 };
 
 /** Keyed by slug, and holding an entry for every app in the catalogue, so no caller handles a miss. */
 export type CatalogueClaims = Record<string, AppClaim>;
 
-const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null };
+const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null };
 
 /**
  * Reads the registry for the public catalogue surfaces — the landing page cards and the app detail
@@ -122,6 +124,7 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         slug: apps.slug,
         accessModel: apps.accessModel,
         enabled: apps.enabled,
+        availabilityNote: apps.availabilityNote,
         announcedAt: apps.announcedAt
       })
       .from(apps);
@@ -134,7 +137,8 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         announced: true,
         access: row.accessModel,
         open: row.enabled,
-        announcedAt: row.announcedAt
+        announcedAt: row.announcedAt,
+        availabilityNote: row.availabilityNote ?? null
       };
     }
   } catch {
@@ -154,6 +158,10 @@ export type RegistryEntry = {
   open: boolean;
   announcedAt: Date | null;
   announcedByEmail: string | null;
+  /** What the registry currently says before entry; null when it says nothing. ADR 0018. */
+  availabilityNote: string | null;
+  /** The source's suggested sentence, shown to the administrator only, like `seededAccess`. */
+  seededNote: string;
   /** True when the administrator announced something other than what the source seeded. */
   conflictsWithSeed: boolean;
 };
@@ -173,6 +181,7 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         slug: apps.slug,
         accessModel: apps.accessModel,
         enabled: apps.enabled,
+        availabilityNote: apps.availabilityNote,
         announcedAt: apps.announcedAt,
         // Who said it, by the name they are known by here. An announcement with a time but no
         // author is half a record, and the half it is missing is the one worth having.
@@ -197,6 +206,8 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         open: announced ? Boolean(row?.enabled) : false,
         announcedAt: row?.announcedAt ?? null,
         announcedByEmail: announced ? row?.announcedByEmail ?? null : null,
+        availabilityNote: announced ? row?.availabilityNote ?? null : null,
+        seededNote: app.marketDetail.availabilityNote,
         conflictsWithSeed: announced && access !== null && access !== app.seededAccess
       } satisfies RegistryEntry;
     });
@@ -213,6 +224,11 @@ export type AnnouncementInput = {
   open: boolean;
   reason: string;
   actorId: string;
+  /**
+   * ADR 0018: the pre-entry sentence the platform will say for this app. Empty or omitted means
+   * the platform says nothing - silence is a valid announcement, not a validation error.
+   */
+  availabilityNote?: string;
 };
 
 export type AnnouncementResult =
@@ -239,11 +255,13 @@ export async function announceApp(input: AnnouncementInput): Promise<Announcemen
 
   const db = getDb();
   const now = new Date();
+  const availabilityNote = input.availabilityNote?.trim() || null;
 
   const [existing] = await db
     .select({
       accessModel: apps.accessModel,
       enabled: apps.enabled,
+      availabilityNote: apps.availabilityNote,
       announcedAt: apps.announcedAt
     })
     .from(apps)
@@ -259,6 +277,7 @@ export async function announceApp(input: AnnouncementInput): Promise<Announcemen
         displayName: app.name,
         accessModel: input.access,
         enabled: input.open,
+        availabilityNote,
         announcedAt: now,
         announcedBy: input.actorId
       })
@@ -270,6 +289,7 @@ export async function announceApp(input: AnnouncementInput): Promise<Announcemen
           displayName: app.name,
           accessModel: input.access,
           enabled: input.open,
+          availabilityNote,
           announcedAt: now,
           announcedBy: input.actorId,
           updatedAt: now
@@ -290,10 +310,11 @@ export async function announceApp(input: AnnouncementInput): Promise<Announcemen
           ? {
               access: existing.accessModel,
               open: existing.enabled,
+              availabilityNote: existing.availabilityNote ?? null,
               announced: Boolean(existing.announcedAt)
             }
           : null,
-        after: { access: input.access, open: input.open, announced: true },
+        after: { access: input.access, open: input.open, availabilityNote, announced: true },
         seededAccess: app.seededAccess
       }
     });

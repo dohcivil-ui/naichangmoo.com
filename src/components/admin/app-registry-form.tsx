@@ -69,6 +69,19 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
         ) : null}
 
         <label>
+          <span>ประโยคความพร้อมที่หน้าเว็บจะพูดก่อนเข้าใช้งาน</span>
+          <input
+            type="text"
+            name="availability_note"
+            defaultValue={entry.availabilityNote ?? entry.seededNote}
+            placeholder="เว้นว่างได้ ถ้าไม่ต้องการให้หน้าเว็บพูดอะไรเลย"
+          />
+          <small>
+            แสดงบนหน้ารายละเอียดแอปเฉพาะเมื่อประกาศแล้ว ค่าแนะนำจากโค้ดคือ &ldquo;{entry.seededNote}&rdquo; เว้นว่างคือให้หน้าเว็บเงียบ
+          </small>
+        </label>
+
+        <label>
           <span>เหตุผล ระบุทุกครั้ง</span>
           <input
             type="text"

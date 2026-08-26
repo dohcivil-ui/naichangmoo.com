@@ -26,13 +26,14 @@ export async function declareApp(
   const access = String(formData.get("access") ?? "").trim();
   const open = String(formData.get("open") ?? "") === "open";
   const reason = String(formData.get("reason") ?? "");
+  const availabilityNote = String(formData.get("availability_note") ?? "");
 
   if (!slug) return { ok: false, message: "ไม่พบแอปที่จะประกาศ" };
   if (!isAppAccess(access)) return { ok: false, message: "สิทธิ์ที่เลือกไม่ถูกต้อง" };
 
   let result;
   try {
-    result = await announceApp({ slug, access: access as AppAccess, open, reason, actorId: auth.admin.userId });
+    result = await announceApp({ slug, access: access as AppAccess, open, reason, availabilityNote, actorId: auth.admin.userId });
   } catch {
     return { ok: false, message: "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง" };
   }
