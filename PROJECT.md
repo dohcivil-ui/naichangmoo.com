@@ -41,4 +41,4 @@ Do not create or roadmap Smart Drawing/CAD, Traffic Vision, standalone central-p
 
 ## Working agreement
 
-Before any feature, create a branch. Before every commit, create a new roadmap version and update `roadmap.json`. After every commit, write a handoff note and create the required Git tag. Do not commit builds, dependencies, secrets, customer data, generated exports or provider credentials.
+Work on one trunk branch; a short-lived branch is merged and deleted in the same session. Before every commit, create a new roadmap version, update `roadmap.json` and write the changelog entry. After every commit, write a handoff note and close the version with `pnpm release`, which tags, pushes and publishes the GitHub Release together. Do not commit builds, dependencies, secrets, customer data, generated exports or provider credentials.

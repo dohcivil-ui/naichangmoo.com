@@ -3,6 +3,11 @@ set -eu
 
 node scripts/check-roadmap.mjs
 
+# check-roadmap ตรวจว่าแผนตรงกับสำเนาของแผน ส่วนอันนี้ตรวจว่าเลขรุ่นที่ประกาศออกไป
+# ข้างนอกตรงกับแผน — package.json กับ CHANGELOG เคยหลุดจาก roadmap ไป 12 รุ่น
+# โดยไม่มีอะไรร้อง เพราะไม่มีใครตรวจ
+node scripts/check-release.mjs
+
 if [ -f package.json ]; then
   pnpm lint
   pnpm test

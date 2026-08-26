@@ -65,7 +65,7 @@
     {
       "id": "IP-135",
       "title": "บันทึกจริงต่องวด สามยอดสามวัน และ Data Date ให้เส้นเงินเป็นข้อมูลจริงตัดที่วันตัดข้อมูล เก็บใน localStorage ก่อน",
-      "status": "done",
+      "status": "planned",
       "phase": "implementation"
     },
     {

@@ -2,7 +2,17 @@
 
 ## Branch and commit discipline
 
-Every new change starts on a dedicated branch. Before every commit, update roadmap version files and run the release/quality command that applies to the current scaffold. A commit without a handoff note is incomplete. Milestones require annotated semantic tags such as `v0.1.0-initial-governance`.
+Work happens on one line — `initial-project/nextjs-foundation`. A piece of work that needs to be
+kept apart may take a short-lived branch, but it is merged and deleted in the same session that
+opened it. Long-lived side branches are how the release ladder came apart before: on 2026-08-24 the
+GitHub Releases, the tags, the changelog and `package.json` were each stranded at a different
+version while the roadmap kept moving, and nothing noticed for eleven versions.
+
+Finishing a piece of work means closing a version, not leaving a branch behind: raise the roadmap
+version, write the changelog entry, commit, then run `pnpm release`, which tags, pushes and
+publishes the GitHub Release together. A commit without a handoff note is incomplete. Tags are
+annotated and semantic, such as `v0.1.0-initial-governance`, and rollback is `git checkout` of a
+tag — which only works if every version has one.
 
 Every roadmap version, annotated tag, commit message and handoff must use an aligned **title**, **description**, **changed scope**, **verification** and **rollback** statement. The roadmap version file is immutable after commit; `roadmap.json` is the current pointer and the HTML console reads it at runtime.
 

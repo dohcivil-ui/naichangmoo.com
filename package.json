@@ -1,6 +1,6 @@
 {
   "name": "naichangmoo-com",
-  "version": "0.33.0",
+  "version": "0.46.0",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.20.0",
@@ -15,7 +15,9 @@
     "db:migrate": "drizzle-kit migrate",
     "prepare": "node scripts/setup-git-hooks.mjs",
     "hooks:setup": "node scripts/setup-git-hooks.mjs",
-    "security:check": "node scripts/security-check.mjs"
+    "security:check": "node scripts/security-check.mjs",
+    "release": "node scripts/release.mjs",
+    "check:release": "node scripts/check-release.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",

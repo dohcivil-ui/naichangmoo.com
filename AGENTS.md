@@ -5,13 +5,13 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 ## Required workflow
 
 1. Run `/grill-with-docs` before touching source code for new work, and continue until the question frontier is empty. "It is a small change" is not a reason to skip. Skip only for a typo, a constant whose source is already recorded, or a fix that introduces no new term and no new decision. When you skip, state the reason on the first line of the handoff note.
-2. Create a dedicated Git branch before adding a feature, migration, security remediation or refactor.
+2. Work on the single trunk branch. A short-lived branch is allowed only when the work must be kept apart, and it is merged and deleted in the same session — side branches left open are how the release ladder came apart before.
 3. Add the work as an unchecked roadmap item before implementation.
 4. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
 5. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
 6. Run the quality gate required by the changed code before committing.
 7. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.
-8. Create an annotated semantic Git tag at every project milestone.
+8. Close every version with `pnpm release`, which tags, pushes and publishes the GitHub Release together. A GitHub Release is not the same object as a tag; publishing only the tag is what left the repository showing a release twenty-five versions old.
 
 ## Safety rules
 
