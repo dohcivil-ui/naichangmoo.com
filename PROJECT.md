@@ -18,7 +18,7 @@
 1. One landing page and one platform membership. Each app evaluates entitlement after authentication.
 2. ESTIMETR uses a constrained engineering-tool workflow: **input → validation → calculation → evidence/result**.
 3. AI proposes quantities/evidence; auditable source data supplies prices. AI must not manufacture prices.
-4. A trial member is still a platform member from registration. The ESTIMETR trial runs 5 days and permits one project.
+4. A trial member is still a platform member from registration. The ESTIMETR trial runs 7 days and permits one project (ADR 0009 lengthened the original 5 days; amended here 2026-08-26 so the top-ranked document matches the ADR and the code).
 5. When trial expires, retain data read-only. Lock all create/edit/AI/export/print actions.
 6. Hermes pilot only reviews AI Takeoff evidence and summarizes review issues. It cannot write business data, release documents, send messages, spend money, or access production database credentials.
 7. Every release must preserve a trace from project inputs to calculation, evidence, pricing and output decision.
