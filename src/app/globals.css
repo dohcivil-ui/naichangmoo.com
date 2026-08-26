@@ -953,3 +953,616 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* แถวที่ถูกเอาออกจากปฏิทินต้องยังเห็นอยู่ ไม่ใช่หายไป ผู้ใช้จะได้เอากลับมาได้ */
 .work-plan__calendar-removed td { background: var(--canvas); color: var(--muted); }
 .work-plan__calendar-disputed { color: var(--orange); font-weight: 600; }
+
+/* ============================================================================
+   PRICEMETR — แผงบัญชีราคา ผิวแบบ Liquid Glass
+
+   สี่ข้อที่ใช้ตัดสินทุกกฎในบล็อกนี้
+
+   1. **กระจกต้องมีอะไรให้ส่องผ่าน** ถ้าพื้นหลังเป็นสีเรียบ พื้นผิวโปร่งแสงจะกลายเป็นสีเทาซีด
+      ไม่ใช่กระจก จึงมีชั้นแสงสีนุ่ม ๆ อยู่หลังทุกอย่าง แล้วแผงถึงจะมีอะไรให้เบลอ
+   2. **เบลอเฉพาะแผง ไม่ใช่ทุกชิ้น** backdrop-filter หนึ่งชิ้นราคาแพงในการวาด สี่สิบแถวที่เบลอเอง
+      ทำให้เลื่อนหน้าสะดุดบนเครื่องที่ไม่แรง แถวจึงเป็นผิวโปร่งแสงธรรมดาบนแผงที่เบลอไว้แล้ว
+   3. **ตัวหนังสือกับตัวเลขไม่โปร่งแสง** กระจกอยู่ที่พื้นผิว ไม่ใช่ที่เนื้อความ ราคาเป็นสีหมึกทึบเสมอ
+      เพราะนี่คือเครื่องมือที่คนเอาตัวเลขไปคิดเงิน ไม่ใช่ภาพประกอบ
+   4. **สีของทิศราคาไม่ใช่สัญญาณเดียว** มีลูกศรและเครื่องหมายบวกลบกำกับทุกที่
+   ========================================================================= */
+
+:root {
+  /* สีนำของแอปนี้คือสีนำของแบรนด์ ไม่ใช่สีใหม่ที่ยืนอยู่คนเดียวในเว็บ
+     ธีมของทั้งเว็บเป็น teal กับหมึกน้ำเงิน หน้านี้จึงต้องอยู่ในชุดเดียวกัน
+     ส่วนสีส้มยังสงวนไว้เป็นสีเน้นเหมือนเดิม ไม่เอามาเป็นพื้น */
+  --price-lead: var(--teal);
+  --rise: #1f7a52;
+  --fall: #b3382c;
+  --glass-fill: linear-gradient(158deg, rgba(255, 255, 255, .66) 0%, rgba(244, 247, 247, .34) 56%, rgba(255, 255, 255, .5) 100%);
+  --glass-line: rgba(255, 255, 255, .72);
+  --glass-lift: 0 22px 50px -34px rgba(7, 48, 71, .58), inset 0 1px 0 rgba(255, 255, 255, .92), inset 0 -1px 0 rgba(255, 255, 255, .35);
+  /* ค่ามาตรฐานของการเบลอหลังกระจก เก็บไว้เป็นบันทึก ห้ามเรียกผ่าน var()
+     สองอย่างที่ตรวจเจอจริงเมื่อ 2026-08-26 ด้วย getComputedStyle
+     หนึ่ง ตัวแปลง CSS ของโปรเจกต์นี้ทิ้งค่าที่มาจาก var() ในคุณสมบัติ backdrop-filter
+     สอง ถ้าเขียนคู่กับ -webkit-backdrop-filter มันจะเก็บไว้แต่ตัวที่มีคำนำหน้า แล้วทิ้งตัวมาตรฐาน
+     ผลคือกระจกไม่เบลอเลยโดยไม่มี error ให้เห็น จึงต้องเขียน backdrop-filter ตรง ๆ ตัวเดียว
+     แล้วปล่อยให้ตัวแปลงเติมคำนำหน้าเองตามเป้าหมายเบราว์เซอร์ */
+  --glass-blur: saturate(185%) blur(22px);
+}
+
+.gl-scope { position: relative; isolation: isolate; }
+.gl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.gl-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ชั้นแสงหลังกระจก ตรึงอยู่กับหน้าจอ ไม่เลื่อนตามเนื้อหา ไม่รับคลิก */
+.gl-ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: var(--canvas); }
+.gl-ambient__blob { position: absolute; border-radius: 50%; filter: blur(76px); opacity: .72; }
+.gl-ambient__blob--a { width: 52vw; height: 52vw; left: -10vw; top: -14vw; background: radial-gradient(circle, rgba(13, 130, 130, .5), transparent 66%); }
+.gl-ambient__blob--b { width: 46vw; height: 46vw; right: -8vw; top: 2vh; background: radial-gradient(circle, rgba(7, 48, 71, .34), transparent 66%); }
+/* ส้มเป็นสีเน้นของแบรนด์ ใช้ได้จุดเดียวและจาง ๆ ถ้าเอามาเป็นพื้นใหญ่ ธีมทั้งเว็บจะเพี้ยนตาม */
+.gl-ambient__blob--c { width: 40vw; height: 30vw; left: 24vw; top: 40vh; background: radial-gradient(circle, rgba(244, 119, 33, .2), transparent 64%); }
+.gl-ambient__blob--d { width: 54vw; height: 42vw; left: -6vw; bottom: -16vw; background: radial-gradient(circle, rgba(13, 130, 130, .38), transparent 66%); }
+
+.gl-desk { padding: 2.2rem 0 5rem; }
+
+.gl-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.gl-head h1 { margin: .3rem 0 .45rem; font-size: clamp(1.95rem, 3.4vw, 2.7rem); line-height: 1.12; letter-spacing: -.015em; color: var(--ink); }
+.gl-head__tail { display: block; font-size: .5em; font-weight: 600; letter-spacing: 0; color: var(--price-lead); }
+.gl-head__lead { max-width: 56ch; margin: 0; font-size: 1rem; line-height: 1.72; color: var(--ink-body); }
+
+/* ป้ายสถานะบรรทัดเดียว คำอธิบายยาวโผล่ตอนชี้ ไม่ยืนกินที่ตลอดเวลา */
+.gl-live { position: relative; margin-top: 14px; justify-self: start; }
+/* เส้นสถานะ ไม่ใช่แคปซูลจุดเขียว — รูปทรงนั้นกับมุมขวาบนเป็นของคู่แข่งไปแล้ว
+   ที่นี่เป็นบรรทัดตัวอักษรมีขีดตั้งนำหน้า นั่งใต้คำนำฝั่งซ้าย และรายละเอียดยังโผล่ตอนชี้เหมือนเดิม */
+.gl-live__line { display: inline-flex; align-items: baseline; gap: 10px; padding: 2px 0 2px 12px; border: 0; border-left: 3px solid var(--teal); border-radius: 0; background: transparent; font-family: inherit; cursor: help; text-align: left; }
+.gl-live__line:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.gl-live__word { font-size: .74rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--teal); }
+.gl-live__when { font-size: .84rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-live__line--busy { border-left-color: var(--muted); }
+.gl-live__line--busy .gl-live__word { color: var(--muted); }
+.gl-live__line--busy .gl-live__when { color: var(--muted); animation: gl-pulse 1.4s ease-in-out infinite; }
+.gl-live__line--warn { border-left-color: var(--orange); }
+.gl-live__line--warn .gl-live__word { color: color-mix(in srgb, var(--orange) 78%, var(--ink)); }
+@keyframes gl-pulse { 50% { opacity: .35; } }
+.gl-live__detail { position: absolute; left: 0; top: calc(100% + 8px); z-index: 20; width: min(440px, 82vw); margin: 0; padding: 12px 14px; border: 1px solid var(--glass-line); border-radius: 14px; background: linear-gradient(160deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .86)); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); color: var(--ink-body); font-size: .78rem; line-height: 1.65; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
+.gl-live__detail.is-shown { opacity: 1; transform: none; }
+
+.gl-decks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 1.6rem 0 1rem; }
+.gl-deck { position: relative; overflow: hidden; display: grid; gap: 2px; justify-items: start; text-align: left; padding: .85rem 1.1rem; border: 1px solid var(--glass-line); border-radius: 16px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); color: var(--ink); font-family: inherit; cursor: pointer; transition: transform 180ms var(--ease-out), border-color 180ms var(--ease-out); }
+.gl-deck::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%); transform: translateX(-120%); transition: transform 620ms var(--ease-out); }
+.gl-deck:hover { transform: translateY(-2px); }
+.gl-deck:hover::after { transform: translateX(120%); }
+.gl-deck:active { transform: translateY(0) scale(.995); }
+.gl-deck__name { font-size: .98rem; font-weight: 700; }
+.gl-deck__origin { font-size: .76rem; color: var(--muted); }
+.gl-deck.is-active { border-color: color-mix(in srgb, var(--price-lead) 55%, var(--glass-line)); background: linear-gradient(158deg, color-mix(in srgb, var(--price-lead) 16%, rgba(255, 255, 255, .76)), rgba(255, 255, 255, .52)); }
+.gl-deck.is-active .gl-deck__origin { color: color-mix(in srgb, var(--price-lead) 74%, var(--ink)); }
+
+/* แผงคำตอบ อยู่เหนือรายการเสมอ ไม่ใช่หน้าต่างที่ลอยทับจนมองรายการอื่นไม่เห็น */
+.gl-focus { position: relative; margin: 0 0 1.1rem; padding: 20px 22px; border: 1px solid var(--glass-line); border-radius: 22px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); animation: gl-rise 320ms var(--ease-reveal) both; }
+@keyframes gl-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.gl-focus__close { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--glass-line); border-radius: 50%; background: rgba(255, 255, 255, .6); cursor: pointer; }
+.gl-focus__close svg { width: 15px; height: 15px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
+.gl-focus__close:hover { background: rgba(255, 255, 255, .9); }
+.gl-focus__grid { display: grid; grid-template-columns: minmax(260px, 380px) minmax(0, 1fr); gap: 26px; align-items: start; }
+.gl-focus__where { margin: 0 0 2px; font-size: .78rem; font-weight: 700; color: var(--price-lead); }
+.gl-focus h2 { margin: 0 0 .6rem; font-size: 1.16rem; line-height: 1.45; color: var(--ink); padding-right: 34px; }
+.gl-focus__price { display: flex; align-items: baseline; gap: 8px; margin: 0 0 .6rem; }
+.gl-focus__price strong { font-size: 2.6rem; font-weight: 800; line-height: 1; letter-spacing: -.025em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-focus__price span { font-size: .86rem; font-weight: 600; color: var(--muted); }
+.gl-focus__row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: .9rem; }
+.gl-focus__facts { display: grid; gap: 8px; margin: 0 0 .8rem; }
+.gl-focus__facts dt { font-size: .74rem; color: var(--muted); }
+.gl-focus__facts dd { margin: 0; font-size: .86rem; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-focus__caveat { margin: 0 0 1rem; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .7); font-size: .78rem; line-height: 1.65; color: var(--ink-body); }
+.gl-focus__add { width: 100%; justify-content: center; }
+.gl-focus__loading { margin: 0 0 6px; font-size: .78rem; color: var(--muted); }
+
+.gl-trend { margin: 0; }
+.gl-trend svg { width: 100%; height: auto; }
+.gl-trend__grid { stroke: rgba(7, 48, 71, .12); stroke-width: 1; }
+.gl-trend__tick { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.gl-trend__line { fill: none; stroke: var(--price-lead); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2200; stroke-dashoffset: 2200; animation: gl-draw 900ms var(--ease-reveal) forwards; }
+.gl-trend__dot { fill: var(--price-lead); }
+.gl-trend__area { stroke: none; }
+.gl-trend figcaption { margin-top: 6px; font-size: .76rem; line-height: 1.6; color: var(--muted); }
+@keyframes gl-draw { to { stroke-dashoffset: 0; } }
+
+/* แถบควบคุม ติดขอบบน เพราะการค้นหาเป็นสิ่งที่ผู้ใช้กลับมาใช้ตลอด ไม่ใช่ทำครั้งเดียวตอนเข้า */
+.gl-controls { position: sticky; top: 10px; z-index: 8; display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, minmax(96px, auto)) auto; gap: 8px; align-items: end; padding: 10px; border: 1px solid var(--glass-line); border-radius: 18px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); }
+.gl-search { position: relative; display: grid; }
+.gl-search__icon { position: absolute; left: 14px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%); fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+.gl-search input { width: 100%; height: 46px; padding: 0 42px 0 42px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 12px; background: rgba(255, 255, 255, .68); color: var(--ink); font-size: 1rem; }
+.gl-search input::placeholder { color: var(--muted); }
+.gl-search input:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; border-color: var(--price-lead); background: rgba(255, 255, 255, .92); }
+.gl-search input::-webkit-search-cancel-button, .gl-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
+.gl-search__clear { position: absolute; right: 8px; top: 50%; display: grid; place-items: center; width: 28px; height: 28px; transform: translateY(-50%); border: 0; border-radius: 50%; background: rgba(7, 48, 71, .08); cursor: pointer; }
+.gl-search__clear svg { width: 14px; height: 14px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
+.gl-search__clear:hover { background: rgba(7, 48, 71, .16); }
+
+.gl-field { display: grid; gap: 4px; font-size: .72rem; font-weight: 700; color: var(--muted); }
+.gl-field select { height: 46px; padding: 0 10px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 12px; background: rgba(255, 255, 255, .68); color: var(--ink); font-size: .88rem; font-weight: 600; }
+.gl-field select:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.gl-field--narrow select { min-width: 84px; }
+
+.gl-view { display: inline-flex; height: 46px; padding: 4px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 12px; background: rgba(255, 255, 255, .5); }
+.gl-view button { padding: 0 .85rem; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-family: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; transition: background 160ms var(--ease-out), color 160ms var(--ease-out); }
+.gl-view button.is-on { background: var(--price-lead); color: var(--paper); box-shadow: 0 6px 14px -10px rgba(90, 75, 156, .9); }
+
+.gl-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: .9rem 0 .8rem; }
+.gl-chip { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: .4rem .9rem; border: 1px solid var(--glass-line); border-radius: 999px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 10px 22px -20px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); color: var(--ink); font-family: inherit; font-size: .82rem; font-weight: 600; cursor: pointer; transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+.gl-chip::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .6) 50%, transparent 60%); transform: translateX(-130%); transition: transform 560ms var(--ease-out); }
+.gl-chip:hover { transform: translateY(-1px); border-color: color-mix(in srgb, var(--price-lead) 45%, var(--glass-line)); }
+.gl-chip:hover::after { transform: translateX(130%); }
+.gl-chip:active { transform: translateY(0) scale(.96); }
+.gl-chip:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.gl-chip:disabled { opacity: .45; cursor: default; transform: none; }
+.gl-chip.is-on { border-color: transparent; background: linear-gradient(158deg, color-mix(in srgb, var(--price-lead) 96%, #fff), var(--price-lead)); color: var(--paper); }
+.gl-chip--primary { border-color: transparent; background: linear-gradient(158deg, color-mix(in srgb, var(--price-lead) 96%, #fff), var(--price-lead)); color: var(--paper); }
+.gl-chip__count { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 20px; padding: 0 6px; border-radius: 999px; background: rgba(7, 48, 71, .1); color: inherit; font-size: .7rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gl-chip.is-on .gl-chip__count, .gl-chip--primary .gl-chip__count { background: rgba(255, 255, 255, .26); }
+
+.gl-count { margin: 0 0 14px; font-size: .88rem; color: var(--ink-body); }
+.gl-count strong { font-variant-numeric: tabular-nums; }
+.gl-count__loading { color: var(--muted); }
+
+/* แผงบัญชี — หน่วยหลักของหน้าจอ */
+.gl-ledger { border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); overflow: hidden; transition: opacity 200ms var(--ease-out); }
+.gl-ledger.is-loading { opacity: .55; }
+.gl-ledger__head, .gl-row__main { display: grid; grid-template-columns: minmax(0, 1fr) 76px 132px 118px 96px; gap: 12px; align-items: center; }
+.gl-ledger--unit .gl-ledger__head, .gl-ledger--unit .gl-row__main { grid-template-columns: minmax(0, 1fr) 74px 104px 104px 124px; }
+.gl-ledger__head { padding: 12px 56px 12px 18px; border-bottom: 1px solid rgba(255, 255, 255, .7); font-size: .74rem; font-weight: 700; color: var(--muted); }
+.gl-ledger__body { list-style: none; margin: 0; padding: 0; }
+
+.gl-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, .55); animation: gl-rise 340ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 16ms); }
+.gl-row:last-child { border-bottom: 0; }
+.gl-row::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .18)); opacity: 0; transition: opacity 160ms var(--ease-out); pointer-events: none; }
+.gl-row:hover::before { opacity: 1; }
+.gl-row.is-open { background: linear-gradient(90deg, color-mix(in srgb, var(--price-lead) 12%, transparent), transparent); box-shadow: inset 3px 0 0 var(--price-lead); }
+.gl-row__main { position: relative; width: 100%; padding: 11px 8px 11px 18px; border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
+.gl-row__main--static { cursor: default; }
+.gl-row__name { display: grid; gap: 1px; min-width: 0; }
+.gl-row__name strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .92rem; font-weight: 600; color: var(--ink); }
+.gl-row__name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .72rem; color: var(--muted); }
+.gl-row__unit { font-size: .78rem; color: var(--muted); }
+.gl-row__price { display: grid; gap: 1px; text-align: right; font-size: 1.06rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-row__price small { font-size: .68rem; font-weight: 500; color: var(--muted); }
+.gl-row__num { text-align: right; font-size: .92rem; font-weight: 600; color: var(--ink-body); font-variant-numeric: tabular-nums; }
+.gl-row__move { justify-self: start; }
+.gl-row__spark { display: flex; justify-content: flex-end; }
+.gl-row__add { display: grid; place-items: center; width: 34px; height: 34px; margin-right: 10px; border: 1px solid var(--glass-line); border-radius: 50%; background: rgba(255, 255, 255, .6); cursor: pointer; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out); }
+.gl-row__add svg { width: 16px; height: 16px; fill: none; stroke: var(--price-lead); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.gl-row__add:hover { background: var(--price-lead); transform: scale(1.06); }
+.gl-row__add:hover svg { stroke: var(--paper); }
+.gl-row__add:disabled { cursor: default; background: rgba(31, 122, 82, .14); transform: none; }
+.gl-row__add:disabled svg { stroke: var(--rise); }
+
+.gl-row--ghost { height: 54px; }
+.gl-row--ghost span { display: block; height: 14px; margin: 0 18px; border-radius: 7px; background: linear-gradient(90deg, rgba(255, 255, 255, .35), rgba(255, 255, 255, .8), rgba(255, 255, 255, .35)); background-size: 200% 100%; animation: gl-shimmer 1.4s linear infinite; }
+@keyframes gl-shimmer { to { background-position: -200% 0; } }
+
+.gl-move { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: .78rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.gl-move small { font-weight: 500; font-size: .68rem; opacity: .8; }
+.gl-move__arrow { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.gl-move--rise { background: rgba(31, 122, 82, .14); color: var(--rise); }
+.gl-move--fall { background: rgba(179, 56, 44, .13); color: var(--fall); }
+.gl-move--flat { background: rgba(7, 48, 71, .07); color: var(--muted); }
+
+.gl-spark { width: 84px; height: 26px; overflow: visible; }
+.gl-spark--empty { display: inline-block; border-bottom: 1px dashed rgba(7, 48, 71, .18); }
+.gl-spark__line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.gl-spark--rise .gl-spark__line, .gl-spark--rise .gl-spark__head { stroke: var(--rise); fill: var(--rise); }
+.gl-spark--fall .gl-spark__line, .gl-spark--fall .gl-spark__head { stroke: var(--fall); fill: var(--fall); }
+.gl-spark--flat .gl-spark__line, .gl-spark--flat .gl-spark__head { stroke: var(--muted); fill: var(--muted); }
+.gl-spark__head { stroke: none; }
+
+/* มุมมองการ์ด เป็นตัวเลือก ไม่ใช่ค่าตั้งต้น เอาไว้เทียบให้เห็นว่าแถวอ่านง่ายกว่าตรงไหน */
+.gl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; align-items: start; }
+.gl-card { display: grid; gap: 9px; padding: 16px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 22ms); transition: transform 180ms var(--ease-out); }
+.gl-card:hover { transform: translateY(-2px); }
+.gl-card.is-open { border-color: var(--price-lead); }
+.gl-card header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.gl-card__cat { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .72rem; font-weight: 700; color: var(--price-lead); }
+.gl-card__unit { flex: none; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, .7); font-size: .72rem; font-weight: 700; color: var(--muted); }
+.gl-card h3 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.9em; margin: 0; font-size: .94rem; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.gl-card__price { display: flex; align-items: baseline; gap: 5px; margin: 0; }
+.gl-card__price span { font-size: 1.8rem; font-weight: 800; line-height: 1; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-card__price small { font-size: .78rem; font-weight: 700; color: var(--muted); }
+.gl-card__meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gl-card__month { font-size: .74rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-card .gl-spark { width: 100%; height: 44px; }
+.gl-card footer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gl-split { display: flex; gap: 12px; margin: 0; padding: 8px 10px; border-radius: 12px; background: rgba(255, 255, 255, .55); font-size: .78rem; color: var(--muted); }
+.gl-split strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-tag { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; background: rgba(244, 119, 33, .14); color: color-mix(in srgb, var(--orange) 74%, var(--ink)); font-size: .72rem; font-weight: 700; }
+.gl-tag--quiet { background: rgba(7, 48, 71, .07); color: var(--muted); }
+
+.gl-empty { margin: 0; padding: 26px; border: 1px dashed rgba(7, 48, 71, .18); border-radius: 16px; background: rgba(255, 255, 255, .4); color: var(--muted); font-size: .9rem; }
+
+.gl-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 1.1rem; font-size: .84rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* แถบรายการที่หยิบไว้ ยอดรวมต้องอยู่ในสายตาตลอดเวลาที่กำลังเลือกของ */
+.gl-basket { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; border-top: 1px solid var(--glass-line); background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .94)); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 -18px 40px -32px rgba(7, 48, 71, .85); animation: gl-slide 320ms var(--ease-out) both; }
+@keyframes gl-slide { from { transform: translateY(100%); } to { transform: none; } }
+.gl-basket__bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 11px; padding-bottom: 11px; }
+.gl-basket__toggle { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: .45rem 1rem; border: 1px solid transparent; border-radius: 999px; background: linear-gradient(158deg, color-mix(in srgb, var(--price-lead) 96%, #fff), var(--price-lead)); color: var(--paper); font-family: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; transition: transform 130ms var(--ease-out); }
+.gl-basket__toggle:active { transform: scale(.97); }
+.gl-basket__toggle .gl-chip__count { background: rgba(255, 255, 255, .28); }
+.gl-basket__total { margin: 0; font-size: .92rem; color: var(--ink-body); }
+.gl-basket__total strong { font-size: 1.32rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-basket__panel { max-height: 44vh; overflow: auto; padding-bottom: 14px; border-top: 1px solid rgba(255, 255, 255, .7); }
+.gl-basket__panel table { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.gl-basket__panel th { padding: 10px 8px; border-bottom: 1px solid rgba(7, 48, 71, .12); text-align: left; font-size: .74rem; font-weight: 700; color: var(--muted); }
+.gl-basket__panel td { padding: 10px 8px; border-bottom: 1px solid rgba(7, 48, 71, .07); vertical-align: middle; color: var(--ink); }
+.gl-basket__panel small { display: block; font-size: .72rem; font-weight: 500; color: var(--muted); }
+.gl-basket__panel input { width: 96px; height: 38px; padding: 0 10px; border: 1px solid rgba(7, 48, 71, .14); border-radius: 10px; background: rgba(255, 255, 255, .8); color: var(--ink); font-size: .9rem; text-align: right; font-variant-numeric: tabular-nums; }
+.gl-basket__remove { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid rgba(7, 48, 71, .14); border-radius: 50%; background: rgba(255, 255, 255, .7); cursor: pointer; }
+.gl-basket__remove svg { width: 14px; height: 14px; fill: none; stroke: var(--muted); stroke-width: 2.4; stroke-linecap: round; }
+.gl-basket__remove:hover { border-color: var(--fall); }
+.gl-basket__remove:hover svg { stroke: var(--fall); }
+
+.gl-afterword { padding-bottom: 7rem; }
+.gl-afterword__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin: 1.1rem 0; }
+.gl-afterword__grid h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--ink); }
+.gl-afterword__grid ul { display: grid; gap: 8px; margin: 0; padding-left: 1.1rem; font-size: .9rem; line-height: 1.65; color: var(--ink-body); }
+.gl-afterword__note { max-width: 68ch; margin: 0 0 1.3rem; padding: 14px 16px; border-left: 3px solid var(--orange); border-radius: 0 12px 12px 0; background: rgba(255, 255, 255, .6); font-size: .88rem; line-height: 1.7; color: var(--ink-body); }
+
+@media (max-width: 1080px) {
+  .gl-controls { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(96px, 1fr)); }
+  .gl-focus__grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .gl-head { grid-template-columns: 1fr; }
+  .gl-ledger__head { display: none; }
+  .gl-row__main, .gl-ledger--unit .gl-row__main { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name price" "meta meta"; gap: 6px 12px; padding: 12px 8px 12px 14px; }
+  .gl-row__name { grid-area: name; }
+  .gl-row__price { grid-area: price; }
+  .gl-row__unit, .gl-row__move, .gl-row__spark, .gl-row__num { grid-area: meta; }
+  .gl-row__unit, .gl-row__num { display: none; }
+  .gl-row__move { justify-self: start; }
+  .gl-row__spark { display: none; }
+}
+
+@media (max-width: 620px) {
+  .gl-desk { padding-top: 1.4rem; }
+  .gl-decks { grid-template-columns: 1fr 1fr; gap: 8px; margin: 1rem 0 .7rem; }
+  .gl-deck { padding: .6rem .7rem; border-radius: 14px; }
+  .gl-deck__name { font-size: .84rem; line-height: 1.35; }
+  .gl-deck__origin { font-size: .68rem; line-height: 1.35; }
+  .gl-head__lead { font-size: .92rem; }
+  .gl-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px; top: 6px; }
+  .gl-search { grid-column: 1 / -1; }
+  .gl-view { grid-column: span 3; width: 100%; justify-content: stretch; }
+  .gl-view button { flex: 1; }
+  .gl-field { font-size: .66rem; }
+  .gl-field select { height: 42px; padding: 0 8px; font-size: .8rem; }
+  .gl-chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+  .gl-chips::-webkit-scrollbar { display: none; }
+  .gl-chip { flex: none; }
+  .gl-cards { grid-template-columns: 1fr; }
+  .gl-focus { padding: 16px; border-radius: 18px; }
+  .gl-focus__price strong { font-size: 2.1rem; }
+}
+
+/* เบราว์เซอร์ที่ไม่รองรับการเบลอพื้นหลัง ต้องได้พื้นทึบที่อ่านออก ไม่ใช่พื้นโปร่งจนตัวหนังสือจม */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .gl-live__pill, .gl-deck, .gl-focus, .gl-controls, .gl-chip, .gl-ledger, .gl-basket, .gl-live__detail { background: var(--paper); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-row, .gl-card, .gl-focus, .gl-basket { animation: none; }
+  .gl-trend__line { stroke-dashoffset: 0; animation: none; }
+  .gl-deck::after, .gl-chip::after { display: none; }
+  .gl-row--ghost span { animation: none; }
+  .gl-chip:hover, .gl-deck:hover, .gl-card:hover, .gl-live__pill:hover, .gl-row__add:hover { transform: none; }
+}
+
+/* ---- การ์ดหมวดวัสดุ หน้าแรกของชุดข้อมูล -------------------------------- */
+/* grid-auto-rows: 1fr บังคับให้ทุกแถวสูงเท่ากัน ไม่ใช่เท่ากันเฉพาะภายในแถว
+   ถ้าไม่มีบรรทัดนี้ การ์ดจะออกมาสองความสูงคือ 299px กับ 320px เพราะชื่อ
+   "วัสดุลวดตาข่าย มุ้งลวด ลวดหนาม" ตกสองบรรทัด แล้วกริดยืดทั้งแถวตาม
+   ส่วนเกินจะไหลไปลงแถบภาพ ทำให้ภาพประจำหมวดออกมาสองขนาดคือ 178px กับ 199px
+   ซึ่งเห็นชัดมากเมื่อใส่ภาพถ่ายจริง เพราะภาพจะถูกครอบคนละสัดส่วนกัน */
+.gl-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); grid-auto-rows: 1fr; gap: 16px; }
+/* การ์ดหมวดเป็นแนวตั้ง ภาพกินพื้นที่ค่อนใบ ข้อความอยู่ใต้ภาพ */
+.gl-cat { position: relative; overflow: hidden; display: grid; grid-template-rows: 1fr auto; padding: 0; text-align: left; border: 1px solid var(--glass-line); border-radius: 24px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); font-family: inherit; cursor: pointer; animation: gl-rise 380ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 24ms); transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out); }
+.gl-cat::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%); transform: translateX(-130%); transition: transform 640ms var(--ease-out); pointer-events: none; }
+.gl-cat:hover { transform: translateY(-4px); box-shadow: 0 32px 58px -34px color-mix(in srgb, var(--cat) 55%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .92); }
+.gl-cat:hover::after { transform: translateX(130%); }
+.gl-cat:active { transform: translateY(-1px) scale(.995); }
+.gl-cat:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+/* แถบภาพ สูงกว่าครึ่งใบ ตามที่เจ้าของงานสั่งว่าให้ภาพกินพื้นที่ค่อนการ์ด */
+.gl-cat__art { position: relative; display: grid; place-items: center; min-height: 178px; overflow: hidden; background: radial-gradient(120% 100% at 50% 18%, color-mix(in srgb, var(--cat-wash) 92%, transparent) 0%, rgba(255, 255, 255, .34) 72%); }
+.gl-cat__art img { width: 100%; height: 100%; object-fit: cover; }
+.gl-cat__art svg { width: 84px; height: 84px; color: var(--cat); opacity: .92; }
+.gl-cat__art::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(255, 255, 255, .75); }
+.gl-cat__body { display: grid; gap: 7px; justify-items: start; padding: 14px 16px 16px; }
+.gl-cat__name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.7em; font-size: .98rem; font-weight: 700; line-height: 1.35; color: var(--ink); }
+.gl-cat__count { font-size: .78rem; color: var(--muted); }
+.gl-cat__count strong { font-size: 1.02rem; font-weight: 800; color: var(--cat); font-variant-numeric: tabular-nums; }
+.gl-cat__bar { display: flex; width: 100%; height: 6px; border-radius: 999px; background: rgba(7, 48, 71, .09); overflow: hidden; }
+.gl-cat__bar-rise { background: var(--rise); }
+.gl-cat__bar-fall { background: var(--fall); }
+.gl-cat__moves { display: flex; flex-wrap: wrap; align-content: start; gap: 3px 9px; min-height: 1.5em; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-cat__moves em { font-style: normal; font-weight: 700; }
+.gl-cat__moves .is-rise { color: var(--rise); }
+.gl-cat__moves .is-fall { color: var(--fall); }
+
+/* ---- แถวราคาแบบแผ่นกระจกลอย ------------------------------------------- */
+.gl-list { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; transition: opacity 200ms var(--ease-out); }
+.gl-list.is-loading { opacity: .5; }
+.gl-slab { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px 12px 20px; border: 1px solid var(--glass-line); border-radius: 18px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 14px 32px -28px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); animation: gl-rise 340ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 14ms); transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out); }
+/* สันสีประจำหมวด เป็นสิ่งเดียวที่บอกหมวดได้โดยไม่ต้องอ่าน */
+.gl-slab::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--cat), var(--cat-soft)); }
+.gl-slab:hover { transform: translateY(-2px); box-shadow: 0 22px 42px -30px color-mix(in srgb, var(--cat) 45%, rgba(7, 48, 71, .65)), inset 0 1px 0 rgba(255, 255, 255, .95); }
+.gl-slab.is-open { border-color: color-mix(in srgb, var(--cat) 55%, var(--glass-line)); background: linear-gradient(158deg, color-mix(in srgb, var(--cat-wash) 70%, rgba(255,255,255,.6)), rgba(255, 255, 255, .42)); }
+.gl-slab__main { display: grid; gap: 3px; min-width: 0; padding: 0; border: 0; background: transparent; font-family: inherit; text-align: left; cursor: pointer; }
+.gl-slab__main:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 10px; }
+.gl-slab__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .96rem; font-weight: 600; line-height: 1.4; color: var(--ink); }
+.gl-slab__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; font-size: .74rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-slab__cat { font-weight: 700; color: var(--cat); }
+.gl-slab__dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .45; }
+.gl-slab__figures { display: flex; align-items: center; gap: 14px; }
+.gl-slab__price { display: flex; align-items: baseline; gap: 4px; min-width: 96px; justify-content: flex-end; font-size: 1.3rem; font-weight: 800; letter-spacing: -.01em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-slab__price small { font-size: .68rem; font-weight: 700; color: var(--muted); }
+.gl-slab__add { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--glass-line); border-radius: 12px; background: rgba(255, 255, 255, .66); cursor: pointer; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out); }
+.gl-slab__add svg { width: 16px; height: 16px; fill: none; stroke: var(--cat); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.gl-slab__add:hover { background: var(--cat); transform: scale(1.06); }
+.gl-slab__add:hover svg { stroke: var(--paper); }
+.gl-slab__add:disabled { cursor: default; background: rgba(31, 122, 82, .14); transform: none; }
+.gl-slab__add:disabled svg { stroke: var(--rise); }
+
+@media (max-width: 820px) {
+  .gl-slab { grid-template-columns: 1fr; gap: 8px; padding: 12px 12px 12px 18px; }
+  .gl-slab__figures { justify-content: space-between; gap: 10px; }
+  .gl-slab__price { min-width: 0; }
+  .gl-slab .gl-spark { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-cat, .gl-slab { animation: none; }
+  .gl-cat:hover, .gl-slab:hover, .gl-slab__add:hover { transform: none; }
+  .gl-cat::after { display: none; }
+}
+
+/* สัญลักษณ์ประจำหมวด รับสีจากตัวแปร --cat ของการ์ดหรือแถวนั้น */
+.gl-cat__icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 14px; background: linear-gradient(155deg, rgba(255, 255, 255, .9), color-mix(in srgb, var(--cat-wash) 80%, transparent)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 8px 18px -14px color-mix(in srgb, var(--cat) 70%, transparent); color: var(--cat); }
+.gl-cat__icon svg { width: 26px; height: 26px; }
+.gl-slab__main { grid-template-columns: 34px minmax(0, 1fr); grid-template-areas: "badge name" "badge meta"; column-gap: 11px; align-items: center; }
+.gl-slab__badge { grid-area: badge; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: color-mix(in srgb, var(--cat-wash) 82%, rgba(255, 255, 255, .7)); color: var(--cat); }
+.gl-slab__badge svg { width: 20px; height: 20px; }
+.gl-slab__name { grid-area: name; }
+.gl-slab__meta { grid-area: meta; }
+
+/* ---- ทางกลับและแถบลอย ------------------------------------------------- */
+/* แถบควบคุมไม่ติดขอบบนอีกแล้ว หน้าที่นั้นเป็นของแถบลอยซึ่งเบากว่าและถือทางกลับไปด้วย */
+.gl-controls { position: static; }
+/* วัดจริง: แถบนี้เคยชนแถบควบคุมแบบ 0px ไม่มีช่องไฟเลย จึงต้องมี margin-top ของตัวเอง
+   ไม่พึ่งระยะจากเพื่อนบ้าน เพราะแถบควบคุมเป็นของที่ถูกย้ายบ่อย */
+.gl-crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px 0 14px; }
+.gl-back { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: .4rem .9rem .4rem .7rem; border: 1px solid var(--glass-line); border-radius: 999px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 10px 22px -20px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); color: var(--ink); font-family: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+.gl-back svg { width: 17px; height: 17px; fill: none; stroke: var(--teal); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.gl-back:hover { transform: translateX(-2px); border-color: var(--teal); }
+.gl-back:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.gl-crumb__here { font-size: .96rem; font-weight: 700; color: var(--ink); }
+
+.gl-floatbar { position: fixed; left: 0; right: 0; top: 0; z-index: 25; border-bottom: 1px solid var(--glass-line); background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(244, 247, 247, .78)); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 16px 34px -30px rgba(7, 48, 71, .8); animation: gl-drop 260ms var(--ease-out) both; }
+@keyframes gl-drop { from { transform: translateY(-100%); } to { transform: none; } }
+.gl-floatbar__inner { display: flex; align-items: center; gap: 12px; padding-top: 9px; padding-bottom: 9px; }
+.gl-floatbar__brand { font-size: .9rem; font-weight: 800; letter-spacing: .01em; color: var(--teal); }
+.gl-floatbar__count { flex: none; font-size: .8rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-search--float { flex: 1 1 auto; }
+.gl-search--float input { height: 40px; }
+
+/* ---- การ์ดรายการ ------------------------------------------------------ */
+/* จงใจไม่มี grid-auto-rows: 1fr ที่นี่ — กริดนี้มีหัวกลุ่มคั่นเป็นแถวของตัวเอง
+   ถ้าบังคับทุกแถวเท่ากัน แถวหัวกลุ่มจะถูกยืดสูงเท่าแถวการ์ด (~264px) กลายเป็นช่องว่างยักษ์
+   ใต้ตัวหนังสือ ซึ่งเกิดจริงเมื่อ 2026-08-26 ความสูงการ์ดเท่ากันได้จากการล็อกแถวภายในการ์ดแทน */
+.gl-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 14px; align-items: stretch; transition: opacity 200ms var(--ease-out); }
+.gl-items.is-loading { opacity: .5; }
+.gl-item { position: relative; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto auto auto; gap: 12px; padding: 18px 18px 16px 21px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 20ms); transition: transform 190ms var(--ease-out), box-shadow 190ms var(--ease-out); }
+.gl-item::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--cat), var(--cat-soft)); }
+.gl-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .5) 50%, transparent 60%); transform: translateX(-130%); transition: transform 620ms var(--ease-out); pointer-events: none; }
+.gl-item:hover { transform: translateY(-3px); box-shadow: 0 28px 50px -34px color-mix(in srgb, var(--cat) 45%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .94); }
+.gl-item:hover::after { transform: translateX(130%); }
+.gl-item.is-open { border-color: color-mix(in srgb, var(--cat) 55%, var(--glass-line)); }
+.gl-item__head { display: flex; align-items: center; gap: 10px; }
+.gl-item__icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: color-mix(in srgb, var(--cat-wash) 84%, rgba(255, 255, 255, .7)); color: var(--cat); }
+.gl-item__icon svg { width: 20px; height: 20px; }
+.gl-item__cat { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .74rem; font-weight: 700; color: var(--cat); }
+.gl-item__unit { flex: none; padding: 2px 9px; border-radius: 999px; background: rgba(255, 255, 255, .72); font-size: .72rem; font-weight: 700; color: var(--muted); }
+.gl-item__name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.9em; margin: 0; font-size: .94rem; font-weight: 600; line-height: 1.45; color: var(--ink); }
+.gl-item__price { display: flex; align-items: baseline; gap: 5px; margin: 0; }
+.gl-item__price strong { font-size: 1.86rem; font-weight: 800; line-height: 1; letter-spacing: -.02em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-item__price small { font-size: .78rem; font-weight: 700; color: var(--muted); }
+.gl-item__move { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gl-item__month { font-size: .74rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-item .gl-spark { width: 100%; height: 40px; }
+.gl-item__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gl-item__actions .gl-chip { min-height: 40px; padding-left: .6rem; padding-right: .6rem; font-size: .8rem; }
+
+@media (max-width: 620px) {
+  .gl-items { grid-template-columns: 1fr; }
+  .gl-floatbar__count { display: none; }
+  .gl-crumb__here { font-size: .88rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gl-item, .gl-floatbar { animation: none; }
+  .gl-item:hover, .gl-back:hover { transform: none; }
+  .gl-item::after { display: none; }
+}
+
+.gl-floatbar__field select { height: 40px; max-width: 168px; padding: 0 10px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 11px; background: rgba(255, 255, 255, .72); color: var(--ink); font-family: inherit; font-size: .84rem; font-weight: 600; }
+.gl-floatbar__field select:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.gl-view--float { height: 40px; }
+@media (max-width: 900px) {
+  .gl-floatbar__field { display: none; }
+  .gl-view--float { display: none; }
+}
+
+/* ---- คำอธิบายแบบชี้แล้วขยาย ------------------------------------------- */
+/*
+   กราฟเล็ก ๆ กับแถบสีบนการ์ดไม่มีทางอธิบายตัวเองได้ด้วยรูปร่างอย่างเดียว
+   มติของเจ้าของงาน 2026-08-26 คือถ้าจะมี ต้องชี้แล้วมีกล่องข้อความบอกว่ามันคืออะไร
+   ใช้ data-explain กับ ::after เพราะองค์ประกอบพวกนี้อยู่ในปุ่ม การซ้อนปุ่มในปุ่มไม่ถูกต้อง
+   และ title ของเบราว์เซอร์ขึ้นช้าเกินไปกับตัวอักษรเล็กจนอ่านไม่ทัน
+*/
+[data-explain] { position: relative; }
+[data-explain]::after { content: attr(data-explain); position: absolute; left: 50%; bottom: calc(100% + 10px); z-index: 40; width: max-content; max-width: min(300px, 74vw); padding: 10px 12px; border: 1px solid var(--glass-line); border-radius: 12px; background: linear-gradient(160deg, rgba(255, 255, 255, .96), rgba(244, 247, 247, .92)); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 20px 40px -26px rgba(7, 48, 71, .75), inset 0 1px 0 rgba(255, 255, 255, .95); color: var(--ink-body); font-size: .74rem; font-weight: 500; line-height: 1.6; text-align: left; white-space: normal; opacity: 0; transform: translate(-50%, 4px); pointer-events: none; transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
+[data-explain]:hover::after { opacity: 1; transform: translate(-50%, 0); }
+.gl-spark-wrap { display: inline-flex; }
+.gl-item .gl-spark-wrap { width: 100%; }
+
+@media (max-width: 620px) {
+  /* บนมือถือ ทุกบรรทัดเหนือการ์ดใบแรกต้องคุ้มค่าที่ยืนอยู่ตรงนั้น
+     ประโยคแนะนำแอปกับปุ่มสลับการ์ด/แถวไม่ผ่านเกณฑ์นั้น มือถือใช้การ์ดอย่างเดียวอยู่แล้ว
+     เพราะแถวแบบตารางบีบให้เหลือสองคอลัมน์จนอ่านยากกว่าการ์ด */
+  .gl-head__lead { display: none; }
+  .gl-controls .gl-view { display: none; }
+  .gl-head h1 { font-size: 1.72rem; }
+  .gl-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .gl-cat__art { min-height: 116px; }
+  .gl-cat__art svg { width: 58px; height: 58px; }
+  .gl-cat__body { padding: 11px 12px 13px; gap: 5px; }
+  .gl-cat__name { font-size: .86rem; }
+  .gl-cat__moves { font-size: .68rem; }
+}
+
+/* ---- ชุดค่าแรงราชการ ว809 --------------------------------------------- */
+/* การ์ดสูงเท่ากันทุกใบเพราะแถวข้างในถูกล็อกไว้ห้าแถว ไม่ใช่เพราะบังคับความสูงรวม
+   รายละเอียดอัตราที่ยาวไม่เท่ากันจึงต้องไปกางเต็มแถวข้างล่าง ไม่ใช่ดันการ์ดให้ยืด */
+.gl-item--labour { grid-template-rows: auto auto auto auto auto; --cat: var(--teal); --cat-soft: #3aa8a8; --cat-wash: #e6f3f3; }
+.gl-item--labour .gl-item__price strong { font-size: 1.5rem; }
+.gl-labour__summary { margin: 0; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-item__actions--single { grid-template-columns: 1fr; }
+
+.gl-labour__open { display: grid; gap: 12px; padding: 20px 22px; border-color: color-mix(in srgb, var(--teal) 45%, var(--glass-line)); }
+.gl-labour__open .gl-focus__close { top: 16px; right: 16px; }
+.gl-labour__open-title { display: grid; gap: 2px; margin: 0; font-size: 1rem; font-weight: 700; color: var(--ink); }
+.gl-labour__open-title small { font-size: .74rem; font-weight: 500; color: var(--muted); }
+.gl-labour__variant { display: grid; gap: 7px; }
+.gl-labour__variant-name { margin: 0; font-size: .84rem; font-weight: 700; color: var(--teal); }
+.gl-labour__rates { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 8px; margin: 0; padding: 0; }
+.gl-labour__rates li { display: grid; grid-template-columns: minmax(92px, auto) minmax(0, 1fr) 34px; gap: 10px; align-items: center; padding: 9px 11px; border-radius: 14px; background: rgba(255, 255, 255, .62); border: 1px solid rgba(255, 255, 255, .8); }
+.gl-labour__rate { display: flex; align-items: baseline; gap: 4px; font-size: 1.08rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-labour__rate small { font-size: .68rem; font-weight: 700; color: var(--muted); }
+.gl-labour__cond { font-size: .74rem; line-height: 1.5; color: var(--ink-body); }
+.gl-labour__rates .gl-slab__add { width: 30px; height: 30px; margin: 0; border-radius: 10px; }
+.gl-labour__rates .gl-slab__add svg { width: 14px; height: 14px; }
+.gl-labour__note { margin: 0; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .75); font-size: .78rem; line-height: 1.65; color: var(--ink-body); }
+
+/* ปุ่มกลับหน้าหลัก อยู่ทั้งบนแถบทางกลับ บนแถบลอย และที่ชื่อแอป
+   สามที่เพราะคนหาทางกลับจากคนละจุดกัน และการไม่มีทางกลับคือข้อบกพร่องที่เจ้าของงานเจอเองสองรอบ */
+.gl-home { padding: 0; border: 0; background: none; font: inherit; color: inherit; letter-spacing: inherit; cursor: pointer; }
+.gl-home:hover { color: var(--teal); }
+.gl-home:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; border-radius: 8px; }
+.gl-back--quiet { background: rgba(255, 255, 255, .5); font-weight: 600; }
+.gl-back--float:disabled { cursor: default; background: transparent; border-color: transparent; box-shadow: none; color: var(--teal); font-weight: 800; }
+.gl-back--float:disabled svg { display: none; }
+
+/* ---- ชุดค่าวัสดุและค่าแรงต่อหน่วยงาน สพฐ. ------------------------------ */
+.gl-item--unit { grid-template-rows: auto auto auto auto auto auto; }
+.gl-item__split { display: flex; align-items: center; gap: 10px; margin: 0; padding: 8px 11px; border-radius: 12px; background: rgba(255, 255, 255, .58); font-size: .78rem; color: var(--muted); }
+.gl-item__split strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+.gl-item__plus { position: relative; flex: none; width: 11px; height: 11px; }
+.gl-item__plus::before, .gl-item__plus::after { content: ""; position: absolute; background: var(--line); }
+.gl-item__plus::before { left: 0; right: 0; top: 5px; height: 1.5px; }
+.gl-item__plus::after { top: 0; bottom: 0; left: 5px; width: 1.5px; }
+.gl-slab--unit .gl-slab__main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "name" "meta"; }
+
+/* โครงระหว่างรอข้อมูล ใช้กริดเดียวกับของจริงเพื่อไม่ให้หน้ากระโดดตอนของจริงมาถึง */
+.gl-item--ghost { grid-template-rows: auto auto auto auto; gap: 12px; pointer-events: none; }
+.gl-ghost { display: block; height: 14px; border-radius: 8px; background: linear-gradient(90deg, rgba(255, 255, 255, .3), rgba(255, 255, 255, .85), rgba(255, 255, 255, .3)); background-size: 200% 100%; animation: gl-shimmer 1.5s linear infinite; }
+.gl-ghost--sm { width: 45%; }
+.gl-ghost--md { width: 62%; height: 26px; }
+.gl-ghost--lg { width: 100%; height: 32px; }
+@keyframes gl-shimmer { to { background-position: -200% 0; } }
+/* แถวของชุด สพฐ. กดไม่ได้ ตัวชี้จึงต้องไม่ใช่มือ ไม่งั้นมันสัญญาว่าจะเปิดอะไรบางอย่างแล้วไม่เปิด */
+.gl-slab__main--static { cursor: default; }
+.gl-focus__answer { display: grid; align-content: start; gap: 2px; }
+.gl-focus__chart { display: grid; align-content: start; gap: 6px; min-width: 0; }
+@media (prefers-reduced-motion: reduce) { .gl-ghost { animation: none; } }
+
+/* ---- ความสูงของการ์ดต้องเท่ากันทุกใบ ---------------------------------- */
+/*
+   แถวรองสุดท้ายของทุกการ์ดเป็น 1fr คือเป็นตัวรับส่วนเกินเมื่อกริดยืดการ์ดให้สูงเท่ากัน
+   ถ้าไม่กำหนดไว้ ส่วนเกินจะไปลงแถวแรกที่เป็น auto ซึ่งทำให้ปุ่มก้นการ์ดลอยไม่ตรงกันทุกใบ
+   และในการ์ดหมวดจะไปลงที่แถบภาพจนภาพใหญ่ไม่เท่ากัน ตรวจแล้วด้วยการวัดจริงเมื่อ 2026-08-26
+*/
+.gl-item { grid-template-rows: auto auto auto auto 1fr auto; }
+.gl-item--unit { grid-template-rows: auto auto auto auto 1fr auto; }
+.gl-item--labour { grid-template-rows: auto auto auto 1fr auto; }
+.gl-item--ghost { grid-template-rows: auto auto 1fr auto; }
+.gl-item .gl-spark-wrap { align-self: center; }
+.gl-item__actions { align-self: end; }
+
+/* ---- กันเนื้อหาดันการ์ดทะลุกรอบ --------------------------------------- */
+/*
+   grid ให้ช่องมี min-width เป็น auto คือไม่ยอมหดต่ำกว่าความยาวเนื้อหา วัดจริงเมื่อ 2026-08-26
+   ชื่อหมวด "4.2 สวิทซ์ไฟฟ้าและเต้ารับ(ปลั๊ก)" ดันหัวการ์ด สพฐ. ล้นขอบขวาถึง 105px
+   แล้วทุกชิ้นในการ์ดล้นตาม 18px เท่ากันหมด minmax(0, 1fr) คือการบอกว่าคอลัมน์หดได้ถึงศูนย์
+   แล้วให้ ellipsis กับ wrap เป็นคนจัดการข้อความแทน
+*/
+.gl-item, .gl-cat { grid-template-columns: minmax(0, 1fr); }
+.gl-item__head { min-width: 0; }
+.gl-item__name, .gl-labour__summary { min-width: 0; overflow-wrap: anywhere; }
+.gl-item__split { flex-wrap: wrap; min-width: 0; }
+.gl-item__price { min-width: 0; flex-wrap: wrap; }
+.gl-labour__cond { overflow-wrap: anywhere; }
+
+/* ---- โต๊ะทำงานสองคอลัมน์ ตู้หมวดซ้าย รายการขวา -------------------------- */
+/*
+   ผังนี้คือการฉีกโครงจากคู่แข่งโดยเจตนา ของเขาคือชิปห้าแถวเหนือกริดการ์ดราคา
+   ของเราหมวดเป็นตู้ยืนซ้ายแบบสารบัญ อยู่กับที่ตอนเลื่อน และรายการเป็นแถวบัญชี
+   ถ้าใครจะเปลี่ยนกลับไปเป็นแถวชิปเหนือการ์ด ให้กลับไปอ่านมติของเจ้าของงาน 2026-08-26
+   เรื่องความเสี่ยงเลียนแบบก่อน
+*/
+.gl-work { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 20px; align-items: start; }
+.gl-work__main { display: grid; gap: 14px; min-width: 0; }
+.gl-drawers { position: sticky; top: 76px; display: grid; gap: 4px; max-height: calc(100vh - 96px); overflow: auto; padding: 12px; border: 1px solid var(--glass-line); border-radius: 18px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); scrollbar-width: thin; }
+.gl-drawers__title { margin: 2px 6px 6px; font-size: .72rem; font-weight: 800; letter-spacing: .04em; color: var(--muted); }
+.gl-drawer { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 8px 10px; border: 0; border-radius: 11px; background: transparent; font-family: inherit; text-align: left; cursor: pointer; transition: background 140ms var(--ease-out); }
+.gl-drawer:hover { background: rgba(255, 255, 255, .6); }
+.gl-drawer:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.gl-drawer.is-on { background: var(--teal); }
+.gl-drawer.is-on .gl-drawer__name, .gl-drawer.is-on .gl-drawer__count { color: var(--paper); }
+.gl-drawer.is-on .gl-drawer__icon { background: rgba(255, 255, 255, .22); color: var(--paper); }
+.gl-drawer__icon { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: color-mix(in srgb, var(--cat-wash, #e6f3f3) 85%, transparent); color: var(--cat, var(--teal)); }
+.gl-drawer__icon svg { width: 16px; height: 16px; }
+.gl-drawer__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; font-weight: 600; color: var(--ink); }
+.gl-drawer__count { font-size: .72rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* ตัวเลือกหมวดแบบหล่นลง ใช้เฉพาะจอแคบที่ตู้หมวดไม่มีที่ยืน */
+.gl-drawer-select { display: none; }
+
+@media (max-width: 900px) {
+  .gl-work { grid-template-columns: 1fr; }
+  .gl-drawers { display: none; }
+  .gl-drawer-select { display: grid; gap: 4px; font-size: .72rem; font-weight: 700; color: var(--muted); }
+  .gl-drawer-select select { height: 44px; padding: 0 12px; border: 1px solid rgba(255, 255, 255, .8); border-radius: 12px; background: rgba(255, 255, 255, .72); color: var(--ink); font-family: inherit; font-size: .88rem; font-weight: 600; }
+}
+
+/* ---- แถบแพลตฟอร์ม ทางกลับหน้ารวมนายช่างหมู ล็อกติดขอบบนตลอด --------------- */
+.gl-platbar { position: sticky; top: 0; z-index: 28; border-bottom: 1px solid var(--glass-line); background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(244, 247, 247, .8)); backdrop-filter: saturate(185%) blur(22px); }
+.gl-platbar__inner { display: flex; align-items: center; gap: 12px; padding-top: 9px; padding-bottom: 9px; }
+.gl-platbar__home { display: inline-flex; align-items: center; gap: 7px; font-size: .78rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
+.gl-platbar__home svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 150ms var(--ease-out); }
+.gl-platbar__home:hover { color: var(--teal); }
+.gl-platbar__home:hover svg { transform: translateY(-1px); }
+.gl-platbar__home:focus-visible, .gl-platbar__all:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+.gl-platbar__sep { width: 1px; height: 16px; background: var(--line); }
+.gl-platbar__app { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .78rem; font-weight: 600; color: var(--muted); }
+.gl-platbar__all { margin-left: auto; flex: none; font-size: .8rem; font-weight: 700; color: var(--teal); text-decoration: none; }
+.gl-platbar__all:hover { text-decoration: underline; }
+/* แถบลอยของแอปต้องเริ่มใต้แถบแพลตฟอร์ม ไม่ใช่ทับกัน */
+.gl-floatbar { top: 42px; }
+@media (max-width: 620px) {
+  .gl-platbar__app { display: none; }
+}
+
+/* ---- หัวกลุ่มประเภทงาน คั่นการ์ดตามประเภท ------------------------------ */
+/* จังหวะช่องว่างตามที่เจ้าของงานเคาะเมื่อ 2026-08-26
+   หัวกลุ่มถึงการ์ดของตัวเอง 14px (เท่าช่องปกติของกริด) · ท้ายกลุ่มก่อนหน้าถึงหัวกลุ่มถัดไป 20px
+   ช่องของกริดให้ 14px อยู่แล้ว margin-top ของหัวกลุ่มจึงเป็น 6px ให้รวมกันได้ 20px พอดี */
+.gl-group { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 12px; margin: 6px 0 0; padding: 0; font-size: .95rem; font-weight: 800; color: var(--ink); }
+.gl-group:first-child { margin-top: 0; }
+.gl-group__count { flex: none; font-size: .74rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.gl-group__rule { flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }

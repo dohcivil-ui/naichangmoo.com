@@ -159,3 +159,108 @@ prompt นี้จึงล็อกไว้ที่ 512px ถ้าได้
 4. เส้นทาง A ย่อดูที่ 20px แล้วยังอ่านออก
 5. เส้นทาง B ไม่เกิน 512px และไฟล์ไม่เกินหลักร้อย KB
 6. ไม่มี emoji ในทุกที่ รวมถึงชื่อไฟล์
+
+---
+
+## เส้นทาง C — ภาพประกอบหมวดวัสดุ ๒๑ ใบ สำหรับการ์ดหมวดของ PRICEMETR
+
+การ์ดหมวดในแอปราคาวัสดุเป็นแนวตั้ง แถบภาพกินพื้นที่ราว 60% ของการ์ด ภาพจึงเป็นตัวหลัก
+ไม่ใช่ไอคอนเล็กมุมบน วัดจากของจริงบนจอ 1440px การ์ดกว้าง 219px แถบภาพสูง 178px
+ภาพถูกครอบแบบ cover ขอบทั้งสี่ด้านจึงถูกตัดได้ ห้ามวางของสำคัญไว้ริมภาพ
+
+**มติของเจ้าของงาน 2026-08-26:** ชุดนี้เป็นภาพถ่ายสมจริง สร้างที่ Midjourney ทีละหมวด
+ไม่ใช่ภาพเวกเตอร์แบน ๆ แบบตราประจำแอป เพราะการ์ดหมวดต้องบอกให้รู้ทันทีว่าเป็นวัสดุอะไรจริง ๆ
+
+**ปลายทาง** `public/brand/categories/<รหัสสองหลัก>.png` เช่น `01.png` `16.png`
+หน้าเว็บอ่านโฟลเดอร์นี้เอง วางไฟล์แล้วใช้ได้ทันที หมวดที่ยังไม่มีไฟล์จะใช้สัญลักษณ์เส้นใน
+`src/components/icons/material-category-icons.tsx` แทนไปก่อน โดยไม่มีรูปแตกและไม่ต้องแก้โค้ด
+
+### สูตรของ prompt
+
+ต่อสามส่วนนี้เข้าด้วยกัน แล้ววางลง Midjourney
+
+```
+<Subject ของหมวดนั้น>, <บล็อกสไตล์> <บล็อกพารามิเตอร์>
+```
+
+**บล็อกสไตล์** เหมือนกันทุกหมวด ห้ามแก้ เพราะยี่สิบเอ็ดใบต้องดูเป็นชุดเดียวกัน
+ถ้าแต่ละใบแสงคนละทิศหรือพื้นหลังคนละสี หน้าจอจะกลายเป็นคอลลาจ ไม่ใช่แผงหมวด
+
+```
+studio product photograph on a seamless pale grey-green background, soft diffused
+daylight from the upper left, one soft contact shadow beneath the objects, slight
+three-quarter elevated camera angle, sharp focus throughout, muted teal and deep
+navy colour grading, calm industrial catalogue photography, objects centred and
+filling about 75 percent of the frame with clear empty space on all four sides
+```
+
+**บล็อกพารามิเตอร์** เหมือนกันทุกหมวดเช่นกัน
+
+```
+--ar 5:4 --style raw --v 7 --no text, letters, numbers, labels, price tag, logo, watermark, brand name, people, hands, clutter, background scene, sky, grass
+```
+
+> **ทำไมต้อง `--no text, letters, numbers`** เพราะภาพสินค้าก่อสร้างจริงมักมีตัวหนังสือบนถุงปูน
+> บนป้ายมัดเหล็ก และบนกล่อง ถ้าปล่อยไว้ Midjourney จะเขียนตัวหนังสือมั่ว ๆ ที่อ่านไม่ออก
+> ลงบนของ ซึ่งบนการ์ดจะเห็นชัดมากและดูเหมือนของปลอมทันที
+
+### บรรทัด Subject รายหมวด
+
+รหัสตรงกับ `headCategory` ของ สนค. และตรงกับชื่อไฟล์ที่ต้องวาง
+
+| ไฟล์ | หมวด | Subject |
+|---|---|---|
+| `01.png` | วัสดุเทหล่อกับที่ | `fresh grey concrete being poured into a timber formwork box, the surface screeded flat and still wet` |
+| `02.png` | วัสดุก่อ | `a short wall of grey concrete masonry blocks laid three courses high in running bond with visible mortar beds` |
+| `03.png` | ชิ้นส่วนโครงสร้างสำเร็จรูป | `a stack of three precast prestressed concrete floor planks with steel lifting loops on the top plank` |
+| `04.png` | วัสดุชิ้นส่วนหน้าตัดรูปต่างๆ | `a steel H-beam standing end-on beside a tied bundle of deformed reinforcing bars` |
+| `05.png` | วัสดุท่อ | `three unbranded plastic and steel pipes of different diameters lying together with open ends toward the camera and one elbow fitting beside them` |
+| `06.png` | วัสดุลวดตาข่าย มุ้งลวด ลวดหนาม | `a partly unrolled roll of welded steel wire mesh with the flat part showing the square grid, a small coil of tie wire beside it` |
+| `07.png` | วัสดุฉนวน | `a roll of glass wool insulation blanket partly unrolled, the cut edge showing its fibrous thickness` |
+| `08.png` | วัสดุแผ่นซ้อนทับ | `four corrugated fibre cement roof sheets overlapping in a shallow stepped run` |
+| `09.png` | วัสดุแผ่นแข็ง | `three flat rigid fibre cement and plywood boards leaning together, the front one turned to show its cut edge` |
+| `10.png` | วัสดุตกแต่งผิว | `nine unglazed square floor tiles laid in a grid with one tile lifted and tilted to show its underside` |
+| `11.png` | วัสดุไม้ | `a stack of sawn timber planks with the end grain facing the camera and one plank set slightly out of line` |
+| `12.png` | วัสดุฉาบผิว | `a paint roller resting across a rectangular paint tray with one steel plastering trowel laid beside it` |
+| `13.png` | วัสดุขัดผิว | `a stack of abrasive sandpaper sheets with the top sheet curled at one corner showing its grit surface` |
+| `14.png` | วัสดุชิ้นส่วนสำเร็จรูป | `a prefabricated door leaf standing upright in its frame slightly ajar, a rolled steel shutter panel behind it` |
+| `15.png` | วัสดุผลิตภัณฑ์ | `three stacked plain unprinted cement sacks with folded sealed tops, the top sack leaning slightly` |
+| `16.png` | วัสดุผสมคอนกรีต | `two conical piles side by side, one of coarse river sand and one of crushed stone aggregate, a few loose stones at the base` |
+| `17.png` | วัสดุถม/รองพื้น | `three separate mounded piles of earth fill standing side by side, one of pale fill sand, one of dark brown soil, and one of reddish laterite gravel, with a small hand plate compactor standing beside them` |
+| `18.png` | วัสดุและอุปกรณ์งานประปา | `a brass gate valve with a handwheel joined between two short pipe sections, a water meter body beside it` |
+| `19.png` | วัสดุและอุปกรณ์งานสุขาภิบาล | `a plastic P-trap pipe assembly with a cleanout plug and a round cast iron drainage grating lying flat beside it` |
+| `20.png` | วัสดุและอุปกรณ์งานไฟฟ้า | `a coil of electrical cable beside a wall socket outlet and a short length of electrical conduit with a coupling` |
+| `21.png` | เครื่องสุขภัณฑ์ | `a white ceramic washbasin with a chrome mixer tap seen from a raised angle with a squat closet pan behind it` |
+
+### ตรวจก่อนรับเข้า repo
+
+1. ไม่มีตัวอักษร ตัวเลข ป้ายราคา โลโก้ หรือยี่ห้อโผล่ในภาพ แม้เป็นตัวเบลอ ๆ
+2. พื้นหลังเป็นพื้นเรียบโทนเดียวกันทั้งยี่สิบเอ็ดใบ ไม่มีฉากหลัง ไม่มีท้องฟ้า ไม่มีพื้นหญ้า
+3. ทิศแสงเหมือนกันทุกใบ คือมาจากบนซ้าย
+4. ของหลักอยู่กลางภาพ ไม่มีของสำคัญอยู่ในขอบ 10% รอบด้าน เพราะการ์ดจะครอบขอบทิ้ง
+5. ย่อดูที่ความกว้าง 219px แล้วยังบอกได้ว่าเป็นวัสดุหมวดอะไร
+6. บันทึกเป็น PNG กว้างไม่เกิน 800px และไฟล์ไม่เกินหลักร้อย KB ต่อใบ
+7. ตั้งชื่อไฟล์เป็นรหัสสองหลักตามตาราง วางที่ `public/brand/categories/`
+
+---
+
+## ตราประจำแอป PRICEMETR
+
+เพิ่มในตารางสีประจำแอปด้านบน — ใช้สีนำของแบรนด์ ไม่ตั้งสีใหม่ เพราะแอปนี้อยู่ในธีมเดียวกับทั้งเว็บ
+
+| แอป | สี |
+|---|---|
+| PRICEMETR ราคาวัสดุและค่าแรง | `#0d8282` |
+
+ตราประจำแอปยังใช้ **เส้นทาง B** เหมือนแอปอื่น คือภาพเวกเตอร์ isometric ล็อกจานสี ไม่ใช่ภาพถ่าย
+เพราะมันต้องยืนเรียงกับตราของ ESTIMETR และแอปอื่นบนหน้าแรก ใส่ Subject นี้
+
+```
+Subject: an isometric price ledger board standing upright with a rising step
+line plotted across it, flanked at its base by a small group of construction
+materials — one cement sack, a short bundle of reinforcing bars, and a stack
+of two masonry blocks
+```
+
+ปลายทาง `public/brand/naichangmoo-pricemetr-badge.png` แล้วเพิ่มคีย์ `pricemetr`
+ใน `src/lib/visual-assets.ts`

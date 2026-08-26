@@ -1,0 +1,11 @@
+import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { writeFileSync } from "node:fs";
+const [src, out, widthArg = "1400"] = process.argv.slice(2);
+const image = await loadImage(src);
+const width = Math.min(Number(widthArg), image.width);
+const height = Math.round((image.height / image.width) * width);
+const canvas = createCanvas(width, height);
+const ctx = canvas.getContext("2d");
+ctx.drawImage(image, 0, 0, width, height);
+writeFileSync(out, canvas.toBuffer("image/png"));
+console.log(`${image.width}x${image.height} -> ${width}x${height}`);
