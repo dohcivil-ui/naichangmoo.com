@@ -150,3 +150,61 @@ describe("หัวข้อต้องไม่ค้างท้ายหน�
     expect(result.pages[1]!.map((item) => item.id)).toEqual(["บน", "ล่าง", "ของ"]);
   });
 });
+
+describe("ตารางงวดงานยาว ๆ ตามที่เจ้าของงานอธิบายไว้", () => {
+  /** หัวเอกสาร หัวข้อ 1 ตารางข้อเท็จจริง หัวข้อ 2 แล้วตารางงวด แล้วหัวข้อ 3 กับ 4 */
+  const annex = (milestones: number): PageBlock[] => [
+    atom("หัวเอกสาร", 120),
+    heading("ข้อ 1", 60),
+    atom("ตารางข้อมูลสัญญา", 200),
+    heading("ข้อ 2", 60),
+    rows("งวด", milestones, 60, 40, 40),
+    atom("ยอดตัวอักษร", 40),
+    heading("ข้อ 3", 60),
+    atom("หมายเหตุ", 120),
+    heading("ข้อ 4", 60),
+    atom("ลงนาม", 200)
+  ];
+
+  it("งวดน้อยอยู่หน้าเดียวจบ", () => {
+    // สองงวดรวมทุกบล็อกได้ 1,120 หน้ากระดาษจึงต้องสูงกว่านั้นถึงจะจบในหน้าเดียว
+    expect(paginate(annex(2), 1200).pages).toHaveLength(1);
+    // และถ้ากระดาษเตี้ยกว่าเนื้อหา มันต้องขึ้นหน้าใหม่ ไม่ใช่ยัดลงไปให้ล้น
+    expect(paginate(annex(2), 1000).pages.length).toBeGreaterThan(1);
+  });
+
+  it("งวดมากดันลงมาจนสุดขอบแล้วขึ้นหน้าใหม่ โดยไม่ทิ้งงวดไหนไว้", () => {
+    const result = paginate(annex(24), 1000);
+    const chunks = result.pages.flat().filter((item) => item.kind === "rows");
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.reduce((total, c) => total + (c.kind === "rows" ? c.to - c.from : 0), 0)).toBe(24);
+  });
+
+  it("ทุกหน้าที่ตารางไปโผล่ต้องได้หัวตารางของตัวเอง", () => {
+    const result = paginate(annex(24), 1000);
+    // แต่ละหน้ามีชิ้นส่วนตารางได้ไม่เกินหนึ่งชิ้น และชิ้นส่วนคือหน่วยที่ผูกกับหัวตารางหนึ่งอัน
+    for (const page of result.pages) {
+      expect(page.filter((item) => item.kind === "rows").length).toBeLessThanOrEqual(1);
+    }
+    const pagesWithRows = result.pages.filter((page) => page.some((item) => item.kind === "rows"));
+    expect(pagesWithRows.length).toBe(result.pages.flat().filter((item) => item.kind === "rows").length);
+  });
+
+  it("ข้อ 3 ไม่โผล่ก่อนงวดสุดท้าย ไม่ว่าจะมีกี่งวด", () => {
+    for (const count of [2, 9, 10, 11, 24, 60]) {
+      const flat = paginate(annex(count), 1000).pages.flat();
+      const lastRow = flat.map((item) => item.kind).lastIndexOf("rows");
+      const notes = flat.findIndex((item) => item.id === "ข้อ 3");
+      expect(notes, `งวด ${count}`).toBeGreaterThan(lastRow);
+    }
+  });
+
+  it("แถวรวมทั้งสิ้นอยู่กับชิ้นส่วนสุดท้ายของตารางเสมอ และมีอันเดียว", () => {
+    for (const count of [2, 24, 60]) {
+      const chunks = paginate(annex(count), 1000).pages.flat().filter((item) => item.kind === "rows");
+      const withFooter = chunks.filter((c) => c.kind === "rows" && c.withFooter);
+      expect(withFooter, `งวด ${count}`).toHaveLength(1);
+      expect(chunks[chunks.length - 1], `งวด ${count}`).toBe(withFooter[0]);
+    }
+  });
+});

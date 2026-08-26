@@ -8,6 +8,8 @@
 
 **บังคับใช้จริงที่:** `src/app/document-print.css` และ `src/lib/paper-pagination.ts`
 
+**กฎการแบ่งหน้าของตารางงวดงานอยู่แยกที่** [skilldoc-nguad.md](skilldoc-nguad.md)
+
 ---
 
 ## หนึ่ง — แหล่งที่มาของค่า
