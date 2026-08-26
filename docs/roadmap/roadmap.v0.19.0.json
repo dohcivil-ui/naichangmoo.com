@@ -1,0 +1,110 @@
+{
+  "version": "0.19.0",
+  "title": "The Design Language Stops Living Only in globals.css",
+  "description": "ภาษาการออกแบบของแพลตฟอร์มถูกบังคับใช้ด้วยความจำของคนเขียนโค้ดเท่านั้น ไม่มีไฟล์ไหนบอกว่า teal ใช้ตอนไหน orange ใช้ตอนไหน หรือมุมมนมีกี่ขั้น รอบนี้ถอด token ที่ใช้จริงจาก globals.css ออกมาเป็น DESIGN.md ที่ root ตามสเปค Google Stitch เพื่อให้ agent อ่านเองได้ และระหว่างถอดก็เจอสองอย่างที่ระบบไม่ได้ตั้งใจให้เป็น คือ tracking ที่บีบแรงเกินไปสำหรับภาษาที่ไม่เว้นวรรคระหว่างคำ และบันไดมุมมน 11 ค่าที่ค่อย ๆ เกิดจากการแก้ทีละจุด ทั้งสองอย่างถูกทำให้เป็นระบบในรอบเดียวกันเพราะเอกสารที่บันทึกความไม่เป็นระบบไว้ไม่มีประโยชน์",
+  "scope": [
+    "record the platform design language as DESIGN.md at the repository root, with values extracted from globals.css rather than written from memory",
+    "relax display letter-spacing from -.05em to -.035em, because Thai has no inter-word spacing and over-tight tracking hides word boundaries instead of tightening the page",
+    "collapse negative tracking into three deliberate steps: -.035em display, -.03em section heading, -.02em card heading",
+    "normalise the border radius ladder to 8/12/16/24/32 plus the pill, replacing eleven ad-hoc values that accumulated one fix at a time",
+    "keep the DESIGN.md comparison generator as source and drop the 75 pages it produces, so the repository stores the tool and not its output"
+  ],
+  "updatedAt": "2026-08-23T23:05:00+07:00",
+  "status": "local_verification_passed_push_pending",
+  "verification": [
+    "pnpm lint reports 0 errors, pnpm typecheck passes, pnpm test reports 120 passed and 29 skipped of 149, pnpm build completes and renders all 12 routes",
+    "node scripts/security-check.mjs passes and node scripts/check-roadmap.mjs reports the pointer matches roadmap.v0.19.0.json",
+    "grep over src/app/globals.css reports radius values 8, 12, 16, 24, 32px plus 999px and 50% only, and negative tracking values -.035em, -.03em and -.02em only",
+    "every {rounded.*} reference inside DESIGN.md resolves to a value that exists in globals.css after the change",
+    "the generator was run against the root DESIGN.md and produced 75 comparison pages before the output was deleted again, proving the moved path works",
+    "the design comparison itself: the same take-off screen was rendered in 75 design languages and the existing one was chosen against them, which is the evidence this version records"
+  ],
+  "rollback": "Revert the v0.19.0 commit. globals.css returns to the previous tracking and radius values, DESIGN.md disappears from the root and no runtime behaviour, schema, migration or dependency changes in either direction.",
+  "constraints": [
+    "The tracking and radius changes are value substitutions only. No selector, no layout rule, no component structure and no colour changed, which is why the whole sweep is verifiable by grep rather than by inspection.",
+    "The rendered result was not viewed in a browser during this version. The build compiles and the substitution is mechanical, but nobody looked at the pages, so the visual outcome is asserted from the value ladder and not from observation.",
+    "DESIGN.md is documentation with no automated check behind it. Nothing stops globals.css from drifting away from it, in the same way package.json drifted from the roadmap pointer before IP-059 was raised.",
+    "docs/design-mockups/ carries a generator whose output is deliberately not committed. Running it writes 75 files plus an index into the working tree, which must be removed before committing."
+  ],
+  "adrReferences": [],
+  "items": [
+    {
+      "id": "IP-060",
+      "title": "Record the platform design language as a root DESIGN.md and make the tracking and radius ladders deliberate",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-061",
+      "title": "Add a check that DESIGN.md tokens still match the values in globals.css, so the design document cannot drift the way the roadmap pointer did",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-053",
+      "title": "Run the opt-in PostgreSQL suites in CI so the row lock, entitlement and trial-clock guarantees are machine-checked instead of hand-verified",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-055",
+      "title": "Enable the pre-commit hook on every clone and run the quality gate on feature branches",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-056",
+      "title": "Make check-roadmap refuse a pointer that has drifted from its versioned file",
+      "status": "done",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-059",
+      "title": "Extend check-roadmap further: compare package.json version with the roadmap pointer and require the handoff the roadmap claims to exist",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-054",
+      "title": "Enforce capabilities.read on every ESTIMETR read path so the platform kill switch stops reads, not only writes",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-058",
+      "title": "Order organization selection deterministically before a member can belong to more than one organization",
+      "status": "planned",
+      "phase": "implementation"
+    },
+    {
+      "id": "IP-050",
+      "title": "Seed the Factor F table as a versioned dataset carrying its interest rate, source checksum and reviewer",
+      "status": "blocked",
+      "phase": "data"
+    },
+    {
+      "id": "IP-051",
+      "title": "Give price observations a unit, a material and labour split, and a condition, because the official labour schedule prices one item at several rates",
+      "status": "blocked",
+      "phase": "schema"
+    },
+    {
+      "id": "IP-052",
+      "title": "Require a human verification step before any OCR-extracted price or factor can be used in a calculation",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-042",
+      "title": "Validate the official source for ปร.4, ปร.5 and ปร.6 before claiming export compliance, starting by settling which authority publishes the schedule this product follows",
+      "status": "planned",
+      "phase": "governance"
+    },
+    {
+      "id": "IP-043",
+      "title": "Apply GitHub branch protection once the plan upgrade allows it",
+      "status": "planned",
+      "phase": "governance"
+    }
+  ]
+}
