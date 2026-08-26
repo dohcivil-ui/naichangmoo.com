@@ -27,6 +27,7 @@ import {
   type MilestoneStage,
   type MoneyEvent
 } from "@/lib/work-plan-actuals";
+import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "@/lib/work-plan-document-meta";
 import {
   getSaveFailed,
   getSaveFailedOnServer,
@@ -172,6 +173,7 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const [actuals, setActuals] = useState<MilestoneActual[]>(() => restored?.actuals ?? []);
   /** ว่างแปลว่ายังไม่เคยตั้งเอง ให้ไปใช้วันล่าสุดที่มีบันทึก หรือวันนี้ */
   const [dataDateOverride, setDataDateOverride] = useState<IsoDate | "">(() => restored?.dataDate ?? "");
+  const [documentMeta, setDocumentMeta] = useState<WorkPlanDocumentMeta>(() => restored?.document ?? defaultDocumentMeta());
   const saveFailed = useSyncExternalStore(subscribeWorkPlanStore, getSaveFailed, getSaveFailedOnServer);
 
   const contractParse = parseBaht(setup.contract);
@@ -253,8 +255,8 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
       setup.contract.trim() === "";
     if (boardIsEmpty && getWorkPlanRaw() !== "") return;
 
-    saveWorkPlan({ setup, activities, milestones, actuals, dataDate: dataDateOverride });
-  }, [setup, activities, milestones, actuals, dataDateOverride]);
+    saveWorkPlan({ setup, activities, milestones, actuals, dataDate: dataDateOverride, document: documentMeta });
+  }, [setup, activities, milestones, actuals, dataDateOverride, documentMeta]);
 
   const activityCost = sumCost(activities);
   const costGap = activityCost - contractSatang;
@@ -547,10 +549,10 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
       {showDocument ? (
         <WorkPlanDocument
           projectName={setup.projectName}
-          siteName={setup.projectName}
-          agencyName=""
           schedule={schedule}
           activityTitlesByMilestone={activityTitlesByMilestone}
+          meta={documentMeta}
+          onMeta={setDocumentMeta}
           onClose={() => setShowDocument(false)}
         />
       ) : null}

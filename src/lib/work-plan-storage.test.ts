@@ -5,6 +5,7 @@ import {
   WORK_PLAN_SCHEMA_VERSION,
   type WorkPlanSnapshot
 } from "./work-plan-storage";
+import { defaultDocumentMeta } from "./work-plan-document-meta";
 
 const baht = (amount: number) => BigInt(amount) * 100n;
 
@@ -40,7 +41,18 @@ const snapshot: WorkPlanSnapshot = {
       reference: "สัญญาเลขที่ 12/2569"
     }
   ],
-  dataDate: "2026-08-25"
+  dataDate: "2026-08-25",
+  document: {
+    ...defaultDocumentMeta(),
+    logoDataUri: "data:image/png;base64,AAAA",
+    showLogo: false,
+    employerName: "เทศบาลตำบลหนองแสง",
+    contractNumber: "จ.12/2569",
+    documentDate: "2026-08-20",
+    siteName: "ต.ในเมือง อ.เมือง จ.นครราชสีมา",
+    contractor: { name: "นายสมชาย ใจดี", position: "กรรมการผู้จัดการ" },
+    employer: { name: "นางสาวมาลี ตรวจการ", position: "นายกเทศมนตรี" }
+  }
 };
 
 describe("serialiseWorkPlan", () => {
@@ -136,5 +148,70 @@ describe("parseWorkPlan — อ่านไม่ผ่านต้องทิ�
     const restored = parseWorkPlan(JSON.stringify(older));
     expect(restored).not.toBeNull();
     expect(restored!.actuals).toEqual([]);
+  });
+});
+
+describe("ข้อมูลประกอบเอกสาร", () => {
+  it("เขียนแล้วอ่านกลับได้ครบ ทั้งโลโก้ หัวเอกสาร และผู้ลงนาม", () => {
+    const restored = parseWorkPlan(serialiseWorkPlan(snapshot))!;
+
+    expect(restored.document.logoDataUri).toBe("data:image/png;base64,AAAA");
+    expect(restored.document.showLogo).toBe(false);
+    expect(restored.document.contractNumber).toBe("จ.12/2569");
+    expect(restored.document.contractor).toEqual({ name: "นายสมชาย ใจดี", position: "กรรมการผู้จัดการ" });
+    expect(restored.document.employer.position).toBe("นายกเทศมนตรี");
+  });
+
+  it("สั่งซ่อนโลโก้แล้วรูปยังอยู่ ไม่ถูกลบทิ้ง", () => {
+    const restored = parseWorkPlan(serialiseWorkPlan(snapshot))!;
+    expect(restored.document.showLogo).toBe(false);
+    expect(restored.document.logoDataUri).not.toBe("");
+  });
+
+  it("ค่าที่ไม่ใช่ data URI ถูกทิ้ง ไม่ปล่อยให้ URL ภายนอกเข้ามาอยู่ในเอกสาร", () => {
+    const tampered = JSON.parse(serialiseWorkPlan(snapshot));
+    tampered.document.logoDataUri = "https://example.com/logo.png";
+    expect(parseWorkPlan(JSON.stringify(tampered))!.document.logoDataUri).toBe("");
+  });
+
+  it("ข้อมูลเอกสารที่รูปร่างเพี้ยน ได้ค่าตั้งต้น ไม่ทิ้งงานทั้งใบ", () => {
+    const tampered = JSON.parse(serialiseWorkPlan(snapshot));
+    tampered.document = "ไม่ใช่ข้อมูลเอกสาร";
+    const restored = parseWorkPlan(JSON.stringify(tampered));
+
+    expect(restored).not.toBeNull();
+    expect(restored!.activities).toHaveLength(2);
+    expect(restored!.document).toEqual(defaultDocumentMeta());
+  });
+});
+
+describe("ไฟล์รุ่นเก่า", () => {
+  /** ไฟล์ที่ผู้ใช้บันทึกไว้ก่อนมีข้อมูลเอกสาร ต้องเปิดได้ ไม่ใช่เจอกระดานเปล่า */
+  const versionOne = () => {
+    const old = JSON.parse(serialiseWorkPlan(snapshot));
+    old.schemaVersion = 1;
+    delete old.document;
+    return JSON.stringify(old);
+  };
+
+  it("อ่านได้ และงานที่กรอกไว้ยังอยู่ครบ", () => {
+    const restored = parseWorkPlan(versionOne());
+
+    expect(restored).not.toBeNull();
+    expect(restored!.activities).toHaveLength(2);
+    expect(restored!.actuals[0]!.received!.satang).toBe(baht(311_100));
+    expect(restored!.dataDate).toBe("2026-08-25");
+  });
+
+  it("ได้ข้อมูลเอกสารเป็นค่าตั้งต้น แล้วบันทึกครั้งถัดไปเป็นรุ่นปัจจุบัน", () => {
+    const restored = parseWorkPlan(versionOne())!;
+    expect(restored.document).toEqual(defaultDocumentMeta());
+    expect(JSON.parse(serialiseWorkPlan(restored)).schemaVersion).toBe(WORK_PLAN_SCHEMA_VERSION);
+  });
+
+  it("รุ่นที่ยังไม่มีอยู่จริงถูกทิ้ง ไม่เดาว่าอ่านได้", () => {
+    const future = JSON.parse(serialiseWorkPlan(snapshot));
+    future.schemaVersion = WORK_PLAN_SCHEMA_VERSION + 1;
+    expect(parseWorkPlan(JSON.stringify(future))).toBeNull();
   });
 });

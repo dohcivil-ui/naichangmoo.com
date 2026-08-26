@@ -1,6 +1,7 @@
 import type { PlanActivity } from "./work-plan";
 import type { Milestone } from "./payment-milestone";
 import type { IsoDate, MilestoneActual, MoneyEvent } from "./work-plan-actuals";
+import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "./work-plan-document-meta";
 
 /**
  * เก็บงานที่ทำค้างไว้ในเบราว์เซอร์ ให้รีโหลดแล้วไม่หาย
@@ -26,8 +27,17 @@ import type { IsoDate, MilestoneActual, MoneyEvent } from "./work-plan-actuals";
 
 export const WORK_PLAN_STORAGE_KEY = "naichangmoo.work-plan.v1";
 
-/** ขึ้นเลขนี้เมื่อรูปร่างข้อมูลเปลี่ยนจนของเก่าอ่านไม่ได้ ของเก่าจะถูกทิ้งแล้วเริ่มใหม่ */
-export const WORK_PLAN_SCHEMA_VERSION = 1;
+/**
+ * รุ่นของรูปร่างข้อมูล
+ *
+ * รุ่น 2 เพิ่มข้อมูลประกอบเอกสาร (โลโก้ หัวเอกสาร ผู้ลงนาม)
+ * **ไฟล์รุ่น 1 ต้องยังอ่านได้** เพราะผู้ใช้ที่กรอกงานค้างไว้ก่อนรุ่นนี้จะเปิดมาเจอกระดานเปล่าไม่ได้
+ * ตัวอ่านจึงเติมค่าตั้งต้นของเอกสารให้ แล้วบันทึกครั้งถัดไปจะเป็นรุ่น 2 เอง
+ */
+export const WORK_PLAN_SCHEMA_VERSION = 2;
+
+/** รุ่นที่ยังอ่านได้ ไม่ใช่แค่รุ่นปัจจุบัน */
+const READABLE_VERSIONS = new Set([1, 2]);
 
 export type StoredSetup = {
   projectName: string;
@@ -50,6 +60,8 @@ export type WorkPlanSnapshot = {
   actuals: MilestoneActual[];
   /** ว่างได้ แปลว่ายังไม่เคยตั้งวันตัดข้อมูลเอง ให้ผู้เรียกไปคำนวณค่าตั้งต้น */
   dataDate: IsoDate | "";
+  /** ข้อมูลประกอบเอกสารที่พิมพ์ออกไปใช้ เพิ่มในรุ่น 2 */
+  document: WorkPlanDocumentMeta;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -78,6 +90,32 @@ const readEvent = (value: unknown): MoneyEvent | undefined => {
 const writeEvent = (event: MoneyEvent | undefined) =>
   event ? { satang: event.satang.toString(), date: event.date } : undefined;
 
+const readSignatory = (value: unknown) =>
+  isRecord(value) ? { name: str(value.name), position: str(value.position) } : { name: "", position: "" };
+
+/**
+ * อ่านข้อมูลประกอบเอกสาร โดยไฟล์รุ่น 1 ที่ยังไม่มีช่องนี้ต้องได้ค่าตั้งต้น ไม่ใช่ถูกปฏิเสธ
+ *
+ * ทุกช่องเป็นข้อความล้วน ยกเว้นสวิตช์แสดงโลโก้ ค่าที่รูปร่างไม่ตรงจึงตกไปเป็นค่าว่างได้อย่างปลอดภัย
+ * ไม่ต้องทิ้งทั้งไฟล์เหมือนเงินหรือรายการงาน เพราะข้อมูลเอกสารที่หายไปคือช่องที่ต้องกรอกใหม่
+ * ส่วนเงินที่เพี้ยนคือยอดที่ผิดโดยไม่มีใครรู้
+ */
+const readDocument = (value: unknown): WorkPlanDocumentMeta => {
+  const fallback = defaultDocumentMeta();
+  if (!isRecord(value)) return fallback;
+  const logoDataUri = str(value.logoDataUri);
+  return {
+    logoDataUri: logoDataUri.startsWith("data:") ? logoDataUri : "",
+    showLogo: typeof value.showLogo === "boolean" ? value.showLogo : fallback.showLogo,
+    employerName: str(value.employerName),
+    contractNumber: str(value.contractNumber),
+    documentDate: str(value.documentDate),
+    siteName: str(value.siteName),
+    contractor: readSignatory(value.contractor),
+    employer: readSignatory(value.employer)
+  };
+};
+
 /**
  * แปลงภาพรวมทั้งใบเป็นข้อความ พร้อมกำกับรุ่นของรูปร่างข้อมูล
  *
@@ -89,6 +127,7 @@ export function serialiseWorkPlan(snapshot: WorkPlanSnapshot): string {
     schemaVersion: WORK_PLAN_SCHEMA_VERSION,
     setup: snapshot.setup,
     dataDate: snapshot.dataDate,
+    document: snapshot.document,
     activities: snapshot.activities.map((activity) => ({
       id: activity.id,
       number: activity.number,
@@ -131,7 +170,7 @@ export function parseWorkPlan(raw: string | null): WorkPlanSnapshot | null {
   }
 
   if (!isRecord(value)) return null;
-  if (value.schemaVersion !== WORK_PLAN_SCHEMA_VERSION) return null;
+  if (typeof value.schemaVersion !== "number" || !READABLE_VERSIONS.has(value.schemaVersion)) return null;
   if (!isRecord(value.setup) || !Array.isArray(value.activities) || !Array.isArray(value.milestones)) return null;
 
   const setupSource = value.setup;
@@ -204,7 +243,7 @@ export function parseWorkPlan(raw: string | null): WorkPlanSnapshot | null {
     }
   }
 
-  return { setup, activities, milestones, actuals, dataDate: str(value.dataDate) };
+  return { setup, activities, milestones, actuals, dataDate: str(value.dataDate), document: readDocument(value.document) };
 }
 
 /**

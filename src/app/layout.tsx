@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Prompt } from "next/font/google";
+import { Prompt, Sarabun } from "next/font/google";
 import "@/app/globals.css";
 import { CookieNotice } from "@/components/platform/cookie-notice";
 
@@ -19,13 +19,31 @@ const prompt = Prompt({
   display: "swap"
 });
 
+/**
+ * ฟอนต์ของเอกสารที่พิมพ์ออกไปใช้ ไม่ใช่ฟอนต์ของหน้าจอ
+ *
+ * คู่มือการพิมพ์หนังสือราชการที่ออกตามระเบียบสำนักนายกรัฐมนตรีว่าด้วยงานสารบรรณกำหนด
+ * TH Sarabun ขนาด 16 พอยต์ เอกสารแนบสัญญาจึงต้องใช้ตระกูลนี้ ไม่ใช่ Prompt ของหน้าจอ
+ *
+ * ตัวที่โหลดคือ Sarabun จาก Google ซึ่งเป็นงานออกแบบสายเดียวกันและโหลดผ่าน next/font
+ * ได้เหมือน Prompt คือดาวน์โหลดตอน build แล้วเสิร์ฟจากโดเมนเรา ไม่มีคำขอออกไปหาโฮสต์ฟอนต์
+ * ถ้าหน่วยงานไหนบังคับ TH Sarabun New ตัวจริงแบบไฟล์ต่อไฟล์ ให้วางไฟล์ลง public/
+ * แล้วประกาศ @font-face ทับเฉพาะในบล็อก print
+ */
+const sarabun = Sarabun({
+  variable: "--font-sarabun",
+  subsets: ["thai", "latin"],
+  weight: ["400", "600", "700"],
+  display: "swap"
+});
+
 export const metadata: Metadata = {
   title: "นายช่างหมู | CIVIL APPS ASSISTANT",
   description: "เครื่องมือวิศวกรรมที่ทำงานเป็นลำดับ ตรวจสอบได้ และช่วยงานโยธาไทยให้ชัดเจนขึ้น"
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th"><body className={prompt.variable}>
+  return <html lang="th"><body className={`${prompt.variable} ${sarabun.variable}`}>
     {/* Everything carrying data-reveal starts at opacity 0 and is revealed by script. Without
         this, a visitor with no JavaScript gets a hero that never arrives. */}
     <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>
