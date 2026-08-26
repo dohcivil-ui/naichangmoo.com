@@ -288,62 +288,64 @@ export function WorkPlanDocument({
         */}
         <div className="work-plan__doc-fit" style={{ height: `calc(297mm * ${scale})`, width: `calc(210mm * ${scale})` }}>
           <div className="work-plan__paper" style={{ transform: `scale(${scale})` }}>
-          <table className="work-plan__paper-head-table">
-            {/*
-              กำหนดความกว้างคอลัมน์เอง เพราะปล่อยให้ตารางเฉลี่ยเองแล้วชื่อโครงการซึ่งยาวที่สุด
-              ไปได้ช่องแคบที่สุด ตกบรรทัดห้าบรรทัดทั้งที่ยังมีที่ว่างอยู่ทางขวา
-            */}
-            <colgroup>
-              {logoVisible(meta) ? <col style={{ width: "26mm" }} /> : null}
-              <col style={{ width: "30mm" }} />
-              <col />
-              <col style={{ width: "24mm" }} />
-              <col style={{ width: "30mm" }} />
-            </colgroup>
+          {/*
+            หัวเรื่องกลางหน้า ตามแบบรายงานราชการไทย: หน่วยงาน สถานที่ ชื่อเอกสาร ที่มา วันที่ข้อมูล
+            รอบก่อนหัวกระดาษเป็นตารางกรอบที่เอาโลโก้ไปไว้ช่องซ้ายพร้อมข้อมูลห้าอย่างเบียดกัน
+            ซึ่งอ่านเหมือนแบบฟอร์มกรอกข้อมูล ไม่ใช่หัวเอกสารที่บอกว่านี่คือเอกสารอะไรของใคร
+          */}
+          <header className="work-plan__paper-masthead">
+            {logoVisible(meta) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้เอง ไม่ผ่านตัวปรับขนาดของ Next
+              <img src={meta.logoDataUri} alt="" />
+            ) : null}
+            <p className="work-plan__paper-org">{meta.employerName || <span className="work-plan__paper-blank" />}</p>
+            {meta.siteName ? <p>{meta.siteName}</p> : null}
+            <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
+            <p>แนบท้ายสัญญาจ้าง{meta.contractNumber ? ` เลขที่ ${meta.contractNumber}` : ""}</p>
+            <p>ข้อมูล ณ วันที่ {formatThaiDate(meta.documentDate) ?? <span className="work-plan__paper-blank" />}</p>
+          </header>
+
+          {/* เลขหัวข้ออยู่ในข้อความจริง เพราะผู้ตรวจอ้างถึงมันด้วยเสียงและด้วยปากกา */}
+          <h2 className="work-plan__paper-section">1. ข้อมูลสัญญา</h2>
+          <table className="work-plan__paper-facts">
             <tbody>
               <tr>
-                {logoVisible(meta) ? (
-                  <td className="work-plan__paper-logo" rowSpan={3}>
-                    {/* eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้เอง ไม่ผ่านตัวปรับขนาดของ Next */}
-                    <img src={meta.logoDataUri} alt="" />
-                  </td>
-                ) : null}
                 <th scope="row">โครงการ</th>
                 <td>{projectName || <span className="work-plan__paper-blank" />}</td>
+              </tr>
+              <tr>
                 <th scope="row">เลขที่สัญญา</th>
                 <td>{meta.contractNumber || <span className="work-plan__paper-blank" />}</td>
               </tr>
               <tr>
-                <th scope="row">ผู้ว่าจ้าง</th>
-                <td>{meta.employerName || <span className="work-plan__paper-blank" />}</td>
-                <th scope="row">วันที่</th>
-                <td>{formatThaiDate(meta.documentDate) ?? <span className="work-plan__paper-blank" />}</td>
+                <th scope="row">สถานที่ก่อสร้าง</th>
+                <td>{meta.siteName || <span className="work-plan__paper-blank" />}</td>
               </tr>
               <tr>
-                <th scope="row">สถานที่ก่อสร้าง</th>
-                <td colSpan={3}>{meta.siteName || <span className="work-plan__paper-blank" />}</td>
+                <th scope="row">จำนวนงวด</th>
+                <td>{schedule.rows.length.toLocaleString("th-TH")} งวด</td>
+              </tr>
+              <tr>
+                <th scope="row">มูลค่างานตามบัญชีนี้</th>
+                <td>{formatBaht(schedule.totalWorkSatang)} บาท</td>
               </tr>
             </tbody>
           </table>
 
-          <header className="work-plan__paper-head">
-            <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
-            <p>แนบท้ายสัญญาจ้าง</p>
-          </header>
-
+          <h2 className="work-plan__paper-section">2. บัญชีงวดงาน–งวดเงิน</h2>
           <table className="work-plan__paper-table">
             <thead>
               <tr>
                 <th>งวดที่</th>
                 <th>งานที่ต้องแล้วเสร็จ</th>
-                <th className="work-plan__paper-num">ร้อยละ</th>
-                <th className="work-plan__paper-num">จำนวนเงิน (บาท)</th>
+                <th>ร้อยละ</th>
+                <th>จำนวนเงิน (บาท)</th>
               </tr>
             </thead>
             <tbody>
               {schedule.rows.map((row) => (
                 <tr key={row.milestoneId}>
-                  <td className="work-plan__paper-num">{row.ordinal}</td>
+                  <td className="work-plan__paper-mid">{row.ordinal}</td>
                   <td>
                     <strong>{row.title}</strong>
                     <span className="work-plan__paper-works">
@@ -364,15 +366,22 @@ export function WorkPlanDocument({
             </tfoot>
           </table>
 
-          <p className="work-plan__paper-words">
-            รวมเป็นเงินทั้งสิ้น <strong>{bahtText(schedule.totalWorkSatang)}</strong>
-          </p>
+          {/* ยอดเป็นตัวอักษรอยู่ใต้ตัวเลขที่มันสะกด ไม่ใช่ในกล่องแยกกลางหน้า
+              เพราะหน้าที่ของมันคือยืนยันตัวเลขข้างบน ไม่ใช่ประกาศเรื่องใหม่ */}
+          <p className="work-plan__paper-words">({bahtText(schedule.totalWorkSatang)})</p>
 
-          <p className="work-plan__paper-note">
-            หมายเหตุ ฐานการหักเงินประกันผลงาน คืนเงินล่วงหน้า ภาษีมูลค่าเพิ่ม และภาษีหัก ณ ที่จ่าย
-            เป็นไปตามเงื่อนไขในสัญญาแต่ละฉบับ ให้ตรวจกับสัญญาจริงก่อนใช้ยื่นเบิก
-          </p>
+          <h2 className="work-plan__paper-section">3. หมายเหตุ</h2>
+          <div className="work-plan__paper-box">
+            <ol>
+              <li>
+                ฐานการหักเงินประกันผลงาน คืนเงินล่วงหน้า ภาษีมูลค่าเพิ่ม และภาษีหัก ณ ที่จ่าย
+                เป็นไปตามเงื่อนไขในสัญญาแต่ละฉบับ ให้ตรวจกับสัญญาจริงก่อนใช้ยื่นเบิก
+              </li>
+              <li>ยอดทุกช่องคิดด้วยจำนวนเต็มสตางค์ ผลรวมทุกงวดเท่ามูลค่างานตามบัญชีนี้เสมอ</li>
+            </ol>
+          </div>
 
+          <h2 className="work-plan__paper-section">4. ลงนาม</h2>
           <div className="work-plan__paper-signs">
             {(
               [
@@ -389,6 +398,11 @@ export function WorkPlanDocument({
                   <p className="work-plan__paper-sign-position">{signaturePosition(meta[key])}</p>
                 )}
                 <p className="work-plan__paper-sign-role">{label}</p>
+                {/* เอกสารแนบสัญญาต้องตอบได้ว่าลงนามวันไหน ช่องเว้นไว้ให้เขียนด้วยปากกา */}
+                <p className="work-plan__paper-sign-date">
+                  วันที่ <span className="work-plan__paper-line" /> / <span className="work-plan__paper-line" /> /{" "}
+                  <span className="work-plan__paper-line" />
+                </p>
               </div>
             ))}
           </div>

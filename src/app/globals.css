@@ -817,23 +817,58 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__doc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 1.2rem; background: var(--paper); border-bottom: 1px solid var(--line); }
 .work-plan__doc-toolbar-actions { display: flex; gap: 10px; }
 .work-plan__doc-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; justify-content: center; }
-.work-plan__paper-head { text-align: center; margin-bottom: 1.1em; }
-.work-plan__paper-head h1 { font-size: 1.25em; margin: 0; color: var(--ink); }
-.work-plan__paper-head p { margin: .25em 0 0; font-size: .9em; color: var(--muted); }
-.work-plan__paper-meta { display: grid; gap: .3em; margin: 0 0 1em; }
-.work-plan__paper-meta div { display: flex; gap: 10px; }
-.work-plan__paper-meta dt { flex: none; width: 120px; color: var(--muted); font-weight: 600; }
-.work-plan__paper-meta dd { margin: 0; font-weight: 600; }
-.work-plan__paper-table { width: 100%; border-collapse: collapse; margin: .4em 0; font-size: .95em; }
-.work-plan__paper-table th { border: 1px solid var(--ink); padding: .25em .4em; background: var(--canvas); font-size: 1em; font-weight: 700; text-align: left; }
-.work-plan__paper-table td { border: 1px solid var(--line); padding: .25em .4em; vertical-align: top; }
-.work-plan__paper-table tfoot td { border-color: var(--ink); font-weight: 800; background: var(--canvas); }
+/* ============================================================================
+   ตัวอักษรบนกระดาษ (IP-141 รอบจัดหน้าใหม่)
+
+   ระเบียบสำนักนายกรัฐมนตรีว่าด้วยงานสารบรรณกำหนด TH Sarabun 16 พอยต์ และบล็อก
+   print ด้านล่างเขียนกฎนั้นไว้เอง แต่รอบก่อนใช้ em ซ้อน em จนย่อลงมาเหลือ
+   15.2 / 14.4 / 13.12 / 12.46 พอยต์ปนกันในแผ่นเดียว วัดแล้วเก้าในสิบสี่องค์ประกอบ
+   เล็กกว่าที่ระเบียบกำหนด และคู่ที่ต่างกัน 0.66 พอยต์อ่านไม่ออกว่าเป็นลำดับชั้น
+   อ่านออกแค่ว่าไม่เท่ากัน
+
+   มีสามขนาดเท่านั้น 20 / 18 / 16 และไม่มีอะไรต่ำกว่า 16 ลำดับชั้นมาจากความหนา
+   เส้นกรอบ พื้นเทาหัวตาราง และระยะเยื้อง ไม่ใช่จากการย่อตัวอักษร
+   ประกาศเป็นพอยต์ตรง ๆ ไม่ใช่ em เพราะ em ซ้อนกันคือสาเหตุเดิม
+   ============================================================================ */
+
+/* หัวเรื่องกลางหน้า ตามแบบรายงานราชการ: หน่วยงาน ชื่อเอกสาร ที่มา แล้ววันที่ข้อมูล */
+.work-plan__paper-masthead { text-align: center; margin: 0 0 1.2em; }
+.work-plan__paper-masthead img { display: block; max-width: 24mm; max-height: 24mm; margin: 0 auto .5em; object-fit: contain; }
+.work-plan__paper-org { margin: 0; font-weight: 700; }
+.work-plan__paper-masthead h1 { margin: .3em 0 .1em; font-size: 20pt; font-weight: 700; color: var(--ink); }
+.work-plan__paper-masthead p { margin: .1em 0 0; }
+
+/* เลขหัวข้อคือลำดับการอ่านที่ผู้ตรวจใช้อ้างถึง จึงอยู่ในข้อความจริง ไม่ใช่ ::before
+   ที่คัดลอกออกไปไม่ติดและโปรแกรมอ่านหน้าจอไม่อ่าน */
+.work-plan__paper-section { margin: 1.2em 0 .45em; font-size: 18pt; font-weight: 700; color: var(--ink); }
+.work-plan__paper-section:first-of-type { margin-top: 0; }
+
+/* ตารางข้อเท็จจริง ป้ายซ้าย ค่าชิดขวา แบบบทสรุปในรายงานราชการ */
+.work-plan__paper-facts { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.work-plan__paper-facts th, .work-plan__paper-facts td { border: 1px solid var(--ink); padding: .3em .5em; }
+.work-plan__paper-facts th { width: 46%; text-align: left; font-weight: 400; }
+.work-plan__paper-facts td { text-align: right; font-weight: 700; }
+
+.work-plan__paper-table { width: 100%; border-collapse: collapse; }
+.work-plan__paper-table th, .work-plan__paper-table td { border: 1px solid var(--ink); padding: .3em .5em; vertical-align: top; }
+.work-plan__paper-table th { background: var(--canvas); font-weight: 700; text-align: center; }
+.work-plan__paper-table tfoot td { font-weight: 700; background: var(--canvas); }
 .work-plan__paper-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.work-plan__paper-works { display: block; margin-top: .1em; color: var(--muted); font-size: .82em; }
-.work-plan__paper-words { margin: .8em 0; padding: .5em .65em; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); }
-.work-plan__paper-note { color: var(--muted); font-size: .82em; }
-.work-plan__paper-signs { display: flex; justify-content: space-around; gap: 2em; margin-top: 2.4em; text-align: center; }
-.work-plan__paper-signs span { display: block; border-bottom: 1px dotted var(--ink); margin-bottom: 8px; height: 40px; }
+.work-plan__paper-mid { text-align: center; }
+/* รายชื่องานในงวดเป็นบรรทัดรอง แต่ยังต้องเป็น 16 พอยต์ จึงลดด้วยการเยื้องและสีเนื้อความ
+   ไม่ใช่ด้วยการย่อ ซึ่งเป็นสิ่งที่ระเบียบห้าม */
+.work-plan__paper-works { display: block; margin-top: .15em; padding-left: 1em; color: var(--ink-body); }
+
+/* ยอดเป็นตัวอักษร อยู่ชิดขวาใต้ตารางเหมือนใบแจ้งหนี้ ไม่ใช่กล่องลอยกลางหน้า */
+.work-plan__paper-words { margin: .35em 0 0; text-align: right; }
+
+/* กรอบหมายเหตุ แบบเดียวกับกรอบข้อจำกัดที่รายงานราชการวางไว้ต้นเรื่อง */
+.work-plan__paper-box { padding: .45em .65em; border: 1px solid var(--ink); }
+.work-plan__paper-box p { margin: 0; }
+.work-plan__paper-box ol { margin: .2em 0 0; padding-left: 1.6em; }
+.work-plan__paper-box li + li { margin-top: .15em; }
+
+.work-plan__paper-signs { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6em 2em; margin-top: 2em; text-align: center; }
 
 /* ตอนสั่งพิมพ์ ซ่อนทุกอย่างยกเว้นตัวกระดาษ และคลายเงา/สีพื้นออกให้เหลือขาวดำที่พิมพ์แล้วอ่านง่าย */
 @media print {
@@ -850,8 +885,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   /* หัวตารางซ้ำทุกหน้า และห้ามตัดแถวกลางคัน ไม่งั้นงวดหนึ่งจะขาดครึ่งอยู่คนละหน้า */
   .work-plan__paper-table thead { display: table-header-group; }
   .work-plan__paper-table tfoot { display: table-footer-group; }
-  .work-plan__paper-table tr, .work-plan__paper-head-table tr { break-inside: avoid; }
-  .work-plan__paper-signs, .work-plan__paper-words { break-inside: avoid; }
+  .work-plan__paper-table tr, .work-plan__paper-facts tr { break-inside: avoid; }
+  .work-plan__paper-signs, .work-plan__paper-words, .work-plan__paper-box { break-inside: avoid; }
+  /* หัวข้อห้ามค้างท้ายหน้าโดยเนื้อหาไปอยู่หน้าถัดไป */
+  .work-plan__paper-section { break-after: avoid; }
 }
 
 /* ============================================================================
@@ -967,26 +1004,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ช่องเลือกไฟล์ตัวจริงถูกซ่อน แต่ยังโฟกัสด้วยแป้นพิมพ์ได้ผ่าน label ที่ผูกไว้ */
 .work-plan__doc-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
-/* ตารางหัวเอกสาร แบบเดียวกับที่เอกสารวิศวกรรมไทยใช้: โลโก้ซ้าย ข้อมูลโครงการเป็นตาราง */
-/* table-layout: fixed เพื่อให้ colgroup คุมความกว้างได้จริง
-   โหมด auto ถือความกว้างใน colgroup เป็นแค่คำแนะนำ แล้วเนื้อหายาว ๆ จะแย่งที่กันเอง
-   จนชื่อโครงการซึ่งยาวที่สุดได้ช่องแคบที่สุด */
-.work-plan__paper-head-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: .9em; font-size: .95em; }
-.work-plan__paper-head-table th, .work-plan__paper-head-table td { border: 1px solid var(--ink); padding: .3em .45em; text-align: left; }
-/* ห้าม nowrap คู่กับ table-layout: fixed เพราะป้ายภาษาไทยยาวกว่าช่องแล้วมันล้นไปทับค่าข้าง ๆ
-   ให้ตกบรรทัดแทน ซึ่งอ่านออกเสมอ */
-.work-plan__paper-head-table th { font-weight: 700; }
-.work-plan__paper-logo { width: 28mm; padding: 2mm; text-align: center; vertical-align: middle; }
-.work-plan__paper-logo img { display: block; width: 100%; max-width: 24mm; max-height: 24mm; margin: 0 auto; object-fit: contain; }
 /* ช่องที่ยังไม่กรอก ต้องเป็นเส้นให้เขียนด้วยปากกา ไม่ใช่ที่ว่างเปล่าที่อ่านเหมือนตกหล่น */
 .work-plan__paper-blank { display: inline-block; min-width: 60%; border-bottom: 1px dotted var(--ink); }
 
-/* ช่องลงนาม วงเล็บมีเสมอแม้ยังไม่ได้กรอกชื่อ */
+/* ช่องลงนาม วงเล็บมีเสมอแม้ยังไม่ได้กรอกชื่อ และมีบรรทัดวันที่ เพราะเอกสารแนบสัญญา
+   ต้องตอบได้ว่าลงนามวันไหน ทุกบรรทัดในบล็อกนี้เป็น 16 พอยต์เท่ากันหมด
+   ตำแหน่งเคยถูกย่อเหลือ 14.4 ซึ่งเป็นหนึ่งในหกจุดที่ทำให้แผ่นเดียวมีตัวอักษรหลายขนาด */
 .work-plan__paper-sign-line { margin: 0 0 .15em; }
-.work-plan__paper-sign-line .work-plan__paper-line { display: inline-block; width: 58%; height: auto; border-bottom: 1px dotted var(--ink); margin: 0; vertical-align: baseline; }
-.work-plan__paper-sign-name { margin: .1em 0 0; white-space: pre; }
-.work-plan__paper-sign-position { margin: .1em 0 0; font-size: .9em; }
+.work-plan__paper-sign-line .work-plan__paper-line { display: inline-block; width: 62%; height: auto; border-bottom: 1px dotted var(--ink); margin: 0; vertical-align: baseline; }
+.work-plan__paper-sign-name { margin: .15em 0 0; white-space: pre; }
+.work-plan__paper-sign-position { margin: .1em 0 0; }
 .work-plan__paper-sign-role { margin: .1em 0 0; font-weight: 700; }
+.work-plan__paper-sign-date { margin: .55em 0 0; }
+.work-plan__paper-sign-date .work-plan__paper-line { display: inline-block; width: 3.4em; border-bottom: 1px dotted var(--ink); }
 
 /* ============================================================================
    ตัวอย่างหน้ากระดาษ (IP-141 รอบแก้)
