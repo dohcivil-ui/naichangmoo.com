@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800;900&display=swap">
+  <style>
+    body { margin: 0; background: #ffffff; color: #073047; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    a { color: #0d8282; } a:hover { color: #095d5b; }
+    .num { font-variant-numeric: tabular-nums; }
+    th { padding: 7px 9px; background: #f2f7f6; color: #48626a; font-size: 12px; font-weight: 800; text-align: left; border-bottom: 1px solid #d8e5e3; }
+    td { padding: 8px 9px; border-bottom: 1px solid #edf3f2; color: #24404b; font-size: 16px; }
+    td.n { color: #083a50; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 794px; min-height: 1123px; padding: 48px 52px 40px; background: #ffffff">
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 14px; border-bottom: 2px solid #073047">
+    <div>
+      <div style="color: #0b7777; font-size: 12px; font-weight: 900; letter-spacing: .1em">สัญญาแบบปรับราคาได้ · ค่า K</div>
+      <h1 style="margin: 6px 0 4px; color: #073047; font-size: 26px; font-weight: 700; letter-spacing: -.02em">รายการคำนวณเงินชดเชยค่างานก่อสร้าง</h1>
+      <p style="margin: 0; color: #4d656d; font-size: 14px; line-height: 1.5">อ้างอิงมติคณะรัฐมนตรี ตามหนังสือสำนักเลขาธิการคณะรัฐมนตรี ที่ นร 0203/ว 109 ลงวันที่ 24 สิงหาคม 2532</p>
+    </div>
+    <div style="text-align: right; color: #5f7178; font-size: 12px; line-height: 1.7; white-space: nowrap">
+      <div>แผ่นที่ 1 จาก 1</div>
+      <div class="num">พิมพ์ 24 ส.ค. 2569</div>
+    </div>
+  </div>
+
+  <table style="width: 100%; border-collapse: collapse; margin-top: 18px">
+    <tbody>
+      <tr>
+        <td style="width: 24%; color: #5f7178; font-size: 14px; border-bottom: 1px solid #edf3f2">สัญญาเลขที่</td>
+        <td style="width: 26%; font-weight: 600">42/2569</td>
+        <td style="width: 24%; color: #5f7178; font-size: 14px; border-bottom: 1px solid #edf3f2">หน่วยงานผู้ว่าจ้าง</td>
+        <td style="width: 26%; font-weight: 600">สพฐ.</td>
+      </tr>
+      <tr>
+        <td style="color: #5f7178; font-size: 14px">ชื่องานตามสัญญา</td>
+        <td colspan="3" style="font-weight: 600">ก่อสร้างอาคารเรียน 4 ชั้น 12 ห้องเรียน</td>
+      </tr>
+      <tr>
+        <td style="color: #5f7178; font-size: 14px">ประเภทงาน</td>
+        <td style="font-weight: 600">หมวดที่ 1 งานอาคาร</td>
+        <td style="color: #5f7178; font-size: 14px">เดือนฐาน (เปิดซอง)</td>
+        <td style="font-weight: 600">กันยายน 2568</td>
+      </tr>
+      <tr>
+        <td style="color: #5f7178; font-size: 14px">งวดที่คำนวณ</td>
+        <td style="font-weight: 600">งวดที่ 3</td>
+        <td style="color: #5f7178; font-size: 14px">เดือนที่ส่งมอบงาน</td>
+        <td style="font-weight: 600">มิถุนายน 2569</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 22px; border: 1px solid #c9d8d9; border-radius: 6px; padding: 14px 16px; background: #fbfdfd; text-align: center">
+    <div style="color: #5f7178; font-size: 12px; font-weight: 800; letter-spacing: .08em; margin-bottom: 7px">สูตรที่ใช้</div>
+    <div class="num" style="color: #073047; font-size: 18px; font-weight: 800">K = 0.25 + 0.15 It/Io + 0.10 Ct/Co + 0.40 Mt/Mo + 0.10 St/So</div>
+  </div>
+
+  <h2 style="margin: 24px 0 8px; color: #073047; font-size: 16px; font-weight: 700">1. ดัชนีราคาที่ใช้</h2>
+  <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #d8e5e3">
+    <thead>
+      <tr>
+        <th>ตัวแปร</th><th>ดัชนีราคา</th>
+        <th style="text-align: right">เดือนฐาน</th><th style="text-align: right">เดือนส่งมอบ</th>
+        <th style="text-align: right">เลขสัมพันธ์</th><th>ที่มา</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="num" style="font-weight: 800; color: #0b7777">I</td><td>ผู้บริโภคทั่วไปของประเทศ</td><td class="n">105.2</td><td class="n">108.4</td><td class="n">1.030</td><td style="font-size: 13px; color: #6b8188">กระทรวงพาณิชย์</td></tr>
+      <tr><td class="num" style="font-weight: 800; color: #0b7777">C</td><td>ซีเมนต์</td><td class="n">104.9</td><td class="n">112.7</td><td class="n">1.074</td><td style="font-size: 13px; color: #6b8188">กระทรวงพาณิชย์</td></tr>
+      <tr><td class="num" style="font-weight: 800; color: #0b7777">M</td><td>วัสดุก่อสร้าง ไม่รวมเหล็กและซีเมนต์</td><td class="n">110.6</td><td class="n">119.3</td><td class="n">1.078</td><td style="font-size: 13px; color: #6b8188">กระทรวงพาณิชย์</td></tr>
+      <tr><td class="num" style="font-weight: 800; color: #0b7777">S</td><td>เหล็ก</td><td class="n">103.4</td><td class="n">106.8</td><td class="n">1.032</td><td style="font-size: 13px; color: #6b8188">กระทรวงพาณิชย์</td></tr>
+    </tbody>
+  </table>
+
+  <h2 style="margin: 22px 0 8px; color: #073047; font-size: 16px; font-weight: 700">2. การแทนค่าในสูตร</h2>
+  <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #d8e5e3">
+    <thead>
+      <tr><th>พจน์</th><th>สัมประสิทธิ์</th><th>เลขสัมพันธ์</th><th style="text-align: right">ผลคูณ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ส่วนคงที่</td><td class="num">0.25</td><td></td><td class="n">0.250</td></tr>
+      <tr><td>ดัชนีราคาผู้บริโภคทั่วไป</td><td class="num">0.15</td><td class="num" style="font-size: 15px">108.4 / 105.2 = 1.030</td><td class="n">0.154</td></tr>
+      <tr><td>ดัชนีราคาซีเมนต์</td><td class="num">0.10</td><td class="num" style="font-size: 15px">112.7 / 104.9 = 1.074</td><td class="n">0.107</td></tr>
+      <tr><td>ดัชนีราคาวัสดุก่อสร้าง</td><td class="num">0.40</td><td class="num" style="font-size: 15px">119.3 / 110.6 = 1.078</td><td class="n">0.431</td></tr>
+      <tr><td>ดัชนีราคาเหล็ก</td><td class="num">0.10</td><td class="num" style="font-size: 15px">106.8 / 103.4 = 1.032</td><td class="n">0.103</td></tr>
+      <tr style="background: #eff9f7">
+        <td colspan="3" style="font-weight: 800; color: #093d4b; border-bottom: 2px solid #073047">ESCALATION FACTOR K</td>
+        <td class="n" style="font-size: 20px; border-bottom: 2px solid #073047">1.045</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 style="margin: 22px 0 8px; color: #073047; font-size: 16px; font-weight: 700">3. การพิจารณาเงินเพิ่มหรือลด</h2>
+  <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #d8e5e3">
+    <tbody>
+      <tr><td style="width: 62%">ผลต่างจากหนึ่ง</td><td class="n">| 1.045 − 1 | = 0.045</td></tr>
+      <tr><td>เกินเกณฑ์ร้อยละ 4 หรือไม่</td><td class="n">0.045 มากกว่า 0.040 จึงปรับเพิ่ม</td></tr>
+      <tr><td>ค่า K ที่หักร้อยละ 4 แล้ว</td><td class="n">1.045 − 0.040 = 1.005</td></tr>
+      <tr><td>ค่างานงวดที่ 3 ตามสัญญา (Po)</td><td class="n">5,700,000.00</td></tr>
+      <tr><td>ค่างานที่ต้องจ่าย (P = Po × K)</td><td class="n">5,728,500.00</td></tr>
+      <tr style="background: #eff9f7">
+        <td style="font-weight: 800; color: #093d4b; border-bottom: 2px solid #073047">เงินเพิ่มค่างานงวดที่ 3</td>
+        <td class="n" style="font-size: 20px; border-bottom: 2px solid #073047">28,500.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 20px; border-left: 3px solid #f47721; padding: 10px 14px; background: #fffaf5; color: #4d656d; font-size: 13px; line-height: 1.65">
+    ทุกขั้นตอนใช้ทศนิยม 3 ตำแหน่งโดยไม่มีการปัดเศษ และทำเลขสัมพันธ์ให้เป็นผลสำเร็จก่อนคูณสัมประสิทธิ์ ตามข้อ ค.3 ของ ว 109 · นำเฉพาะส่วนที่เกินร้อยละ 4 มาคำนวณ โดยไม่คิดร้อยละ 4 แรกให้ ตามข้อ ค.4 · สิทธิ์เรียกร้องเงินเพิ่มมีอายุ 90 วันนับจากวันส่งมอบงานงวดสุดท้าย
+  </div>
+
+  <div style="display: flex; justify-content: space-between; gap: 40px; margin-top: 44px">
+    <div style="flex: 1; text-align: center">
+      <div style="border-bottom: 1px dotted #8fa3a9; height: 44px"></div>
+      <div style="margin-top: 8px; color: #4d656d; font-size: 13px">ผู้คำนวณ</div>
+    </div>
+    <div style="flex: 1; text-align: center">
+      <div style="border-bottom: 1px dotted #8fa3a9; height: 44px"></div>
+      <div style="margin-top: 8px; color: #4d656d; font-size: 13px">ผู้ตรวจสอบ</div>
+    </div>
+    <div style="flex: 1; text-align: center">
+      <div style="border-bottom: 1px dotted #8fa3a9; height: 44px"></div>
+      <div style="margin-top: 8px; color: #4d656d; font-size: 13px">ผู้ควบคุมงาน</div>
+    </div>
+  </div>
+
+  <div style="margin-top: 26px; padding-top: 10px; border-top: 1px solid #d8e5e3; display: flex; justify-content: space-between; gap: 16px; color: #7d9197; font-size: 11px; line-height: 1.6">
+    <span>ตัวเลขในเอกสารนี้เป็นตัวอย่างสาธิต</span>
+    <span class="num">ว109 sha256 72aa71bd…0fde2e</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
