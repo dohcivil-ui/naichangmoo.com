@@ -817,23 +817,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__doc-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .9rem 1.2rem; background: var(--paper); border-bottom: 1px solid var(--line); }
 .work-plan__doc-toolbar-actions { display: flex; gap: 10px; }
 .work-plan__doc-scroll { flex: 1; overflow: auto; padding: 24px; display: flex; justify-content: center; }
-.work-plan__paper { width: min(760px, 100%); align-self: flex-start; background: var(--paper); color: var(--ink); border-radius: 6px; padding: 48px 52px; box-shadow: 0 20px 50px rgba(5,31,47,.4); font-size: .9rem; line-height: 1.6; }
-.work-plan__paper-head { text-align: center; margin-bottom: 1.4rem; }
-.work-plan__paper-head h1 { font-size: 1.3rem; margin: 0; color: var(--ink); }
-.work-plan__paper-head p { margin: .3rem 0 0; color: var(--muted); }
-.work-plan__paper-meta { display: grid; gap: 6px; margin: 0 0 1.2rem; }
+.work-plan__paper-head { text-align: center; margin-bottom: 1.1em; }
+.work-plan__paper-head h1 { font-size: 1.25em; margin: 0; color: var(--ink); }
+.work-plan__paper-head p { margin: .25em 0 0; font-size: .9em; color: var(--muted); }
+.work-plan__paper-meta { display: grid; gap: .3em; margin: 0 0 1em; }
 .work-plan__paper-meta div { display: flex; gap: 10px; }
 .work-plan__paper-meta dt { flex: none; width: 120px; color: var(--muted); font-weight: 600; }
 .work-plan__paper-meta dd { margin: 0; font-weight: 600; }
-.work-plan__paper-table { width: 100%; border-collapse: collapse; margin: .5rem 0; }
-.work-plan__paper-table th { border: 1px solid var(--ink); padding: .5rem .6rem; background: var(--canvas); font-size: .82rem; text-align: left; }
-.work-plan__paper-table td { border: 1px solid var(--line); padding: .5rem .6rem; vertical-align: top; }
+.work-plan__paper-table { width: 100%; border-collapse: collapse; margin: .4em 0; font-size: .95em; }
+.work-plan__paper-table th { border: 1px solid var(--ink); padding: .25em .4em; background: var(--canvas); font-size: 1em; font-weight: 700; text-align: left; }
+.work-plan__paper-table td { border: 1px solid var(--line); padding: .25em .4em; vertical-align: top; }
 .work-plan__paper-table tfoot td { border-color: var(--ink); font-weight: 800; background: var(--canvas); }
 .work-plan__paper-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.work-plan__paper-works { display: block; margin-top: 2px; color: var(--muted); font-size: .76rem; }
-.work-plan__paper-words { margin: 1rem 0; padding: .7rem .9rem; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); }
-.work-plan__paper-note { color: var(--muted); font-size: .78rem; }
-.work-plan__paper-signs { display: flex; justify-content: space-around; gap: 40px; margin-top: 3rem; text-align: center; }
+.work-plan__paper-works { display: block; margin-top: .1em; color: var(--muted); font-size: .82em; }
+.work-plan__paper-words { margin: .8em 0; padding: .5em .65em; border: 1px solid var(--line); border-radius: 6px; background: var(--canvas); }
+.work-plan__paper-note { color: var(--muted); font-size: .82em; }
+.work-plan__paper-signs { display: flex; justify-content: space-around; gap: 2em; margin-top: 2.4em; text-align: center; }
 .work-plan__paper-signs span { display: block; border-bottom: 1px dotted var(--ink); margin-bottom: 8px; height: 40px; }
 
 /* ตอนสั่งพิมพ์ ซ่อนทุกอย่างยกเว้นตัวกระดาษ และคลายเงา/สีพื้นออกให้เหลือขาวดำที่พิมพ์แล้วอ่านง่าย */
@@ -843,8 +842,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .work-plan__doc-overlay { position: static; background: none; }
   .work-plan__doc-toolbar, .work-plan__doc-settings { display: none; }
   .work-plan__doc-scroll { overflow: visible; padding: 0; }
-  /* ระยะขอบมาจาก @page แล้ว กระดาษจึงไม่ต้องเว้นซ้ำ ไม่งั้นเนื้อหาจะหดเข้ามาสองชั้น */
-  .work-plan__paper { width: 100%; box-shadow: none; border-radius: 0; padding: 0; font-size: 16pt; line-height: 1.35; }
+  /* ตอนพิมพ์ ระยะขอบมาจาก @page แล้ว และห้ามย่อ ไม่งั้นตัวหนังสือจะเล็กกว่า 16 พอยต์ที่ระเบียบกำหนด */
+  .work-plan__doc-body, .work-plan__doc-body.is-open { display: block; }
+  .work-plan__doc-stage { overflow: visible; padding: 0; background: none; display: block; }
+  .work-plan__doc-fit { width: auto !important; height: auto !important; }
+  .work-plan__paper { width: 100%; min-height: 0; box-shadow: none; border-radius: 0; padding: 0; font-size: 16pt; line-height: 1.2; transform: none !important; }
   /* หัวตารางซ้ำทุกหน้า และห้ามตัดแถวกลางคัน ไม่งั้นงวดหนึ่งจะขาดครึ่งอยู่คนละหน้า */
   .work-plan__paper-table thead { display: table-header-group; }
   .work-plan__paper-table tfoot { display: table-footer-group; }
@@ -966,17 +968,58 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__doc-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 /* ตารางหัวเอกสาร แบบเดียวกับที่เอกสารวิศวกรรมไทยใช้: โลโก้ซ้าย ข้อมูลโครงการเป็นตาราง */
-.work-plan__paper-head-table { width: 100%; border-collapse: collapse; margin-bottom: 1.1rem; }
-.work-plan__paper-head-table th, .work-plan__paper-head-table td { border: 1px solid var(--ink); padding: .34rem .5rem; text-align: left; font-size: .92em; }
-.work-plan__paper-head-table th { width: 1%; white-space: nowrap; font-weight: 700; }
+/* table-layout: fixed เพื่อให้ colgroup คุมความกว้างได้จริง
+   โหมด auto ถือความกว้างใน colgroup เป็นแค่คำแนะนำ แล้วเนื้อหายาว ๆ จะแย่งที่กันเอง
+   จนชื่อโครงการซึ่งยาวที่สุดได้ช่องแคบที่สุด */
+.work-plan__paper-head-table { width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: .9em; font-size: .95em; }
+.work-plan__paper-head-table th, .work-plan__paper-head-table td { border: 1px solid var(--ink); padding: .3em .45em; text-align: left; }
+/* ห้าม nowrap คู่กับ table-layout: fixed เพราะป้ายภาษาไทยยาวกว่าช่องแล้วมันล้นไปทับค่าข้าง ๆ
+   ให้ตกบรรทัดแทน ซึ่งอ่านออกเสมอ */
+.work-plan__paper-head-table th { font-weight: 700; }
 .work-plan__paper-logo { width: 28mm; padding: 2mm; text-align: center; vertical-align: middle; }
 .work-plan__paper-logo img { display: block; width: 100%; max-width: 24mm; max-height: 24mm; margin: 0 auto; object-fit: contain; }
 /* ช่องที่ยังไม่กรอก ต้องเป็นเส้นให้เขียนด้วยปากกา ไม่ใช่ที่ว่างเปล่าที่อ่านเหมือนตกหล่น */
 .work-plan__paper-blank { display: inline-block; min-width: 60%; border-bottom: 1px dotted var(--ink); }
 
 /* ช่องลงนาม วงเล็บมีเสมอแม้ยังไม่ได้กรอกชื่อ */
-.work-plan__paper-sign-line { margin: 0 0 .2rem; }
+.work-plan__paper-sign-line { margin: 0 0 .15em; }
 .work-plan__paper-sign-line .work-plan__paper-line { display: inline-block; width: 58%; height: auto; border-bottom: 1px dotted var(--ink); margin: 0; vertical-align: baseline; }
-.work-plan__paper-sign-name { margin: .1rem 0 0; white-space: pre; }
-.work-plan__paper-sign-position { margin: .1rem 0 0; }
-.work-plan__paper-sign-role { margin: .1rem 0 0; font-weight: 700; }
+.work-plan__paper-sign-name { margin: .1em 0 0; white-space: pre; }
+.work-plan__paper-sign-position { margin: .1em 0 0; font-size: .9em; }
+.work-plan__paper-sign-role { margin: .1em 0 0; font-weight: 700; }
+
+/* ============================================================================
+   ตัวอย่างหน้ากระดาษ (IP-141 รอบแก้)
+
+   รอบแรกกระดาษเป็นกล่องกว้าง 760 พิกเซลที่ยืดเต็มจอ ผลคือระยะขอบที่เห็นบนจอ
+   ไม่ตรงกับที่พิมพ์ออกมา และแผงตั้งค่าที่พาดขวางด้านบนไปบังหัวกระดาษพอดี
+   ซึ่งเป็นส่วนที่ผู้ใช้กำลังตั้งค่าอยู่
+
+   รอบนี้กระดาษมีขนาด A4 จริงคือ 210 x 297 มิลลิเมตร มีระยะขอบวาดให้เห็นจริง
+   แล้วย่อทั้งแผ่นด้วย transform เหมือนตัวอย่างก่อนพิมพ์ของโปรแกรมอ่าน PDF
+   ============================================================================ */
+.work-plan__doc-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr; }
+.work-plan__doc-body.is-open { grid-template-columns: 340px 1fr; }
+
+.work-plan__doc-stage { min-width: 0; overflow: auto; padding: 28px 24px 40px; background: #6b7c85; display: flex; justify-content: center; align-items: flex-start; }
+/* transform ไม่กินที่ตามจริง ตัวครอบจึงกำหนดความสูงกว้างตามอัตราส่วนที่ย่อไว้เอง */
+.work-plan__doc-fit { position: relative; flex: none; }
+.work-plan__paper {
+  width: 210mm; min-height: 297mm; box-sizing: border-box;
+  /* ระยะขอบเดียวกับ @page เพื่อให้สิ่งที่เห็นบนจอเป็นสิ่งเดียวกับที่พิมพ์ออกมา */
+  padding: 2.5cm 2cm 2cm 3cm;
+  background: var(--paper); color: var(--ink);
+  font-size: 16pt;
+  /* ระเบียบกำหนดระยะบรรทัดเดี่ยว ซึ่งโปรแกรมพิมพ์เอกสารให้ราว 1.2 เท่าของขนาดตัวอักษร
+     รอบแรกตั้งไว้ 1.35 ได้ 7.62 มม. ต่อบรรทัด ทำให้แถวตารางสูง 23.55 มม. ซึ่งใหญ่เกินจริง */
+  line-height: 1.2;
+  box-shadow: 0 18px 44px rgba(5,31,47,.45);
+  transform-origin: top left;
+}
+
+.work-plan__doc-settings { overflow: auto; border-right: 1px solid var(--line); border-bottom: 0; grid-template-columns: 1fr; align-content: start; }
+
+@media (max-width: 860px) {
+  .work-plan__doc-body.is-open { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .work-plan__doc-settings { border-right: 0; border-bottom: 1px solid var(--line); max-height: 45vh; }
+}

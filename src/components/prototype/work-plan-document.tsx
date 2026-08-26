@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { bahtText, formatBaht } from "@/lib/thai-baht";
 import { formatThaiDate } from "@/lib/thai-format";
 import { formatPercent } from "@/lib/work-plan";
@@ -50,7 +50,49 @@ export function WorkPlanDocument({
   onClose: () => void;
 }) {
   const [logoError, setLogoError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [zoom, setZoom] = useState<"fit" | "full">("fit");
+  const [fitScale, setFitScale] = useState(1);
+  const stageRef = useRef<HTMLDivElement>(null);
   const fileId = useId();
+
+  /**
+   * ย่อกระดาษให้พอดีความกว้างที่เหลือ เหมือนตัวอย่างก่อนพิมพ์ของโปรแกรมอ่าน PDF
+   *
+   * กระดาษถูกตั้งเป็นขนาด A4 จริงคือ 210 มิลลิเมตร ซึ่งเบราว์เซอร์แปลงเป็น 793.7 พิกเซล
+   * ที่การย่อขยายปกติ (96 พิกเซลต่อนิ้ว) ตัวเลขนี้จึงเป็นค่าคงที่ ไม่ต้องวัดจากหน้าจอ
+   * แล้วย่อด้วย transform เพื่อให้ผู้ใช้เห็นสัดส่วนหน้ากระดาษจริง ไม่ใช่กล่องที่ยืดเต็มจอ
+   * ซึ่งทำให้ระยะขอบดูไม่ตรงกับที่จะพิมพ์ออกมา
+   */
+  const A4_WIDTH_PX = 793.7;
+  const A4_HEIGHT_PX = 1122.5;
+
+  /**
+   * พอดีหน้าจอคือเห็นทั้งแผ่น ไม่ใช่พอดีความกว้าง
+   *
+   * รอบแรกคิดจากความกว้างอย่างเดียว ผลคือบนจอกว้างค่าที่ได้เท่ากับหนึ่งพอดี
+   * ปุ่มพอดีหน้าจอกับขนาดจริงจึงให้ผลเหมือนกันเป๊ะ กดแล้วไม่มีอะไรเปลี่ยน
+   * ซึ่งอ่านได้อย่างเดียวว่าปุ่มเสีย ตัวอย่างก่อนพิมพ์ของโปรแกรมอ่าน PDF คิดทั้งสองด้าน
+   * เพื่อให้เห็นทั้งหน้ากระดาษในคราวเดียว
+   */
+  const measure = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const byWidth = (stage.clientWidth - 48) / A4_WIDTH_PX;
+    const byHeight = (stage.clientHeight - 60) / A4_HEIGHT_PX;
+    setFitScale(Math.max(0.2, Math.min(1, byWidth, byHeight)));
+  }, []);
+
+  useEffect(() => {
+    measure();
+    const stage = stageRef.current;
+    if (!stage || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, [measure, showSettings]);
+
+  const scale = zoom === "fit" ? fitScale : 1;
 
   const patch = (next: Partial<WorkPlanDocumentMeta>) => onMeta({ ...meta, ...next });
   const patchSigner = (key: "contractor" | "employer", next: Partial<DocumentSignatory>) =>
@@ -86,6 +128,32 @@ export function WorkPlanDocument({
       <div className="work-plan__doc-toolbar">
         <p className="eyebrow">เอกสารพร้อมพิมพ์ · กระดาษ A4 ตามระเบียบงานสารบรรณ</p>
         <div className="work-plan__doc-toolbar-actions">
+          <div className="work-plan__view" role="group" aria-label="ขนาดที่แสดง">
+            <button
+              type="button"
+              className={zoom === "fit" ? "is-on" : undefined}
+              aria-pressed={zoom === "fit"}
+              onClick={() => setZoom("fit")}
+            >
+              พอดีหน้าจอ
+            </button>
+            <button
+              type="button"
+              className={zoom === "full" ? "is-on" : undefined}
+              aria-pressed={zoom === "full"}
+              onClick={() => setZoom("full")}
+            >
+              ขนาดจริง
+            </button>
+          </div>
+          <button
+            type="button"
+            className="button button--ghost micro-button"
+            aria-pressed={showSettings}
+            onClick={() => setShowSettings((open) => !open)}
+          >
+            {showSettings ? "ปิดแผงตั้งค่า" : "ตั้งค่าเอกสาร"}
+          </button>
           <button type="button" className="button button--orange micro-button" onClick={() => window.print()}>
             พิมพ์ หรือบันทึกเป็น PDF
           </button>
@@ -95,8 +163,13 @@ export function WorkPlanDocument({
         </div>
       </div>
 
-      {/* แผงตั้งค่าไม่ติดไปกับกระดาษ บล็อก print ซ่อนไว้ */}
-      <div className="work-plan__doc-settings">
+      <div className={showSettings ? "work-plan__doc-body is-open" : "work-plan__doc-body"}>
+      {/*
+        แผงตั้งค่าเป็นคอลัมน์ข้างกระดาษ ไม่ใช่แถบพาดขวางด้านบน
+        รอบก่อนวางไว้ด้านบนแล้วมันบังหัวกระดาษพอดี ซึ่งเป็นส่วนที่ผู้ใช้กำลังตั้งค่าอยู่
+        และปิดไว้เป็นค่าเริ่มต้น เพราะคนเปิดหน้านี้มาเพื่อดูกระดาษก่อน ไม่ได้มาตั้งค่า
+      */}
+      <aside className="work-plan__doc-settings" hidden={!showSettings}>
         <div className="work-plan__doc-field">
           <span>โลโก้บนหัวกระดาษ</span>
           <div className="work-plan__doc-logo-actions">
@@ -206,11 +279,27 @@ export function WorkPlanDocument({
             <p className="form-note">เว้นว่างไว้ได้ วงเล็บบนกระดาษยังอยู่ให้เขียนด้วยปากกา</p>
           </div>
         ))}
-      </div>
+      </aside>
 
-      <div className="work-plan__doc-scroll">
-        <div className="work-plan__paper">
+      <div className="work-plan__doc-stage" ref={stageRef}>
+        {/*
+          กระดาษถูกย่อด้วย transform ซึ่งไม่กินที่ตามจริง ตัวครอบจึงต้องหดความสูงตามอัตราส่วนเอง
+          ไม่งั้นจะเหลือที่ว่างใต้กระดาษเท่ากับส่วนที่ถูกย่อไป
+        */}
+        <div className="work-plan__doc-fit" style={{ height: `calc(297mm * ${scale})`, width: `calc(210mm * ${scale})` }}>
+          <div className="work-plan__paper" style={{ transform: `scale(${scale})` }}>
           <table className="work-plan__paper-head-table">
+            {/*
+              กำหนดความกว้างคอลัมน์เอง เพราะปล่อยให้ตารางเฉลี่ยเองแล้วชื่อโครงการซึ่งยาวที่สุด
+              ไปได้ช่องแคบที่สุด ตกบรรทัดห้าบรรทัดทั้งที่ยังมีที่ว่างอยู่ทางขวา
+            */}
+            <colgroup>
+              {logoVisible(meta) ? <col style={{ width: "26mm" }} /> : null}
+              <col style={{ width: "30mm" }} />
+              <col />
+              <col style={{ width: "24mm" }} />
+              <col style={{ width: "30mm" }} />
+            </colgroup>
             <tbody>
               <tr>
                 {logoVisible(meta) ? (
@@ -303,7 +392,9 @@ export function WorkPlanDocument({
               </div>
             ))}
           </div>
+          </div>
         </div>
+      </div>
       </div>
     </div>
   );
