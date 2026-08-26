@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  PAGE_CONTENT_HEIGHT_MM,
+  PX_PER_MM,
+  paginate,
+  type PageBlock,
+  type PlacedItem
+} from "@/lib/paper-pagination";
 import { bahtText, formatBaht } from "@/lib/thai-baht";
 import { formatThaiDate } from "@/lib/thai-format";
 import { formatPercent } from "@/lib/work-plan";
@@ -17,10 +24,15 @@ import {
 /**
  * เอกสารบัญชีงวดงาน–งวดเงิน สำหรับพิมพ์แนบสัญญาจ้าง
  *
- * งานจบที่กระดาษที่ยื่นได้จริง ไม่ใช่จบที่หน้าจอ เอกสารนี้จึงถูกจัดตามค่ามาตรฐานของ
- * หนังสือราชการไทย ไม่ใช่ตามที่หน้าจอสวย: กระดาษ A4 ขอบซ้าย 3 ซม. ขอบขวา 2 ซม.
- * ขอบบน 2.5 ซม. ขอบล่าง 2 ซม. และตัวอักษร TH Sarabun 16 พอยต์ ระยะบรรทัดเดี่ยว
- * (ค่าเหล่านี้อยู่ในบล็อก print ของ globals.css ซึ่งเป็นที่เดียวที่ควบคุมหน้ากระดาษได้จริง)
+ * งานจบที่กระดาษที่ยื่นได้จริง ไม่ใช่จบที่หน้าจอ ค่าหน้ากระดาษทั้งหมดถอดจากไฟล์ต้นแบบ
+ * ที่เจ้าของงานชี้ให้ดู `km/แบบฟอร์มเซ็นรับส่งมอบงาน.docx` คือ A4 210x297 มม.
+ * ขอบบน 25 ซ้าย 25 ขวา 15 ล่าง 15 มม. และ TH Sarabun New 16 พอยต์ทั้งฉบับ
+ * ค่าเหล่านี้อยู่ใน `src/app/document-print.css` ที่เดียว แยกจาก CSS ของหน้าจอ
+ *
+ * **เอกสารถูกแบ่งเป็นแผ่นจริง ไม่ใช่แผ่นเดียวที่ยืดตามเนื้อหา** ของเดิมประกาศความสูงเป็น
+ * `min-height` แล้วปล่อยให้ยืด ผลคือตัวอย่างแสดงแผ่นสูง 411 มม. ซึ่งเป็นกระดาษที่ไม่มีอยู่จริง
+ * และไม่ตรงกับ PDF ที่ได้ รอบนี้วัดความสูงของทุกบล็อกก่อน แล้วให้ `paginate` ตัดสินว่าอะไร
+ * อยู่หน้าไหน ตารางแตกข้ามหน้าได้ทีละแถวโดยหัวตารางซ้ำทุกหน้า
  *
  * สามอย่างที่แยกเอกสารนี้ออกจากรายงานทั่วไป:
  *
@@ -64,8 +76,10 @@ export function WorkPlanDocument({
    * แล้วย่อด้วย transform เพื่อให้ผู้ใช้เห็นสัดส่วนหน้ากระดาษจริง ไม่ใช่กล่องที่ยืดเต็มจอ
    * ซึ่งทำให้ระยะขอบดูไม่ตรงกับที่จะพิมพ์ออกมา
    */
-  const A4_WIDTH_PX = 793.7;
-  const A4_HEIGHT_PX = 1122.5;
+  /** A4 ที่การย่อขยายปกติ 96 จุดต่อนิ้ว เป็นค่าคงที่ ไม่ต้องวัดจากหน้าจอ */
+  const A4_WIDTH_PX = 210 * PX_PER_MM;
+  const A4_HEIGHT_PX = 297 * PX_PER_MM;
+  const PAGE_CONTENT_PX = PAGE_CONTENT_HEIGHT_MM * PX_PER_MM;
 
   /**
    * พอดีหน้าจอคือเห็นทั้งแผ่น ไม่ใช่พอดีความกว้าง
@@ -73,7 +87,6 @@ export function WorkPlanDocument({
    * รอบแรกคิดจากความกว้างอย่างเดียว ผลคือบนจอกว้างค่าที่ได้เท่ากับหนึ่งพอดี
    * ปุ่มพอดีหน้าจอกับขนาดจริงจึงให้ผลเหมือนกันเป๊ะ กดแล้วไม่มีอะไรเปลี่ยน
    * ซึ่งอ่านได้อย่างเดียวว่าปุ่มเสีย ตัวอย่างก่อนพิมพ์ของโปรแกรมอ่าน PDF คิดทั้งสองด้าน
-   * เพื่อให้เห็นทั้งหน้ากระดาษในคราวเดียว
    */
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -81,7 +94,7 @@ export function WorkPlanDocument({
     const byWidth = (stage.clientWidth - 48) / A4_WIDTH_PX;
     const byHeight = (stage.clientHeight - 60) / A4_HEIGHT_PX;
     setFitScale(Math.max(0.2, Math.min(1, byWidth, byHeight)));
-  }, []);
+  }, [A4_WIDTH_PX, A4_HEIGHT_PX]);
 
   useEffect(() => {
     measure();
@@ -123,10 +136,240 @@ export function WorkPlanDocument({
 
   const assignedPpm = 1_000_000n - schedule.unassignedWeightPpm;
 
+  const blank = <span className="doc-blank" />;
+
+  /**
+   * เนื้อหาทั้งฉบับในรูปบล็อก เรียงตามลำดับที่ต้องอ่าน
+   *
+   * แยกออกมาเป็นข้อมูลแทนที่จะเขียนต่อกันเป็น JSX ก้อนเดียว เพราะตัวแบ่งหน้าต้องวัดทีละชิ้น
+   * แล้วประกอบกลับเป็นหน้า ๆ ตารางงวดงานไม่อยู่ในนี้เพราะมันแตกข้ามหน้าได้ จึงมีทางของตัวเอง
+   */
+  const headBlocks: { id: string; node: ReactNode }[] = [
+    {
+      id: "masthead",
+      node: (
+        <header className="doc-masthead">
+          {logoVisible(meta) ? (
+            // eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้ หรือไฟล์ที่มากับโปรแกรม ไม่ผ่านตัวปรับขนาดของ Next
+            <img src={meta.logoDataUri} alt="" />
+          ) : null}
+          <p><strong>{meta.employerName || blank}</strong></p>
+          {meta.siteName ? <p>{meta.siteName}</p> : null}
+          <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
+          <p>แนบท้ายสัญญาจ้าง{meta.contractNumber ? ` เลขที่ ${meta.contractNumber}` : ""}</p>
+          <p>ข้อมูล ณ วันที่ {formatThaiDate(meta.documentDate) ?? blank}</p>
+        </header>
+      )
+    },
+    { id: "h1", node: <h2>1. ข้อมูลสัญญา</h2> },
+    {
+      id: "facts",
+      node: (
+        <table className="doc-facts">
+          <tbody>
+            <tr><th scope="row">โครงการ</th><td>{projectName || blank}</td></tr>
+            <tr><th scope="row">เลขที่สัญญา</th><td>{meta.contractNumber || blank}</td></tr>
+            <tr><th scope="row">สถานที่ก่อสร้าง</th><td>{meta.siteName || blank}</td></tr>
+            <tr><th scope="row">จำนวนงวด</th><td>{schedule.rows.length.toLocaleString("th-TH")} งวด</td></tr>
+            <tr><th scope="row">มูลค่างานตามบัญชีนี้</th><td>{formatBaht(schedule.totalWorkSatang)} บาท</td></tr>
+          </tbody>
+        </table>
+      )
+    },
+    { id: "h2", node: <h2>2. บัญชีงวดงาน–งวดเงิน</h2> }
+  ];
+
+  const tailBlocks: { id: string; node: ReactNode }[] = [
+    {
+      id: "words",
+      // ยอดเป็นตัวอักษรอยู่ใต้ตัวเลขที่มันสะกด เพราะหน้าที่ของมันคือยืนยันตัวเลขข้างบน
+      node: <p style={{ textAlign: "right" }}>({bahtText(schedule.totalWorkSatang)})</p>
+    },
+    { id: "h3", node: <h2>3. หมายเหตุ</h2> },
+    {
+      id: "notes",
+      node: (
+        <div className="doc-box">
+          <p>
+            1. ฐานการหักเงินประกันผลงาน คืนเงินล่วงหน้า ภาษีมูลค่าเพิ่ม และภาษีหัก ณ ที่จ่าย
+            เป็นไปตามเงื่อนไขในสัญญาแต่ละฉบับ ให้ตรวจกับสัญญาจริงก่อนใช้ยื่นเบิก
+          </p>
+          <p style={{ marginBottom: 0 }}>
+            2. ยอดทุกช่องคิดด้วยจำนวนเต็มสตางค์ ผลรวมทุกงวดเท่ามูลค่างานตามบัญชีนี้เสมอ
+          </p>
+        </div>
+      )
+    },
+    { id: "h4", node: <h2>4. ลงนาม</h2> },
+    {
+      id: "signs",
+      node: (
+        <div className="doc-signs">
+          {(
+            [
+              ["contractor", "ผู้รับจ้าง"],
+              ["employer", "ผู้ว่าจ้าง"]
+            ] as const
+          ).map(([key, label]) => (
+            <div key={key}>
+              <p className="doc-sign-line">ลงชื่อ <span className="doc-line" /></p>
+              <p className="doc-sign-name">({signatureName(meta[key])})</p>
+              {signaturePosition(meta[key]) === "" ? null : (
+                <p className="doc-sign-position">{signaturePosition(meta[key])}</p>
+              )}
+              <p className="doc-sign-role">{label}</p>
+              {/* เอกสารแนบสัญญาต้องตอบได้ว่าลงนามวันไหน ช่องเว้นไว้ให้เขียนด้วยปากกา */}
+              <p className="doc-sign-date">
+                วันที่ <span className="doc-line" /> / <span className="doc-line" /> / <span className="doc-line" />
+              </p>
+            </div>
+          ))}
+        </div>
+      )
+    }
+  ];
+
+  const blockById = new Map([...headBlocks, ...tailBlocks].map((block) => [block.id, block.node]));
+
+  const tableColumns = (
+    <colgroup>
+      <col style={{ width: "12%" }} />
+      <col style={{ width: "48%" }} />
+      <col style={{ width: "14%" }} />
+      <col style={{ width: "26%" }} />
+    </colgroup>
+  );
+
+  const tableHead = (
+    <tr>
+      <th>งวดที่</th>
+      <th>งานที่ต้องแล้วเสร็จ</th>
+      <th>ร้อยละ</th>
+      <th>จำนวนเงิน (บาท)</th>
+    </tr>
+  );
+
+  const tableFoot = (
+    <tr>
+      <td colSpan={2}>รวมทั้งสิ้น</td>
+      <td className="doc-num">{formatPercent(assignedPpm)}</td>
+      <td className="doc-num">{formatBaht(schedule.totalWorkSatang)}</td>
+    </tr>
+  );
+
+  const milestoneCells = (row: MilestoneSchedule["rows"][number]) => (
+    <>
+      <td className="doc-mid">{row.ordinal}</td>
+      <td>
+        <strong>{row.title}</strong>
+        <span className="doc-works">
+          {(activityTitlesByMilestone[row.milestoneId] ?? []).join(" · ") || "ยังไม่ได้ผูกงาน"}
+        </span>
+      </td>
+      <td className="doc-num">{formatPercent(row.weightPpm)}</td>
+      <td className="doc-num">{formatBaht(row.periodWorkSatang)}</td>
+    </>
+  );
+
+  /**
+   * วัดความสูงจริงของทุกชิ้นแล้วให้ `paginate` ตัดสินว่าอะไรอยู่หน้าไหน
+   *
+   * รอ `document.fonts.ready` ก่อนวัดเสมอ เพราะความสูงที่วัดด้วยฟอนต์สำรองไม่ใช่ความสูงที่
+   * จะได้จริงเมื่อ TH Sarabun New โหลดเสร็จ แล้วหน้าจะแบ่งผิดตำแหน่ง
+   */
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [pages, setPages] = useState<PlacedItem[][]>([[]]);
+  const [overflowing, setOverflowing] = useState<string[]>([]);
+
+  /** ลายเซ็นของเนื้อหา ใช้สั่งวัดใหม่เมื่อสิ่งที่พิมพ์เปลี่ยน ไม่ใช่ทุกครั้งที่คอมโพเนนต์เรนเดอร์ */
+  const contentKey = JSON.stringify([
+    projectName,
+    meta,
+    schedule.rows.map((row) => [row.milestoneId, row.ordinal, row.title, String(row.periodWorkSatang)]),
+    activityTitlesByMilestone
+  ]);
+
+  const repaginate = useCallback(() => {
+    const root = measureRef.current;
+    if (!root) return;
+    const heightOf = (selector: string) => {
+      const node = root.querySelector<HTMLElement>(selector);
+      return node ? node.getBoundingClientRect().height : 0;
+    };
+    // หัวข้อทุกอันติดธง keepWithNext เพื่อไม่ให้ค้างท้ายหน้าโดยเนื้อหาไปอยู่หน้าถัดไป
+    const headings = new Set(["h1", "h2", "h3", "h4"]);
+    const atoms = (ids: string[]): PageBlock[] =>
+      ids.map((id) => ({
+        kind: "atom",
+        id,
+        height: heightOf('[data-block="' + id + '"]'),
+        keepWithNext: headings.has(id)
+      }));
+
+    const blocks: PageBlock[] = [
+      ...atoms(["masthead", "h1", "facts", "h2"]),
+      {
+        kind: "rows",
+        id: "milestones",
+        headerHeight: heightOf('[data-part="thead"]'),
+        footerHeight: heightOf('[data-part="tfoot"]'),
+        rows: schedule.rows.map((row) => ({
+          id: row.milestoneId,
+          height: heightOf('[data-row="' + CSS.escape(row.milestoneId) + '"]')
+        }))
+      },
+      ...atoms(["words", "h3", "notes", "h4", "signs"])
+    ];
+
+    const result = paginate(blocks, PAGE_CONTENT_PX);
+    setPages(result.pages);
+    setOverflowing(result.overflowing);
+  }, [schedule.rows, PAGE_CONTENT_PX]);
+
+  useLayoutEffect(() => {
+    repaginate();
+    if (typeof document === "undefined" || !document.fonts) return;
+    let live = true;
+    void document.fonts.ready.then(() => {
+      if (live) repaginate();
+    });
+    return () => {
+      live = false;
+    };
+  }, [repaginate, contentKey]);
+
+  /**
+   * สั่งพิมพ์หลังฟอนต์โหลดเสร็จเท่านั้น
+   *
+   * ถ้าสั่งพิมพ์ตอนฟอนต์ยังไม่มา เบราว์เซอร์จะพิมพ์ด้วยฟอนต์สำรอง ได้ PDF ที่ตัวอักษรไม่ใช่
+   * TH Sarabun New และตำแหน่งไม่ตรงกับที่เห็นบนหน้าจอ เอกสารที่พิมพ์ไปแล้วแก้ไม่ได้
+   */
+  const print = useCallback(() => {
+    if (typeof document !== "undefined" && document.fonts) {
+      void document.fonts.ready.then(() => window.print());
+      return;
+    }
+    window.print();
+  }, []);
+
+  /** ชิ้นส่วนของตารางงวดงานที่ตกอยู่ในหน้าหนึ่ง หัวตารางซ้ำทุกหน้าที่มันไปโผล่ */
+  const renderChunk = (item: Extract<PlacedItem, { kind: "rows" }>, key: string) => (
+    <table className="doc-table" key={key}>
+      {tableColumns}
+      <thead>{tableHead}</thead>
+      <tbody>
+        {schedule.rows.slice(item.from, item.to).map((row) => (
+          <tr key={row.milestoneId}>{milestoneCells(row)}</tr>
+        ))}
+      </tbody>
+      {item.withFooter ? <tfoot>{tableFoot}</tfoot> : null}
+    </table>
+  );
+
   return (
     <div className="work-plan__doc-overlay" role="dialog" aria-label="เอกสารบัญชีงวดงาน">
       <div className="work-plan__doc-toolbar">
-        <p className="eyebrow">เอกสารพร้อมพิมพ์ · กระดาษ A4 ตามระเบียบงานสารบรรณ</p>
+        <p className="eyebrow">เอกสารพร้อมพิมพ์ · A4 210 x 297 มม. · TH Sarabun New 16 พอยต์</p>
         <div className="work-plan__doc-toolbar-actions">
           <div className="work-plan__view" role="group" aria-label="ขนาดที่แสดง">
             <button
@@ -154,7 +397,7 @@ export function WorkPlanDocument({
           >
             {showSettings ? "ปิดแผงตั้งค่า" : "ตั้งค่าเอกสาร"}
           </button>
-          <button type="button" className="button button--orange micro-button" onClick={() => window.print()}>
+          <button type="button" className="button button--orange micro-button" onClick={print}>
             พิมพ์ หรือบันทึกเป็น PDF
           </button>
           <button type="button" className="button button--ghost micro-button" onClick={onClose}>
@@ -283,131 +526,81 @@ export function WorkPlanDocument({
 
       <div className="work-plan__doc-stage" ref={stageRef}>
         {/*
-          กระดาษถูกย่อด้วย transform ซึ่งไม่กินที่ตามจริง ตัวครอบจึงต้องหดความสูงตามอัตราส่วนเอง
-          ไม่งั้นจะเหลือที่ว่างใต้กระดาษเท่ากับส่วนที่ถูกย่อไป
+          ตัววัดความสูง มองไม่เห็นแต่ถูกจัดวางจริง เพราะของที่ไม่ได้จัดวางย่อมวัดความสูงไม่ได้
+          ความกว้างเท่าพื้นที่พิมพ์จริง ตัวเลขที่วัดได้จึงเป็นตัวเลขเดียวกับที่จะเกิดบนกระดาษ
         */}
-        <div className="work-plan__doc-fit" style={{ height: `calc(297mm * ${scale})`, width: `calc(210mm * ${scale})` }}>
-          <div className="work-plan__paper" style={{ transform: `scale(${scale})` }}>
-          {/*
-            หัวเรื่องกลางหน้า ตามแบบรายงานราชการไทย: หน่วยงาน สถานที่ ชื่อเอกสาร ที่มา วันที่ข้อมูล
-            รอบก่อนหัวกระดาษเป็นตารางกรอบที่เอาโลโก้ไปไว้ช่องซ้ายพร้อมข้อมูลห้าอย่างเบียดกัน
-            ซึ่งอ่านเหมือนแบบฟอร์มกรอกข้อมูล ไม่ใช่หัวเอกสารที่บอกว่านี่คือเอกสารอะไรของใคร
-          */}
-          <header className="work-plan__paper-masthead">
-            {logoVisible(meta) ? (
-              // eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้เอง ไม่ผ่านตัวปรับขนาดของ Next
-              <img src={meta.logoDataUri} alt="" />
-            ) : null}
-            <p className="work-plan__paper-org">{meta.employerName || <span className="work-plan__paper-blank" />}</p>
-            {meta.siteName ? <p>{meta.siteName}</p> : null}
-            <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
-            <p>แนบท้ายสัญญาจ้าง{meta.contractNumber ? ` เลขที่ ${meta.contractNumber}` : ""}</p>
-            <p>ข้อมูล ณ วันที่ {formatThaiDate(meta.documentDate) ?? <span className="work-plan__paper-blank" />}</p>
-          </header>
-
-          {/* เลขหัวข้ออยู่ในข้อความจริง เพราะผู้ตรวจอ้างถึงมันด้วยเสียงและด้วยปากกา */}
-          <h2 className="work-plan__paper-section">1. ข้อมูลสัญญา</h2>
-          <table className="work-plan__paper-facts">
-            <tbody>
-              <tr>
-                <th scope="row">โครงการ</th>
-                <td>{projectName || <span className="work-plan__paper-blank" />}</td>
-              </tr>
-              <tr>
-                <th scope="row">เลขที่สัญญา</th>
-                <td>{meta.contractNumber || <span className="work-plan__paper-blank" />}</td>
-              </tr>
-              <tr>
-                <th scope="row">สถานที่ก่อสร้าง</th>
-                <td>{meta.siteName || <span className="work-plan__paper-blank" />}</td>
-              </tr>
-              <tr>
-                <th scope="row">จำนวนงวด</th>
-                <td>{schedule.rows.length.toLocaleString("th-TH")} งวด</td>
-              </tr>
-              <tr>
-                <th scope="row">มูลค่างานตามบัญชีนี้</th>
-                <td>{formatBaht(schedule.totalWorkSatang)} บาท</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <h2 className="work-plan__paper-section">2. บัญชีงวดงาน–งวดเงิน</h2>
-          <table className="work-plan__paper-table">
-            <thead>
-              <tr>
-                <th>งวดที่</th>
-                <th>งานที่ต้องแล้วเสร็จ</th>
-                <th>ร้อยละ</th>
-                <th>จำนวนเงิน (บาท)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedule.rows.map((row) => (
-                <tr key={row.milestoneId}>
-                  <td className="work-plan__paper-mid">{row.ordinal}</td>
-                  <td>
-                    <strong>{row.title}</strong>
-                    <span className="work-plan__paper-works">
-                      {(activityTitlesByMilestone[row.milestoneId] ?? []).join(" · ") || "ยังไม่ได้ผูกงาน"}
-                    </span>
-                  </td>
-                  <td className="work-plan__paper-num">{formatPercent(row.weightPpm)}</td>
-                  <td className="work-plan__paper-num">{formatBaht(row.periodWorkSatang)}</td>
-                </tr>
+        <div className="doc-measure" aria-hidden="true" ref={measureRef}>
+          <div className="doc-page">
+            <div className="doc-page__inner">
+              {headBlocks.map((block) => (
+                <div className="doc-block" data-block={block.id} key={block.id}>
+                  {block.node}
+                </div>
               ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colSpan={2}>รวมทั้งสิ้น</td>
-                <td className="work-plan__paper-num">{formatPercent(assignedPpm)}</td>
-                <td className="work-plan__paper-num">{formatBaht(schedule.totalWorkSatang)}</td>
-              </tr>
-            </tfoot>
-          </table>
-
-          {/* ยอดเป็นตัวอักษรอยู่ใต้ตัวเลขที่มันสะกด ไม่ใช่ในกล่องแยกกลางหน้า
-              เพราะหน้าที่ของมันคือยืนยันตัวเลขข้างบน ไม่ใช่ประกาศเรื่องใหม่ */}
-          <p className="work-plan__paper-words">({bahtText(schedule.totalWorkSatang)})</p>
-
-          <h2 className="work-plan__paper-section">3. หมายเหตุ</h2>
-          <div className="work-plan__paper-box">
-            <ol>
-              <li>
-                ฐานการหักเงินประกันผลงาน คืนเงินล่วงหน้า ภาษีมูลค่าเพิ่ม และภาษีหัก ณ ที่จ่าย
-                เป็นไปตามเงื่อนไขในสัญญาแต่ละฉบับ ให้ตรวจกับสัญญาจริงก่อนใช้ยื่นเบิก
-              </li>
-              <li>ยอดทุกช่องคิดด้วยจำนวนเต็มสตางค์ ผลรวมทุกงวดเท่ามูลค่างานตามบัญชีนี้เสมอ</li>
-            </ol>
-          </div>
-
-          <h2 className="work-plan__paper-section">4. ลงนาม</h2>
-          <div className="work-plan__paper-signs">
-            {(
-              [
-                ["contractor", "ผู้รับจ้าง"],
-                ["employer", "ผู้ว่าจ้าง"]
-              ] as const
-            ).map(([key, label]) => (
-              <div key={key}>
-                <p className="work-plan__paper-sign-line">
-                  ลงชื่อ <span className="work-plan__paper-line" />
-                </p>
-                <p className="work-plan__paper-sign-name">({signatureName(meta[key])})</p>
-                {signaturePosition(meta[key]) === "" ? null : (
-                  <p className="work-plan__paper-sign-position">{signaturePosition(meta[key])}</p>
-                )}
-                <p className="work-plan__paper-sign-role">{label}</p>
-                {/* เอกสารแนบสัญญาต้องตอบได้ว่าลงนามวันไหน ช่องเว้นไว้ให้เขียนด้วยปากกา */}
-                <p className="work-plan__paper-sign-date">
-                  วันที่ <span className="work-plan__paper-line" /> / <span className="work-plan__paper-line" /> /{" "}
-                  <span className="work-plan__paper-line" />
-                </p>
-              </div>
-            ))}
-          </div>
+              <table className="doc-table">
+                {tableColumns}
+                <thead data-part="thead">{tableHead}</thead>
+                <tbody>
+                  {schedule.rows.map((row) => (
+                    <tr data-row={row.milestoneId} key={row.milestoneId}>
+                      {milestoneCells(row)}
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot data-part="tfoot">{tableFoot}</tfoot>
+              </table>
+              {tailBlocks.map((block) => (
+                <div className="doc-block" data-block={block.id} key={block.id}>
+                  {block.node}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/*
+          transform ย่อทั้งกองเพื่อดูภาพรวมเท่านั้น ไม่ได้ใช้บีบเนื้อหาให้ลงหน้า
+          และไม่กินที่ตามจริง ตัวครอบจึงกำหนดขนาดตามอัตราส่วนที่ย่อไว้เอง
+        */}
+        <div
+          className="doc-deck__fit"
+          style={{
+            width: `calc(210mm * ${scale})`,
+            height: `calc((297mm * ${pages.length} + 24px * ${Math.max(0, pages.length - 1)}) * ${scale})`
+          }}
+        >
+          <div className="doc-deck" style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
+            {pages.map((items, index) => (
+              <section className="doc-page" key={index} aria-label={`หน้า ${index + 1} จาก ${pages.length}`}>
+                <div className="doc-page__inner">
+                  {items.map((item, position) =>
+                    item.kind === "atom" ? (
+                      <div className="doc-block" key={item.id}>
+                        {blockById.get(item.id)}
+                      </div>
+                    ) : (
+                      renderChunk(item, `${item.id}-${position}`)
+                    )
+                  )}
+                </div>
+                {/* เลขหน้าอยู่ที่ขอบล่างของพื้นที่พิมพ์ เอกสารหน้าเดียวไม่ต้องมี */}
+                {pages.length > 1 ? (
+                  <p className="doc-page__folio">
+                    หน้า {(index + 1).toLocaleString("th-TH")} / {pages.length.toLocaleString("th-TH")}
+                  </p>
+                ) : null}
+              </section>
+            ))}
+          </div>
+        </div>
+
+        {/* ของที่สูงเกินหนึ่งหน้าไม่ถูกตัดทิ้งเงียบ ๆ แต่บอกให้ผู้ใช้รู้ว่าจะพิมพ์ออกมาไม่ครบ */}
+        {overflowing.length === 0 ? null : (
+          <p className="work-plan__doc-overflow" role="alert">
+            มีเนื้อหา {overflowing.length.toLocaleString("th-TH")} ชิ้นที่สูงเกินหนึ่งหน้ากระดาษ
+            จึงพิมพ์ออกมาไม่ครบ ให้ลดข้อความในช่องนั้นลงก่อนสั่งพิมพ์
+          </p>
+        )}
       </div>
       </div>
     </div>

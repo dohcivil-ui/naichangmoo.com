@@ -1,0 +1,221 @@
+/* ============================================================================
+   เอกสารแนบสัญญาที่พิมพ์ออกไปใช้จริง — CSS ของงานพิมพ์ แยกจาก CSS ของหน้าจอ
+
+   ค่าทุกตัวในไฟล์นี้ถอดจากไฟล์ต้นแบบที่เจ้าของงานชี้ให้ดู
+   `km/แบบฟอร์มเซ็นรับส่งมอบงาน.docx` โดยอ่านจาก `word/document.xml` ตรง ๆ ไม่ได้วัดจากภาพ
+
+     <w:pgSz w:w="11906" w:h="16838"/>                     210.0 x 297.0 มม.
+     <w:pgMar w:top="1418" w:right="849" w:bottom="851" w:left="1418"/>
+                                                            บน 25 ขวา 15 ล่าง 15 ซ้าย 25 มม.
+     <w:sz w:val="32"/> 343 จาก 344 จุด                     16 พอยต์ทั้งฉบับ
+     <w:b/> 5 จุด                                           ตัวหนาใช้เท่าที่จำเป็น
+
+   สามข้อที่กำหนดรูปร่างของไฟล์นี้
+
+   หนึ่ง — **ขนาดกระดาษประกาศเป็นมิลลิเมตร ไม่ใช่พิกเซล** หนึ่งหน้าคือกล่องขนาด
+   210x297 มม. เป๊ะ ไม่ใช่ `min-height` ที่ยืดตามเนื้อหา ของเดิมยืดจนได้แผ่นสูง 411 มม.
+   ซึ่งเป็นกระดาษที่ไม่มีอยู่จริง เนื้อหาที่ยาวเกินต้องขึ้นแผ่นใหม่ ไม่ใช่ทำให้แผ่นเดิมยาวขึ้น
+
+   สอง — **ระยะขอบเป็น padding ของแผ่น ไม่ใช่ margin ของ @page** `@page` จึงตั้ง margin
+   เป็นศูนย์ วิธีนี้ทำให้ตำแหน่งข้อความบนหน้าจอกับใน PDF ตรงกันทุกจุด เพราะทั้งสองทาง
+   วัดจากกล่องเดียวกัน ถ้าปล่อยให้ @page เป็นคนใส่ขอบ เบราว์เซอร์จะจัดหน้าเองอีกชั้น
+   แล้วสิ่งที่เห็นกับสิ่งที่ได้จะเลื่อนกัน
+
+   สาม — **ฟอนต์เป็น TH Sarabun New ตัวจริงที่เสิร์ฟจากโดเมนนี้** ไม่ใช่ Sarabun ของ Google
+   ที่เคยใช้ วัดข้อความชุดเดียวกันที่ 16 พอยต์เท่ากันแล้ว Sarabun ของ Google กว้างกว่า
+   Browallia New ของไฟล์ต้นแบบ 46% ส่วน TH Sarabun New แคบกว่า 4% ซึ่งมองไม่ออก
+   นี่คือสาเหตุที่หัวเอกสารเคยดูใหญ่เกินต้นแบบ ไม่ใช่เพราะเลขพอยต์ผิด
+   `font-display: block` เพราะเอกสารที่พิมพ์ด้วยฟอนต์สำรองไปแล้วแก้ทีหลังไม่ได้
+   ============================================================================ */
+
+@font-face {
+  font-family: "TH Sarabun New";
+  src: url("/fonts/THSarabunNew.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: "TH Sarabun New";
+  src: url("/fonts/THSarabunNew-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+
+:root {
+  --page-w: 210mm;
+  --page-h: 297mm;
+  --page-pad-top: 25mm;
+  --page-pad-right: 15mm;
+  --page-pad-bottom: 15mm;
+  --page-pad-left: 25mm;
+  /* พื้นที่พิมพ์ต่อหน้า ใช้ทั้งใน CSS และในตัวแบ่งหน้าฝั่ง TypeScript */
+  --page-content-w: 170mm;
+  --page-content-h: 257mm;
+}
+
+@page { size: A4 portrait; margin: 0; }
+
+/* ---- แผ่นกระดาษหนึ่งแผ่น ---- */
+.doc-page {
+  box-sizing: border-box;
+  width: var(--page-w);
+  height: var(--page-h);
+  padding: var(--page-pad-top) var(--page-pad-right) var(--page-pad-bottom) var(--page-pad-left);
+  background: #fff;
+  color: #000;
+  font-family: "TH Sarabun New", serif;
+  font-size: 16pt;
+  /* ระยะบรรทัดเดี่ยวอย่างที่ไฟล์ต้นแบบใช้ ไม่ใช่ 1.2 ที่ทำให้แถวตารางสูงเกินจริง */
+  line-height: 1.15;
+  /* เนื้อหาที่ยาวเกินหนึ่งหน้าถูกย้ายไปแผ่นถัดไปโดยตัวแบ่งหน้า ไม่ใช่ถูกซ่อน
+     ค่านี้เป็นตาข่ายกันพลาดเท่านั้น ถ้ามันทำงานแปลว่าตัวแบ่งหน้าคำนวณพลาด */
+  overflow: hidden;
+}
+
+.doc-page__inner { width: var(--page-content-w); }
+
+/* ---- ตัวอักษร: ขนาดเดียวทั้งฉบับ ลำดับชั้นมาจากความหนาและการจัดวาง ---- */
+.doc-page h1,
+.doc-page h2,
+.doc-page h3,
+.doc-page p,
+.doc-page td,
+.doc-page th { font-size: 16pt; margin: 0; }
+
+.doc-page h1, .doc-page h2, .doc-page h3 { font-weight: 700; }
+
+/* ระยะห่างจากไฟล์ต้นแบบ: หลังย่อหน้า 40 twip = 2 มม. ก่อนหัวข้อ 120 twip = 6 มม. */
+.doc-page p { margin-bottom: 2mm; }
+.doc-page h2 { margin: 6mm 0 2mm; break-after: avoid; }
+/* เฉพาะหัวข้อของบล็อกแรกในหน้าเท่านั้นที่ไม่ต้องมีระยะเหนือ ไม่ใช่ทุกหัวข้อ
+   ทุกบล็อกถูกครอบด้วย .doc-block เพื่อกันระยะขอบยุบตอนวัด หัวข้อทุกอันจึงเป็นลูกคนแรก
+   ของกล่องตัวเอง ถ้าเขียนเป็น h2:first-child ระยะ 6 มม. เหนือหัวข้อจะหายไปทั้งฉบับ */
+.doc-page__inner > .doc-block:first-child h2 { margin-top: 0; }
+
+/* ---- หัวเอกสาร ---- */
+.doc-masthead { text-align: center; margin-bottom: 4mm; }
+.doc-masthead img { display: block; max-width: 18mm; max-height: 18mm; margin: 0 auto 1mm; object-fit: contain; }
+.doc-masthead h1 { margin: 1mm 0 1mm; }
+.doc-masthead p { margin-bottom: 1mm; }
+
+/* ---- ตาราง ---- */
+.doc-table { width: 100%; border-collapse: collapse; }
+.doc-table th, .doc-table td { border: 1px solid #000; padding: 1mm 2mm; vertical-align: top; }
+.doc-table thead th { background: #ececec; text-align: center; font-weight: 700; }
+.doc-table tr { break-inside: avoid; }
+.doc-num { text-align: right; font-variant-numeric: tabular-nums; }
+.doc-mid { text-align: center; }
+
+/* ตารางข้อเท็จจริง ป้ายซ้าย ค่าชิดขวา */
+.doc-facts { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.doc-facts th, .doc-facts td { border: 1px solid #000; padding: 1mm 2mm; }
+.doc-facts th { width: 46%; text-align: left; font-weight: 400; }
+.doc-facts td { text-align: right; font-weight: 700; }
+
+/* ---- กล่องหมายเหตุ และช่องลงนาม ---- */
+.doc-box { border: 1px solid #000; padding: 2mm; break-inside: avoid; }
+.doc-signs { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm 8mm; margin-top: 4mm; text-align: center; break-inside: avoid; }
+.doc-line { display: inline-block; min-width: 22mm; border-bottom: 1px dotted #000; }
+.doc-blank { display: inline-block; min-width: 30mm; border-bottom: 1px dotted #000; }
+
+/* เลขหน้า วางที่ขอบล่างของพื้นที่พิมพ์ ไม่ใช่ขอบกระดาษ */
+.doc-page__folio { margin-top: auto; padding-top: 3mm; text-align: center; font-size: 16pt; }
+.doc-page { display: flex; flex-direction: column; }
+
+/* ============================================================================
+   หน้าจอ: กองแผ่นเรียงลงมา โหมดพอดีหน้าจอย่อทั้งกองด้วย transform
+
+   transform ใช้เพื่อ "ดูภาพรวม" เท่านั้น ไม่ได้ใช้บีบเนื้อหาให้ลงหน้า ซึ่งเป็นคนละเรื่อง
+   ตอนพิมพ์ transform ถูกถอดออกทั้งหมด ขนาดที่พิมพ์จึงไม่ขึ้นกับการย่อบนหน้าจอ
+   ============================================================================ */
+@media screen {
+  .doc-deck { display: grid; gap: 24px; justify-items: center; }
+  .doc-page { box-shadow: 0 18px 44px rgba(5, 31, 47, .45); }
+}
+
+@media print {
+  /* ซ่อนทุกอย่างที่ไม่ใช่กระดาษ แถบเครื่องมือและแผงตั้งค่าไม่ติดไปกับเอกสาร */
+  body * { visibility: hidden; }
+  .work-plan__doc-overlay, .work-plan__doc-overlay * { visibility: visible; }
+  .work-plan__doc-overlay { position: static; background: none; }
+  .work-plan__doc-toolbar, .work-plan__doc-settings { display: none; }
+  .work-plan__doc-scroll { overflow: visible; padding: 0; }
+  .work-plan__doc-body, .work-plan__doc-body.is-open { display: block; }
+  .work-plan__doc-stage { overflow: visible; padding: 0; background: none; display: block; }
+
+  /* ห้ามย่อตอนพิมพ์ ไม่งั้นตัวอักษรจะเล็กกว่า 16 พอยต์ที่ระเบียบกำหนด */
+  .doc-deck { display: block; transform: none !important; width: auto !important; height: auto !important; }
+  .doc-deck__scale { transform: none !important; width: auto !important; height: auto !important; }
+  .doc-page { box-shadow: none; margin: 0; break-after: page; }
+  .doc-page:last-child { break-after: auto; }
+}
+
+/* ============================================================================
+   ช่องลงนาม และช่องที่ยังไม่กรอก
+
+   วงเล็บใต้เส้นลายเซ็นมีเสมอแม้ยังไม่ได้กรอกชื่อ เพราะผู้ใช้จำนวนมากพิมพ์เอกสารออกมา
+   แล้วเขียนชื่อด้วยปากกา ถ้าซ่อนวงเล็บตอนยังไม่มีชื่อ ก็เท่ากับบังคับให้ต้องกรอกในระบบ
+   ก่อนถึงจะใช้กระดาษได้ ทุกบรรทัดในบล็อกนี้เป็น 16 พอยต์เท่ากันหมด
+   ============================================================================ */
+.doc-sign-line { margin: 0 0 1mm; }
+.doc-sign-line .doc-line { width: 62%; }
+.doc-sign-name { margin: 1mm 0 0; white-space: pre; }
+.doc-sign-position { margin: .8mm 0 0; }
+.doc-sign-role { margin: .8mm 0 0; font-weight: 700; }
+.doc-sign-date { margin: 3mm 0 0; }
+.doc-sign-date .doc-line { min-width: 14mm; }
+
+/* ============================================================================
+   ตัววัดความสูง
+
+   ตัวแบ่งหน้าต้องรู้ความสูงจริงของทุกบล็อกก่อนตัดสินว่าอะไรอยู่หน้าไหน จึงเรนเดอร์เอกสาร
+   ทั้งฉบับลงในกล่องที่มองไม่เห็นแต่มีความกว้างเท่าพื้นที่พิมพ์จริง แล้ววัดทีละชิ้น
+
+   ใช้ `visibility: hidden` กับการย้ายออกไปนอกจอ ไม่ใช่ `display: none` เพราะของที่ไม่ได้
+   จัดวางย่อมวัดความสูงไม่ได้
+
+   ทุกบล็อกครอบด้วย `display: flow-root` เพื่อไม่ให้ระยะขอบของลูกยุบรวมกับของแม่
+   ไม่งั้นความสูงที่วัดได้จะน้อยกว่าที่ใช้จริงเท่ากับระยะขอบที่ยุบหายไป
+   ============================================================================ */
+.doc-measure { position: absolute; left: -10000px; top: 0; visibility: hidden; pointer-events: none; }
+.doc-measure .doc-page { height: auto; overflow: visible; box-shadow: none; }
+.doc-block { display: flow-root; }
+
+/* ตารางแตกข้ามหน้าได้ ทุกชิ้นส่วนจึงต้องมีความกว้างคอลัมน์เท่ากันเป๊ะ ไม่ใช่ให้เบราว์เซอร์
+   คิดใหม่จากเนื้อหาของแต่ละชิ้น ซึ่งจะได้คอลัมน์คนละความกว้างในหน้าคนละหน้า */
+.doc-table { table-layout: fixed; }
+.doc-works { display: block; padding-left: 4mm; }
+
+@media print {
+  .doc-measure { display: none; }
+}
+
+/* ตัวครอบของกองกระดาษ transform ไม่กินที่ตามจริง ตัวครอบจึงกำหนดขนาดตามที่ย่อไว้เอง */
+.doc-deck__fit { position: relative; flex: none; }
+
+@media screen {
+  .work-plan__doc-overflow {
+    max-width: 210mm;
+    margin: 16px auto 0;
+    padding: 10px 14px;
+    border-left: 3px solid var(--orange);
+    border-radius: 8px;
+    background: #fff8f2;
+    color: var(--ink);
+    font-size: .82rem;
+    font-weight: 600;
+  }
+}
+
+@media print {
+  .work-plan__doc-overflow { display: none; }
+}
+
+/* เวทีของกระดาษเรียงเป็นคอลัมน์ เพราะใต้กองกระดาษมีคำเตือนเรื่องเนื้อหาล้นได้
+   ประกาศทับที่นี่แทนการแก้ globals.css เพื่อให้กฎของงานพิมพ์อยู่ไฟล์เดียวกันทั้งหมด */
+@media screen {
+  .work-plan__doc-stage { flex-direction: column; align-items: center; }
+}
