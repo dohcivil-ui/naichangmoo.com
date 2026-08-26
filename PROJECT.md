@@ -29,7 +29,9 @@ Vercel is used for pilot deployment. Production portability targets Hostinger VP
 
 ## Explicit non-goals
 
-Do not create or roadmap Smart Drawing/CAD, Traffic Vision, standalone central-price guide, BOQ irrigation, Home Check, Civil Service exam preparation, or BOQ road/bridge/box-culvert tools. Do not refactor Land Acquisition V2 in this repository.
+Do not create or roadmap Smart Drawing/CAD, Traffic Vision, BOQ irrigation, Home Check, Civil Service exam preparation, or BOQ road/bridge/box-culvert tools. Do not refactor Land Acquisition V2 in this repository.
+
+The material and labour price desk (PRICEMETR) is in scope as a platform app in the cost-and-estimating category. An earlier revision of this list forbade a "standalone central-price guide"; the owner amended that on 2026-08-26 (IP-165) because the price desk is not standalone — it feeds priced line items into the platform's estimating apps and lives under the same shell, registry and membership as every other app.
 
 ## Source-of-truth order
 

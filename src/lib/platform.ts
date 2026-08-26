@@ -5,8 +5,13 @@ export type AppAccess = "paid_trial" | "member_free" | "doh_staff_only" | "agent
 export const marketCategories = [
   {
     id: "building-cost",
-    label: "หมวดประมาณราคา",
-    description: "งานประมาณราคาอาคาร"
+    label: "หมวดต้นทุนและประมาณราคาก่อสร้าง",
+    description: "ราคาวัสดุ ค่าแรง และงานประมาณราคาก่อสร้าง"
+  },
+  {
+    id: "construction-management",
+    label: "การบริหารและจัดการงานก่อสร้าง",
+    description: "วางแผนงานและบริหารการก่อสร้างให้เดินตามสัญญา"
   },
   {
     id: "civil-design",
@@ -83,6 +88,28 @@ export const platformApps: PlatformApp[] = [
       // ADR 0010: every surface before entry says this one sentence. The project cap and the
       // export/print locks are still enforced and are still stated on the activation screen.
       availabilityNote: "ทดลองใช้งานฟรี 7 วัน"
+    }
+  },
+  {
+    slug: "pricemetr",
+    name: "PRICEMETR",
+    eyebrow: "ราคาวัสดุและค่าแรง",
+    description: "ราคาวัสดุก่อสร้างรายจังหวัดและค่าแรงตามบัญชีราชการ",
+    programName: "แอปราคาวัสดุและค่าแรงงานก่อสร้าง",
+    purpose: "สำหรับค้นราคาวัสดุรายจังหวัดและค่าแรงถอดแบบจากแหล่งราชการ แล้วหยิบรายการไปใช้ประมาณราคา",
+    // PLACEHOLDER: borrows the platform mark until IP-166 delivers this app's own badge, the same
+    // stand-in convention escalation-k uses below. Replace before the app is announced.
+    iconSrc: visualAssetUrl("brand_mark"),
+    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปราคาวัสดุและค่าแรง",
+    seededAccess: "paid_trial",
+    href: "/prototype/price-check",
+    status: "coming_soon",
+    categoryId: "building-cost",
+    marketDetail: {
+      outcome: "ค้นราคาวัสดุและค่าแรงจากแหล่งราชการ พร้อมหยิบรายการเก็บไว้ใช้ต่อ",
+      preparation: ["จังหวัดและเดือนของราคาที่ต้องการ", "หมวดวัสดุหรือรายการค่าแรงที่ตามหา", "ขอบเขตงานที่จะหยิบรายการไปประมาณราคา"],
+      flow: ["เลือกจังหวัดและเดือน", "ค้นหมวดหรือรายการ", "เทียบราคาและเงื่อนไข", "หยิบรายการเก็บไว้ใช้"],
+      availabilityNote: "กำลังพัฒนา ยังไม่เปิดใช้งาน"
     }
   },
   {
@@ -166,6 +193,28 @@ export const platformApps: PlatformApp[] = [
       outcome: "คำนวณค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้",
       preparation: ["ข้อมูลสัญญาและวงเงิน", "เดือนฐานและเดือนที่ส่งมอบแต่ละงวด", "สูตร K ที่ตรงกับประเภทงาน"],
       flow: ["กรอกข้อมูลสัญญา", "เลือกสูตร K", "ใส่ดัชนีราคา", "คำนวณเงินชดเชย"],
+      availabilityNote: "กำลังพัฒนา ยังไม่เปิดใช้งาน"
+    }
+  },
+  {
+    slug: "work-plan",
+    name: "ผู้ช่วยสร้างแผนงาน",
+    eyebrow: "แผนงานก่อสร้าง",
+    description: "สร้างแผนงานก่อสร้างและเอกสารแนบสัญญาจากข้อมูลโครงการ",
+    programName: "แอปผู้ช่วยสร้างแผนงานก่อสร้าง",
+    purpose: "สำหรับสร้างแผนงาน งวดงาน แผนกำลังคน และกราฟ Gantt กับ S-Curve จากข้อมูลโครงการ",
+    // PLACEHOLDER: borrows the platform mark until the app gets a badge of its own. Replace
+    // before the app is announced.
+    iconSrc: visualAssetUrl("brand_mark"),
+    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปผู้ช่วยสร้างแผนงาน",
+    seededAccess: "paid_trial",
+    href: "/prototype/work-plan",
+    status: "coming_soon",
+    categoryId: "construction-management",
+    marketDetail: {
+      outcome: "ได้แผนงานก่อสร้างพร้อมเอกสารแนบสัญญาที่พิมพ์ลงกระดาษ A4 ได้จริง",
+      preparation: ["ข้อมูลโครงการ วงเงิน และระยะเวลาสัญญา", "ประเภทงานและลำดับกิจกรรมหลัก", "เงื่อนไขการนับเวลาแบบวันตามสัญญาหรือวันทำงาน"],
+      flow: ["กรอกข้อมูลโครงการ", "ให้ผู้ช่วยร่างแผนงาน", "ปรับงวดงานและกิจกรรม", "ส่งออกเอกสารแนบสัญญา"],
       availabilityNote: "กำลังพัฒนา ยังไม่เปิดใช้งาน"
     }
   }

@@ -6,7 +6,8 @@ describe("Civil Apps Market registry", () => {
     const categoryIds = new Set(marketCategories.map((category) => category.id));
 
     expect(marketCategories.map((category) => category.label)).toEqual([
-      "หมวดประมาณราคา",
+      "หมวดต้นทุนและประมาณราคาก่อสร้าง",
+      "การบริหารและจัดการงานก่อสร้าง",
       "หมวดงานออกแบบวิศวกรรมโยธา",
       "หมวดงานอุปกรณ์อำนวยความปลอดภัย",
       "หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน"
