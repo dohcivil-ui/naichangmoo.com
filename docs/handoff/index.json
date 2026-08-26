@@ -1,5 +1,25 @@
 [
   {
+    "version": "0.55.0",
+    "title": "Working Days, the Branches Return, and a Mark on the Paper",
+    "description": "สามรุ่นในเซสชันเดียว กู้แกนคำนวณค่า K และภาษาการออกแบบจากสาขาที่ตามหลัง คืนโรดแมป 8 รายการและปิดช่องว่างของ CHANGELOG ครบทุกรุ่น ทำให้ระยะเวลาที่ผู้ใช้กรอกนับเป็นวันทำงานได้โดยไม่ย้ายแกนเวลาของแผน และให้เอกสารแนบสัญญามีตราตั้งต้นที่อ่านออกว่าเป็นช่องรอใส่ตราจริง",
+    "scope": [
+      "merge feature/escalation-factor-k และหยิบสามไฟล์จาก design/platform-design-language",
+      "โรดแมป 54 เป็น 63 รายการ · CHANGELOG ครบ 68 จาก 68 รุ่น · เติมไฟล์รุ่นที่ขาดสองขั้น",
+      "ชั้นแปลงหน่วยเวลา work-plan-schedule.ts และ schema รุ่น 4",
+      "ตราตั้งต้นบนเอกสารแนบสัญญา เก็บเป็นเส้นทางไฟล์ไม่ใช่ data URI",
+      "ADR 0017 และคำศัพท์แผนงานหกคำใน CONTEXT.md"
+    ],
+    "verification": [
+      "pnpm test 509 ผ่าน 33 skip · typecheck สะอาด · lint ไม่มี output",
+      "node scripts/check-roadmap.mjs และ node scripts/check-release.mjs ผ่านทั้งคู่",
+      "ตรวจใน Edge จริง สลับหน่วยแล้ววันจบตรงกับที่คำเตือนบอกล่วงหน้า และตัวเลขที่ผู้ใช้กรอกไม่ถูกเขียนทับ",
+      "ตรวจธง done ที่ติดมากับสาขาสามข้อกับโค้ดจริงก่อนบันทึกลงโรดแมป"
+    ],
+    "rollback": "กลับไปที่ v0.52.0-calendar-becomes-something-you-can ได้ทั้งชุด ที่เก็บข้อมูลรุ่น 4 จะอ่านไม่ได้ด้วยโค้ดรุ่นก่อนหน้า ผู้ใช้ได้กระดานเปล่าจนกว่าจะกลับมา ข้อมูลในเบราว์เซอร์ไม่ถูกลบ",
+    "path": "docs/handoff/2026-08-26-working-days-and-the-branches-return.md"
+  },
+  {
     "version": "0.45.0",
     "title": "Work-Plan App Prototype — Real AI, Stepped Chart, Government Document",
     "description": "แอปที่สามของแพลตฟอร์ม ต้นแบบเดินครบสี่แท็บ ต่อ AI จริงที่ร่าง แก้ และตรวจแผน กราฟเส้นเงินขั้นบันไดแกนเดือนปฏิทิน เอกสารบัญชีงวดงานพิมพ์แนบสัญญาราชการได้ ยังไม่ต่อฐานข้อมูล",
