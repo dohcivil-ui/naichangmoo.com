@@ -122,7 +122,9 @@
 .doc-blank { display: inline-block; min-width: 30mm; border-bottom: 1px dotted #000; }
 
 /* เลขหน้า วางที่ขอบล่างของพื้นที่พิมพ์ ไม่ใช่ขอบกระดาษ */
-.doc-page__folio { margin-top: auto; padding-top: 3mm; text-align: center; font-size: 16pt; }
+/* เลขหน้าอยู่กึ่งกลางและติดขอบล่างของพื้นที่พิมพ์ ซึ่งห่างขอบกระดาษ 15 มม. ตามระยะขอบล่าง
+   ต้องเขียนความจำเพาะให้สูงกว่ากฎรวม .doc-page p { margin: 0 } ไม่งั้น auto ถูกทับ */
+.doc-page .doc-page__folio { margin: auto 0 0; padding-top: 3mm; text-align: center; font-size: 16pt; }
 .doc-page { display: flex; flex-direction: column; }
 
 /* ============================================================================
@@ -217,5 +219,29 @@
 /* เวทีของกระดาษเรียงเป็นคอลัมน์ เพราะใต้กองกระดาษมีคำเตือนเรื่องเนื้อหาล้นได้
    ประกาศทับที่นี่แทนการแก้ globals.css เพื่อให้กฎของงานพิมพ์อยู่ไฟล์เดียวกันทั้งหมด */
 @media screen {
-  .work-plan__doc-stage { flex-direction: column; align-items: center; }
+  /* จัดกึ่งกลางแนวตั้งกับ overflow auto เข้ากันไม่ได้ ส่วนที่ล้นขึ้นไปเหนือกรอบจะเลื่อนไปถึงไม่ได้
+     กฎเดิมตั้ง justify-content: center ไว้ตอนที่แกนหลักยังเป็นแนวนอน พอเปลี่ยนเป็นคอลัมน์
+     มันจึงกลายเป็นการจัดกึ่งกลางแนวตั้งโดยไม่ได้ตั้งใจ */
+  .work-plan__doc-stage { flex-direction: column; align-items: center; justify-content: flex-start; }
+}
+
+/* ============================================================================
+   ปุ่มย่อขยายบนแถบเครื่องมือ
+
+   อยู่ไฟล์นี้เพราะเป็นของแถบเครื่องมือของเอกสาร ไม่ใช่ของหน้าจอทั่วไป และเพื่อไม่ต้องแตะ
+   globals.css ที่อีกเซสชันทำงานค้างอยู่ ปฏิกิริยาตอนชี้ ตอนกด และตอนโฟกัส มาจากกฎ
+   .work-plan__view ที่มีอยู่แล้ว จึงไม่ต้องประกาศซ้ำ
+   ============================================================================ */
+@media screen {
+  .work-plan__zoom button { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; padding: .4rem .5rem; }
+  /* ปุ่มที่กดไม่ได้ต้องดูกดไม่ได้ ไม่ใช่ดูเหมือนกดได้แล้วไม่มีอะไรเกิดขึ้น */
+  .work-plan__zoom button:disabled { opacity: .38; cursor: not-allowed; }
+  .work-plan__zoom button:disabled:active { transform: none; }
+  .work-plan__zoom-level {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 56px; padding: .4rem .3rem;
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    background: var(--paper); color: var(--ink);
+    font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
 }

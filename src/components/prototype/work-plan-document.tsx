@@ -61,9 +61,20 @@ export function WorkPlanDocument({
   onMeta: (next: WorkPlanDocumentMeta) => void;
   onClose: () => void;
 }) {
+  const [pages, setPages] = useState<PlacedItem[][]>([[]]);
+  const [overflowing, setOverflowing] = useState<string[]>([]);
+  const pageCount = Math.max(1, pages.length);
+
   const [logoError, setLogoError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [zoom, setZoom] = useState<"fit" | "full">("fit");
+  /**
+   * อัตราย่อขยายที่ผู้ใช้ตั้งเอง ค่าว่างแปลว่าเดินตามโหมดพอดีหน้าจอหรือขนาดจริง
+   *
+   * แยกจาก `zoom` เพราะสองอย่างนี้ตอบคนละคำถาม โหมดตอบว่า "ให้ระบบเลือกให้" ส่วนค่านี้
+   * ตอบว่า "ฉันเลือกเอง" การกดแว่นขยายจึงเป็นการออกจากโหมดอัตโนมัติ ไม่ใช่การแก้ค่าของโหมด
+   */
+  const [customScale, setCustomScale] = useState<number | null>(null);
   const [fitScale, setFitScale] = useState(1);
   const stageRef = useRef<HTMLDivElement>(null);
   const fileId = useId();
@@ -88,13 +99,18 @@ export function WorkPlanDocument({
    * ปุ่มพอดีหน้าจอกับขนาดจริงจึงให้ผลเหมือนกันเป๊ะ กดแล้วไม่มีอะไรเปลี่ยน
    * ซึ่งอ่านได้อย่างเดียวว่าปุ่มเสีย ตัวอย่างก่อนพิมพ์ของโปรแกรมอ่าน PDF คิดทั้งสองด้าน
    */
+  /** ระยะระหว่างแผ่นบนหน้าจอ ต้องตรงกับ gap ของ .doc-deck ใน document-print.css */
+  const DECK_GAP_PX = 24;
+
   const measure = useCallback(() => {
     const stage = stageRef.current;
     if (!stage) return;
+    // พอดีหน้าจอคือเห็น **ทั้งเอกสาร** ไม่ใช่เห็นแผ่นแรกพอดี เอกสารสองหน้าจึงต้องคิดจากความสูงของทั้งกอง
+    const deckHeight = pageCount * A4_HEIGHT_PX + Math.max(0, pageCount - 1) * DECK_GAP_PX;
     const byWidth = (stage.clientWidth - 48) / A4_WIDTH_PX;
-    const byHeight = (stage.clientHeight - 60) / A4_HEIGHT_PX;
-    setFitScale(Math.max(0.2, Math.min(1, byWidth, byHeight)));
-  }, [A4_WIDTH_PX, A4_HEIGHT_PX]);
+    const byHeight = (stage.clientHeight - 60) / deckHeight;
+    setFitScale(Math.max(0.1, Math.min(1, byWidth, byHeight)));
+  }, [A4_WIDTH_PX, A4_HEIGHT_PX, pageCount]);
 
   useEffect(() => {
     measure();
@@ -103,9 +119,35 @@ export function WorkPlanDocument({
     const observer = new ResizeObserver(measure);
     observer.observe(stage);
     return () => observer.disconnect();
-  }, [measure, showSettings]);
+  }, [measure, showSettings, pageCount]);
 
-  const scale = zoom === "fit" ? fitScale : 1;
+  /**
+   * ขั้นของการย่อขยาย ไล่แบบเดียวกับโปรแกรมอ่าน PDF
+   *
+   * ใช้บันไดค่าคงที่แทนการคูณหารทีละนิด เพราะกดสิบครั้งแล้วต้องกลับมาที่ 100% ได้เป๊ะ
+   * การคูณ 1.2 ไปเรื่อย ๆ จะได้ 99.7% หรือ 100.4% ซึ่งอ่านแล้วเหมือนโปรแกรมเพี้ยน
+   */
+  const ZOOM_STEPS = [0.25, 0.35, 0.5, 0.75, 1, 1.25, 1.5, 2] as const;
+
+  const scale = customScale ?? (zoom === "fit" ? fitScale : 1);
+
+  /** ขั้นถัดไปในทิศที่กด ถ้าอยู่ระหว่างขั้น ให้ไปขั้นที่ใกล้ที่สุดในทิศนั้น */
+  const stepZoom = (direction: 1 | -1) => {
+    const next =
+      direction === 1
+        ? ZOOM_STEPS.find((step) => step > scale + 0.001)
+        : [...ZOOM_STEPS].reverse().find((step) => step < scale - 0.001);
+    if (next !== undefined) setCustomScale(next);
+  };
+
+  const canZoomIn = scale < ZOOM_STEPS[ZOOM_STEPS.length - 1]! - 0.001;
+  const canZoomOut = scale > ZOOM_STEPS[0]! + 0.001;
+
+  /** เลือกโหมดอัตโนมัติ = เลิกใช้ค่าที่ตั้งเอง ไม่งั้นกดปุ่มแล้วไม่มีอะไรเปลี่ยน ซึ่งอ่านว่าปุ่มเสีย */
+  const chooseZoom = (mode: "fit" | "full") => {
+    setCustomScale(null);
+    setZoom(mode);
+  };
 
   const patch = (next: Partial<WorkPlanDocumentMeta>) => onMeta({ ...meta, ...next });
   const patchSigner = (key: "contractor" | "employer", next: Partial<DocumentSignatory>) =>
@@ -278,8 +320,6 @@ export function WorkPlanDocument({
    * จะได้จริงเมื่อ TH Sarabun New โหลดเสร็จ แล้วหน้าจะแบ่งผิดตำแหน่ง
    */
   const measureRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<PlacedItem[][]>([[]]);
-  const [overflowing, setOverflowing] = useState<string[]>([]);
 
   /** ลายเซ็นของเนื้อหา ใช้สั่งวัดใหม่เมื่อสิ่งที่พิมพ์เปลี่ยน ไม่ใช่ทุกครั้งที่คอมโพเนนต์เรนเดอร์ */
   const contentKey = JSON.stringify([
@@ -374,19 +414,31 @@ export function WorkPlanDocument({
           <div className="work-plan__view" role="group" aria-label="ขนาดที่แสดง">
             <button
               type="button"
-              className={zoom === "fit" ? "is-on" : undefined}
-              aria-pressed={zoom === "fit"}
-              onClick={() => setZoom("fit")}
+              className={customScale === null && zoom === "fit" ? "is-on" : undefined}
+              aria-pressed={customScale === null && zoom === "fit"}
+              onClick={() => chooseZoom("fit")}
             >
               พอดีหน้าจอ
             </button>
             <button
               type="button"
-              className={zoom === "full" ? "is-on" : undefined}
-              aria-pressed={zoom === "full"}
-              onClick={() => setZoom("full")}
+              className={customScale === null && zoom === "full" ? "is-on" : undefined}
+              aria-pressed={customScale === null && zoom === "full"}
+              onClick={() => chooseZoom("full")}
             >
               ขนาดจริง
+            </button>
+          </div>
+          <div className="work-plan__view work-plan__zoom" role="group" aria-label="ย่อขยายเอกสาร">
+            <button type="button" onClick={() => stepZoom(-1)} disabled={!canZoomOut} aria-label="ย่อลง">
+              <MagnifierIcon sign="minus" />
+            </button>
+            {/* ตัวเลขเป็นสถานะ ไม่ใช่ปุ่ม แต่ต้องอยู่ในกลุ่มเดียวกันเพื่อให้อ่านคู่กับแว่นขยายได้ */}
+            <span className="work-plan__zoom-level" aria-live="polite">
+              {Math.round(scale * 100).toLocaleString("th-TH")}%
+            </span>
+            <button type="button" onClick={() => stepZoom(1)} disabled={!canZoomIn} aria-label="ขยายขึ้น">
+              <MagnifierIcon sign="plus" />
             </button>
           </div>
           <button
@@ -604,5 +656,24 @@ export function WorkPlanDocument({
       </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * แว่นขยายที่มีเครื่องหมายบวกหรือลบอยู่ข้างใน
+ *
+ * วาดเองแทนการใช้ชุดไอคอนสำเร็จ เพราะต้องการแค่สองอันและไม่อยากผูกเอกสารพิมพ์
+ * เข้ากับไฟล์ไอคอนที่หน้าอื่นเป็นเจ้าของ เส้นใช้ `currentColor` จึงเปลี่ยนสีตามปุ่มที่ครอบอยู่เอง
+ */
+function MagnifierIcon({ sign }: { sign: "plus" | "minus" }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+      <circle cx="6.75" cy="6.75" r="4.75" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10.4 10.4 L14 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M4.4 6.75 H9.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      {sign === "plus" ? (
+        <path d="M6.75 4.4 V9.1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      ) : null}
+    </svg>
   );
 }
