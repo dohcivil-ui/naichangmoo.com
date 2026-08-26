@@ -5,13 +5,14 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 ## Required workflow
 
 1. Run `/grill-with-docs` before touching source code for new work, and continue until the question frontier is empty. "It is a small change" is not a reason to skip. Skip only for a typo, a constant whose source is already recorded, or a fix that introduces no new term and no new decision. When you skip, state the reason on the first line of the handoff note.
-2. Work on the single trunk branch. A short-lived branch is allowed only when the work must be kept apart, and it is merged and deleted in the same session — side branches left open are how the release ladder came apart before.
-3. Add the work as an unchecked roadmap item before implementation.
-4. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
-5. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
-6. Run the quality gate required by the changed code before committing.
-7. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.
-8. Close every version with `pnpm release`, which tags, pushes and publishes the GitHub Release together. A GitHub Release is not the same object as a tag; publishing only the tag is what left the repository showing a release twenty-five versions old.
+2. **Fable plans, Opus 5 builds, and the order is not negotiable.** Analysis, design, the shape a module or function should take, and every ADR are Fable's work, and they happen before any code exists. Opus 5 implements the plan that came out of that. Writing code first and reverse-engineering a plan to match it is the failure this rule exists to stop — it produces designs nobody chose and ADRs that describe what was built rather than what was decided. If Opus 5 reaches a decision the plan does not cover, it stops and hands back to Fable rather than deciding at the keyboard. If Opus 5 has failed at the same problem three times, hand back to Fable: a fourth attempt at the same approach is not a fifth idea.
+3. Work on the single trunk branch. A short-lived branch is allowed only when the work must be kept apart, and it is merged and deleted in the same session — side branches left open are how the release ladder came apart before.
+4. Add the work as an unchecked roadmap item before implementation.
+5. Update the versioned roadmap and the `roadmap.json` pointer before every commit. Both must include a title, description, scope, verification and rollback that align with the tag and handoff.
+6. Use an ADR only for difficult-to-reverse decisions with real trade-offs. Run the ADR command instructions in `.agent/commands/adr.md`.
+7. Run the quality gate required by the changed code before committing.
+8. After every commit, add a dated handoff note that states changed files, verification, risk, rollback and next action.
+9. Close every version with `pnpm release`, which tags, pushes and publishes the GitHub Release together. A GitHub Release is not the same object as a tag; publishing only the tag is what left the repository showing a release twenty-five versions old.
 
 ## Safety rules
 
@@ -39,7 +40,7 @@ Read `PROJECT.md`, `CONTEXT.md`, `docs/roadmap/roadmap.json` and the latest file
 Three skills from `mattpocock/skills` are installed in `.claude/skills/` and pinned by `skills-lock.json`: `grill-with-docs`, `grilling` and `domain-modeling`. They are committed as real files, not symlinks, because this repository runs with `core.symlinks=false`.
 
 - `grill-with-docs` is one line that calls `grilling` and `domain-modeling`. All three must load. If a session asks every question at once with no recommended answer, or never touches `CONTEXT.md`, the dependencies did not load: say so and restart the session instead of continuing.
-- **ADR format is the project's, not the skill's.** Write every ADR with `.agent/commands/adr.md`: the full template (Status / Context / Decision / Alternatives considered / Consequences), `NNNN-slug` numbering, plus the roadmap and handoff references required by steps 4 and 7. Ignore `.claude/skills/domain-modeling/ADR-FORMAT.md`, which specifies a one-paragraph form. The skill's three gates for *whether* a decision deserves an ADR still apply: hard to reverse, surprising without context, a real trade-off.
+- **ADR format is the project's, not the skill's.** Write every ADR with `.agent/commands/adr.md`: the full template (Status / Context / Decision / Alternatives considered / Consequences), `NNNN-slug` numbering, plus the roadmap and handoff references required by steps 5 and 8. Ignore `.claude/skills/domain-modeling/ADR-FORMAT.md`, which specifies a one-paragraph form. The skill's three gates for *whether* a decision deserves an ADR still apply: hard to reverse, surprising without context, a real trade-off.
 - `CONTEXT.md` is a glossary and nothing else. No specification, no implementation detail, no session notes. Terms land in it the moment they resolve, not in a batch at the end.
 - Do not edit anything under `.claude/skills/**`. Their hashes are recorded in `skills-lock.json`, and a local edit makes `npx skills update` report drift forever. Every project-specific override belongs in this file.
 
