@@ -163,5 +163,5 @@ export function paginate(blocks: readonly PageBlock[], pageHeight: number): Pagi
 export const PX_PER_MM = 96 / 25.4;
 
 /** ความสูงของพื้นที่พิมพ์ต่อหนึ่งหน้า A4 ตามระยะขอบที่ document-print.css ประกาศไว้ */
-export const PAGE_CONTENT_HEIGHT_MM = 297 - 25 - 15;
+export const PAGE_CONTENT_HEIGHT_MM = 297 - 15 - 15;
 export const PAGE_CONTENT_WIDTH_MM = 210 - 25 - 15;

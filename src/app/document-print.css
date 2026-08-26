@@ -47,13 +47,15 @@
 :root {
   --page-w: 210mm;
   --page-h: 297mm;
-  --page-pad-top: 25mm;
+  /* ขอบบน 15 มม. เป็นการจงใจเบี่ยงจากไฟล์ต้นแบบซึ่งใช้ 25 มม. ตามที่เจ้าของงานสั่งเมื่อ 2026-08-26
+     (สั่ง 20 มม. ก่อน แล้วแก้เป็น 15 มม. ในวันเดียวกัน) ขอบอีกสามด้านยังตามไฟล์ต้นแบบ */
+  --page-pad-top: 15mm;
   --page-pad-right: 15mm;
   --page-pad-bottom: 15mm;
   --page-pad-left: 25mm;
   /* พื้นที่พิมพ์ต่อหน้า ใช้ทั้งใน CSS และในตัวแบ่งหน้าฝั่ง TypeScript */
   --page-content-w: 170mm;
-  --page-content-h: 257mm;
+  --page-content-h: 267mm;
 }
 
 @page { size: A4 portrait; margin: 0; }
@@ -96,9 +98,17 @@
 .doc-page__inner > .doc-block:first-child h2 { margin-top: 0; }
 
 /* ---- หัวเอกสาร ---- */
-.doc-masthead { text-align: center; margin-bottom: 4mm; }
-.doc-masthead img { display: block; max-width: 18mm; max-height: 18mm; margin: 0 auto 1mm; object-fit: contain; }
-.doc-masthead h1 { margin: 1mm 0 1mm; }
+/* หัวเอกสารสองคอลัมน์: ฝ่ายผู้ว่าจ้างอยู่ซ้าย ชื่อเอกสารและที่มาอยู่ขวา
+   เป็นรูปแบบเดียวกับหัวหนังสือราชการที่วางตราหน่วยงานไว้ซ้ายและเรื่องไว้ขวา
+   คอลัมน์ขวาเป็น auto เพื่อให้กว้างเท่าข้อความที่ยาวที่สุดของมัน ไม่ไปเบียดชื่อหน่วยงาน */
+/* ไม่มีระยะใต้หัวเอกสาร ระยะที่เห็นมาจาก margin-top ของหัวข้อแรกซึ่งเป็น 6 มม. ตามไฟล์ต้นแบบ
+   หนึ่งบรรทัดที่ 16 พอยต์ระยะบรรทัด 1.15 เท่ากับ 6.49 มม. ระยะเดียวนี้จึงอ่านเป็นบรรทัดเว้นหนึ่งบรรทัดพอดี
+   เดิมมี 4 มม. ซ้อนกับ 6 มม. ของหัวข้อ รวมเป็น 10 มม. ซึ่งอ่านเป็นสองบรรทัด */
+.doc-masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8mm; align-items: start; margin-bottom: 0; }
+.doc-masthead__org { text-align: left; }
+.doc-masthead__doc { text-align: right; }
+.doc-masthead img { display: block; max-width: 18mm; max-height: 18mm; margin: 0 0 1mm; object-fit: contain; }
+.doc-masthead h1 { margin: 0 0 1mm; }
 .doc-masthead p { margin-bottom: 1mm; }
 
 /* ---- ตาราง ---- */
@@ -113,7 +123,13 @@
 .doc-facts { width: 100%; border-collapse: collapse; table-layout: fixed; }
 .doc-facts th, .doc-facts td { border: 1px solid #000; padding: 1mm 2mm; }
 .doc-facts th { width: 46%; text-align: left; font-weight: 400; }
-.doc-facts td { text-align: right; font-weight: 700; }
+/* ในตารางมีแค่หัวตารางที่หนา ค่าทุกช่องเป็นตัวปกติ ตามที่เจ้าของงานสั่งเมื่อ 2026-08-26
+   ค่าเคยเป็นตัวหนาเพื่อแยกจากป้าย แต่ป้ายกับค่าแยกกันด้วยเส้นกรอบและการชิดคนละข้างอยู่แล้ว */
+.doc-facts td { text-align: right; font-weight: 400; }
+
+/* ยอดเป็นตัวอักษร เป็นตัวหนาเพราะเป็นการยืนยันตัวเลขที่เพิ่งอ่านไป ไม่ใช่คำอธิบายประกอบ
+   ไม่มีระยะใต้ตัวมัน ระยะที่เห็นถึงหัวข้อถัดไปจึงเป็น 6 มม. ของหัวข้อล้วน ๆ ซึ่งเท่ากับหนึ่งบรรทัด */
+.doc-page .doc-words { text-align: right; font-weight: 700; margin-bottom: 0; }
 
 /* ---- กล่องหมายเหตุ และช่องลงนาม ---- */
 .doc-box { border: 1px solid #000; padding: 2mm; break-inside: avoid; }
@@ -124,7 +140,11 @@
 /* เลขหน้า วางที่ขอบล่างของพื้นที่พิมพ์ ไม่ใช่ขอบกระดาษ */
 /* เลขหน้าอยู่กึ่งกลางและติดขอบล่างของพื้นที่พิมพ์ ซึ่งห่างขอบกระดาษ 15 มม. ตามระยะขอบล่าง
    ต้องเขียนความจำเพาะให้สูงกว่ากฎรวม .doc-page p { margin: 0 } ไม่งั้น auto ถูกทับ */
-.doc-page .doc-page__folio { margin: auto 0 0; padding-top: 3mm; text-align: center; font-size: 16pt; }
+/* เลขหน้าห่างขอบล่างกระดาษ 10 มม. ซึ่งอยู่ต่ำกว่าขอบล่างของพื้นที่พิมพ์ (15 มม.) ลงไป 5 มม.
+   จึงกินเข้าไปในระยะขอบล่างเหมือนท้ายกระดาษของหนังสือราชการ ทำด้วยระยะขอบล่างติดลบ
+   เพื่อให้มันยังอยู่ในสายการจัดวางปกติ ตัวแบ่งหน้าจึงคิดที่ของมันได้จากความสูงบวกระยะขอบตามจริง
+   ไม่มี padding เพราะช่องว่างเหนือเลขหน้ามาจาก margin-top auto ที่ดันมันลงไปติดขอบอยู่แล้ว */
+.doc-page .doc-page__folio { margin: auto 0 -5mm; padding: 0; text-align: center; font-size: 16pt; }
 .doc-page { display: flex; flex-direction: column; }
 
 /* ============================================================================
@@ -134,7 +154,10 @@
    ตอนพิมพ์ transform ถูกถอดออกทั้งหมด ขนาดที่พิมพ์จึงไม่ขึ้นกับการย่อบนหน้าจอ
    ============================================================================ */
 @media screen {
-  .doc-deck { display: grid; gap: 24px; justify-items: center; }
+  /* ความกว้างต้องเป็นขนาดกระดาษก่อนย่อขยายเสมอ
+     ถ้าปล่อยให้ยืดเต็มกล่องที่คิดความกว้างจากอัตราย่อไว้แล้ว มันจะโดนคูณสองรอบ
+     ที่ 200% เคยได้พื้นที่เลื่อน 3087 px ทั้งที่กระดาษกว้างจริง 1587 px */
+  .doc-deck { display: grid; gap: 24px; justify-items: center; width: var(--page-w); }
   .doc-page { box-shadow: 0 18px 44px rgba(5, 31, 47, .45); }
 }
 
@@ -222,7 +245,16 @@
   /* จัดกึ่งกลางแนวตั้งกับ overflow auto เข้ากันไม่ได้ ส่วนที่ล้นขึ้นไปเหนือกรอบจะเลื่อนไปถึงไม่ได้
      กฎเดิมตั้ง justify-content: center ไว้ตอนที่แกนหลักยังเป็นแนวนอน พอเปลี่ยนเป็นคอลัมน์
      มันจึงกลายเป็นการจัดกึ่งกลางแนวตั้งโดยไม่ได้ตั้งใจ */
-  .work-plan__doc-stage { flex-direction: column; align-items: center; justify-content: flex-start; }
+  /* safe center จัดกึ่งกลางเมื่อมีที่พอ และถอยไปชิดต้นแกนเมื่อของล้น
+     ถ้าใช้ center เฉย ๆ พอขยายจนกระดาษกว้างกว่ากรอบ ขอบซ้ายจะเลื่อนไปถึงไม่ได้
+     ซึ่งเป็นข้อผิดพลาดชนิดเดียวกับ justify-content: center ที่เพิ่งแก้ไปในแนวตั้ง */
+  .work-plan__doc-stage { flex-direction: column; align-items: safe center; justify-content: flex-start; }
+
+  /* ลากด้วยมือเหมือนโปรแกรมอ่าน PDF มือเปิดคือลากได้ มือกำคือกำลังลากอยู่ */
+  .work-plan__doc-stage { cursor: grab; }
+  .work-plan__doc-stage.is-panning { cursor: grabbing; user-select: none; }
+  /* ไม่มีที่ให้เลื่อนก็ไม่ต้องบอกว่าลากได้ */
+  .work-plan__doc-stage.is-still { cursor: default; }
 }
 
 /* ============================================================================

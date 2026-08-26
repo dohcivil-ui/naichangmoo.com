@@ -1,6 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode
+} from "react";
 import {
   PAGE_CONTENT_HEIGHT_MM,
   PX_PER_MM,
@@ -107,8 +116,13 @@ export function WorkPlanDocument({
     if (!stage) return;
     // พอดีหน้าจอคือเห็น **ทั้งเอกสาร** ไม่ใช่เห็นแผ่นแรกพอดี เอกสารสองหน้าจึงต้องคิดจากความสูงของทั้งกอง
     const deckHeight = pageCount * A4_HEIGHT_PX + Math.max(0, pageCount - 1) * DECK_GAP_PX;
-    const byWidth = (stage.clientWidth - 48) / A4_WIDTH_PX;
-    const byHeight = (stage.clientHeight - 60) / deckHeight;
+    /* หักระยะขอบของเวทีตามค่าจริง ไม่ใช่ตัวเลขที่เดาไว้ เคยหักไว้ 60 ทั้งที่ขอบบนล่างรวม 68
+       เหลือที่ให้เลื่อน 8 พิกเซลในโหมดที่ชื่อว่าพอดีหน้าจอ ซึ่งพาให้เคอร์เซอร์เป็นรูปมือทั้งที่แทบไม่มีอะไรให้ลาก */
+    const box = getComputedStyle(stage);
+    const padX = parseFloat(box.paddingLeft) + parseFloat(box.paddingRight);
+    const padY = parseFloat(box.paddingTop) + parseFloat(box.paddingBottom);
+    const byWidth = (stage.clientWidth - padX) / A4_WIDTH_PX;
+    const byHeight = (stage.clientHeight - padY) / deckHeight;
     setFitScale(Math.max(0.1, Math.min(1, byWidth, byHeight)));
   }, [A4_WIDTH_PX, A4_HEIGHT_PX, pageCount]);
 
@@ -140,6 +154,15 @@ export function WorkPlanDocument({
     if (next !== undefined) setCustomScale(next);
   };
 
+  /**
+   * ตัวฟังล้อเมาส์ถูกผูกครั้งเดียวตอน mount จึงจะจำ `scale` ของรอบนั้นไว้ตลอด
+   * เก็บฟังก์ชันล่าสุดไว้ใน ref แทน ตัวฟังจึงเห็นค่าปัจจุบันเสมอโดยไม่ต้องผูกใหม่ทุกครั้งที่ย่อขยาย
+   */
+  const stepZoomRef = useRef(stepZoom);
+  useEffect(() => {
+    stepZoomRef.current = stepZoom;
+  });
+
   const canZoomIn = scale < ZOOM_STEPS[ZOOM_STEPS.length - 1]! - 0.001;
   const canZoomOut = scale > ZOOM_STEPS[0]! + 0.001;
 
@@ -148,6 +171,85 @@ export function WorkPlanDocument({
     setCustomScale(null);
     setZoom(mode);
   };
+
+  /**
+   * ลากด้วยเมาส์ซ้ายค้างเพื่อเลื่อนเอกสาร อย่างที่โปรแกรมอ่าน PDF ทำ
+   *
+   * ระหว่างลาก ตัวฟังอยู่ที่ `window` ไม่ใช่ที่เวที ผู้ใช้จึงลากเลยขอบกรอบออกไปได้โดยการลาก
+   * ไม่หลุดกลางคัน และปล่อยเมาส์นอกหน้าต่างก็ยังจบการลางอย่างถูกต้อง
+   * เลือกวิธีนี้แทน `setPointerCapture` เพราะการจับ pointer โยน `NotFoundError` ได้เมื่อ
+   * pointer หลุดไปก่อนที่ตัวจัดการจะได้ทำงาน ซึ่งเป็นความผิดพลาดที่ไม่มีอะไรให้แก้
+   *
+   * ไม่เริ่มลากเมื่อไม่มีที่ให้เลื่อน เพราะเคอร์เซอร์รูปมือบนของที่ขยับไม่ได้คือคำสัญญาที่ผิด
+   * และระหว่างลาก การเลือกข้อความถูกปิดไว้ ไม่งั้นลากทีเดียวได้ทั้งแพนทั้งไฮไลต์พร้อมกัน
+   */
+  const panFrom = useRef<{ x: number; y: number; left: number; top: number } | null>(null);
+  const [panning, setPanning] = useState(false);
+  const [scrollable, setScrollable] = useState(false);
+
+  const checkScrollable = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    setScrollable(stage.scrollHeight > stage.clientHeight + 1 || stage.scrollWidth > stage.clientWidth + 1);
+  }, []);
+
+  const startPan = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const stage = stageRef.current;
+    if (!stage || event.button !== 0) return;
+    if (stage.scrollHeight <= stage.clientHeight + 1 && stage.scrollWidth <= stage.clientWidth + 1) return;
+    panFrom.current = { x: event.clientX, y: event.clientY, left: stage.scrollLeft, top: stage.scrollTop };
+    setPanning(true);
+  };
+
+  useEffect(() => {
+    if (!panning) return;
+    const move = (event: PointerEvent) => {
+      const stage = stageRef.current;
+      const from = panFrom.current;
+      if (!stage || !from) return;
+      stage.scrollLeft = from.left - (event.clientX - from.x);
+      stage.scrollTop = from.top - (event.clientY - from.y);
+    };
+    const stop = () => {
+      panFrom.current = null;
+      setPanning(false);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+    };
+  }, [panning]);
+
+  /**
+   * ล้อเมาส์ย่อขยายเอกสาร โดยเลื่อนไปข้างหน้าคือขยาย เลื่อนไปข้างหลังคือย่อ
+   *
+   * ตรงกับที่โปรแกรมอ่านเอกสารส่วนใหญ่ทำ เจ้าของงานเคยสั่งกลับทางไว้ตอนแรกเมื่อ 2026-08-26
+   * แล้วเปลี่ยนกลับมาเป็นทิศนี้ในวันเดียวกันหลังลองใช้จริง
+   *
+   * ผูกด้วย `addEventListener` เองแทน `onWheel` ของ React เพราะต้อง `passive: false`
+   * ถึงจะ `preventDefault` ได้ ไม่งั้นหน้าเว็บจะเลื่อนตามล้อไปด้วยพร้อมกับการย่อขยาย
+   */
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const onWheel = (event: WheelEvent) => {
+      if (event.deltaY === 0) return;
+      event.preventDefault();
+      // deltaY ติดลบคือล้อหมุนไปข้างหน้า ซึ่งคือขยาย
+      stepZoomRef.current(event.deltaY < 0 ? 1 : -1);
+    };
+    stage.addEventListener("wheel", onWheel, { passive: false });
+    return () => stage.removeEventListener("wheel", onWheel);
+  }, []);
+
+  /** ตรวจใหม่ทุกครั้งที่ขนาดหรือจำนวนหน้าเปลี่ยน เพราะสองอย่างนั้นเปลี่ยนว่ามีที่ให้เลื่อนหรือไม่ */
+  useEffect(() => {
+    checkScrollable();
+  }, [checkScrollable, scale, pageCount, showSettings]);
 
   const patch = (next: Partial<WorkPlanDocumentMeta>) => onMeta({ ...meta, ...next });
   const patchSigner = (key: "contractor" | "employer", next: Partial<DocumentSignatory>) =>
@@ -191,15 +293,21 @@ export function WorkPlanDocument({
       id: "masthead",
       node: (
         <header className="doc-masthead">
-          {logoVisible(meta) ? (
-            // eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้ หรือไฟล์ที่มากับโปรแกรม ไม่ผ่านตัวปรับขนาดของ Next
-            <img src={meta.logoDataUri} alt="" />
-          ) : null}
-          <p><strong>{meta.employerName || blank}</strong></p>
-          {meta.siteName ? <p>{meta.siteName}</p> : null}
-          <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
-          <p>แนบท้ายสัญญาจ้าง{meta.contractNumber ? ` เลขที่ ${meta.contractNumber}` : ""}</p>
-          <p>ข้อมูล ณ วันที่ {formatThaiDate(meta.documentDate) ?? blank}</p>
+          {/* ซ้าย: ใครเป็นเจ้าของเรื่อง — ตรา ชื่อหน่วยงาน และสถานที่ */}
+          <div className="doc-masthead__org">
+            {logoVisible(meta) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- รูปเป็น data URI ของผู้ใช้ หรือไฟล์ที่มากับโปรแกรม ไม่ผ่านตัวปรับขนาดของ Next
+              <img src={meta.logoDataUri} alt="" />
+            ) : null}
+            <p><strong>{meta.employerName || blank}</strong></p>
+            {meta.siteName ? <p>{meta.siteName}</p> : null}
+          </div>
+          {/* ขวา: นี่คือเอกสารอะไร แนบท้ายอะไร และข้อมูล ณ วันไหน */}
+          <div className="doc-masthead__doc">
+            <h1>บัญชีแสดงงวดงานและงวดเงิน</h1>
+            <p>แนบท้ายสัญญาจ้าง{meta.contractNumber ? ` เลขที่ ${meta.contractNumber}` : ""}</p>
+            <p>ข้อมูล ณ วันที่ {formatThaiDate(meta.documentDate) ?? blank}</p>
+          </div>
         </header>
       )
     },
@@ -225,7 +333,7 @@ export function WorkPlanDocument({
     {
       id: "words",
       // ยอดเป็นตัวอักษรอยู่ใต้ตัวเลขที่มันสะกด เพราะหน้าที่ของมันคือยืนยันตัวเลขข้างบน
-      node: <p style={{ textAlign: "right" }}>({bahtText(schedule.totalWorkSatang)})</p>
+      node: <p className="doc-words">({bahtText(schedule.totalWorkSatang)})</p>
     },
     { id: "h3", node: <h2>3. หมายเหตุ</h2> },
     {
@@ -256,9 +364,12 @@ export function WorkPlanDocument({
             <div key={key}>
               <p className="doc-sign-line">ลงชื่อ <span className="doc-line" /></p>
               <p className="doc-sign-name">({signatureName(meta[key])})</p>
-              {signaturePosition(meta[key]) === "" ? null : (
-                <p className="doc-sign-position">{signaturePosition(meta[key])}</p>
-              )}
+              {/*
+                บรรทัดตำแหน่งมีเสมอ แม้ยังไม่ได้กรอก เพราะถ้าซ่อนตอนว่าง ช่องลงนามสองฝั่ง
+                จะสูงไม่เท่ากันแล้วบรรทัดของแต่ละฝั่งเลื่อนไม่ตรงกันทั้งบล็อก
+                ยังไม่กรอกให้ขึ้นคำว่า ตำแหน่ง ไว้ก่อนตามที่เจ้าของงานสั่ง แล้วไปกรอกจริงในแผงตั้งค่าเอกสาร
+              */}
+              <p className="doc-sign-position">{signaturePosition(meta[key]) || "ตำแหน่ง"}</p>
               <p className="doc-sign-role">{label}</p>
               {/* เอกสารแนบสัญญาต้องตอบได้ว่าลงนามวันไหน ช่องเว้นไว้ให้เขียนด้วยปากกา */}
               <p className="doc-sign-date">
@@ -303,7 +414,7 @@ export function WorkPlanDocument({
     <>
       <td className="doc-mid">{row.ordinal}</td>
       <td>
-        <strong>{row.title}</strong>
+        {row.title}
         <span className="doc-works">
           {(activityTitlesByMilestone[row.milestoneId] ?? []).join(" · ") || "ยังไม่ได้ผูกงาน"}
         </span>
@@ -361,7 +472,11 @@ export function WorkPlanDocument({
       ...atoms(["words", "h3", "notes", "h4", "signs"])
     ];
 
-    const result = paginate(blocks, PAGE_CONTENT_PX);
+    /* เลขหน้ากินพื้นที่พิมพ์เท่ากับความสูงบวกระยะขอบล่าง ซึ่งติดลบเพราะมันล้ำลงไปในขอบกระดาษ
+       หักค่านี้ออกจากงบของแต่ละหน้า ไม่ใช่ปล่อยให้เนื้อหาไหลไปทับเลขหน้าแล้วถูกตัด */
+    const folio = root.querySelector<HTMLElement>('[data-part="folio"]');
+    const folioCost = folio ? folio.offsetHeight + parseFloat(getComputedStyle(folio).marginBottom) : 0;
+    const result = paginate(blocks, PAGE_CONTENT_PX - folioCost);
     setPages(result.pages);
     setOverflowing(result.overflowing);
   }, [schedule.rows, PAGE_CONTENT_PX]);
@@ -576,7 +691,15 @@ export function WorkPlanDocument({
         ))}
       </aside>
 
-      <div className="work-plan__doc-stage" ref={stageRef}>
+      <div
+        className={[
+          "work-plan__doc-stage",
+          panning ? "is-panning" : "",
+          scrollable ? "" : "is-still"
+        ].filter(Boolean).join(" ")}
+        ref={stageRef}
+        onPointerDown={startPan}
+      >
         {/*
           ตัววัดความสูง มองไม่เห็นแต่ถูกจัดวางจริง เพราะของที่ไม่ได้จัดวางย่อมวัดความสูงไม่ได้
           ความกว้างเท่าพื้นที่พิมพ์จริง ตัวเลขที่วัดได้จึงเป็นตัวเลขเดียวกับที่จะเกิดบนกระดาษ
@@ -607,6 +730,8 @@ export function WorkPlanDocument({
                 </div>
               ))}
             </div>
+            {/* เลขหน้ากินพื้นที่พิมพ์จริง จึงต้องวัดแล้วหักออกจากงบของแต่ละหน้า ไม่ใช่ปล่อยให้ล้นแล้วถูกตัด */}
+            <p className="doc-page__folio" data-part="folio">หน้า 1 / 1</p>
           </div>
         </div>
 
@@ -635,12 +760,13 @@ export function WorkPlanDocument({
                     )
                   )}
                 </div>
-                {/* เลขหน้าอยู่ที่ขอบล่างของพื้นที่พิมพ์ เอกสารหน้าเดียวไม่ต้องมี */}
-                {pages.length > 1 ? (
-                  <p className="doc-page__folio">
-                    หน้า {(index + 1).toLocaleString("th-TH")} / {pages.length.toLocaleString("th-TH")}
-                  </p>
-                ) : null}
+                {/*
+                  เลขหน้ามีทุกหน้าเสมอ รวมถึงเอกสารหน้าเดียวซึ่งขึ้น 1 / 1
+                  ตัวหน้าคือหน้าปัจจุบัน ตัวหลังคือจำนวนหน้าจริงของเอกสารฉบับนั้น
+                */}
+                <p className="doc-page__folio">
+                  หน้า {(index + 1).toLocaleString("th-TH")} / {pages.length.toLocaleString("th-TH")}
+                </p>
               </section>
             ))}
           </div>

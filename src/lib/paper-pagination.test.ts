@@ -20,8 +20,8 @@ const rows = (id: string, count: number, rowHeight: number, headerHeight = 20, f
 });
 
 describe("ขนาดพื้นที่พิมพ์", () => {
-  it("ตรงกับ A4 หักระยะขอบที่ไฟล์ต้นแบบใช้", () => {
-    expect(PAGE_CONTENT_HEIGHT_MM).toBe(257);
+  it("ตรงกับ A4 หักระยะขอบที่ใช้จริง ขอบบน 15 มม. ตามที่เจ้าของงานสั่ง ที่เหลือตามไฟล์ต้นแบบ", () => {
+    expect(PAGE_CONTENT_HEIGHT_MM).toBe(267);
     expect(PAGE_CONTENT_WIDTH_MM).toBe(170);
     expect(Math.round(210 * PX_PER_MM)).toBe(794);
   });
