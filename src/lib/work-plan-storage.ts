@@ -3,6 +3,7 @@ import type { Milestone } from "./payment-milestone";
 import type { IsoDate, MilestoneActual, MoneyEvent } from "./work-plan-actuals";
 import { defaultDocumentMeta, type WorkPlanDocumentMeta } from "./work-plan-document-meta";
 import { defaultWorkCalendar, type WorkCalendar } from "./work-calendar";
+import { LEGACY_DURATION_UNIT, type DurationUnit } from "./work-plan-schedule";
 import type { ThaiHoliday } from "./thai-holidays";
 
 /**
@@ -33,13 +34,16 @@ export const WORK_PLAN_STORAGE_KEY = "naichangmoo.work-plan.v1";
  * รุ่นของรูปร่างข้อมูล
  *
  * รุ่น 2 เพิ่มข้อมูลประกอบเอกสาร (โลโก้ หัวเอกสาร ผู้ลงนาม)
+ * รุ่น 4 เพิ่มหน่วยของระยะเวลาที่ผู้ใช้พิมพ์ ไฟล์ที่เก่ากว่านี้ถูกกรอกตอนที่ทั้งระบบนับเป็น
+ * วันตามสัญญาล้วน จึงต้องได้ `contract` เสมอ ไม่ใช่ค่าตั้งต้นของโครงการใหม่ — ไม่อย่างนั้น
+ * แผนที่พิมพ์ส่งราชการไปแล้วจะยาวขึ้นเองเพราะการอัปเกรด
  * **ไฟล์รุ่น 1 ต้องยังอ่านได้** เพราะผู้ใช้ที่กรอกงานค้างไว้ก่อนรุ่นนี้จะเปิดมาเจอกระดานเปล่าไม่ได้
  * ตัวอ่านจึงเติมค่าตั้งต้นของเอกสารให้ แล้วบันทึกครั้งถัดไปจะเป็นรุ่น 2 เอง
  */
-export const WORK_PLAN_SCHEMA_VERSION = 3;
+export const WORK_PLAN_SCHEMA_VERSION = 4;
 
 /** รุ่นที่ยังอ่านได้ ไม่ใช่แค่รุ่นปัจจุบัน */
-const READABLE_VERSIONS = new Set([1, 2, 3]);
+const READABLE_VERSIONS = new Set([1, 2, 3, 4]);
 
 export type StoredSetup = {
   projectName: string;
@@ -68,6 +72,8 @@ export type WorkPlanSnapshot = {
   calendar: WorkCalendar;
   /** เผื่อวันฝนเป็นเปอร์เซ็นต์ของระยะเวลา เพิ่มในรุ่น 3 */
   rainPercent: number;
+  /** หน่วยของตัวเลขระยะเวลาที่ผู้ใช้พิมพ์ลงตารางรายการงาน เพิ่มในรุ่น 4 */
+  durationUnit: DurationUnit;
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -152,6 +158,18 @@ const readCalendar = (value: unknown): WorkCalendar => {
 };
 
 /** เผื่อวันฝนต้องเป็นจำนวนเต็มไม่ติดลบและไม่เกินร้อย ค่าที่ผิดรูปตกไปเป็นศูนย์ */
+/**
+ * อ่านหน่วยของระยะเวลา โดยรุ่นของไฟล์เป็นตัวตัดสินค่าตั้งต้น ไม่ใช่ค่าเดียวทั้งระบบ
+ *
+ * ไฟล์รุ่น 4 ที่ช่องนี้เพี้ยนถือว่าเป็นวันตามสัญญาเช่นกัน เพราะเดาเป็นวันทำงานแล้วผิด
+ * จะทำให้แผนยาวขึ้นโดยผู้ใช้ไม่ได้สั่ง ส่วนเดาเป็นวันตามสัญญาแล้วผิดจะได้แผนแบบเดิม
+ * ซึ่งเป็นสิ่งที่ผู้ใช้เคยเห็น
+ */
+const readDurationUnit = (value: unknown, schemaVersion: number): DurationUnit => {
+  if (schemaVersion < 4) return LEGACY_DURATION_UNIT;
+  return value === "working" || value === "contract" ? value : LEGACY_DURATION_UNIT;
+};
+
 const readRainPercent = (value: unknown): number =>
   typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100 ? value : 0;
 
@@ -169,6 +187,7 @@ export function serialiseWorkPlan(snapshot: WorkPlanSnapshot): string {
     document: snapshot.document,
     calendar: snapshot.calendar,
     rainPercent: snapshot.rainPercent,
+    durationUnit: snapshot.durationUnit,
     activities: snapshot.activities.map((activity) => ({
       id: activity.id,
       number: activity.number,
@@ -292,7 +311,8 @@ export function parseWorkPlan(raw: string | null): WorkPlanSnapshot | null {
     dataDate: str(value.dataDate),
     document: readDocument(value.document),
     calendar: readCalendar(value.calendar),
-    rainPercent: readRainPercent(value.rainPercent)
+    rainPercent: readRainPercent(value.rainPercent),
+    durationUnit: readDurationUnit(value.durationUnit, value.schemaVersion)
   };
 }
 

@@ -60,7 +60,8 @@ const snapshot: WorkPlanSnapshot = {
     removed: ["2026-10-16"],
     worksSaturday: false
   },
-  rainPercent: 10
+  rainPercent: 10,
+  durationUnit: "working"
 };
 
 describe("serialiseWorkPlan", () => {
@@ -253,6 +254,30 @@ describe("ปฏิทินวันทำงาน", () => {
       const broken = JSON.parse(serialiseWorkPlan(snapshot));
       broken.rainPercent = bad;
       expect(parseWorkPlan(JSON.stringify(broken))!.rainPercent, String(bad)).toBe(0);
+    }
+  });
+
+  it("ไฟล์ที่เก่ากว่ารุ่น 4 ได้วันตามสัญญาเสมอ ไม่ใช่ค่าตั้งต้นของโครงการใหม่", () => {
+    for (const version of [1, 2, 3]) {
+      const older = JSON.parse(serialiseWorkPlan(snapshot));
+      older.schemaVersion = version;
+      delete older.durationUnit;
+      expect(parseWorkPlan(JSON.stringify(older))!.durationUnit, `รุ่น ${version}`).toBe("contract");
+    }
+  });
+
+  it("ไฟล์รุ่น 4 ที่ช่องหน่วยเพี้ยน ตกไปเป็นวันตามสัญญา ไม่เดาเป็นวันทำงาน", () => {
+    for (const bad of [undefined, null, "", "workingdays", 4, {}]) {
+      const broken = JSON.parse(serialiseWorkPlan(snapshot));
+      broken.durationUnit = bad;
+      expect(parseWorkPlan(JSON.stringify(broken))!.durationUnit, String(bad)).toBe("contract");
+    }
+  });
+
+  it("หน่วยที่ผู้ใช้ตั้งไว้เดินทางไปกลับได้ครบ", () => {
+    for (const unit of ["contract", "working"] as const) {
+      const written = serialiseWorkPlan({ ...snapshot, durationUnit: unit });
+      expect(parseWorkPlan(written)!.durationUnit, unit).toBe(unit);
     }
   });
 

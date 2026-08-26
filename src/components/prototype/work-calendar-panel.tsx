@@ -2,15 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { formatThaiDate } from "@/lib/thai-format";
+import { DURATION_UNIT_LABELS, type DurationUnit, type ProjectDemand } from "@/lib/work-plan-schedule";
 import { buddhistYearOf, provisionalYears, yearsWithoutData, type ThaiHoliday } from "@/lib/thai-holidays";
 import {
   calendarHolidays,
   nonWorkingDaysBetween,
-  rainAllowanceDays,
   RAIN_ALLOWANCE_CHOICES,
   shiftDays,
   weekdayOf,
-  withRainAllowance,
   workingDaysBetween,
   type WorkCalendar
 } from "@/lib/work-calendar";
@@ -33,7 +32,11 @@ export function WorkCalendarPanel({
   rainPercent,
   onRainPercent,
   startDate,
-  durationDays
+  durationDays,
+  durationUnit,
+  onDurationUnit,
+  demand,
+  endUnderOtherUnit
 }: {
   calendar: WorkCalendar;
   onCalendar: (next: WorkCalendar) => void;
@@ -42,9 +45,30 @@ export function WorkCalendarPanel({
   startDate: string;
   /** ระยะเวลาตามสัญญาเป็นวันปฏิทิน ใช้กำหนดช่วงที่ต้องตรวจ */
   durationDays: number;
+  durationUnit: DurationUnit;
+  onDurationUnit: (next: DurationUnit) => void;
+  demand: ProjectDemand;
+  /** วันที่แผนจะจบถ้าอ่านเลขชุดเดิมด้วยอีกหน่วย ว่างแปลว่ายังไม่มีกิจกรรมให้เทียบ */
+  endUnderOtherUnit: string;
 }) {
   const [newDate, setNewDate] = useState("");
   const [newName, setNewName] = useState("");
+  /**
+   * หน่วยที่ผู้ใช้เลือกแต่ยังไม่ได้ยืนยัน
+   *
+   * การสลับหน่วยไม่แตะตัวเลขที่ผู้ใช้พิมพ์ แต่เปลี่ยนวันที่แผนจบ ซึ่งเป็นผลที่ต้องเห็นก่อนตัดสิน
+   * ไม่ใช่หลังจากนั้น แผนที่ยังไม่มีกิจกรรมไม่มีอะไรให้เทียบ จึงเปลี่ยนได้ทันที
+   */
+  const [pendingUnit, setPendingUnit] = useState<DurationUnit | null>(null);
+
+  const chooseUnit = (next: DurationUnit) => {
+    if (next === durationUnit) return;
+    if (endUnderOtherUnit === "" || demand.planEndDate === "") {
+      onDurationUnit(next);
+      return;
+    }
+    setPendingUnit(next);
+  };
 
   const ready = startDate !== "" && durationDays > 0;
   const endDate = ready ? shiftDays(startDate, durationDays - 1) : "";
@@ -134,6 +158,17 @@ export function WorkCalendarPanel({
           ทำงานวันอาทิตย์
         </label>
         <label>
+          ระยะเวลาที่กรอกในตารางรายการงาน
+          <select
+            className="work-plan__cell"
+            value={durationUnit}
+            onChange={(event) => chooseUnit(event.target.value as DurationUnit)}
+          >
+            <option value="working">นับเป็นวันทำงาน</option>
+            <option value="contract">นับเป็นวันตามสัญญา</option>
+          </select>
+        </label>
+        <label>
           เผื่อวันฝนและความเสี่ยง
           <select
             className="work-plan__cell"
@@ -148,6 +183,34 @@ export function WorkCalendarPanel({
           </select>
         </label>
       </div>
+
+      {pendingUnit === null ? null : (
+        <div className="work-plan__sim-note" role="alert">
+          <p>
+            เปลี่ยนหน่วยไม่ได้แตะตัวเลขที่กรอกไว้สักตัว แต่เปลี่ยนวันที่แผนจบ
+            เพราะเลขเดิมถูกอ่านด้วยหน่วยใหม่
+          </p>
+          <p>
+            ตอนนี้นับเป็น{DURATION_UNIT_LABELS[durationUnit]} แผนจบ {formatThaiDate(demand.planEndDate)} —
+            ถ้าเปลี่ยนเป็น{DURATION_UNIT_LABELS[pendingUnit]} แผนจะจบ {formatThaiDate(endUnderOtherUnit)}
+          </p>
+          <div className="work-plan__calendar-add">
+            <button
+              type="button"
+              className="button button--orange micro-button"
+              onClick={() => {
+                onDurationUnit(pendingUnit);
+                setPendingUnit(null);
+              }}
+            >
+              เปลี่ยนเป็น{DURATION_UNIT_LABELS[pendingUnit]}
+            </button>
+            <button type="button" className="button button--ghost micro-button" onClick={() => setPendingUnit(null)}>
+              ไม่เปลี่ยน
+            </button>
+          </div>
+        </div>
+      )}
 
       {!ready || !view ? null : (
         <>
@@ -170,13 +233,34 @@ export function WorkCalendarPanel({
               <dt>หายไปเพราะวันหยุดราชการ</dt>
               <dd>{view.holidays.length.toLocaleString("th-TH")} วัน</dd>
             </div>
-            {rainPercent === 0 ? null : (
+            {demand.planEndDate === "" ? null : (
               <div>
-                <dt>เผื่อฝน {rainPercent}% ของงาน 100 วันทำงาน</dt>
-                <dd>เพิ่มอีก {rainAllowanceDays(100, rainPercent).toLocaleString("th-TH")} วัน เป็น {withRainAllowance(100, rainPercent).toLocaleString("th-TH")} วัน</dd>
+                <dt>วันทำงานที่แผนนี้ต้องการ</dt>
+                <dd>
+                  {demand.required.toLocaleString("th-TH")} วัน ถึง {formatThaiDate(demand.planEndDate)}
+                </dd>
+              </div>
+            )}
+            {demand.planEndDate === "" || rainPercent === 0 ? null : (
+              <div>
+                <dt>เผื่อฝน {rainPercent}% ของ {demand.required.toLocaleString("th-TH")} วันทำงาน</dt>
+                <dd>
+                  เพิ่มอีก {demand.rainDays.toLocaleString("th-TH")} วัน เป็น{" "}
+                  {demand.requiredWithRain.toLocaleString("th-TH")} วัน
+                </dd>
               </div>
             )}
           </dl>
+
+          {demand.overrun === 0 ? null : (
+            <p className="work-plan__sim-note" role="alert">
+              แผนนี้ต้องการ {demand.requiredWithRain.toLocaleString("th-TH")} วันทำงาน
+              แต่ช่วงสัญญามีให้ {demand.available.toLocaleString("th-TH")} วัน — เกินอยู่{" "}
+              {demand.overrun.toLocaleString("th-TH")} วันทำงาน บันทึกและพิมพ์แผนนี้ได้ตามปกติ
+              เพราะการทำแผนที่เกินไว้ดูก่อนเป็นเรื่องที่ตั้งใจทำกัน แต่ถ้าจะยื่นจริงต้องลดงาน
+              ขอขยายเวลา หรือลดค่าเผื่อฝนลง
+            </p>
+          )}
 
           {view.missingYears.length > 0 ? (
             <p className="work-plan__sim-note" role="alert">

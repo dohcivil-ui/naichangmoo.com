@@ -42,6 +42,16 @@ import { askWorkPlanAssistant, reviewWorkPlan, type AssistantResult, type Review
 import { WorkPlanDocument } from "@/components/prototype/work-plan-document";
 import { WorkCalendarPanel } from "@/components/prototype/work-calendar-panel";
 import { defaultWorkCalendar, type WorkCalendar } from "@/lib/work-calendar";
+import {
+  activitiesOnCalendar,
+  DEFAULT_DURATION_UNIT,
+  DURATION_UNIT_LABELS,
+  planEndUnder,
+  projectDemand,
+  scheduleActivities,
+  type DurationUnit,
+  type ScheduledActivity
+} from "@/lib/work-plan-schedule";
 
 /**
  * ต้นแบบแอปผู้ช่วยสร้างแผนงานและ S-Curve
@@ -178,6 +188,8 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const [documentMeta, setDocumentMeta] = useState<WorkPlanDocumentMeta>(() => restored?.document ?? defaultDocumentMeta());
   const [workCalendar, setWorkCalendar] = useState<WorkCalendar>(() => restored?.calendar ?? defaultWorkCalendar());
   const [rainPercent, setRainPercent] = useState<number>(() => restored?.rainPercent ?? 0);
+  /** แผนที่บันทึกไว้ก่อนมีสวิตช์นี้ถูกอ่านกลับมาเป็น contract เสมอ ค่า working เป็นของโครงการใหม่เท่านั้น */
+  const [durationUnit, setDurationUnit] = useState<DurationUnit>(() => restored?.durationUnit ?? DEFAULT_DURATION_UNIT);
   const saveFailed = useSyncExternalStore(subscribeWorkPlanStore, getSaveFailed, getSaveFailedOnServer);
 
   const contractParse = parseBaht(setup.contract);
@@ -199,10 +211,46 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
     [contractSatang, setup.advance, setup.advanceRecovery, setup.retention, setup.retentionMethod, setup.vat, setup.withholding]
   );
 
-  const weights = useMemo(() => activityWeights(activities), [activities]);
+  /**
+   * ชั้นเดียวที่รู้ว่าหน่วยของระยะเวลาคืออะไร ทุกอย่างที่อยู่ใต้บรรทัดนี้เห็นเป็นวันตามสัญญาหมด
+   *
+   * เหตุผลอยู่ใน ADR 0017: แกนเวลาของแผนผูกกับงวดจ่ายเงินซึ่งนับตามปฏิทิน การย้ายแกน
+   * ไปเป็นวันทำงานจะพายอดเบิกจ่ายต่องวดเลื่อนออกจากสัญญา
+   */
+  const scheduled = useMemo(
+    () => scheduleActivities(activities, { startDate: setup.startDate, unit: durationUnit, calendar: workCalendar }),
+    [activities, setup.startDate, durationUnit, workCalendar]
+  );
+  const onCalendar = useMemo(
+    () => (scheduled.length === activities.length ? activitiesOnCalendar(scheduled) : activities),
+    [scheduled, activities]
+  );
+  const demand = useMemo(
+    () =>
+      projectDemand({
+        scheduled,
+        startDate: setup.startDate,
+        contractDays: durationValid ? durationDays : 0,
+        calendar: workCalendar,
+        rainPercent
+      }),
+    [scheduled, setup.startDate, durationDays, durationValid, workCalendar, rainPercent]
+  );
+  /** วันจบของเลขชุดเดิมถ้าอ่านด้วยอีกหน่วย ใช้วางข้างกันก่อนผู้ใช้ยืนยันการสลับ */
+  const endUnderOtherUnit = useMemo(
+    () =>
+      planEndUnder(activities, {
+        startDate: setup.startDate,
+        unit: durationUnit === "working" ? "contract" : "working",
+        calendar: workCalendar
+      }),
+    [activities, setup.startDate, durationUnit, workCalendar]
+  );
+
+  const weights = useMemo(() => activityWeights(onCalendar), [onCalendar]);
   const curve = useMemo(
-    () => buildPlanCurve(activities, durationValid ? durationDays : 1),
-    [activities, durationDays, durationValid]
+    () => buildPlanCurve(onCalendar, durationValid ? durationDays : 1),
+    [onCalendar, durationDays, durationValid]
   );
   const schedule = useMemo(
     () => buildMilestoneSchedule(weights, milestones, terms),
@@ -262,9 +310,14 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
     saveWorkPlan({
       setup, activities, milestones, actuals,
       dataDate: dataDateOverride, document: documentMeta,
-      calendar: workCalendar, rainPercent
+      calendar: workCalendar, rainPercent, durationUnit
     });
-  }, [setup, activities, milestones, actuals, dataDateOverride, documentMeta, workCalendar, rainPercent]);
+  }, [setup, activities, milestones, actuals, dataDateOverride, documentMeta, workCalendar, rainPercent, durationUnit]);
+
+  const scheduleById = useMemo(
+    () => new Map(scheduled.map((entry) => [entry.typed.id, entry])),
+    [scheduled]
+  );
 
   const activityCost = sumCost(activities);
   const costGap = activityCost - contractSatang;
@@ -495,6 +548,7 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
             durationDays={durationDays}
             canDraft={canDraft}
             onDraft={runDraft}
+            contractEndDate={demand.contractEndDate}
             calendarPanel={
               <WorkCalendarPanel
                 calendar={workCalendar}
@@ -503,6 +557,10 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
                 onRainPercent={setRainPercent}
                 startDate={setup.startDate}
                 durationDays={durationValid ? durationDays : 0}
+                durationUnit={durationUnit}
+                onDurationUnit={setDurationUnit}
+                demand={demand}
+                endUnderOtherUnit={endUnderOtherUnit}
               />
             }
           />
@@ -517,6 +575,8 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
             contractSatang={contractSatang}
             costGap={costGap}
             startDate={setup.startDate}
+            durationUnit={durationUnit}
+            scheduleById={scheduleById}
             onUpdate={updateActivity}
             onRemove={removeActivity}
             onAdd={addActivity}
@@ -685,6 +745,7 @@ function SetupTab({
   durationDays,
   canDraft,
   onDraft,
+  contractEndDate,
   calendarPanel
 }: {
   setup: SetupState;
@@ -695,6 +756,8 @@ function SetupTab({
   durationDays: number;
   canDraft: boolean;
   onDraft: () => void;
+  /** วันสุดท้ายตามสัญญา คำนวณที่เดียวกับที่แผงปฏิทินใช้ ว่างแปลว่ายังกรอกไม่ครบ */
+  contractEndDate: string;
   /** แผงปฏิทินวันทำงาน ส่งมาจากผู้เรียกเพราะสถานะของมันอยู่ระดับเดียวกับที่เก็บข้อมูล */
   calendarPanel: ReactNode;
 }) {
@@ -702,7 +765,14 @@ function SetupTab({
     setSetup((current) => ({ ...current, [key]: value }));
 
   const source = templateSource(setup.templateId);
-  const finishDate = durationValid ? addDays(setup.startDate, durationDays) : null;
+  /**
+   * วันสุดท้ายตามสัญญามาจาก `projectDemand` ที่เดียว ไม่คำนวณซ้ำที่นี่
+   *
+   * ที่นี่เคยคำนวณเองเป็น `addDays(startDate, durationDays)` ซึ่งให้วันที่ 211 ของสัญญา 210 วัน
+   * แล้วขัดกับแผงปฏิทินที่อยู่บนจอเดียวกันมาตั้งแต่ v0.52.0 — โครงการ 1 ส.ค. 210 วัน
+   * การ์ดบอก 27 ก.พ. แต่แผงบอก 26 ก.พ. เลขสองตัวที่ตอบคำถามเดียวกันต้องมาจากที่เดียวกัน
+   */
+  const finishDate = contractEndDate === "" ? null : contractEndDate;
 
   return (
     <>
@@ -863,6 +933,8 @@ function ActivitiesTab({
   contractSatang,
   costGap,
   startDate,
+  durationUnit,
+  scheduleById,
   onUpdate,
   onRemove,
   onAdd,
@@ -875,6 +947,9 @@ function ActivitiesTab({
   contractSatang: bigint;
   costGap: bigint;
   startDate: string;
+  durationUnit: DurationUnit;
+  /** วันที่จริงของแต่ละกิจกรรมหลังอ่านด้วยหน่วยที่โครงการตั้งไว้ */
+  scheduleById: Map<string, ScheduledActivity>;
   onUpdate: (id: string, patch: Partial<PlanActivity>) => void;
   onRemove: (id: string) => void;
   onAdd: () => void;
@@ -915,7 +990,7 @@ function ActivitiesTab({
               <th>ลำดับ</th>
               <th className="work-plan__col-title">รายการงาน</th>
               <th className="number-cell">เริ่มวันที่ (นับจากวันแรก)</th>
-              <th className="number-cell">ระยะเวลา (วัน)</th>
+              <th className="number-cell">ระยะเวลา ({DURATION_UNIT_LABELS[durationUnit]})</th>
               <th className="number-cell">ค่างาน (บาท)</th>
               <th className="number-cell">น้ำหนัก</th>
               <th>ที่มา</th>
@@ -923,7 +998,9 @@ function ActivitiesTab({
             </tr>
           </thead>
           <tbody>
-            {activities.map((activity) => (
+            {activities.map((activity) => {
+              const placed = scheduleById.get(activity.id);
+              return (
               <tr key={activity.id}>
                 <td>
                   <input
@@ -948,7 +1025,14 @@ function ActivitiesTab({
                       onUpdate(activity.id, { startOffsetDays: Math.max(0, Number.parseInt(event.target.value, 10) || 0) })
                     }
                   />
-                  <em className="quantity-note">{formatThaiDate(addDays(startDate, activity.startOffsetDays)) ?? "ยังไม่ตั้งวันเริ่ม"}</em>
+                  <em className="quantity-note">
+                    {placed ? formatThaiDate(placed.startDate) : formatThaiDate(addDays(startDate, activity.startOffsetDays)) ?? "ยังไม่ตั้งวันเริ่ม"}
+                  </em>
+                  {placed?.shifted ? (
+                    <em className="quantity-note">
+                      นับเป็นวันตามสัญญาจะเป็น {formatThaiDate(placed.contractStartDate)}
+                    </em>
+                  ) : null}
                 </td>
                 <td className="number-cell">
                   <input
@@ -959,6 +1043,7 @@ function ActivitiesTab({
                       onUpdate(activity.id, { durationDays: Math.max(1, Number.parseInt(event.target.value, 10) || 1) })
                     }
                   />
+                  {placed ? <em className="quantity-note">ถึง {formatThaiDate(placed.endDate)}</em> : null}
                 </td>
                 <td className="number-cell">
                   <input
@@ -985,7 +1070,8 @@ function ActivitiesTab({
                   </button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
           <tfoot>
             <tr>
