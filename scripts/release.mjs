@@ -20,8 +20,17 @@ import path from "node:path";
 const root = process.cwd();
 const dryRun = process.argv.includes("--dry-run");
 
-const run = (file, args, options = {}) =>
-  execFileSync(file, args, { cwd: root, encoding: "utf8", ...options }).trim();
+/**
+ * คืนข้อความที่คำสั่งพิมพ์ออกมา หรือค่าว่างเมื่อปล่อยให้ output ไหลออกจอ
+ *
+ * `execFileSync` คืน null เมื่อ stdout ถูกตั้งเป็น inherit ซึ่งรอบแรกที่เขียนลืมไป
+ * แล้วสคริปต์ล้มกลางทางหลังปักธงไปแล้ว — ตรงกับที่คอมเมนต์ด้านบนเตือนตัวเองไว้พอดี
+ * ว่าธงที่ปักผิดลบยากกว่าธงที่ยังไม่ได้ปัก
+ */
+const run = (file, args, options = {}) => {
+  const out = execFileSync(file, args, { cwd: root, encoding: "utf8", ...options });
+  return typeof out === "string" ? out.trim() : "";
+};
 
 const fail = (message) => {
   console.error(`ปิดรุ่นไม่ได้: ${message}`);
