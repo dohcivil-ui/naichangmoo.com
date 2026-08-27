@@ -196,6 +196,30 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .doc-compare-block__head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:16px}
 .doc-compare-block__head h3{margin:0;font-size:1.3rem;letter-spacing:-.02em}
 .doc-compare-block__head p{margin:0;color:var(--muted);font-size:.86rem}
+/* "ขอดูที่มา" on the three problem cards (Fable option 1). Fixed-height zone: the proof stacks
+   over the button, so the cards stay equal-height in every state - opacity and a 6px rise only. */
+.evidence-peek{position:relative;min-height:84px;margin-top:16px;border-top:1px dashed var(--line);padding-top:12px}
+.evidence-peek__btn{position:absolute;left:0;top:12px;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border:0;background:none;color:var(--teal);font-family:inherit;font-size:.86rem;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:color 160ms var(--ease-out),opacity 200ms var(--ease-out),transform 200ms var(--ease-out)}
+.evidence-peek__btn:hover{color:var(--ink)}
+.evidence-peek__arrow{font-family:var(--font-mono,ui-monospace),monospace;font-size:.8rem}
+.evidence-peek__proof{position:absolute;inset:12px 0 0 0;opacity:0;transform:translateY(6px);pointer-events:none;transition:opacity 220ms var(--ease-reveal),transform 220ms var(--ease-reveal)}
+.evidence-peek.is-open .evidence-peek__proof{opacity:1;transform:none;pointer-events:auto}
+.evidence-peek.is-open .evidence-peek__btn{opacity:0;pointer-events:auto;transform:translateY(-6px)}
+/* the open state keeps the (now invisible) button clickable as the close control via its own
+   spot only; give it back a visible affordance on focus so keyboard users are never lost */
+.evidence-peek.is-open .evidence-peek__btn:focus-visible{opacity:1;transform:none;background:var(--paper);z-index:2}
+/* desktop hover previews the proof without flipping aria state */
+@media (hover:hover){
+  .evidence-peek:not(.is-open):hover .evidence-peek__proof{opacity:1;transform:none}
+  .evidence-peek:not(.is-open):hover .evidence-peek__btn{opacity:0;transform:translateY(-6px)}
+}
+.evidence-proof{display:grid;gap:6px;font-family:var(--font-mono,ui-monospace),monospace;font-size:.76rem;line-height:1.5;color:#34545a}
+.evidence-proof__line b{color:var(--ink);font-weight:700}
+.evidence-proof__tag{font-style:normal;color:#17604e;background:#e4f4f0;border-radius:999px;padding:2px 8px;font-size:.68rem}
+.evidence-proof__bad{color:#8a3b3b;text-decoration:underline wavy rgba(138,59,59,.55) 1.5px}
+.evidence-proof__ref{color:var(--muted);font-size:.7rem}
+@media (max-width:640px){.evidence-peek{min-height:96px}}
+
 /* IP-192 v2 (Fable spec 2026-08-27): one program window on a dark desktop stage. The stage owns
    data-state and the show's classes; .doc-compare keeps --pos and the drag geometry untouched. */
 .doc-stage{position:relative;border-radius:18px;padding:clamp(26px,4.5vw,54px);background:linear-gradient(132deg,#051f2f 0%,#073047 55%,#0a4f59 100%);overflow:hidden;isolation:isolate}

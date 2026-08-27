@@ -15,6 +15,7 @@ import obecPrices from "@/data/obec/obec-2569-unit-prices.json";
 import labourSchedule from "@/data/cgd/cgd-w809-labour-be2568.json";
 import escalationRules from "@/data/escalation-k/cabinet-w109-be2532.json";
 import { DocCompare } from "@/components/landing/doc-compare";
+import { EvidencePeek } from "@/components/landing/evidence-peek";
 
 export default async function LandingPage() {
   // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
@@ -55,11 +56,14 @@ export default async function LandingPage() {
                 trick from the approved mockup, kept to the same words. The first line wears an
                 outline stroke so the promise on the second line stays the loudest thing here. */}
             <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
-              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">แอปงานโยธา</span></span>
-              <span className="h1-line"><span className="h1-line__text">ใช้งานง่าย<span className="h1-dot">.</span></span></span>
+              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">AI ที่ตอบได้</span></span>
+              <span className="h1-line"><span className="h1-line__text">ว่ามาจากไหน<span className="h1-dot">.</span></span></span>
             </h1>
-            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำเร็วขึ้น — ผู้ช่วยทักว่างานขัดกันตรงไหน และตัวเลขทุกตัวชี้กลับไปยังที่มาได้ เพราะเงินทุกบาทระบบเป็นคนคำนวณ ไม่ใช่ AI</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
+            {/* A design principle, not a registry claim - true by structure since the assistant
+                schema may not carry a money field (ai-assistant-design.md, guardrail G1). */}
+            <p className="hero__note" data-reveal data-delay="430" style={{ "--fy": "14px" } as CSSProperties}>AI ไม่เคยได้รับโจทย์คำนวณเงิน — โดยโครงสร้าง ไม่ใช่โดยสัญญา</p>
             {/* ADR 0015: naming ESTIMETR is an introduction, but its commercial terms are a
                 claim, so the line renders only while the registry says the app is open and the
                 access word is the registry's own. Unannounced or closed means no line at all. */}
@@ -107,21 +111,40 @@ export default async function LandingPage() {
               <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
               <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
             </div>
+            <p>ตัวเลขในตัวอย่างของส่วนนี้เป็นตัวอย่างประกอบเพื่อสาธิต</p>
           </div>
           <div className="evidence-gap">
             {[
               {
                 title: "ปริมาณที่ตรวจย้อนกลับไม่ได้",
+                proof: (
+                  <div className="evidence-proof">
+                    <span className="evidence-proof__line">2 × 2.50 × 2.50 × 2.00 = <b>12.50 ลบ.ม.</b> <i className="evidence-proof__tag">อ่านได้จากแบบ</i></span>
+                    <s className="evidence-proof__bad">1.25 — ไม่มีบรรทัดวัด</s>
+                  </div>
+                ),
                 problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม หน้าตาเหมือนกันหมดในตาราง ไม่มีอะไรบอกว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00 หรือมาจากนิ้วที่พลาด",
                 answer: "ปริมาณเป็นผลรวมของบรรทัดวัด จำนวน × กว้าง × ยาว × หนา ที่อ่านออกจากแบบได้ ไม่ใช่ตัวเลขที่พิมพ์เข้าไปเฉย ๆ",
               },
               {
                 title: "ค่าเผื่อที่ไม่รู้ว่ามาจากเกณฑ์ข้อไหน",
+                proof: (
+                  <div className="evidence-proof">
+                    <span className="evidence-proof__line"><i className="evidence-proof__tag">หลักเกณฑ์เผื่อฯ · ข้อ 4.1</i> <b>3%</b> บันทึกได้</span>
+                    <s className="evidence-proof__bad">7% ไม่ระบุที่มา — ถูกปฏิเสธ</s>
+                  </div>
+                ),
                 problem: "เผื่อ 7% ใส่ไว้ตั้งแต่เมื่อไหร่ ใครใส่ อ้างหลักเกณฑ์ฉบับไหน วันที่ถูกซัก ถ้าชี้เอกสารต้นทางไม่ได้ ตัวเลขนั้นก็ยืนไม่ได้",
                 answer: "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึกลงฐานข้อมูล ไม่ใช่แค่ข้อความเตือนบนหน้าจอที่กดข้ามได้",
               },
               {
                 title: "ตัวคูณที่หยิบมาจากไฟล์เดิม",
+                proof: (
+                  <div className="evidence-proof">
+                    <span className="evidence-proof__line">งานอาคาร · ดอกเบี้ย 6% · <b>Factor F ตามแถวพิมพ์</b></span>
+                    <span className="evidence-proof__ref">อ้างหนังสือ กค 0433.2/ว 481</span>
+                  </div>
+                ),
                 problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ โครงการที่คิดบนอัตราหนึ่งจะใช้ค่าจากตารางอีกอัตราไม่ได้ ผลลัพธ์จะออกมาหน้าตาเป็นทางการและผิด",
                 answer: "ทุกค่าที่เข้าการคำนวณต้องผูกกับเอกสารที่ระบุผู้ออก เลขที่หนังสือและวันที่ — ชั้นราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
               },
@@ -131,6 +154,7 @@ export default async function LandingPage() {
                 <h3>{item.title}</h3>
                 <p className="evidence-gap__problem">{item.problem}</p>
                 <p className="evidence-gap__answer">{item.answer}</p>
+                <EvidencePeek proof={item.proof} />
               </article>
             ))}
           </div>
