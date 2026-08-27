@@ -205,6 +205,67 @@ describe("G3 โจทย์จริงไม่เคยขอให้แบ�
   );
 });
 
+describe("G3 ต่อ — จำนวนเงินอยู่นอกบล็อกข้อเท็จจริงไม่ได้เลย", () => {
+  const MONEY_FIGURE = /\d[\d,]*\s*(บาท|สตางค์)/;
+
+  /**
+   * ADR 0019 ข้อ 2 เขียนว่าเงินเข้า prompt ได้ทางเดียวคือบล็อกข้อเท็จจริง
+   *
+   * ก่อนหน้านี้คำในเอกสารแรงกว่าของจริง เพราะมูลค่าสัญญาวางอยู่ในบรรทัดโจทย์ นอกบล็อก
+   * เทสต์นี้คือสิ่งที่ทำให้ประโยคนั้นเป็นคำที่โครงสร้างค้ำได้ ไม่ใช่คำที่เราตั้งใจจะทำ
+   */
+  it.each(skills.map((skill) => [skillId(skill), skill] as const))(
+    "%s ตัดบล็อกข้อเท็จจริงออกแล้ว ไม่เหลือจำนวนเงินในโจทย์เลย",
+    (_id, skill) => {
+      expect(MONEY_FIGURE.test(stripFactsBlock(builtTask(skill)))).toBe(false);
+    }
+  );
+
+  it("ตัวจับจำนวนเงินทำงานจริง ไม่ใช่ผ่านเพราะจับอะไรไม่ได้", () => {
+    expect(MONEY_FIGURE.test("มูลค่าสัญญา 18,500,000 บาท")).toBe(true);
+    expect(MONEY_FIGURE.test("ระยะเวลา 300 วัน")).toBe(false);
+  });
+});
+
+describe("G16 ทักษะที่อ้างสถาบันหรือเอกสาร ต้องประกาศแหล่งข้อมูล", () => {
+  /**
+   * ปิดทางลัดที่ G6 เปิดไว้โดยไม่ตั้งใจ
+   *
+   * G6 บังคับลายเซ็นเฉพาะทักษะที่ **ประกาศ** ว่าอ้างเอกสาร วิธีผ่านที่ง่ายที่สุดจึงเป็นการ
+   * ปล่อย `source` เป็น null แล้วเขียนการอ้างอิงลงใน system prompt แทน ซึ่งเคยเกิดขึ้นจริง:
+   * คำสั่งของผู้ช่วยแผนงานเคยบอกสัดส่วน 41/43/15 ว่ามาจากหลักสูตรของสถาบันวิศวกร
+   * ทั้งที่ไม่มีไฟล์ไหนในรีโปรองรับ และสัดส่วนนั้นไหลเข้าเงินของงวดงานจริง
+   *
+   * บรรทัดที่ *ปฏิเสธ* อำนาจอ้างอิงไม่ใช่การอ้าง จึงยกเว้นบรรทัดที่มีคำปฏิเสธอยู่ด้วย
+   */
+  // เลขหนังสือเวียนต้องไม่ติดคำไทยที่ลงท้ายด้วย ว เช่น "ราว 41 เปอร์เซ็นต์" จึงต้องมี lookbehind
+  const CIRCULAR_NUMBER = /(?<![฀-๿])ว\s?\d{2,3}\b/;
+  const AUTHORITY = new RegExp(
+    [
+      "วสท\\.", "ว\\.ส\\.ท\\.", "มยผ\\.", "ทล\\.", "ACI", "AASHTO",
+      "กรมบัญชีกลาง", "สำนักงบประมาณ", "คณะรัฐมนตรี", "สถาบัน", "หลักสูตร", "มาตรฐานเลขที่", "ตามระเบียบ",
+      CIRCULAR_NUMBER.source
+    ].join("|")
+  );
+  const DISCLAIMS = /ห้าม|ไม่ใช่|ไม่ได้|อย่า/;
+
+  it.each(skills.map((skill) => [skillId(skill), skill] as const))(
+    "%s ไม่อ้างสถาบันหรือเอกสารในคำสั่งระบบโดยไม่มีแหล่งข้อมูลรองรับ",
+    (_id, skill) => {
+      if (skill.source !== null) return;
+      const offenders = skill.system
+        .split("\n")
+        .filter((line) => AUTHORITY.test(line) && !DISCLAIMS.test(line));
+      expect(offenders).toEqual([]);
+    }
+  );
+
+  it("ตัวจับการอ้างอิงทำงานจริง", () => {
+    expect(AUTHORITY.test("ตามตัวอย่างในหลักสูตร วสท.")).toBe(true);
+    expect(AUTHORITY.test("สัดส่วนที่พบบ่อยในงานอาคารทั่วไป")).toBe(false);
+  });
+});
+
 describe("G6 ชุดข้อมูลที่ยังไม่มีผู้รับรอง ใช้ได้เฉพาะทักษะที่ไม่คืนตัวเลข", () => {
   it.each(skills.map((skill) => [skillId(skill), skill] as const))("%s ผ่านกฎแหล่งข้อมูล", (_id, skill) => {
     expect(skillSourceIsUsable(skill)).toBe(true);
@@ -238,24 +299,48 @@ describe("G6 ชุดข้อมูลที่ยังไม่มีผู�
 
 describe("G7 ที่มาของข้อมูลประกอบจากชุดข้อมูล ไม่ใช่จากแบบจำลอง", () => {
   it.each(skills.map((skill) => [skillId(skill), skill] as const))(
-    "%s คืนที่มาที่มีรหัสย่อไฟล์ครบรูปแบบทุกรายการ",
+    "%s คืนที่มาที่มีรหัสย่อไฟล์ครบรูปแบบ หรือไม่มีเลยเมื่อยังไม่มีไฟล์ต้นฉบับ",
     (_id, skill) => {
       for (const citation of skill.citations(projected(skill))) {
-        expect(citation.datasetSha256).toMatch(/^[0-9a-f]{64}$/);
-        expect(citation.datasetId).not.toBe("");
         expect(citation.document).not.toBe("");
+        if (citation.datasetSha256 === null) {
+          /*
+           * ไม่มีไฟล์ก็ไม่มีรหัสย่อ และห้ามยืนยันว่าตรวจแล้ว
+           *
+           * ทางลัดที่ต้องกันคือการหยิบรหัสย่อของเอกสารฉบับอื่นมาแปะให้ครบช่อง ซึ่งเคยเกิดขึ้น
+           * จริงกับกฎมาตรการปี 2569 ที่ถูกติดรหัสย่อของ ว 109 ทั้งที่ไม่ได้อยู่ในหนังสือฉบับนั้น
+           */
+          expect(citation.datasetId).toBeNull();
+          expect(citation.verified).toBe(false);
+        } else {
+          expect(citation.datasetSha256).toMatch(/^[0-9a-f]{64}$/);
+          expect(citation.datasetId).not.toBe("");
+        }
       }
     }
   );
 
-  it("ที่มาของผู้ช่วยค่า K อ้างรหัสย่อของ ว 109 ตัวเดียวกับที่ชุดข้อมูลประกาศ", () => {
-    const skill = skills.find((item) => item.app === "escalation-k");
-    const citations = skill ? skill.citations(projected(skill)) : [];
+  it("กฎที่มาจาก ว 109 อ้างรหัสย่อของ ว 109 และกฎที่ไม่ได้มาจากมัน ต้องไม่อ้าง", () => {
+    const skill = skills.find((item) => item.app === "escalation-k" && item.verb === "explain")!;
+    const citations = skill.citations(projected(skill));
     expect(citations.length).toBeGreaterThan(0);
-    for (const citation of citations) {
-      expect(citation.datasetSha256).toBe(escalationSource.sha256);
-      expect(citation.reviewedBy).toBeNull();
-    }
+
+    const fromW109 = citations.filter((citation) => citation.datasetSha256 !== null);
+    const notFromW109 = citations.filter((citation) => citation.datasetSha256 === null);
+
+    // ตัวอย่างที่ใช้ตกทั้งสองทาง: งวดส่งมอบเข้ามาตรการปี 2569 แต่วันลงนามยังอยู่ใต้กฎเดิม
+    expect(fromW109.length).toBeGreaterThan(0);
+    expect(notFromW109.length).toBeGreaterThan(0);
+
+    for (const citation of fromW109) expect(citation.datasetSha256).toBe(escalationSource.sha256);
+    for (const citation of notFromW109) expect(citation.document).not.toContain("ว 109");
+    for (const citation of citations) expect(citation.reviewedBy).toBeNull();
+  });
+
+  it("เลขหน้าที่ชุดข้อมูลรู้ ต้องอยู่ในช่องของมัน ไม่ใช่ฝังอยู่ในข้อความ", () => {
+    const skill = skills.find((item) => item.app === "escalation-k" && item.verb === "explain")!;
+    const withPage = skill.citations(projected(skill)).filter((citation) => citation.page !== null);
+    expect(withPage.length).toBeGreaterThan(0);
   });
 
   /**
@@ -273,7 +358,7 @@ describe("G8 หลักเกณฑ์ที่ยังไม่ตรวจ�
   it("ผู้ช่วยค่า K เตือนเรื่องหลักเกณฑ์ที่ยังไม่ยืนยัน", () => {
     const skill = skills.find((item) => item.app === "escalation-k" && item.verb === "explain")!;
     const warnings = skill.warnings(projected(skill));
-    expect(warnings.some((warning) => /ยังไม่ได้ตรวจกับเอกสารต้นฉบับ/.test(warning))).toBe(true);
+    expect(warnings.some((warning) => /ยังไม่มีเอกสารต้นฉบับในคลัง|ยังไม่มีผู้รับรอง/.test(warning))).toBe(true);
   });
 
   it("ผู้ช่วยค่า K บอกเสมอว่าตัวเองไม่ได้คำนวณค่า K หรือเงิน", () => {

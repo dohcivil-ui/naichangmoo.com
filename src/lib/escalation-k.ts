@@ -39,14 +39,35 @@ export type EscalationFormula = {
   terms?: Partial<Record<EscalationVariable, number>>;
 };
 
+/**
+ * เอกสารที่กฎข้อหนึ่งมาจาก
+ *
+ * แต่ละกฎพก identity ของเอกสารตัวเอง ไม่ใช่ยืมของชุดข้อมูลรวม เพราะ `rulebook` ในไฟล์นี้
+ * ซ้อนหลักเกณฑ์จาก **คนละฉบับ** ไว้ด้วยกัน — กฎตั้งต้นมาจาก ว 109 ปี 2532 ส่วนมาตรการ
+ * ชั่วคราวมาจากมติคณะรัฐมนตรีปี 2569 ซึ่งยังไม่มีต้นฉบับในคลัง
+ *
+ * `sha256` เป็น `null` ได้ และต้องเป็น `null` เมื่อยังไม่มีไฟล์ต้นฉบับ การยืมรหัสย่อของ
+ * เอกสารฉบับอื่นมาแปะ เท่ากับบอกผู้อ่านว่าข้อความนี้อยู่ในไฟล์นั้น ซึ่งเปิดไฟล์ตามแล้วไม่เจอ
+ * และสิ่งที่พังไม่ใช่บรรทัดนั้นบรรทัดเดียว แต่คือความน่าเชื่อของทุกบรรทัดที่ระบบเคยอ้าง
+ */
+export type RuleDocument = {
+  title: string;
+  datasetId: string | null;
+  fileName: string | null;
+  sha256: string | null;
+  page: number | null;
+};
+
 export type ThresholdRule = {
   id: string;
   label: string;
   thresholdMilli: Milli;
   effectiveFromBE: string | null;
   effectiveToBE: string | null;
+  quote: string;
   sourceRef: string;
   verified: boolean;
+  document: RuleDocument;
 };
 
 export type BaseMonthRule = {
@@ -57,6 +78,7 @@ export type BaseMonthRule = {
   effectiveToBE: string | null;
   sourceRef: string;
   verified: boolean;
+  document: RuleDocument;
 };
 
 const groups = dataset.groups as EscalationGroup[];
