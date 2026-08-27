@@ -57,7 +57,6 @@ export type PlatformApp = {
    */
   seededAccess: AppAccess;
   href: string;
-  status: "available" | "coming_soon" | "restricted";
   categoryId: MarketCategoryId;
   marketDetail: {
     outcome: string;
@@ -79,7 +78,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
     seededAccess: "paid_trial",
     href: "/apps/estimeter",
-    status: "available",
     categoryId: "building-cost",
     marketDetail: {
       outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
@@ -104,7 +102,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปราคาวัสดุและค่าแรง",
     seededAccess: "paid_trial",
     href: "/prototype/price-check",
-    status: "coming_soon",
     categoryId: "building-cost",
     marketDetail: {
       outcome: "ค้นราคาวัสดุและค่าแรงจากแหล่งราชการ พร้อมหยิบรายการเก็บไว้ใช้ต่อ",
@@ -124,7 +121,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "Retaining Wall Cantilever optimization icon",
     seededAccess: "member_free",
     href: "/apps/rcopt",
-    status: "coming_soon",
     categoryId: "civil-design",
     marketDetail: {
       outcome: "คำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
@@ -144,7 +140,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์คำนวณวัสดุป้ายจราจร",
     seededAccess: "member_free",
     href: "/apps/traffic-sign",
-    status: "coming_soon",
     categoryId: "safety-equipment",
     marketDetail: {
       outcome: "จัดทำรายการวัสดุป้ายจราจร",
@@ -164,7 +159,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์งานจัดกรรมสิทธิ์ที่ดิน",
     seededAccess: "doh_staff_only",
     href: "/apps/land-acquisition",
-    status: "restricted",
     categoryId: "land-acquisition",
     marketDetail: {
       outcome: "ระบบงานจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง",
@@ -188,7 +182,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปคำนวณค่า K",
     seededAccess: "paid_trial",
     href: "/apps/escalation-k",
-    status: "coming_soon",
     categoryId: "building-cost",
     marketDetail: {
       outcome: "คำนวณค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้",
@@ -210,7 +203,6 @@ export const platformApps: PlatformApp[] = [
     iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปผู้ช่วยสร้างแผนงาน",
     seededAccess: "paid_trial",
     href: "/prototype/work-plan",
-    status: "coming_soon",
     categoryId: "construction-management",
     marketDetail: {
       outcome: "ได้แผนงานก่อสร้างพร้อมเอกสารแนบสัญญาที่พิมพ์ลงกระดาษ A4 ได้จริง",
@@ -228,22 +220,30 @@ export const accessLabel: Record<AppAccess, string> = {
   agent_service: "ผู้ช่วยทำงาน 24/7"
 };
 
-export const appStatusLabel: Record<PlatformApp["status"], string> = {
-  available: "เริ่มใช้ได้",
-  coming_soon: "กำลังเตรียมระบบ",
-  restricted: "จำกัดสิทธิ์"
-};
+/**
+ * The standard availability sentences an administrator picks from when announcing an app
+ * (ADR 0018). A fixed list keeps the public wording a pattern instead of a retyped phrase;
+ * the announcement form still offers a custom escape hatch for a sentence that genuinely
+ * has more to say, like rcopt's restructuring note.
+ */
+export const availabilityNotePresets = [
+  "ทดลองใช้งานฟรี 7 วัน",
+  "สมาชิกใช้ฟรี",
+  "เฉพาะบุคลากรกรมทางหลวง",
+  "กำลังพัฒนา ยังไม่เปิดใช้งาน"
+] as const;
 
 /**
  * Readiness as the registry is able to state it. ADR 0015: this is a claim, so it has only the two
  * values an administrator has actually said something about — an app nobody announced has no
  * readiness at all, which is why there is no third member here and no "unknown".
  *
- * The strings come from `appStatusLabel` rather than being typed again, so the two never drift.
+ * IP-092 retired the seeded `status` field and its label map: readiness never comes from source,
+ * so a per-app status typed into this file had nothing left to say.
  */
 export type AppReadiness = "open" | "preparing";
 
 export const appReadinessLabel: Record<AppReadiness, string> = {
-  open: appStatusLabel.available,
-  preparing: appStatusLabel.coming_soon
+  open: "เริ่มใช้ได้",
+  preparing: "กำลังเตรียมระบบ"
 };

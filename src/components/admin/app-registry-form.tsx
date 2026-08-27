@@ -1,13 +1,28 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { accessLabel, type AppAccess } from "@/lib/platform";
+import { accessLabel, availabilityNotePresets, type AppAccess } from "@/lib/platform";
 import { declareApp, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
 import type { RegistryEntry } from "@/server/app-registry";
 
 const initial: AppRegistryFormState = { ok: false, message: "" };
 
 const ACCESS_OPTIONS: readonly AppAccess[] = ["paid_trial", "member_free", "doh_staff_only", "agent_service"];
+
+/** Sentinel select values that are not sentences. Thai strings cannot collide with them. */
+const NOTE_NONE = "__none__";
+const NOTE_CUSTOM = "__custom__";
+
+/**
+ * The availability sentence is picked from the standard set (ADR 0018) so the public wording
+ * stays a pattern, per the owner's 2026-08-27 request. "กำหนดเอง" opens a free-text field for
+ * the rare sentence with more to say; "ไม่แสดงข้อความ" announces silence, which is valid.
+ */
+function initialNoteChoice(current: string | null, seeded: string): string {
+  const value = current ?? seeded;
+  if (!value) return NOTE_NONE;
+  return (availabilityNotePresets as readonly string[]).includes(value) ? value : NOTE_CUSTOM;
+}
 
 /**
  * One app's announcement. The reason is required in the markup and again on the server: the
@@ -22,6 +37,7 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
   const [withdrawState, withdrawAction, withdrawing] = useActionState(withdrawApp, initial);
   const [access, setAccess] = useState<AppAccess>(entry.access ?? entry.seededAccess);
   const [open, setOpen] = useState(entry.open);
+  const [noteChoice, setNoteChoice] = useState(() => initialNoteChoice(entry.availabilityNote, entry.seededNote));
 
   const conflicts = access !== entry.seededAccess;
   const openRefused = access === "member_free" && open;
@@ -70,16 +86,35 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
 
         <label>
           <span>ประโยคความพร้อมที่หน้าเว็บจะพูดก่อนเข้าใช้งาน</span>
-          <input
-            type="text"
-            name="availability_note"
-            defaultValue={entry.availabilityNote ?? entry.seededNote}
-            placeholder="เว้นว่างได้ ถ้าไม่ต้องการให้หน้าเว็บพูดอะไรเลย"
-          />
+          <select value={noteChoice} onChange={(event) => setNoteChoice(event.target.value)}>
+            {availabilityNotePresets.map((preset) => (
+              <option key={preset} value={preset}>
+                {preset}
+              </option>
+            ))}
+            <option value={NOTE_NONE}>ไม่แสดงข้อความ</option>
+            <option value={NOTE_CUSTOM}>กำหนดเอง…</option>
+          </select>
           <small>
-            แสดงบนหน้ารายละเอียดแอปเฉพาะเมื่อประกาศแล้ว ค่าแนะนำจากโค้ดคือ &ldquo;{entry.seededNote}&rdquo; เว้นว่างคือให้หน้าเว็บเงียบ
+            แสดงบนหน้ารายละเอียดแอปเฉพาะเมื่อประกาศแล้ว ค่าแนะนำจากโค้ดคือ &ldquo;{entry.seededNote}&rdquo;
           </small>
         </label>
+
+        {noteChoice === NOTE_CUSTOM ? (
+          <label>
+            <span>ประโยคที่กำหนดเอง</span>
+            <input
+              type="text"
+              name="availability_note"
+              required
+              defaultValue={entry.availabilityNote ?? entry.seededNote}
+              placeholder="พิมพ์ประโยคที่หน้าเว็บจะแสดง"
+            />
+            <small>ใช้เมื่อประโยคมาตรฐานบอกไม่พอ เช่น เงื่อนไขเปิดใช้เฉพาะแอป</small>
+          </label>
+        ) : (
+          <input type="hidden" name="availability_note" value={noteChoice === NOTE_NONE ? "" : noteChoice} />
+        )}
 
         <label>
           <span>เหตุผล ระบุทุกครั้ง</span>

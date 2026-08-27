@@ -38,12 +38,11 @@ describe("Landing interaction contract", () => {
     }
   });
 
-  // ADR 0015: `status` is a seeded default, and offering a way into an app is a claim that there
-  // is one. An app seeded "available" that no administrator announced must still be shut.
-  it("refuses to open an app on the strength of its seeded status alone", () => {
-    const seededAvailable = platformApps.filter((app) => app.status === "available");
-    expect(seededAvailable.length).toBeGreaterThan(0);
-    for (const app of seededAvailable) {
+  // ADR 0015: offering a way into an app is a claim that there is one. Nothing typed into source
+  // may open a door - only the registry's own `open` does. IP-092 retired the seeded `status`
+  // field entirely, so the property holds for every app in the catalogue, not a filtered subset.
+  it("refuses to open any app unless the registry says it is open", () => {
+    for (const app of platformApps) {
       expect(getAppInteractionContract(app, false).entryHref).toBeNull();
     }
   });

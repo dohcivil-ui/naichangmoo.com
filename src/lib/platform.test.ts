@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
+import { accessLabel, availabilityNotePresets, marketCategories, platformApps } from "@/lib/platform";
 
 describe("Civil Apps Market registry", () => {
   it("maps every marketplace app to one approved work category", () => {
@@ -23,6 +23,11 @@ describe("Civil Apps Market registry", () => {
     expect(accessLabel.paid_trial).not.toContain("โครงการ");
     // ADR 0010: no surface before entry names the cap, so an accidental walk-back is caught here.
     for (const app of platformApps) expect(app.marketDetail.availabilityNote).not.toContain("โครงการ");
+    // The preset sentences an administrator picks from (ADR 0018) must obey the same rule.
+    for (const preset of availabilityNotePresets) {
+      expect(preset.trim().length).toBeGreaterThan(0);
+      expect(preset).not.toContain("โครงการ");
+    }
   });
 
   it("keeps a truthful pre-entry detail route and readiness content for every app", () => {
