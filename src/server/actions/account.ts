@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 
 export type AccountActionState = { ok: boolean; message: string };
 
@@ -19,7 +19,7 @@ export async function signOutOtherDevices(): Promise<AccountActionState> {
   if (!user) return { ok: false, message: "ต้องเข้าสู่ระบบก่อน" };
 
   try {
-    const { auth } = await import("@/lib/auth");
+    const { auth } = await import("@/server/auth");
     await auth.api.revokeOtherSessions({ headers: requestHeaders });
   } catch {
     return { ok: false, message: "ออกจากระบบอุปกรณ์อื่นไม่สำเร็จ ลองใหม่อีกครั้ง" };

@@ -3,7 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { getDb } from "@/db";
 import { auditEvents, platformAdministrators, users } from "@/db/schema";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 
 /**
  * ADR 0012. The only place a back-office surface may ask whether someone is allowed in.

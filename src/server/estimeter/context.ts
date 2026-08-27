@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getPlatformSessionUser, type PlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser, type PlatformSessionUser } from "@/server/auth-session";
 import { getEstimeterAccess, type EstimeterAccess } from "@/server/estimeter-access";
 
 export type EstimeterContext = { user: PlatformSessionUser; access: EstimeterAccess };

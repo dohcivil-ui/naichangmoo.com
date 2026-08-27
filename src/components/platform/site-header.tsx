@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { PlatformNav } from "@/components/platform/platform-nav";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { readMemberAppAccess } from "@/server/member-account";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
 

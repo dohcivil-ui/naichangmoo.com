@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { SiteHeader } from "@/components/platform/site-header";
 import { SignOutOtherDevices } from "@/components/platform/sign-out-others";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { landingActionContract } from "@/lib/landing-interactions";
 import { entitlementStateLabel } from "@/lib/platform-admin-labels";
 import { formatThaiDate, formatThaiDateTime } from "@/lib/thai-format";

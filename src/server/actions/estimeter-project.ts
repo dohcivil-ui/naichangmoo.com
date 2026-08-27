@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { parseProjectForm, projectCreationDenial, type ProjectFieldErrors } from "@/lib/estimeter-project";
 import { getEstimeterAccess } from "@/server/estimeter-access";
 import { createProjectWithinLimit } from "@/server/estimeter/project-repository";

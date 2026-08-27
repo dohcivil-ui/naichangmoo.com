@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { ESTIMETR_TRIAL_DAYS } from "@/lib/estimeter-trial";
 import { activateEstimeterTrial } from "@/server/estimeter-access";
 

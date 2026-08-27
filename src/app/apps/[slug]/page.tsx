@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { AppShell } from "@/components/platform/app-shell";
-import { getPlatformSessionUser } from "@/lib/auth-session";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { landingActionContract } from "@/lib/landing-interactions";
 import { ESTIMETR_APP_SLUG } from "@/lib/estimeter-trial";
 import { platformApps } from "@/lib/platform";

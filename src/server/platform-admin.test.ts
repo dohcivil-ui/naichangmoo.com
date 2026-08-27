@@ -10,7 +10,7 @@ const getPlatformSessionUser = vi.fn();
 const getDb = vi.fn();
 
 vi.mock("next/headers", () => ({ headers: async () => new Headers() }));
-vi.mock("@/lib/auth-session", () => ({ getPlatformSessionUser: (...args: unknown[]) => getPlatformSessionUser(...args) }));
+vi.mock("@/server/auth-session", () => ({ getPlatformSessionUser: (...args: unknown[]) => getPlatformSessionUser(...args) }));
 vi.mock("@/db", () => ({ getDb: () => getDb() }));
 
 /** Mimics the drizzle chain used by the lookup: select().from().where().limit(). */

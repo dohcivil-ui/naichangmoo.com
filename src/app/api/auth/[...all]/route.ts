@@ -7,7 +7,7 @@ async function getAuthHandlers() {
   if (!isAuthRuntimeConfigured()) return null;
   const [{ toNextJsHandler }, { auth }] = await Promise.all([
     import("better-auth/next-js"),
-    import("@/lib/auth")
+    import("@/server/auth")
   ]);
   return toNextJsHandler(auth);
 }
