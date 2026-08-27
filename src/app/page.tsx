@@ -53,13 +53,15 @@ export default async function LandingPage() {
           <div className="hero__copy">
             <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
             {/* IP-192: the headline rises a line at a time behind a clipping mask - the motion
-                trick from the approved mockup, kept to the same words. The first line wears an
-                outline stroke so the promise on the second line stays the loudest thing here. */}
+                trick from the approved mockup. The first line wears an outline stroke so the
+                second one, which names what the platform actually sells, stays the loudest
+                thing on the page. The split point is chosen so each line is a whole phrase:
+                Thai has no word spaces, and a line break landing mid-phrase reads as a typo. */}
             <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
-              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">AI ที่ตอบได้</span></span>
-              <span className="h1-line"><span className="h1-line__text">ว่ามาจากไหน<span className="h1-dot">.</span></span></span>
+              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">เสริมพลังให้แอป</span></span>
+              <span className="h1-line"><span className="h1-line__text">ด้วยผู้ช่วย AI<span className="h1-dot">.</span></span></span>
             </h1>
-            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำเร็วขึ้น — ผู้ช่วยทักว่างานขัดกันตรงไหน และตัวเลขทุกตัวชี้กลับไปยังที่มาได้ เพราะเงินทุกบาทระบบเป็นคนคำนวณ ไม่ใช่ AI</p>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
             {/* A design principle, not a registry claim - true by structure since the assistant
                 schema may not carry a money field (ai-assistant-design.md, guardrail G1). */}
