@@ -168,6 +168,76 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .text-link { margin-top: auto; color: var(--teal); font-size: .9rem; font-weight: 700; display: inline-flex; gap: 9px; align-items: center; }
 .text-link--muted { color: #89989d; }
 
+/* ---- IP-192: motion tricks from the approved mockup, restyled for the light theme ---- */
+.hero__headline{display:block;color:#fff}
+.h1-line{display:block;overflow:hidden}
+.h1-line__text{display:block;transform:translateY(112%);animation:h1-rise 760ms var(--ease-reveal) 200ms forwards}
+.h1-line:nth-child(2) .h1-line__text{animation-delay:320ms}
+.h1-line__text--outline{color:transparent;-webkit-text-stroke:2.5px rgba(255,255,255,.72)}
+.h1-dot{color:var(--orange)}
+@keyframes h1-rise{to{transform:none}}
+/* the marquee sits at the hero's foot; introductions only, and it pauses under the pointer */
+.principle-marquee{overflow:hidden;border-top:1px solid rgba(255,255,255,.16);margin-top:34px;padding:14px 0 2px;user-select:none}
+.principle-marquee__track{display:flex;width:max-content;animation:principle-mq 38s linear infinite}
+.principle-marquee:hover .principle-marquee__track{animation-play-state:paused}
+.principle-marquee__half{display:flex;align-items:center;flex:none}
+.principle-marquee__half span{display:flex;align-items:center;gap:26px;padding-right:26px;font-size:.94rem;font-weight:600;letter-spacing:.02em;color:rgba(215,232,233,.65);white-space:nowrap}
+.principle-marquee__half span i{width:6px;height:6px;background:var(--orange);opacity:.85;flex:none}
+@keyframes principle-mq{to{transform:translateX(-50%)}}
+.stat-band{padding-top:40px;padding-bottom:40px;border-bottom:1px solid var(--line)}
+.stat-band__eyebrow{margin-bottom:18px}
+.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.stat-strip__cell{background:var(--paper);padding:22px 20px;display:flex;flex-direction:column;gap:8px}
+.stat-strip__num{font-size:clamp(1.9rem,3vw,2.9rem);font-weight:800;letter-spacing:-.03em;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+.stat-strip__label{color:var(--muted);font-size:.78rem;font-weight:700;letter-spacing:.06em;display:flex;align-items:center;gap:8px}
+.stat-strip__label::before{content:"";width:7px;height:7px;background:var(--teal);flex:none}
+/* before/after document comparison - teal divider, the page's one orange stays on the hero */
+.doc-compare-block{margin-top:34px;border-top:1px solid var(--line);padding-top:28px}
+.doc-compare-block__head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+.doc-compare-block__head h3{margin:0;font-size:1.3rem;letter-spacing:-.02em}
+.doc-compare-block__head p{margin:0;color:var(--muted);font-size:.86rem}
+.doc-compare{position:relative;overflow:hidden;min-height:360px;border:1px solid var(--line);border-radius:12px;background:var(--paper);touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize}
+.doc-compare__pane{position:absolute;inset:0;padding:52px 24px 24px}
+.doc-compare__pane--after{background:#edf8f6;display:flex;justify-content:flex-end}
+.doc-compare__pane--after .doc-compare__doc{width:min(430px,92%)}
+.doc-compare__pane--before{background:#fdf6f0}
+.doc-compare__before{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--pos,56%)) 0 0);z-index:2}
+.doc-compare__doc{margin:0;font-family:var(--font-mono,ui-monospace),monospace;font-size:.8rem;line-height:2;color:#34545a;white-space:pre;overflow:hidden}
+.doc-compare__doc b{color:var(--ink);font-weight:700}
+.doc-compare__doc i{color:#17604e;font-style:normal}
+.doc-compare__doc s{color:#8a3b3b;text-decoration:underline wavy rgba(138,59,59,.6) 1.5px}
+.doc-compare__line{position:absolute;top:0;bottom:0;left:var(--pos,56%);width:2px;background:var(--teal);transform:translateX(-1px);z-index:3}
+.doc-compare__handle{touch-action:none;position:absolute;top:50%;left:var(--pos,56%);transform:translate(-50%,-50%);z-index:4;width:44px;height:44px;border-radius:50%;background:var(--paper);border:2px solid var(--teal);box-shadow:0 8px 18px rgba(7,48,71,.16);display:flex;align-items:center;justify-content:center;cursor:ew-resize;transition:transform 160ms var(--ease-out),border-color 160ms var(--ease-out)}
+.doc-compare__handle:hover,.doc-compare__handle:focus-visible{transform:translate(-50%,-50%) scale(1.08);border-color:var(--ink)}
+.doc-compare__handle::before,.doc-compare__handle::after{content:"";border:6px solid transparent}
+.doc-compare__handle::before{border-right-color:var(--teal);margin-right:3px}
+.doc-compare__handle::after{border-left-color:var(--teal);margin-left:3px}
+.doc-compare__label{position:absolute;top:12px;z-index:5;font-size:.68rem;font-weight:700;letter-spacing:.06em;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--paper)}
+.doc-compare__label--l{left:12px;color:var(--muted)}
+.doc-compare__label--r{right:12px;color:var(--teal)}
+/* inspect-sweep-stamp timeline (Fable spec 2026-08-27). Stamps hide only under idle/playing,
+   so SSR, no-JS and reduced-motion always see the finished document. */
+.doc-compare__stamp{display:inline-block;transform-origin:40% 60%}
+.doc-compare[data-state="idle"] .doc-compare__stamp,
+.doc-compare[data-state="playing"] .doc-compare__row:not(.is-stamped) .doc-compare__stamp{opacity:0;transform:scale(1.3) rotate(-2deg)}
+.doc-compare__row.is-stamped .doc-compare__stamp{opacity:1;transform:none;transition:opacity 240ms cubic-bezier(.2,1.4,.4,1),transform 240ms cubic-bezier(.2,1.4,.4,1)}
+.doc-compare[data-state="done"] .doc-compare__stamp{opacity:1;transform:none;transition:none}
+.doc-compare__stamp--seal{font-weight:700;color:var(--teal)}
+.doc-compare__row.is-stamped{animation:doc-stamp-glow 700ms var(--ease-out) 1}
+.doc-compare__row:last-of-type.is-stamped .doc-compare__stamp{transition-duration:320ms}
+@keyframes doc-stamp-glow{from{background:rgba(13,130,130,.12)}to{background:transparent}}
+.doc-compare__pane--before s{transition:background-color 120ms var(--ease-out)}
+.doc-compare__pane--before s.is-flagged{background:rgba(179,58,59,.1)}
+.doc-compare__handle.is-nudge{animation:doc-handle-nudge 380ms var(--ease-out) 1}
+@keyframes doc-handle-nudge{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.14)}}
+.doc-compare__hint{position:absolute;left:var(--pos,56%);top:calc(50% + 36px);transform:translate(-50%,6px);z-index:6;font-size:.72rem;font-weight:700;letter-spacing:.04em;color:var(--teal);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 260ms var(--ease-reveal),transform 260ms var(--ease-reveal)}
+.doc-compare__hint.is-on{opacity:1;transform:translate(-50%,0)}
+.doc-compare__replay{position:absolute;right:12px;bottom:12px;z-index:6;display:inline-flex;align-items:center;gap:7px;font-family:inherit;font-size:.74rem;font-weight:700;letter-spacing:.04em;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:7px 13px;cursor:pointer;opacity:0;pointer-events:none;transition:opacity 260ms var(--ease-out),color 160ms var(--ease-out),border-color 160ms var(--ease-out)}
+.doc-compare.is-finished .doc-compare__replay{opacity:1;pointer-events:auto}
+.doc-compare__replay:hover,.doc-compare__replay:focus-visible{color:var(--teal);border-color:var(--teal)}
+.doc-compare .no-anim,.doc-compare.no-anim *{transition:none!important;animation:none!important}
+@media (max-width:640px){.doc-compare{min-height:300px}.doc-compare__doc{font-size:.66rem}.doc-compare__pane{padding:46px 14px 14px}}
+
 .policy-preview { margin-top: 18px; border-top: 1px solid var(--line); padding: 28px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: center; }
 .policy-preview h3 { font-size: 1.25rem; margin: 8px 0; letter-spacing: -.02em; }.policy-preview p { color: var(--muted); line-height: 1.7; margin: 0; }
 .policy-preview__panel { border: 1px solid #a9d5d0; background: #edf8f6; border-radius: 10px; padding: 18px; }.policy-preview__panel strong { display: block; margin: 12px 0; }.policy-preview ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }.policy-preview li { display: flex; align-items: center; gap: 9px; color: #34545a; font-size: .88rem; }

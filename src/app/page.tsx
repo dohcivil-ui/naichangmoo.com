@@ -10,11 +10,24 @@ import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { readCatalogueClaims } from "@/server/app-registry";
+import { readProjectStatus } from "@/server/project-status";
+import { StatStrip } from "@/components/landing/stat-strip";
+import { DocCompare } from "@/components/landing/doc-compare";
 
 export default async function LandingPage() {
   // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
   // open only as far as the registry has been made to say so. One read serves every category.
   const claims = await readCatalogueClaims();
+  // IP-192: the stat strip counts up, so every number in it must be one the platform can stand
+  // behind. All four are computed live - catalogue size from source, announcements from the
+  // registry, progress from the roadmap file the /roadmap page already reads.
+  const { roadmap } = await readProjectStatus();
+  const platformStats = [
+    { value: platformApps.length, label: "แอปในทะเบียน" },
+    { value: Object.values(claims).filter((claim) => claim.announced).length, label: "ประกาศแล้วโดยผู้ดูแล" },
+    { value: roadmap.items.length, label: "รายการโรดแมปสาธารณะ" },
+    { value: roadmap.items.filter((item) => item.status === "done").length, label: "รายการที่ปิดแล้ว" }
+  ];
   // The quotation page is where a Hermes use case is submitted; the nav contract owns the route.
   const hermesRequestHref = landingNavigationContract.find((item) => item.id === "enterprise")?.href ?? "/enterprise";
   const estimeter = claims.estimeter;
@@ -32,7 +45,13 @@ export default async function LandingPage() {
               headline instead of meeting the whole panel at once. */}
           <div className="hero__copy">
             <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
-            <h1 data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>แอปงานโยธา ใช้งานง่าย</h1>
+            {/* IP-192: the headline rises a line at a time behind a clipping mask - the motion
+                trick from the approved mockup, kept to the same words. The first line wears an
+                outline stroke so the promise on the second line stays the loudest thing here. */}
+            <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
+              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">แอปงานโยธา</span></span>
+              <span className="h1-line"><span className="h1-line__text">ใช้งานง่าย<span className="h1-dot">.</span></span></span>
+            </h1>
             <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>เลือกแอปตามหมวดงาน แล้วเริ่มใช้งานได้ทันที</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
             {/* ADR 0015: naming ESTIMETR is an introduction, but its commercial terms are a
@@ -41,9 +60,37 @@ export default async function LandingPage() {
             {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
           </div>
           <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
+            {/* placeholder keeps JSX shape stable */}
             <HeroEngineeringArt />
             <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
           </div>
+        </div>
+        {/* IP-192: a slow marquee of the platform's standing principles. Introductions, not
+            claims - no price, no readiness, nothing the registry owns. Pauses on hover; the
+            global reduced-motion rule freezes it entirely. */}
+        <div className="principle-marquee" aria-hidden="true">
+          <div className="principle-marquee__track">
+            {[0, 1].map((half) => (
+              <div className="principle-marquee__half" key={half}>
+                {[
+                  "ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้",
+                  "AI ร่าง — คุณตัดสิน — ระบบคำนวณ",
+                  "เงินเป็นสตางค์จำนวนเต็มเสมอ",
+                  "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่บันทึก",
+                  "ทุกคำแถลงมีผู้ดูแลเป็นเจ้าของ"
+                ].map((line) => (
+                  <span key={line}>{line}<i /></span>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
+        <div className="container">
+          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — อ่านสดจากทะเบียนและโรดแมป</div>
+          <div data-reveal data-delay="120"><StatStrip stats={platformStats} /></div>
         </div>
       </section>
 
@@ -80,6 +127,16 @@ export default async function LandingPage() {
                 <p className="evidence-gap__answer">{item.answer}</p>
               </article>
             ))}
+          </div>
+
+          {/* IP-192: the draggable before/after from the approved mockup. An illustration and
+              labelled as one - it introduces the difference, and claims nothing. */}
+          <div className="doc-compare-block" data-reveal>
+            <div className="doc-compare-block__head">
+              <h3>เอกสารเดิมของคุณ เทียบของเรา</h3>
+              <p>ลากแถบตรงกลางหรือใช้ปุ่มลูกศรเทียบดู — ตัวอย่างประกอบเพื่อสาธิต</p>
+            </div>
+            <DocCompare />
           </div>
         </div>
       </section>
