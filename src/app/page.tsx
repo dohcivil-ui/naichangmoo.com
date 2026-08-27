@@ -10,8 +10,10 @@ import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { readCatalogueClaims } from "@/server/app-registry";
-import { readProjectStatus } from "@/server/project-status";
 import { StatStrip } from "@/components/landing/stat-strip";
+import obecPrices from "@/data/obec/obec-2569-unit-prices.json";
+import labourSchedule from "@/data/cgd/cgd-w809-labour-be2568.json";
+import escalationRules from "@/data/escalation-k/cabinet-w109-be2532.json";
 import { DocCompare } from "@/components/landing/doc-compare";
 
 export default async function LandingPage() {
@@ -19,14 +21,18 @@ export default async function LandingPage() {
   // open only as far as the registry has been made to say so. One read serves every category.
   const claims = await readCatalogueClaims();
   // IP-192: the stat strip counts up, so every number in it must be one the platform can stand
-  // behind. All four are computed live - catalogue size from source, announcements from the
-  // registry, progress from the roadmap file the /roadmap page already reads.
-  const { roadmap } = await readProjectStatus();
+  // behind AND one a customer actually cares about. The owner cut the internal roadmap counts
+  // (2026-08-27) - progress bookkeeping lives on /roadmap for those who go looking. What remains
+  // is counted from the real datasets shipped in the repo, never typed as a literal.
+  const labourRateCount = (labourSchedule as { variants: { rates: unknown[] }[] }[]).reduce(
+    (total, item) => total + item.variants.reduce((sum, variant) => sum + variant.rates.length, 0),
+    0
+  );
   const platformStats = [
-    { value: platformApps.length, label: "แอปในทะเบียน" },
-    { value: Object.values(claims).filter((claim) => claim.announced).length, label: "ประกาศแล้วโดยผู้ดูแล" },
-    { value: roadmap.items.length, label: "รายการโรดแมปสาธารณะ" },
-    { value: roadmap.items.filter((item) => item.status === "done").length, label: "รายการที่ปิดแล้ว" }
+    { value: platformApps.length, label: "แอปงานโยธาในทะเบียน" },
+    { value: obecPrices.length, label: "รายการบัญชีราคา สพฐ. 2569" },
+    { value: labourRateCount, label: "อัตราค่าแรงราชการ ว 809" },
+    { value: (escalationRules as { formulas: unknown[] }).formulas.length, label: "สูตรค่า K ตาม ว 109" }
   ];
   // The quotation page is where a Hermes use case is submitted; the nav contract owns the route.
   const hermesRequestHref = landingNavigationContract.find((item) => item.id === "enterprise")?.href ?? "/enterprise";
@@ -89,7 +95,7 @@ export default async function LandingPage() {
 
       <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
         <div className="container">
-          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — อ่านสดจากทะเบียนและโรดแมป</div>
+          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — นับจากชุดข้อมูลจริงในระบบ</div>
           <div data-reveal data-delay="120"><StatStrip stats={platformStats} /></div>
         </div>
       </section>
