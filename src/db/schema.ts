@@ -28,6 +28,15 @@ export const projectPath = pgEnum("project_path", ["private", "government"]);
 export const reviewState = pgEnum("review_state", ["proposed", "review_required", "confirmed", "rejected"]);
 export const jobState = pgEnum("job_state", ["queued", "running", "succeeded", "failed", "cancelled", "dead_letter"]);
 export const approvalState = pgEnum("approval_state", ["pending", "approved", "rejected", "cancelled"]);
+// What a person did with something the assistant proposed. `expired` is not an action anybody
+// takes; it is what a proposal becomes when nobody decides within its time window.
+export const assistantDecision = pgEnum("assistant_decision", [
+  "proposed",
+  "accepted",
+  "rejected",
+  "partially_accepted",
+  "expired"
+]);
 
 // Better Auth tables: field property names intentionally match Better Auth expectations.
 export const users = pgTable("users", {
@@ -446,6 +455,53 @@ export const rateLimitCounters = pgTable("rate_limit_counters", {
   updatedAt
 }, (table) => [uniqueIndex("rate_limit_counters_unique").on(table.scope, table.identifier, table.windowStart)]);
 
+/**
+ * What the assistant proposed, and what a person did about it.
+ *
+ * The row is written in two steps and the order is the point. It is reserved *before* the model is
+ * called, then completed with whatever came back — including a failure. Writing it only on success
+ * would mean a crashed or refused call left no trace at all, while the money for it had already
+ * left; and a draft somebody rejected would vanish from history, taking with it the one number
+ * that says whether the assistant is worth its cost: how often people say no to it.
+ *
+ * `prompt_hash` is a hash and never the prompt itself. `cost_micro_usd` is an integer in micro USD
+ * rather than satang because the baht conversion is a fixed rate in code; storing baht would freeze
+ * today's exchange rate into a permanent record.
+ */
+export const assistantProposals = pgTable("assistant_proposals", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id").references(() => organizations.id),
+  actorId: text("actor_id").notNull().references(() => users.id),
+  appSlug: text("app_slug").notNull(),
+  verb: text("verb").notNull(),
+  /** What the assistant was working on, recorded verbatim for the audit trail. */
+  subject: text("subject").notNull(),
+  modelId: text("model_id").notNull(),
+  promptHash: text("prompt_hash").notNull(),
+  draft: jsonb("draft").notNull().default({}),
+  assumptions: jsonb("assumptions").notNull().default([]),
+  citations: jsonb("citations").notNull().default([]),
+  warnings: jsonb("warnings").notNull().default([]),
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  costMicroUsd: integer("cost_micro_usd").notNull().default(0),
+  elapsedMs: integer("elapsed_ms").notNull().default(0),
+  decision: assistantDecision("decision").notNull().default("proposed"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  decidedBy: text("decided_by").references(() => users.id),
+  /** Which fields the person kept when they accepted only part of a proposal. */
+  changedFields: jsonb("changed_fields").notNull().default([]),
+  /** Set when the reserved call never produced a draft, so a spent call is still explainable. */
+  failureReason: text("failure_reason"),
+  createdAt,
+  updatedAt
+}, (table) => [
+  // The platform-wide daily spend brake sums this table by time, so the time column leads.
+  index("assistant_proposals_created_idx").on(table.createdAt),
+  index("assistant_proposals_actor_idx").on(table.actorId, table.createdAt),
+  index("assistant_proposals_app_idx").on(table.appSlug, table.verb)
+]);
+
 export const schema = {
   users,
   sessions,
@@ -472,5 +528,6 @@ export const schema = {
   approvalRequests,
   auditEvents,
   platformAdministrators,
-  rateLimitCounters
+  rateLimitCounters,
+  assistantProposals
 };
