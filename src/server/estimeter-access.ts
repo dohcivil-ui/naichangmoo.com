@@ -1,4 +1,4 @@
-import { and, count, eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { appEntitlements, apps, auditEvents, organizationMembers, organizations, projects, users } from "@/db/schema";
 import {
@@ -8,10 +8,9 @@ import {
   resolveLimits,
   type Capability,
   type EffectiveEntitlementState,
-  type Entitlement,
-  type EntitlementLimits,
-  type EntitlementState
+  type Entitlement
 } from "@/lib/entitlement";
+import { parseStoredLimits, readEntitlementForApp } from "@/server/app-access";
 import {
   ESTIMETR_APP_SLUG,
   ESTIMETR_TRIAL_DAYS,
@@ -41,13 +40,6 @@ export type EstimeterAccess = {
   capabilities: Record<Capability, boolean>;
 };
 
-type EntitlementRecord = {
-  id: string;
-  organizationId: string;
-  entitlement: Entitlement;
-  appEnabled: boolean;
-};
-
 // Identifiers are derived from the member and the app slug so a concurrent or repeated
 // activation collides on the primary key instead of issuing a second trial. The app row id comes
 // from the registry module rather than being spelled out again here, because two copies of an id
@@ -57,64 +49,15 @@ const membershipId = (organizationId: string, userId: string) => `member_${organ
 const entitlementRowId = (organizationId: string, appId: string) => `ent_${organizationId}_${appId}`;
 const trialAuditId = (entitlementId: string) => `audit_trial_activated_${entitlementId}`;
 
-function readNumber(source: Record<string, unknown>, key: string): number | undefined {
-  const value = source[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
+// The generic half of this module now lives in `app-access.ts`, because the assistant layer needs
+// the same read for every app and this file's version had ESTIMETR welded into the join. It is
+// re-exported so callers that only ever wanted the parser keep their import path.
+export { parseStoredLimits };
 
-function readBoolean(source: Record<string, unknown>, key: string): boolean | undefined {
-  const value = source[key];
-  return typeof value === "boolean" ? value : undefined;
-}
+const readEstimeterEntitlement = (db: Database, userId: string) =>
+  readEntitlementForApp(db, userId, ESTIMETR_APP_SLUG);
 
-/** The limits column is jsonb, so it is treated as untrusted input rather than cast. */
-export function parseStoredLimits(value: unknown): EntitlementLimits {
-  if (typeof value !== "object" || value === null) return {};
-  const source = value as Record<string, unknown>;
-  return {
-    projectLimit: readNumber(source, "projectLimit"),
-    exportEnabled: readBoolean(source, "exportEnabled"),
-    printEnabled: readBoolean(source, "printEnabled"),
-    aiEnabled: readBoolean(source, "aiEnabled")
-  };
-}
-
-async function readEstimeterEntitlement(db: Database, userId: string): Promise<EntitlementRecord | null> {
-  const rows = await db
-    .select({
-      id: appEntitlements.id,
-      organizationId: appEntitlements.organizationId,
-      state: appEntitlements.state,
-      startsAt: appEntitlements.startsAt,
-      endsAt: appEntitlements.endsAt,
-      limits: appEntitlements.limits,
-      appEnabled: apps.enabled
-    })
-    .from(appEntitlements)
-    .innerJoin(
-      organizationMembers,
-      and(eq(organizationMembers.organizationId, appEntitlements.organizationId), eq(organizationMembers.userId, userId))
-    )
-    .innerJoin(apps, and(eq(apps.id, appEntitlements.appId), eq(apps.slug, ESTIMETR_APP_SLUG)))
-    .limit(1);
-
-  const row = rows[0];
-  if (!row) return null;
-
-  return {
-    id: row.id,
-    organizationId: row.organizationId,
-    appEnabled: row.appEnabled,
-    entitlement: {
-      state: row.state as EntitlementState,
-      startsAt: row.startsAt,
-      endsAt: row.endsAt,
-      limits: parseStoredLimits(row.limits)
-    }
-  };
-}
-
-async function readMembershipOrganization(db: Executor, userId: string): Promise<string | null> {
+async function readOrganizationOf(db: Executor, userId: string): Promise<string | null> {
   const rows = await db
     .select({ organizationId: organizationMembers.organizationId })
     .from(organizationMembers)
@@ -136,7 +79,7 @@ async function countOrganizationProjects(db: Database, organizationId: string): 
  * lazily on the first write that needs it, never while reading, and is safe to call again.
  */
 async function ensurePersonalOrganization(tx: Executor, userId: string, memberName: string): Promise<string> {
-  const existing = await readMembershipOrganization(tx, userId);
+  const existing = await readOrganizationOf(tx, userId);
   if (existing) return existing;
 
   const organizationId = personalOrgId(userId);
@@ -237,7 +180,7 @@ export async function getEstimeterAccess(userId: string, now = new Date()): Prom
   const record = await readEstimeterEntitlement(db, userId);
 
   if (!record) {
-    const organizationId = await readMembershipOrganization(db, userId);
+    const organizationId = await readOrganizationOf(db, userId);
     return {
       organizationId,
       state: "not_activated",

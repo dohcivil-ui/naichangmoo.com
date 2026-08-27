@@ -1,6 +1,6 @@
 "use server";
 
-import { WEIGHT_SCALE, type PlanActivity } from "@/lib/work-plan";
+import { WEIGHT_SCALE, normaliseWeights, type PlanActivity } from "@/lib/work-plan";
 import type { Milestone } from "@/lib/payment-milestone";
 import { MODELS, askForJson, isModelId, type ModelId } from "@/server/ai/provider";
 import { WORK_PLAN_SYSTEM, buildWorkPlanTask, workPlanSchema, type WorkPlanDraft, PLAN_REVIEW_SYSTEM, buildPlanReviewTask, planReviewSchema } from "@/server/ai/work-plan-prompt";
@@ -28,7 +28,7 @@ import { WORK_PLAN_SYSTEM, buildWorkPlanTask, workPlanSchema, type WorkPlanDraft
  * เพราะมันเขียนกระชับกว่า และค่า output คือตัวกำหนดต้นทุนของงานนี้
  *
  * ข้อด้อยของมันคือผลรวมน้ำหนักคลาดจาก 1,000,000 อยู่บ้าง ซึ่งไม่กระทบยอดเงิน
- * เพราะ normalise() เกลี่ยตามสัดส่วนก่อนคิดเงินเสมอ สัดส่วนสัมพัทธ์จึงคงเดิม
+ * เพราะ normaliseWeights() เกลี่ยตามสัดส่วนก่อนคิดเงินเสมอ สัดส่วนสัมพัทธ์จึงคงเดิม
  *
  * DeepSeek V4 Flash แม่นกว่าทุกเกณฑ์แต่ใช้เวลา 95 วินาที ซึ่งนานเกินกว่าที่คนจะรอ
  * เก็บไว้เป็นตัวสำรองเมื่อ OpenAI ล่ม ส่วน GPT-5 nano ตกรอบเพราะลืมผูกงานเข้างวด 7 รายการ
@@ -56,23 +56,8 @@ export type AssistantResult =
   | { ok: true; plan: AssistantPlan }
   | { ok: false; reason: "no_api_key" | "disabled_in_production" | "refused" | "unavailable"; message: string };
 
-/** เกลี่ยน้ำหนักที่แบบจำลองเสนอมาให้รวมได้ 1,000,000 ppm พอดี โดยรักษาสัดส่วนเดิม */
-const normalise = (weights: readonly number[]): bigint[] => {
-  const positive = weights.map((weight) => (Number.isFinite(weight) && weight > 0 ? BigInt(Math.round(weight)) : 0n));
-  const total = positive.reduce((sum, weight) => sum + weight, 0n);
-  if (total === 0n) return positive.map(() => WEIGHT_SCALE / BigInt(Math.max(positive.length, 1)));
-
-  const shares = positive.map((weight) => (weight * WEIGHT_SCALE) / total);
-  let leftover = WEIGHT_SCALE - shares.reduce((sum, share) => sum + share, 0n);
-  for (let index = 0; leftover > 0n; index = (index + 1) % shares.length) {
-    shares[index] = shares[index]! + 1n;
-    leftover -= 1n;
-  }
-  return shares;
-};
-
 const toPlan = (draft: Draft, contractSatang: bigint, durationDays: number): AssistantPlan => {
-  const weights = normalise(draft.activities.map((activity) => activity.weightPpm));
+  const weights = normaliseWeights(draft.activities.map((activity) => activity.weightPpm));
 
   let allocated = 0n;
   const activities: AssistantPlan["activities"] = draft.activities.map((activity, index) => {

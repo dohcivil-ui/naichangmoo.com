@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { factsBlock } from "@/server/ai/facts-block";
 
 /**
  * คำสั่งและ schema ของผู้ช่วยวางแผน
@@ -55,9 +56,17 @@ export type PromptInput = {
   templateLabel: string;
   instruction?: string;
   current?: { number: string; title: string; weightPpm: string; startOffsetDays: number; durationDays: number }[];
+  /**
+   * บรรทัดข้อมูลที่ระบบคำนวณแล้ว ต่อท้ายเป็นบล็อกมาตรฐานเมื่อมีเท่านั้น
+   *
+   * ต่อท้ายเฉพาะเมื่อมี เพื่อให้โจทย์ที่ผู้เรียกเดิมส่ง เหมือนกับตอนที่วัดผลเทียบรุ่นทุกตัวอักษร
+   */
+  facts?: readonly string[];
 };
 
 export function buildWorkPlanTask(input: PromptInput): string {
+  const tail = input.facts && input.facts.length > 0 ? ["", factsBlock(input.facts)] : [];
+
   if (input.instruction) {
     return [
       `แผนปัจจุบันของโครงการ ${input.projectName}`,
@@ -71,7 +80,8 @@ export function buildWorkPlanTask(input: PromptInput): string {
       "",
       `คำสั่งจากผู้ใช้: ${input.instruction}`,
       "",
-      "แก้แผนตามคำสั่ง แล้วคืนแผนทั้งชุดกลับมาใหม่ทั้งหมด รวมรายการที่ไม่ได้แก้ด้วย"
+      "แก้แผนตามคำสั่ง แล้วคืนแผนทั้งชุดกลับมาใหม่ทั้งหมด รวมรายการที่ไม่ได้แก้ด้วย",
+      ...tail
     ].join("\n");
   }
 
@@ -81,7 +91,8 @@ export function buildWorkPlanTask(input: PromptInput): string {
     `มูลค่าสัญญา ${input.contractBaht} บาท ระยะเวลา ${input.durationDays} วัน`,
     "",
     "อ่านชื่อโครงการให้ละเอียด ถ้าชื่อบอกจำนวนชั้นหรือจำนวนห้อง ให้แตกรายการงานตามนั้น",
-    "จำนวนกิจกรรมที่เหมาะสมคือ 15 ถึง 30 รายการ และแบ่งงวดงาน 4 ถึง 10 งวด"
+    "จำนวนกิจกรรมที่เหมาะสมคือ 15 ถึง 30 รายการ และแบ่งงวดงาน 4 ถึง 10 งวด",
+    ...tail
   ].join("\n");
 }
 
@@ -130,7 +141,7 @@ export type ReviewInput = {
   contractBaht: string;
   durationDays: number;
   /** บรรทัดข้อมูลที่ระบบคำนวณแล้ว ส่งให้แบบจำลองอ้างอิง ไม่ให้มันคิดเอง */
-  facts: string[];
+  facts: readonly string[];
   milestones: { title: string; percentOfContract: string; activityTitles: string[] }[];
 };
 
@@ -139,8 +150,8 @@ export function buildPlanReviewTask(input: ReviewInput): string {
     `ตรวจแผนงานโครงการ ${input.projectName}`,
     `มูลค่าสัญญา ${input.contractBaht} บาท ระยะเวลา ${input.durationDays} วัน`,
     "",
-    "ข้อมูลที่ระบบคำนวณแล้ว (ใช้อ้างได้ ห้ามคิดเงินใหม่)",
-    ...input.facts.map((fact) => `- ${fact}`),
+    // หัวและท้ายมาจากโมดูลกลาง เพื่อให้เทสต์กฎ G3 หาบล็อกนี้เจอด้วยเครื่องหมายเดียวกันทุกทักษะ
+    factsBlock(input.facts),
     "",
     "งวดงานและงานที่ผูกไว้",
     ...input.milestones.map(

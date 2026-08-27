@@ -174,3 +174,38 @@ export function formatPercent(ppm: bigint): string {
   const hundredths = (ppm + 50n) / 100n;
   return `${hundredths / 100n}.${(hundredths % 100n).toString().padStart(2, "0")}`;
 }
+
+/**
+ * เกลี่ยน้ำหนักที่ผู้ช่วยเสนอมาให้รวมได้ 1,000,000 ppm พอดี โดยรักษาสัดส่วนเดิม
+ *
+ * อยู่ที่นี่ไม่ใช่ในไฟล์ของผู้ช่วย เพราะนี่คือ **ด่านสุดท้ายก่อนตัวเลขของแบบจำลองกลายเป็นเงิน**
+ * และเป็นสิ่งเดียวที่ทำให้ประโยค "เงินทุกบาทระบบเป็นคนคำนวณ ไม่ใช่ AI" เป็นจริงในทางกลไก
+ * ไม่ใช่แค่ในคำอธิบาย ทุกแอปที่มีผู้ช่วยเสนอสัดส่วนต้องผ่านฟังก์ชันนี้ตัวเดียวกัน
+ *
+ * ไม่ปฏิเสธคำตอบที่รวมไม่ครบหรือเกิน เพราะร่างที่ใกล้เคียงแล้วให้คนแก้ต่อ มีประโยชน์กว่า
+ * ข้อความว่าล้มเหลว ค่าที่ติดลบ ไม่ใช่จำนวน หรือเป็นศูนย์ ถือเป็นศูนย์ และถ้าทั้งชุดเป็นศูนย์
+ * จะแบ่งเท่ากันทุกรายการแทนการหารด้วยศูนย์
+ */
+export function normaliseWeights(weights: readonly number[]): bigint[] {
+  const positive = weights.map((weight) => (Number.isFinite(weight) && weight > 0 ? BigInt(Math.round(weight)) : 0n));
+  const total = positive.reduce((sum, weight) => sum + weight, 0n);
+  if (positive.length === 0) return [];
+  if (total === 0n) {
+    const even = WEIGHT_SCALE / BigInt(positive.length);
+    const shares = positive.map(() => even);
+    let leftover = WEIGHT_SCALE - even * BigInt(positive.length);
+    for (let index = 0; leftover > 0n; index = (index + 1) % shares.length) {
+      shares[index] = shares[index]! + 1n;
+      leftover -= 1n;
+    }
+    return shares;
+  }
+
+  const shares = positive.map((weight) => (weight * WEIGHT_SCALE) / total);
+  let leftover = WEIGHT_SCALE - shares.reduce((sum, share) => sum + share, 0n);
+  for (let index = 0; leftover > 0n; index = (index + 1) % shares.length) {
+    shares[index] = shares[index]! + 1n;
+    leftover -= 1n;
+  }
+  return shares;
+}

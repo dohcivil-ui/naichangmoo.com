@@ -109,7 +109,7 @@ export const configuredModels = (): ModelId[] =>
 export type Usage = { inputTokens: number; outputTokens: number };
 
 /** ค่าใช้จ่ายเป็นบาท ใช้ประเมินเท่านั้น อัตราแลกเปลี่ยนตายตัวเพื่อให้เทียบกันได้ */
-const BAHT_PER_USD = 35;
+export const BAHT_PER_USD = 35;
 export const costBaht = (id: ModelId, usage: Usage): number => {
   const spec = MODELS[id];
   const usd = (usage.inputTokens * spec.inPerMTok + usage.outputTokens * spec.outPerMTok) / 1_000_000;
@@ -126,6 +126,14 @@ type AskInput<T> = {
   schema: z.ZodType<T>;
   schemaName: string;
   maxTokens?: number;
+  /**
+   * เพดานเวลาต่อคำขอหนึ่งครั้ง หน่วยมิลลิวินาที
+   *
+   * มีเพราะชั้นผู้ช่วยต้องสลับไปค่ายสำรองเมื่อค่ายหลักช้าเกินกว่าที่คนจะรอ และการรอด้วย
+   * `Promise.race` ที่ชั้นบนไม่ได้ช่วยอะไร — คำขอเดิมยังวิ่งต่อจนจบและเงินยังจ่ายอยู่ดี
+   * เพดานจึงต้องอยู่ที่ตัว SDK ซึ่งยกเลิกคำขอจริง ไม่ใช่แค่เลิกรอคำตอบ
+   */
+  timeoutMs?: number;
 };
 
 /**
@@ -146,14 +154,17 @@ export async function askForJson<T>(id: ModelId, input: AskInput<T>, nowMs: numb
   try {
     if (spec.kind === "anthropic") {
       const client = new Anthropic({ apiKey: key });
-      const response = await client.messages.create({
-        model: spec.apiModel,
-        max_tokens: maxTokens,
-        system: input.system,
-        thinking: { type: "adaptive" },
-        output_config: { format: { type: "json_schema", schema: z.toJSONSchema(input.schema) } },
-        messages: [{ role: "user", content: input.user }]
-      });
+      const response = await client.messages.create(
+        {
+          model: spec.apiModel,
+          max_tokens: maxTokens,
+          system: input.system,
+          thinking: { type: "adaptive" },
+          output_config: { format: { type: "json_schema", schema: z.toJSONSchema(input.schema) } },
+          messages: [{ role: "user", content: input.user }]
+        },
+        input.timeoutMs ? { timeout: input.timeoutMs } : undefined
+      );
 
       if (response.stop_reason === "refusal") {
         return { ok: false, reason: "refused", message: "แบบจำลองปฏิเสธคำขอนี้" };
@@ -179,18 +190,21 @@ export async function askForJson<T>(id: ModelId, input: AskInput<T>, nowMs: numb
 ตอบเป็น JSON ล้วนที่ตรงกับ schema นี้เท่านั้น ห้ามมีข้อความอื่นนอก JSON
 ${JSON.stringify(jsonSchema)}`;
 
-    const response = await client.chat.completions.create({
-      model: spec.apiModel,
-      max_completion_tokens: maxTokens,
-      response_format:
-        spec.jsonMode === "schema"
-          ? { type: "json_schema", json_schema: { name: input.schemaName, strict: true, schema: jsonSchema } }
-          : { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: input.user }
-      ]
-    });
+    const response = await client.chat.completions.create(
+      {
+        model: spec.apiModel,
+        max_completion_tokens: maxTokens,
+        response_format:
+          spec.jsonMode === "schema"
+            ? { type: "json_schema", json_schema: { name: input.schemaName, strict: true, schema: jsonSchema } }
+            : { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: input.user }
+        ]
+      },
+      input.timeoutMs ? { timeout: input.timeoutMs } : undefined
+    );
 
     return finish(id, response.choices[0]?.message?.content ?? "", input.schema, {
       inputTokens: response.usage?.prompt_tokens ?? 0,
