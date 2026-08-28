@@ -44,6 +44,24 @@ describe("ด่านตรวจแผงผู้ช่วยกลาง (IP
     expect(shell).toMatch(/<AssistantDockHost>[\s\S]*\{children\}[\s\S]*<\/AssistantDockHost>/);
   });
 
+  it("ท้ายเว็บอยู่นอกกรอบที่แผงดัน — ไม่งั้นพื้นหลังจะกว้างไม่เต็มจอ เหลือแถบขาวข้างขวา", () => {
+    // เจ้าของงานเจอของจริง 2026-08-28: footer อยู่ในกรอบที่ถูกดัน จึงกว้าง 1106.6px แทนที่จะเต็ม 1502.6px
+    // footer เป็นของแพลตฟอร์ม ไม่ใช่เนื้องานของแอป จึงไม่ควรโดนดันไปกับเนื้องาน
+    const shell = readFileSync(join(ROOT, "components/platform/app-shell.tsx"), "utf8");
+    const closesHost = shell.indexOf("</AssistantDockHost>");
+    const rendersFooter = shell.indexOf("<PlatformFooter />");
+    expect(closesHost).toBeGreaterThan(-1);
+    expect(rendersFooter).toBeGreaterThan(closesHost);
+  });
+
+  it("แผงรู้ตำแหน่งท้ายเว็บ — ยกตัวหยุดเหนือแทนที่จะยาวลงไปทับ", () => {
+    const dock = readFileSync(join(ROOT, DOCK_COMPONENT), "utf8");
+    expect(dock).toContain('document.querySelector("footer")');
+    expect(dock).toContain('"--dock-bottom"');
+    const css = readFileSync(join(ROOT, "app/globals.css"), "utf8");
+    expect(css).toMatch(/\.assistant-dock \{[^}]*bottom:\s*var\(--dock-bottom/);
+  });
+
   it("แผงต้องนิ่งสนิทใต้ prefers-reduced-motion — ประกาศชัดใน globals.css ไม่พึ่งบล็อกกลางอย่างเดียว", () => {
     const css = readFileSync(join(ROOT, "app/globals.css"), "utf8");
     const reduced = css.slice(css.indexOf(".assistant-dock"));

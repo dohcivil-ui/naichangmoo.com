@@ -41,6 +41,48 @@
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--canvas); color: var(--ink-body); font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", Arial, sans-serif; }
 button, input, select, textarea { font: inherit; }
+
+/* IP-203 — คอลัมน์ตัวเลขในตารางใช้ฟอนต์ที่เลขกว้างเท่ากัน
+ *
+ * `font-variant-numeric: tabular-nums` ถูกสั่งไว้ 44 จุดในไฟล์นี้และไม่ทำงานเลยสักจุด
+ * เพราะ Prompt ไม่มีฟีเจอร์ `tnum` ให้สลับไปใช้ เลข 0-9 ของมันกว้างต่างกันถึง 30.9%
+ * ตัวเลข ปร.4/5/6 และตารางราคาจึงเลิกตรงหลักบนของจริง ทั้งที่ CSS ยังอ่านว่าสั่งครบทุกบรรทัด
+ *
+ * หกตัวเลือกข้างล่างคือที่ที่ตัวเลขวางซ้อนกันเป็นคอลัมน์ หลักเลื่อนแล้วเห็นทันที
+ * อีก 36 จุดที่สั่ง tabular-nums ไว้เป็นตัวเลขเดี่ยว ป้ายนับ และราคาโปรยตัวใหญ่
+ * ไม่มีอะไรให้เรียงหลักด้วย จึงคง Prompt ไว้ตามเดิม — เจ้าของงานเคาะขอบเขตนี้ 2026-08-28
+ *
+ * `src/numeric-font-fence.test.ts` เฝ้าไม่ให้คอลัมน์หลุดออกจากกฎนี้ ส่วนความกว้างเลขจริง
+ * ต้องวัดในเบราว์เซอร์ตอนตรวจงาน เพราะไฟล์ฟอนต์ที่ next/font โหลดมาอยู่ใน `.next/` ที่เทสต์อ่านไม่ถึง
+ * วัดแล้ว 2026-08-28 ทั้งหกจุดเลข 0-9 กว้างเท่ากันหมด ต่างกัน 0.00% ขณะที่ Prompt ต่างกัน 85% */
+.number-cell,
+.admin-table [data-numeric="true"],
+.work-plan__cell--number,
+.gl-num,
+.gl-slab__price,
+.gl-labour__rate { font-family: var(--font-numeric), "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; }
+
+/* คำไทยที่บังเอิญนั่งอยู่ในช่องตัวเลข ให้กลับไปใช้ฟอนต์เดิมของเว็บ
+ *
+ * กฎข้างบนสั่งที่ตัวช่อง ลูกในช่องจึงรับฟอนต์ตัวเลขไปด้วยทั้งที่ไม่มีหลักให้เรียง
+ * ตรวจของจริงในเบราว์เซอร์ 2026-08-28 เจอสามที่: หัวตาราง work-plan 4 ใน 8 ช่องกลายเป็นคนละฟอนต์
+ * กับเพื่อนในแถวเดียวกัน วันที่ใต้ช่องกรอกอีก 62 จุด และหน่วยท้ายราคาอย่าง "บาท/ชุด" อีก 6 จุด
+ * เจ้าของงานสั่งดึงกลับ 2026-08-28 — ฟอนต์ตัวเลขมีไว้ให้ตัวเลข ไม่ใช่ให้ตัวหนังสือ
+ *
+ * ตัวเลือกพวกนี้เจาะจงกว่ากฎข้างบน (0,1,1 ต่อ 0,1,0) จึงชนะไม่ว่าจะวางไว้ก่อนหรือหลัง */
+th.number-cell,
+.admin-table th[data-numeric="true"],
+.number-cell small, .number-cell em,
+.gl-num small,
+.gl-slab__price small,
+.gl-labour__rate small { font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", Arial, sans-serif; }
+
+/* หัวคอลัมน์ตัวเลขวางกึ่งกลางช่อง ส่วนตัวเลขข้างล่างยังชิดขวาเพื่อให้เรียงหลักตรง
+   เจ้าของงานสั่ง 2026-08-28 — ครอบเฉพาะหัวที่คุมคอลัมน์ตัวเลข หัวคอลัมน์ข้อความยังชิดซ้ายตามเดิม
+   เขียนเป็น `table th` เพื่อให้เจาะจงกว่า `.takeoff-table th` ที่ประกาศทีหลังและสั่งชิดซ้ายอยู่
+   จะได้ไม่ต้องพึ่ง !important ซึ่งทำให้แก้ทีหลังยาก */
+table th.number-cell,
+.admin-table th[data-numeric="true"] { text-align: center; }
 /* Tailwind Preflight resets headings to font-weight: inherit, which left every heading on the site
    at the body's 400 and made size the only signal of hierarchy. Real 600-900 files load now, so
    weight can carry part of it. Display sizes take 600 rather than 700+ on purpose: Thai sets marks
@@ -441,7 +483,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ท้ายเว็บโครงใหม่ IP-200 (2026-08-28): คอลัมน์ตรา + คอลัมน์ลิงก์จำนวนผันแปร (คอลัมน์ว่างถูกซ่อน
    ตามกติกา ของที่ยังไม่มีจริงไม่ขึ้น) จึงห้าม hardcode จำนวนช่อง — ใช้ auto-flow แทน
    ดูกติกาเต็มในคอมเมนต์ของ platform-footer.tsx และ footer-navigation.ts */
-.footer { background: var(--ink-deep); color: #c7dcdf; padding: 44px 0 0; font-size: .84rem; }
+/* position+z-index เหตุผลเดียวกับ .app-shell__context: ฉากหลัง fixed ทึบของ workspace
+   (.gl-ambient ของ PRICEMETR) อยู่ใน stacking context ที่ position: relative จึงวาดทับ
+   ท้ายเว็บที่เป็น flow เปล่า ๆ ทั้งที่ DOM มาทีหลัง — เจ้าของงานเจอว่าหน้า price-check
+   "ไม่มี footer" ทั้งที่มันอยู่ในหน้าและอยู่ในจอ แค่ถูกทาทับจนมองไม่เห็น 2026-08-29 */
+.footer { position: relative; z-index: 1; background: var(--ink-deep); color: #c7dcdf; padding: 44px 0 0; font-size: .84rem; }
 .footer__grid { display: grid; grid-template-columns: minmax(0, 1.4fr); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 30px 34px; padding-bottom: 30px; }
 .footer__brand { display: grid; gap: 12px; align-content: start; justify-items: start; }
 .footer__wordmark { height: 46px; width: auto; background: #fff; border-radius: 10px; padding: 4px 8px; }
@@ -553,22 +599,29 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    มีผู้ช่วย เม็ดยาจะทับตะกร้า ต้องเผื่อ offset ตอนนั้น ---- */
 .assistant-dock-push { transition: padding-right 220ms var(--ease-out); }
 @media (min-width: 641px) { .assistant-dock-push--active { padding-right: 396px; } }
-.assistant-dock { position: fixed; z-index: 45; right: 0; top: var(--dock-top, 84px); bottom: 0; pointer-events: none; }
-.assistant-dock__panel { pointer-events: auto; display: flex; flex-direction: column; width: 380px; height: 100%; background: var(--paper); border-left: 1px solid var(--line); border-top: 2px solid var(--teal); box-shadow: -14px 0 34px rgba(7,48,71,.08); }
+/* --dock-bottom มาจากการวัดตำแหน่งท้ายเว็บใน assistant-dock.tsx: ท้ายเว็บยังไม่โผล่ = 0
+   พอโผล่ แผงยกตัวหยุดเหนือมันโดยเว้นระยะเท่าอากาศที่การ์ดสุดท้ายฝั่งซ้ายเว้นไว้
+   เส้นล่างกับมุมโค้งท้ายแผงคือเส้นเบรคที่บอกว่าแผงจบตรงนี้ ไม่ได้ถูกท้ายเว็บบังไว้ */
+.assistant-dock { position: fixed; z-index: 45; right: 0; top: var(--dock-top, 84px); bottom: var(--dock-bottom, 0px); pointer-events: none; }
+.assistant-dock__panel { pointer-events: auto; display: flex; flex-direction: column; width: 380px; height: 100%; background: var(--paper); border-left: 1px solid var(--line); border-top: 2px solid var(--teal); border-bottom: 1px solid var(--line); border-bottom-left-radius: 14px; box-shadow: -14px 0 34px rgba(7,48,71,.08); }
 .assistant-dock__head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
 .assistant-dock__title { flex: 1; min-width: 0; font-size: .9rem; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .assistant-dock__toggle { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--muted); font-family: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out); }
 .assistant-dock__toggle:hover, .assistant-dock__toggle:focus-visible { color: var(--teal); border-color: var(--teal); outline: none; }
 .assistant-dock__toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.assistant-dock__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; }
+/* เนื้อในแผงเรียงเป็นคอลัมน์ เพื่อให้บล็อกท้ายของแอปสั่ง margin-top: auto ไปนั่งท้ายแผงได้
+   ลูกทุกตัวห้ามหด (flex: none) ไม่งั้นพอแผงเตี้ยลง เนื้อหาจะถูกบีบแทนที่จะเลื่อน */
+.assistant-dock__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; }
+.assistant-dock__body > * { flex: none; }
 .assistant-dock__pill { pointer-events: auto; position: absolute; right: 18px; bottom: 18px; display: inline-flex; align-items: center; gap: 9px; min-height: 50px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-family: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 12px 28px rgba(7,48,71,.16); transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
 .assistant-dock__pill:hover, .assistant-dock__pill:focus-visible { transform: translateY(-2px); border-color: var(--teal); outline: none; }
 .assistant-dock__pill svg { width: 20px; height: 20px; fill: none; stroke: var(--teal); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .assistant-dock.is-busy .assistant-dock__panel { border-top-color: var(--orange); animation: assistant-dock-thinking 1.4s var(--ease-in-out) infinite alternate; }
 @keyframes assistant-dock-thinking { from { box-shadow: -14px 0 34px rgba(7,48,71,.08); } to { box-shadow: -14px 0 40px rgba(244,119,33,.22); } }
 @media (max-width: 640px) {
-  .assistant-dock { top: auto; left: 0; }
-  .assistant-dock__panel { width: 100%; height: auto; max-height: 60vh; border-left: 0; border-radius: 16px 16px 0 0; border-top-width: 3px; box-shadow: 0 -16px 38px rgba(7,48,71,.18); }
+  /* มือถือเป็นแผ่นเลื่อนจากขอบล่าง ต้องแนบขอบจอเสมอ ไม่ยกหนีท้ายเว็บเหมือนเดสก์ท็อป */
+  .assistant-dock { top: auto; left: 0; bottom: 0; }
+  .assistant-dock__panel { width: 100%; height: auto; max-height: 60vh; border-left: 0; border-bottom: 0; border-radius: 16px 16px 0 0; border-top-width: 3px; box-shadow: 0 -16px 38px rgba(7,48,71,.18); }
 }
 @media (prefers-reduced-motion: reduce) {
   /* G12: ผู้ช่วยต้องนิ่งสนิทใต้การปิดการเคลื่อนไหว — ประกาศตรงนี้ชัด ๆ นอกเหนือจากบล็อกกลาง */
@@ -906,6 +959,65 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-table tbody tr:last-child th, .admin-table tbody tr:last-child td { border-bottom: 0; }
 .admin-table code { font-family: inherit; font-weight: 600; color: var(--teal); font-size: .84rem; }
 
+/* ---- ธีมกระจกของหลังบ้าน — เจ้าของงานสั่งเอาธีม PRICEMETR มาใส่ 2026-08-29
+ *
+ * ใช้กระปุกกระจกชุดเดียวกับ PRICEMETR ที่อยู่ใน :root อยู่แล้ว (--glass-fill, --glass-line,
+ * --glass-lift) ไม่มีสีใหม่เข้ามาในเว็บ · reaction ลอกมาครบทุกอย่างตามที่สั่ง:
+ * ชี้แล้วยก 4px พร้อมเงาสีนำ กดแล้วยุบ แสงกวาดทแยงผ่านใบ และทยอยโผล่ทีละใบตอนเปิดหน้า
+ *
+ * สามอย่างที่ **คง** พื้นทึบไว้ตามที่เคาะกัน: แถบข้าง แถบบน และตารางข้อมูล
+ * หลังบ้านคือหน้าอ่านตัวเลขกับชื่อคน ตัวหนังสือบนพื้นโปร่งอ่านยากกว่าที่ตาเห็นตอนออกแบบ
+ * การ์ดจึงเป็นกรอบกระจก ส่วนเนื้อข้อมูลข้างในยืนบนพื้นทึบเหมือนเดิม ---- */
+.admin-shell { position: relative; isolation: isolate; }
+/* ผืนไล่สีตรึงจอแบบเดียวกับ .gl-ambient แต่ไม่ต้องมีก้อนกลม 4 ใบใน DOM
+   z-index -1 ในกล่องที่ isolate ไว้ วางตัวเองไว้เหนือพื้น --canvas แต่ใต้เนื้อหาทุกชิ้น */
+.admin-shell::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(52vw 52vw at -4vw -8vw, rgba(13, 130, 130, .34), transparent 66%),
+    radial-gradient(46vw 46vw at 104vw 6vh, rgba(7, 48, 71, .22), transparent 66%),
+    /* ส้มเป็นสีเน้นของแบรนด์ ใช้จุดเดียวและจาง ๆ เหมือนที่ PRICEMETR ทำ */
+    radial-gradient(40vw 30vw at 44vw 46vh, rgba(244, 119, 33, .13), transparent 64%),
+    radial-gradient(54vw 42vw at 0 108vh, rgba(13, 130, 130, .26), transparent 66%);
+}
+.admin-card, .admin-stat {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--glass-line); border-radius: 20px;
+  background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px);
+  box-shadow: var(--glass-lift);
+  animation: gl-rise 380ms var(--ease-reveal) backwards;
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+/* แสงกวาดทแยง: ซ่อนไว้นอกใบ แล้ววิ่งข้ามตอนชี้ — pointer-events: none กันบังปุ่มข้างใน */
+.admin-card::after, .admin-stat::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%);
+  transform: translateX(-130%); transition: transform 640ms var(--ease-out);
+}
+.admin-card:hover, .admin-stat:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 32px 58px -34px color-mix(in srgb, var(--price-lead) 45%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+.admin-card:hover::after, .admin-stat:hover::after { transform: translateX(130%); }
+.admin-card:active, .admin-stat:active { transform: translateY(-1px) scale(.995); }
+/* ทยอยโผล่ทีละใบ ไล่ตามลำดับในแถว — PRICEMETR ส่ง --i มาจาก markup ที่นี่ใช้ลำดับลูกแทน
+   จะได้ไม่ต้องแก้คอมโพเนนต์การ์ดที่ทุกหน้าหลังบ้านใช้ร่วมกัน */
+.admin-stat-row > :nth-child(2), .admin-grid > :nth-child(2) { animation-delay: 24ms; }
+.admin-stat-row > :nth-child(3), .admin-grid > :nth-child(3) { animation-delay: 48ms; }
+.admin-stat-row > :nth-child(4), .admin-grid > :nth-child(4) { animation-delay: 72ms; }
+.admin-grid > :nth-child(5) { animation-delay: 96ms; }
+.admin-grid > :nth-child(6) { animation-delay: 120ms; }
+/* เนื้อข้อมูลยืนบนพื้นทึบ: ตารางกับแถวรายการสิทธิ์คือของที่คนมาหลังบ้านเพื่ออ่าน */
+.admin-card .admin-table { background: var(--paper); }
+.admin-entitlement { background: var(--paper); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* G12: ปิดการเคลื่อนไหวแล้วต้องนิ่งสนิท — ทั้งตอนเปิดหน้าและตอนชี้ */
+  .admin-card, .admin-stat { animation: none; }
+  .admin-card:hover, .admin-stat:hover, .admin-card:active, .admin-stat:active { transform: none; }
+  .admin-card::after, .admin-stat::after { display: none; }
+}
+
 @media (max-width: 1080px) { .admin-stat-row { grid-template-columns: repeat(2, minmax(0,1fr)); } .admin-grid[data-columns="2"], .admin-grid[data-columns="3"], .admin-grid[data-columns="4"] { grid-template-columns: 1fr; } }
 @media (max-width: 860px) { .admin-shell { grid-template-columns: 1fr; } .admin-sidebar { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--line); } }
 
@@ -968,7 +1080,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__proposal-list strong { flex: none; color: var(--ink); font-variant-numeric: tabular-nums; }
 .work-plan__proposal-warning { color: var(--muted); }
 .work-plan__restore { margin-top: 10px; }
-.work-plan__review { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+/* ปุ่มตรวจแผนต้องอยู่ในสายตาเสมอ ไม่ว่าแผงจะเตี้ยลงแค่ไหนตอนเลื่อนถึงท้ายเว็บ
+   (เจ้าของงานเจอปุ่มถูกตัดครึ่ง 2026-08-29 หลังแผงเริ่มยกตัวหยุดเหนือท้ายเว็บ)
+   margin-top: auto ดันบล็อกนี้ไปนั่งท้ายแผงเมื่อเนื้อหาสั้น แผงเตี้ยลงมันก็ขยับตาม
+   sticky ทำให้มันยังเกาะขอบล่างเมื่อเนื้อหายาวจนต้องเลื่อน พื้นทึบกันเนื้อหาไหลทะลุใต้ปุ่ม */
+.work-plan__review { position: sticky; bottom: -14px; margin-top: auto; padding: 12px 0 14px; border-top: 1px solid var(--line); background: var(--paper); }
 .work-plan__quota { margin-top: 10px; color: var(--muted); font-size: .72rem; }
 
 /* ---- IP-202: ปฏิทินเลือกวันที่ (Date Picker) แบบไทย — เดือนไทย ปี พ.ศ. ทุกช่องทั้งเว็บ
@@ -1005,9 +1121,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* กติกาบ้าน 2026-08-28: ตัวอักษรต้องพอดีช่อง ห้ามพับจนไม่สวย — ค่าที่เป็นช่วงวันที่ยาว
    ให้ลดขนาดฟอนต์พอดีช่องแทนการปล่อยหักบรรทัด (clamp ตามความกว้างคอลัมน์) */
-.work-plan__readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 1.15rem 0 0; padding-top: 1.1rem; border-top: 1px solid var(--line); }
-.work-plan__readout dt { color: var(--muted); font-size: .72rem; font-weight: 600; }
-.work-plan__readout dd { margin: .25rem 0 0; color: var(--ink); font-size: clamp(.78rem, 1.1vw, .95rem); font-weight: 700; font-variant-numeric: tabular-nums; }
+/* แถบสรุปช่วงสัญญา: ค่าที่ยาวที่สุดต้องอยู่ได้ในบรรทัดเดียว
+ *
+ * ห้าช่องเรียงกันได้พอดีที่ช่องละ 190px แต่ค่าที่ยาวที่สุดคือช่วงวันที่แบบไทยเต็มรูป
+ * "1 ส.ค. 2569 ถึง 26 ก.พ. 2570" วัดในเบราว์เซอร์ 2026-08-28 ที่ขนาดเดิม 15.2px ต้องการ 200.6px
+ * เกินช่องไป 10px ปี พ.ศ. จึงตกไปบรรทัดสอง ที่ 13.1px ต้องการ 173px เหลือขอบ 17px
+ * เจ้าของงานสั่งลดขนาดแล้วจัดระยะใหม่ 2026-08-28 — ไม่ขยายช่องเพราะ 5 ช่องจะตกลงไปเป็นสองแถวแทน
+ * ระยะห่างแนวตั้ง 16px แยกจากแนวนอน 12px ไว้เผื่อจอแคบที่แถบนี้พับเป็นหลายแถว */
+.work-plan__readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px 12px; margin: 1.15rem 0 1.4rem; padding-top: 1.1rem; border-top: 1px solid var(--line); }
+.work-plan__readout dt { color: var(--muted); font-size: .72rem; font-weight: 600; line-height: 1.45; }
+.work-plan__readout dd { margin: .3rem 0 0; color: var(--ink); font-size: clamp(.76rem, .9vw, .82rem); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .work-plan__table td { vertical-align: top; }
 /* ตารางวันหยุด (กติกาบ้าน 2026-08-28): วันที่เป็นก้อนเดียวห้ามพับบรรทัด และข้อมูลจัดกึ่งกลางแนวตั้ง
@@ -1085,7 +1208,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__chip--cash .work-plan__chip-swatch { background: var(--series-cash); }
 .work-plan__chart-note { margin: .3rem 0 .8rem; }
 /* ป้ายเตือนว่าเส้นตรวจรับและเงินรับจริงยังจำลองจากแผน ไม่ให้อ่านเป็นข้อมูลบันทึกจริง */
-.work-plan__sim-note { margin: 0 0 .8rem; padding: .5rem .75rem; border-left: 3px solid var(--orange); border-radius: 6px; background: var(--canvas); color: var(--muted); font-size: .76rem; font-weight: 600; line-height: 1.6; }
+/* ป้ายเตือนใต้แถบสรุป: เดิมไม่มีระยะบนเลย ป้ายจึงแปะติดท้องแถบสรุปจนอ่านเป็นก้อนเดียวกัน
+   วัดของจริง 2026-08-28 ได้ระยะห่าง 0px — เจ้าของงานสั่งให้มีช่องไฟ ระยะบนมาจาก margin ล่างของแถบสรุป
+   ส่วนตัวป้ายขยายไส้ในขึ้นเล็กน้อยให้ตัวหนังสือไม่ชนขอบกรอบ */
+.work-plan__sim-note { margin: 0 0 .8rem; padding: .62rem .9rem; border-left: 3px solid var(--orange); border-radius: 6px; background: var(--canvas); color: var(--muted); font-size: .76rem; font-weight: 600; line-height: 1.6; }
 
 .work-plan__chart-wrap { position: relative; overflow-x: auto; margin: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
 /* pan-y ให้แตะกราฟเพื่ออ่านค่าได้ ขณะที่ยังปัดจอเลื่อนหน้าขึ้นลงได้อยู่บนมือถือ */
@@ -1379,6 +1505,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* แผงคำตอบ อยู่เหนือรายการเสมอ ไม่ใช่หน้าต่างที่ลอยทับจนมองรายการอื่นไม่เห็น */
 .gl-focus { position: relative; margin: 0 0 1.1rem; padding: 20px 22px; border: 1px solid var(--glass-line); border-radius: 22px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); animation: gl-rise 320ms var(--ease-reveal) both; }
+/* ท่าทยอยโผล่ของการ์ด — ใช้คู่กับ animation-fill-mode: backwards เท่านั้น ห้ามใช้ both
+ *
+ * บั๊กที่กฎนี้เกิดมาเพื่อกัน (ตรวจของจริงเจอ 2026-08-29 ตระกูลเดียวกับ IP-203 คือสั่งไว้แต่เป็นหมัน):
+ * `both` ทำให้เฟรมสุดท้ายที่เขียนว่า `transform: none` ค้างอยู่ตลอดชีวิตของ element
+ * และ animation ชนะ declaration ธรรมดาในลำดับ cascade คำสั่ง `:hover { transform: translateY(...) }`
+ * ของการ์ดทุกใบจึงไม่เคยทำงานเลยสักครั้ง เห็นแต่แสงกวาดกับเงาที่เปลี่ยน — ยกไม่เคยยก
+ * `backwards` ให้ผลตอนก่อนแอนิเมชันเริ่มเหมือนเดิม (สำคัญเพราะการ์ดทยอยโผล่ตาม --i)
+ * แต่พอจบแล้วปล่อย element กลับไปใช้สไตล์ปกติ hover จึงกลับมามีชีวิต */
 @keyframes gl-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .gl-focus__close { position: absolute; right: 14px; top: 14px; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--glass-line); border-radius: 50%; background: rgba(255, 255, 255, .6); cursor: pointer; }
 .gl-focus__close svg { width: 15px; height: 15px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
@@ -1497,7 +1631,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* มุมมองการ์ด เป็นตัวเลือก ไม่ใช่ค่าตั้งต้น เอาไว้เทียบให้เห็นว่าแถวอ่านง่ายกว่าตรงไหน */
 .gl-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; align-items: start; }
-.gl-card { display: grid; gap: 9px; padding: 16px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 22ms); transition: transform 180ms var(--ease-out); }
+.gl-card { display: grid; gap: 9px; padding: 16px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) backwards; animation-delay: calc(var(--i, 0) * 22ms); transition: transform 180ms var(--ease-out); }
 .gl-card:hover { transform: translateY(-2px); }
 .gl-card.is-open { border-color: var(--price-lead); }
 .gl-card header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -1617,7 +1751,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ซึ่งเห็นชัดมากเมื่อใส่ภาพถ่ายจริง เพราะภาพจะถูกครอบคนละสัดส่วนกัน */
 .gl-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); grid-auto-rows: 1fr; gap: 16px; }
 /* การ์ดหมวดเป็นแนวตั้ง ภาพกินพื้นที่ค่อนใบ ข้อความอยู่ใต้ภาพ */
-.gl-cat { position: relative; overflow: hidden; display: grid; grid-template-rows: 1fr auto; padding: 0; text-align: left; border: 1px solid var(--glass-line); border-radius: 24px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); font-family: inherit; cursor: pointer; animation: gl-rise 380ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 24ms); transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out); }
+.gl-cat { position: relative; overflow: hidden; display: grid; grid-template-rows: 1fr auto; padding: 0; text-align: left; border: 1px solid var(--glass-line); border-radius: 24px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); font-family: inherit; cursor: pointer; animation: gl-rise 380ms var(--ease-reveal) backwards; animation-delay: calc(var(--i, 0) * 24ms); transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out); }
 .gl-cat::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%); transform: translateX(-130%); transition: transform 640ms var(--ease-out); pointer-events: none; }
 .gl-cat:hover { transform: translateY(-4px); box-shadow: 0 32px 58px -34px color-mix(in srgb, var(--cat) 55%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .92); }
 .gl-cat:hover::after { transform: translateX(130%); }
@@ -1643,7 +1777,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ---- แถวราคาแบบแผ่นกระจกลอย ------------------------------------------- */
 .gl-list { list-style: none; display: grid; gap: 8px; margin: 0; padding: 0; transition: opacity 200ms var(--ease-out); }
 .gl-list.is-loading { opacity: .5; }
-.gl-slab { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px 12px 20px; border: 1px solid var(--glass-line); border-radius: 18px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 14px 32px -28px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); animation: gl-rise 340ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 14ms); transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out); }
+.gl-slab { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px 12px 20px; border: 1px solid var(--glass-line); border-radius: 18px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 14px 32px -28px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); animation: gl-rise 340ms var(--ease-reveal) backwards; animation-delay: calc(var(--i, 0) * 14ms); transition: transform 180ms var(--ease-out), box-shadow 180ms var(--ease-out); }
 /* สันสีประจำหมวด เป็นสิ่งเดียวที่บอกหมวดได้โดยไม่ต้องอ่าน */
 .gl-slab::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--cat), var(--cat-soft)); }
 .gl-slab:hover { transform: translateY(-2px); box-shadow: 0 22px 42px -30px color-mix(in srgb, var(--cat) 45%, rgba(7, 48, 71, .65)), inset 0 1px 0 rgba(255, 255, 255, .95); }
@@ -1712,7 +1846,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ใต้ตัวหนังสือ ซึ่งเกิดจริงเมื่อ 2026-08-26 ความสูงการ์ดเท่ากันได้จากการล็อกแถวภายในการ์ดแทน */
 .gl-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 14px; align-items: stretch; transition: opacity 200ms var(--ease-out); }
 .gl-items.is-loading { opacity: .5; }
-.gl-item { position: relative; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto auto auto; gap: 12px; padding: 18px 18px 16px 21px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) both; animation-delay: calc(var(--i, 0) * 20ms); transition: transform 190ms var(--ease-out), box-shadow 190ms var(--ease-out); }
+.gl-item { position: relative; overflow: hidden; display: grid; grid-template-rows: auto auto auto auto auto auto; gap: 12px; padding: 18px 18px 16px 21px; border: 1px solid var(--glass-line); border-radius: 20px; background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); animation: gl-rise 360ms var(--ease-reveal) backwards; animation-delay: calc(var(--i, 0) * 20ms); transition: transform 190ms var(--ease-out), box-shadow 190ms var(--ease-out); }
 .gl-item::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--cat), var(--cat-soft)); }
 .gl-item::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, .5) 50%, transparent 60%); transform: translateX(-130%); transition: transform 620ms var(--ease-out); pointer-events: none; }
 .gl-item:hover { transform: translateY(-3px); box-shadow: 0 28px 50px -34px color-mix(in srgb, var(--cat) 45%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .94); }

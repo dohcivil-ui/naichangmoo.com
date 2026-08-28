@@ -1877,10 +1877,44 @@ function CurveTab({
     contractSatang > 0n ? contractSatang : 1n
   );
 
+  /**
+   * ขั้นของแกนตั้งเป็นเลขกลมเสมอ เช่นทีละหนึ่งล้านหรือสองล้าน
+   * ขั้นที่หารจากค่าสูงสุดตรง ๆ ให้เลขอย่าง 8,032,500 ซึ่งตาอ่านแล้วต้องหยุดคิด
+   */
+  const niceStep = (() => {
+    const target = Number(ceiling / 100n) / 7;
+    const power = 10 ** Math.floor(Math.log10(Math.max(target, 1)));
+    const unit = [1, 2, 2.5, 5, 10].find((factor) => factor * power >= target) ?? 10;
+    return BigInt(Math.round(unit * power)) * 100n;
+  })();
+  const gridValues: bigint[] = [];
+  for (let value = 0n; value <= ceiling; value += niceStep) gridValues.push(value);
+
+  /** เขียนบาทเต็มจำนวน ไม่ย่อเป็น "ล." เพราะผู้รับเหมาอ่านยอดจริงเทียบกับสัญญา ไม่ได้อ่านสเกล */
+  const axisLabel = (satang: bigint) => {
+    const baht = satang / 100n;
+    return baht === 0n ? "0" : baht.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+
   const width = 980;
   const height = 380;
-  const padLeft = 78;
-  const padRight = 16;
+  /**
+   * ที่ว่างซ้ายกว้างตามป้ายแกนตั้งที่ยาวที่สุด ไม่ใช่ค่าคงที่ (เจ้าของงานเจอของจริง 2026-08-28)
+   *
+   * ป้ายแกนเขียนบาทเต็มจำนวนตามที่ตั้งใจไว้ข้างบน ยอดสัญญาระดับหมื่นล้านจึงยาว 90 หน่วยใน viewBox
+   * ของเดิมกันไว้ 78 หักระยะห่างจากเส้น 10 เหลือให้ป้ายแค่ 68 ป้าย "40,000,000,000" จึงถูกตัดหัวไป 22 หน่วย
+   * ย่อแผงผู้ช่วยให้กราฟกว้างขึ้นไม่ช่วย เพราะ viewBox ขยายตามไปทั้งใบ สัดส่วนที่ถูกตัดเท่าเดิม
+   *
+   * ตัวเลขต่ออักษรมาจากการวัดของจริงในเบราว์เซอร์ที่ font-size 11px ของฟอนต์ Prompt:
+   * เลขกว้างสุด 7.8 (เลข 0) ลูกน้ำ 3.0 เผื่อไว้เต็มทั้งสองค่ากันฟอนต์ขยับแล้วป้ายโดนตัดอีก
+   */
+  const axisLabelWidth = [...gridValues.map(axisLabel)].reduce(
+    (widest, label) => Math.max(widest, [...label].reduce((sum, letter) => sum + (letter === "," ? 3 : 7.8), 0)),
+    0
+  );
+  const padLeft = Math.max(78, Math.ceil(axisLabelWidth) + 10);
+  /** ป้ายเดือนสุดท้ายวางกึ่งกลางที่ขอบขวาสุด ครึ่งขวาของมันจึงต้องมีที่ยืน — "ก.พ. 70" กว้าง 37.4 หน่วย */
+  const padRight = 26;
   const padTop = 18;
   const padBottom = 40;
   const plotWidth = width - padLeft - padRight;
@@ -1944,25 +1978,6 @@ function CurveTab({
    * ซึ่งเป็นตัวเลขที่ผู้ใช้เปิดหน้านี้มาเพื่อดู
    */
   const readPeriod = hover ?? dataDatePeriod;
-
-  /**
-   * ขั้นของแกนตั้งเป็นเลขกลมเสมอ เช่นทีละหนึ่งล้านหรือสองล้าน
-   * ขั้นที่หารจากค่าสูงสุดตรง ๆ ให้เลขอย่าง 8,032,500 ซึ่งตาอ่านแล้วต้องหยุดคิด
-   */
-  const niceStep = (() => {
-    const target = Number(ceiling / 100n) / 7;
-    const power = 10 ** Math.floor(Math.log10(Math.max(target, 1)));
-    const unit = [1, 2, 2.5, 5, 10].find((factor) => factor * power >= target) ?? 10;
-    return BigInt(Math.round(unit * power)) * 100n;
-  })();
-  const gridValues: bigint[] = [];
-  for (let value = 0n; value <= ceiling; value += niceStep) gridValues.push(value);
-
-  /** เขียนบาทเต็มจำนวน ไม่ย่อเป็น "ล." เพราะผู้รับเหมาอ่านยอดจริงเทียบกับสัญญา ไม่ได้อ่านสเกล */
-  const axisLabel = (satang: bigint) => {
-    const baht = satang / 100n;
-    return baht === 0n ? "0" : baht.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  };
 
   /**
    * คอลัมน์ของตารางกระจายน้ำหนัก โหมด "รายเดือน" ยุบสองช่วงครึ่งเดือนเป็นหนึ่งเดือนจริง:

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata, Viewport } from "next";
-import { Prompt } from "next/font/google";
+import { IBM_Plex_Sans_Thai, Prompt } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/document-print.css";
 import { CookieNotice } from "@/components/platform/cookie-notice";
@@ -20,6 +20,34 @@ const prompt = Prompt({
   variable: "--font-prompt",
   subsets: ["thai", "latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
+  display: "swap"
+});
+
+/**
+ * IP-203: ฟอนต์ของคอลัมน์ตัวเลขในตาราง — ไม่ใช่ฟอนต์ของทั้งเว็บ
+ *
+ * Prompt เปิดฟีเจอร์ให้แค่ `kern`, `liga`, `locl` — ไม่มี `tnum` ฉะนั้น
+ * `font-variant-numeric: tabular-nums` ที่ globals.css สั่งไว้ 44 จุดจึงไม่มีอะไรให้สลับไปใช้
+ * และเลข 0-9 ของ Prompt กว้างไม่เท่ากันจริง (672, 363, 581, 574, 601, 570, 609, 545, 602, 609
+ * ต่างสุด 30.9%) ตัวเลข ปร.4/5/6 กับตารางราคาจึงเลิกตรงหลักโดยที่ CSS ยังอ่านว่าสั่งครบ
+ * รีวิวโค้ดไม่มีทางจับได้ มีแต่การวัดหรือเปิดดูของจริงเท่านั้น
+ *
+ * IBM Plex Sans Thai เลขกว้าง 600 เท่ากันทั้งสิบตัว จึงเอามาใช้เฉพาะช่องที่เป็นตัวเลข
+ * ส่วน UI ที่เหลือคง Prompt ไว้ตามที่เจ้าของงานสั่ง 2026-08-28 — ห้ามเปลี่ยนฟอนต์ทั้งระบบ
+ * เพราะเรื่อง `tnum` อย่างเดียว
+ *
+ * โหลดถึงน้ำหนัก 700 เพราะ IBM Plex Sans Thai มีแค่นั้น สองจุดที่ขอ 800
+ * (`gl-slab__price`, `gl-labour__rate`) เบราว์เซอร์จะหนาให้เอง ซึ่งไม่ทำให้หลักเลื่อน
+ * เพราะทุกตัวเลขในคอลัมน์เดียวกันโดนเหมือนกันหมด — วัดของจริง 2026-08-28 ได้ 0.00% ตามคาด
+ *
+ * โหลดสามน้ำหนักเพราะคอลัมน์ตัวเลขขอมาแค่สาม เปิดของจริงนับดูแล้ว 2026-08-28:
+ * 400 ที่ `gl-num`, 600 ที่ตารางหลังบ้าน, 700 ที่ตาราง work-plan และที่เบราว์เซอร์หยิบไปทำ 800
+ * เคยโหลด 500 ไว้ด้วย แต่ไม่มีช่องไหนขอเลย จึงตัดทิ้ง — ฟอนต์ที่โหลดทิ้งคือเว็บหนักฟรี
+ */
+const plexNumeric = IBM_Plex_Sans_Thai({
+  variable: "--font-numeric",
+  subsets: ["thai", "latin"],
+  weight: ["400", "600", "700"],
   display: "swap"
 });
 
@@ -50,7 +78,7 @@ export function generateViewport(): Viewport {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th"><body className={prompt.variable}>
+  return <html lang="th"><body className={`${prompt.variable} ${plexNumeric.variable}`}>
     {/* Everything carrying data-reveal starts at opacity 0 and is revealed by script. Without
         this, a visitor with no JavaScript gets a hero that never arrives. */}
     <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>

@@ -84,6 +84,16 @@ function writeDockState(state: AssistantDockState) {
 let nextRegistrationId = 1;
 
 /**
+ * ระยะที่แผงหยุดเหนือท้ายเว็บ — เท่ากับอากาศที่เนื้อหาฝั่งซ้ายเว้นไว้ก่อนถึงท้ายเว็บ
+ *
+ * วัดของจริง 2026-08-28: การ์ดสุดท้ายในหน้า work-plan จบที่ 369 ท้ายเว็บเริ่มที่ 465
+ * ช่องว่างตรงกลาง 96px มาจาก padding-bottom 80px ของ section บวกระยะท้าย container
+ * แผงจบที่ระดับเดียวกันจึงอ่านเป็นสองคอลัมน์ที่จบพร้อมกัน ไม่ใช่แผงยาวลงไปทับท้ายเว็บ
+ * เจ้าของงานเคาะให้เสมอกับการ์ดสุดท้ายฝั่งซ้าย 2026-08-28
+ */
+const FOOTER_GAP = 96;
+
+/**
  * เปลือกที่ AppShell ใช้ห่อเนื้อหา — เมื่อไม่มีแอปไหนลงทะเบียนผู้ช่วย จะเป็นแค่ div เปล่า
  * ไม่มี DOM ของแผงเลย (ของที่ไม่มีจริงไม่ขึ้น) เมื่อมีการลงทะเบียนและผู้ใช้กางแผง
  * เนื้อหาถูกดันหลบด้วย padding ผ่านคลาส --pushed ไม่ใช่ถูกบัง
@@ -113,6 +123,40 @@ export function AssistantDockHost({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("resize", measure);
   }, [active]);
 
+  /**
+   * แผงตรึงต้องจบเหนือท้ายเว็บ ไม่ใช่ยาวลงไปทับ — ท้ายเว็บอยู่นอกกรอบที่แผงดัน จึงกว้างเต็มจอ
+   * ตำแหน่งบนสุดของมันเลื่อนตลอดเวลาที่คนเลื่อนจอ ค่าคงที่ตอบไม่ได้ ต้องวัดของจริงเหมือน navHeight
+   *
+   * ค่าที่ได้คือระยะที่แผงต้องยกขึ้นจากขอบล่างจอ: ท้ายเว็บยังไม่โผล่ = 0 (แผงยาวเต็มจอตามเดิม)
+   * พอท้ายเว็บใกล้เข้ามาในระยะ FOOTER_GAP ค่าจะค่อย ๆ โตขึ้นเอง แผงจึงยกตัวแบบลื่น ไม่กระตุก
+   */
+  const [dockLift, setDockLift] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const footer = document.querySelector("footer");
+      if (!footer) {
+        setDockLift(0);
+        return;
+      }
+      const lift = window.innerHeight - footer.getBoundingClientRect().top + FOOTER_GAP;
+      setDockLift(Math.max(0, Math.round(lift)));
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [active]);
+
   const registry = useMemo<DockRegistry>(
     () => ({
       register: (id, meta) =>
@@ -140,7 +184,7 @@ export function AssistantDockHost({ children }: { children: ReactNode }) {
       {active ? (
         <aside
           className={`assistant-dock${open ? "" : " assistant-dock--collapsed"}${active.meta.busy ? " is-busy" : ""}`}
-          style={{ "--dock-top": `${navHeight}px` } as React.CSSProperties}
+          style={{ "--dock-top": `${navHeight}px`, "--dock-bottom": `${dockLift}px` } as React.CSSProperties}
           role="complementary"
           aria-label={active.meta.title}
           aria-busy={active.meta.busy || undefined}
