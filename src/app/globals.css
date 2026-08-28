@@ -438,10 +438,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .form-success { background: #e4f4f0; color: var(--success); border: 1px solid #a9d5d0; }
 .form-error { background: #f9e7e7; color: #8a3b3b; border: 1px solid #e2b9b9; }
 
-/* ท้ายเว็บโครงเต็ม (2026-08-28): สี่คอลัมน์บนจอกว้าง สองบนแท็บเล็ต หนึ่งบนมือถือ
-   ทุกช่องเปิดเผยเฉพาะของที่มีจริง — ดูกติกาในคอมเมนต์ของ platform-footer.tsx */
+/* ท้ายเว็บโครงใหม่ IP-200 (2026-08-28): คอลัมน์ตรา + คอลัมน์ลิงก์จำนวนผันแปร (คอลัมน์ว่างถูกซ่อน
+   ตามกติกา ของที่ยังไม่มีจริงไม่ขึ้น) จึงห้าม hardcode จำนวนช่อง — ใช้ auto-flow แทน
+   ดูกติกาเต็มในคอมเมนต์ของ platform-footer.tsx และ footer-navigation.ts */
 .footer { background: var(--ink-deep); color: #c7dcdf; padding: 44px 0 0; font-size: .84rem; }
-.footer__grid { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 30px 34px; padding-bottom: 30px; }
+.footer__grid { display: grid; grid-template-columns: minmax(0, 1.4fr); grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 30px 34px; padding-bottom: 30px; }
 .footer__brand { display: grid; gap: 12px; align-content: start; justify-items: start; }
 .footer__wordmark { height: 46px; width: auto; background: #fff; border-radius: 10px; padding: 4px 8px; }
 .footer__tagline { margin: 0; line-height: 1.7; max-width: 34ch; }
@@ -457,8 +458,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .footer__base { display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap; padding: 16px 0 20px; border-top: 1px solid rgba(199,220,223,.22); font-size: .78rem; color: #9fc3c9; }
 .footer__base a { color: #9fc3c9; }
 .footer__base a:hover { color: var(--orange); }
-@media (max-width: 980px) { .footer__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .footer__grid { grid-template-columns: 1fr; } }
+@media (max-width: 980px) { .footer__grid { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .footer__grid { grid-auto-flow: row; grid-template-columns: 1fr; } }
 /* ADR 0016: this row is absent from the DOM until an issuer has granted a mark, so the border and
    spacing below never appear as an empty strip waiting for something to arrive. */
 .footer__trust { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 26px; margin-top: 18px; }
