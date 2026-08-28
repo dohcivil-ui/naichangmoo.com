@@ -973,17 +973,32 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    z-index -1 ในกล่องที่ isolate ไว้ วางตัวเองไว้เหนือพื้น --canvas แต่ใต้เนื้อหาทุกชิ้น */
 .admin-shell::before {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  /* สามสีข้างล่างไม่ได้เดา — ถอดหน้า PRICEMETR ให้เหลือแต่ฉากหลัง ถ่ายจอ แล้วอ่านค่าพิกเซลจริง
+     ออกมาเป็นตาราง 7x5 เมื่อ 2026-08-29 ค่าที่ได้: โซนซ้ายเป็น teal rgb(197,224,224)
+     โซนขวาเป็นเทาหมึก rgb(214,222,225) และมีรอยส้มอุ่น ๆ กลางล่าง rgb(243,238,233)
+     ค่าเฉลี่ยความห่างจากขาวทั้งจอของต้นฉบับคือ 37.4
+     ใช้ค่าที่วัดได้ตรง ๆ แทนการไล่ alpha ทับกันแบบต้นฉบับ เพราะปลายทางคือ "ให้ตาเห็นเท่ากัน"
+     ไม่ใช่ "ให้สูตรเหมือนกัน" — ครั้งแรกที่ผมไล่ alpha เองได้ค่าเฉลี่ยแค่ 6 คือจางกว่าห้าเท่า
+
+     ตำแหน่งเลื่อนจากต้นฉบับหนึ่งจุด: ก้อน teal ของ PRICEMETR อยู่ริมซ้ายสุด แต่หลังบ้าน
+     มีแถบข้างทึบกว้าง 252px ยืนตรงนั้นพอดี ถ้าวางที่เดิมสีจะไปตกหลังแถบข้างจนมองไม่เห็น
+     จึงเลื่อนใจกลางมาที่ 30% ให้ตกในพื้นที่เนื้อหาที่คนมองจริง */
   background:
-    radial-gradient(52vw 52vw at -4vw -8vw, rgba(13, 130, 130, .34), transparent 66%),
-    radial-gradient(46vw 46vw at 104vw 6vh, rgba(7, 48, 71, .22), transparent 66%),
-    /* ส้มเป็นสีเน้นของแบรนด์ ใช้จุดเดียวและจาง ๆ เหมือนที่ PRICEMETR ทำ */
-    radial-gradient(40vw 30vw at 44vw 46vh, rgba(244, 119, 33, .13), transparent 64%),
-    radial-gradient(54vw 42vw at 0 108vh, rgba(13, 130, 130, .26), transparent 66%);
+    radial-gradient(46vw 62vh at 28% 24%, rgb(197, 224, 224) 0 18%, transparent 74%),
+    radial-gradient(40vw 48vh at 20% 92%, rgb(201, 225, 225) 0 14%, transparent 72%),
+    radial-gradient(34vw 56vh at 84% 52%, rgb(214, 222, 225) 0 16%, transparent 72%),
+    radial-gradient(26vw 30vh at 52% 78%, rgb(243, 238, 233), transparent 68%),
+    var(--canvas);
 }
 .admin-card, .admin-stat {
   position: relative; overflow: hidden;
   border: 1px solid var(--glass-line); border-radius: 20px;
-  background: var(--glass-fill); backdrop-filter: saturate(185%) blur(22px);
+  /* กระจกของหลังบ้านทึบกว่าของ PRICEMETR นิดหน่อย ไม่ใช่เพราะชอบ แต่เพราะวัดแล้ว
+     ฉากหลังที่เข้มเท่าต้นฉบับดันคอนทราสต์ของข้อความรองบนการ์ดลงเหลือ 3.48:1 (เกณฑ์ 4.5:1)
+     ขยับขาวขึ้นจนพื้นการ์ดกลับไปอยู่ที่ระดับที่ข้อความทุกชั้นผ่าน โดยยังเห็นสีฉากหลังลอดอยู่
+     PRICEMETR ไม่เจอปัญหานี้เพราะการ์ดของมันเป็นป้ายราคาตัวโต ไม่ใช่ย่อหน้าอธิบาย */
+  background: linear-gradient(158deg, rgba(255, 255, 255, .88) 0%, rgba(244, 247, 247, .8) 56%, rgba(255, 255, 255, .86) 100%);
+  backdrop-filter: saturate(185%) blur(22px);
   box-shadow: var(--glass-lift);
   animation: gl-rise 380ms var(--ease-reveal) backwards;
   transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
