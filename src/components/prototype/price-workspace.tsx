@@ -13,7 +13,6 @@ import {
   type MonthKey
 } from "@/lib/price-catalogue";
 import Image from "next/image";
-import Link from "next/link";
 import { MaterialCategoryIcon } from "@/components/icons/material-category-icons";
 
 /**
@@ -301,6 +300,21 @@ export function PriceWorkspace({
   const [basket, setBasket] = useState<BasketEntry[]>([]);
   const [basketOpen, setBasketOpen] = useState(false);
   const [floating, setFloating] = useState(false);
+  /**
+   * แถบลอยต้องเริ่มใต้แถบนำทางของเปลือกกลาง ซึ่งความสูงไม่คงที่ — บนจอแคบเมนูห่อได้หลายแถว
+   * (วัดจริง: เดสก์ท็อป 85px มือถือ 390px ได้ 206px) ค่าคงที่ใน CSS จึงเดาผิดเสมอ วัดของจริงแทน
+   */
+  const [floatTop, setFloatTop] = useState(84);
+  useEffect(() => {
+    if (!floating) return;
+    const measure = () => {
+      const nav = document.querySelector(".site-nav");
+      setFloatTop(nav ? Math.round(nav.getBoundingClientRect().height) : 0);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [floating]);
   const controlsRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -312,7 +326,12 @@ export function PriceWorkspace({
   useEffect(() => {
     const node = controlsRef.current;
     if (!node || typeof IntersectionObserver === "undefined") return;
-    const observer = new IntersectionObserver(([entry]) => setFloating(!entry.isIntersecting), { rootMargin: "-8px 0px 0px 0px", threshold: 0 });
+    /**
+     * ลอยเฉพาะเมื่อแถบควบคุม "เลื่อนพ้นขอบบน" ไปแล้ว (top < 0) ไม่ใช่แค่มองไม่เห็น —
+     * บนจอเตี้ยแถบควบคุมเริ่มต้นอยู่ใต้ fold ถ้าเช็คแค่ไม่ intersect แถบลอยจะโผล่ตั้งแต่
+     * ยังไม่เลื่อนสักนิด แล้วไปทับ breadcrumb ของเปลือกกลางพอดี (เจอจริงที่ 390px)
+     */
+    const observer = new IntersectionObserver(([entry]) => setFloating(!entry.isIntersecting && entry.boundingClientRect.top < 0), { rootMargin: "-8px 0px 0px 0px", threshold: 0 });
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -508,34 +527,11 @@ export function PriceWorkspace({
       </div>
 
       {/*
-        แถบแพลตฟอร์ม ล็อกติดขอบบนเสมอ ไม่ใช่โผล่เฉพาะตอนเลื่อน
-        เจ้าของงานชี้เมื่อ 2026-08-26 ว่าเข้าแอปแล้วไม่มีทางกลับหน้ารวมนายช่างหมูเลย
-        นี่คือประตูเดียวที่การันตีว่ามีตลอด ไม่ว่ากำลังดูชุดข้อมูลไหนหรือเลื่อนอยู่ตรงไหน
+        แถบแพลตฟอร์มของหน้านี้มาจากเปลือกกลาง AppShell แล้ว (IP-157) — ห้ามสร้างแถบของตัวเอง
+        คำวินิจฉัย 2026-08-26 เรื่องปุ่มบ้าน+ป้ายหน้าที่ ย้ายไปอยู่ที่เปลือกกลางพร้อมกัน
       */}
-      <div className="gl-platbar">
-        <div className="container gl-platbar__inner">
-          {/*
-            ป้ายทางออกใช้คำว่า Home Center กับรูปบ้าน ไม่ใช่ "← ชื่อแพลตฟอร์ม"
-            เพราะลูกศรซ้ายตามด้วยชื่อแบรนด์คือแบบแผนของคู่แข่งเป๊ะ ("← ช่างคิด")
-            เจ้าของงานสั่งเปลี่ยนเมื่อ 2026-08-26 ห้ามกลับไปใช้รูปแบบนั้น
-          */}
-          <Link className="gl-platbar__home" href="/" title="กลับหน้ารวมนายช่างหมู">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 11 12 4l8 7" />
-              <path d="M6 10v9h12v-9" />
-            </svg>
-            Home Center
-          </Link>
-          <span className="gl-platbar__sep" aria-hidden="true" />
-          <span className="gl-platbar__app">PRICEMETR · ราคาวัสดุและค่าแรง</span>
-          <Link className="gl-platbar__all" href="/#apps">
-            แอปทั้งหมด
-          </Link>
-        </div>
-      </div>
-
       {floating ? (
-        <div className="gl-floatbar">
+        <div className="gl-floatbar" style={{ top: floatTop }}>
           <div className="container gl-floatbar__inner">
             <button type="button" className="gl-back gl-back--float" onClick={goHome} disabled={atHome}>
               <svg viewBox="0 0 24 24" aria-hidden="true">

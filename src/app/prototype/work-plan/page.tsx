@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppShell } from "@/components/platform/app-shell";
 import { WorkPlanWorkspace } from "@/components/prototype/work-plan-workspace";
-import { landingActionContract } from "@/lib/landing-interactions";
+import { platformApps } from "@/lib/platform";
 
 /**
  * ต้นแบบของแอปผู้ช่วยสร้างแผนงานและ S-Curve
@@ -20,8 +20,12 @@ export const metadata: Metadata = {
 };
 
 export default function WorkPlanPrototypePage() {
+  // เปลือกกลางโหมดต้นแบบ (IP-156): ชื่อแอปมาจาก platformApps ไม่พิมพ์มือ และไม่มีคำแถลงจากทะเบียน
+  const app = platformApps.find((entry) => entry.slug === "work-plan");
+  if (!app) throw new Error("platformApps ไม่มีรายการ work-plan แล้ว — เปลือกของต้นแบบนี้พึ่งรายการนั้น");
+
   return (
-    <>
+    <AppShell app={app} mode="prototype">
       <WorkPlanWorkspace />
       <section className="section work-plan__afterword">
         <div className="container">
@@ -50,11 +54,8 @@ export default function WorkPlanPrototypePage() {
             อ้างอิง <code>docs/research/s-curve-rules-2026-08-25.md</code> และ{" "}
             <code>docs/research/changkid-easy-planning-2026-08-25.md</code>
           </p>
-          <Link className="button button--ghost micro-button" href={landingActionContract.homeHref}>
-            ← {landingActionContract.homeLabel}
-          </Link>
         </div>
       </section>
-    </>
+    </AppShell>
   );
 }

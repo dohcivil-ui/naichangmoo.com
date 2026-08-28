@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { AppShell } from "@/components/platform/app-shell";
 import { PriceWorkspace, type LabourRow, type LedgerAnswer, type UnitPriceRow } from "@/components/prototype/price-workspace";
 import { answerLedger, readProvinces } from "@/server/price-ledger-query";
 import unitPriceData from "@/data/obec/obec-2569-unit-prices.json";
 import labourData from "@/data/cgd/cgd-w809-labour-be2568.json";
-import { landingActionContract } from "@/lib/landing-interactions";
+import { platformApps } from "@/lib/platform";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -60,9 +60,12 @@ export default async function PriceCheckPrototypePage() {
   const unitRows = unitPriceData as UnitPriceRow[];
   const labourRows = labourData as LabourRow[];
   const artwork = readCategoryArtwork();
+  // เปลือกกลางโหมดต้นแบบ (IP-157): ชื่อแอปมาจาก platformApps ไม่พิมพ์มือ และไม่มีคำแถลงจากทะเบียน
+  const app = platformApps.find((entry) => entry.slug === "pricemetr");
+  if (!app) throw new Error("platformApps ไม่มีรายการ pricemetr แล้ว — เปลือกของต้นแบบนี้พึ่งรายการนั้น");
 
   return (
-    <main className="site-shell">
+    <AppShell app={app} mode="prototype">
       <PriceWorkspace provinces={master.provinces} period={master.period} unitRows={unitRows} labourRows={labourRows} firstAnswer={firstAnswer} artwork={artwork} />
 
       <section className="section gl-afterword">
@@ -110,11 +113,8 @@ export default async function PriceCheckPrototypePage() {
             ราคาในหน้านี้เป็นราคาสืบของผู้ประกาศแต่ละราย ไม่ใช่ราคากลางของโครงการใดโครงการหนึ่ง
             การนำไปขึ้นแบบ ปร.4 ต้องผ่านการทบทวนและผูกกับชุดราคาของโครงการก่อนเสมอ
           </p>
-          <Link className="button button--ghost" href={landingActionContract.allAppsHref}>
-            {landingActionContract.allAppsLabel}
-          </Link>
         </div>
       </section>
-    </main>
+    </AppShell>
   );
 }
