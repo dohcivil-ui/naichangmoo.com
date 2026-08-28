@@ -543,6 +543,38 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* flex-wrap: แถวนี้ยาวได้ (ปุ่มบ้าน / แอปทั้งหมด / ชื่อแอป / ป้าย) — ที่ LAND ACQUISITION จอ 360
    ป้าย "เฉพาะบุคลากรกรมทางหลวง" เคยยื่นพ้นขอบขวา 21px เพราะแถวไม่ยอมหักบรรทัด */
 .app-shell__context > div { min-height: 50px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--muted); font-size: .82rem; }.app-shell__context a { color: var(--teal); font-weight: 600; }
+
+/* ---- IP-185: Assistant Dock (แผงผู้ช่วยกลาง) — ช่องเดียวของผู้ช่วยใน AppShell ทุกแอป
+   เดสก์ท็อป: แผงตรึงริมขวาเต็มความสูงใต้แถบนำทาง (--dock-top วัดจากของจริง เพราะเมนูจอแคบ
+   ห่อหลายแถว) และดันเนื้อหาหลบผ่าน .assistant-dock-push--active ไม่ใช่บัง — คำเคาะเจ้าของงาน
+   มือถือ ≤640px: แผ่นเลื่อนจากขอบล่าง · ย่อ = เม็ดยามุมขวาล่าง เขตกด ≥48px
+   z-index 45: เหนือแถบนำทาง (40) ใต้ overlay เอกสารและแถบคุกกี้ (60)
+   หมายเหตุอนาคต: gl-basket ของ PRICEMETR เป็นแถบ fixed ขอบล่าง — วัน IP-188 ให้ PRICEMETR
+   มีผู้ช่วย เม็ดยาจะทับตะกร้า ต้องเผื่อ offset ตอนนั้น ---- */
+.assistant-dock-push { transition: padding-right 220ms var(--ease-out); }
+@media (min-width: 641px) { .assistant-dock-push--active { padding-right: 396px; } }
+.assistant-dock { position: fixed; z-index: 45; right: 0; top: var(--dock-top, 84px); bottom: 0; pointer-events: none; }
+.assistant-dock__panel { pointer-events: auto; display: flex; flex-direction: column; width: 380px; height: 100%; background: var(--paper); border-left: 1px solid var(--line); border-top: 2px solid var(--teal); box-shadow: -14px 0 34px rgba(7,48,71,.08); }
+.assistant-dock__head { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.assistant-dock__title { flex: 1; min-width: 0; font-size: .9rem; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assistant-dock__toggle { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--muted); font-family: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+.assistant-dock__toggle:hover, .assistant-dock__toggle:focus-visible { color: var(--teal); border-color: var(--teal); outline: none; }
+.assistant-dock__toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.assistant-dock__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; }
+.assistant-dock__pill { pointer-events: auto; position: absolute; right: 18px; bottom: 18px; display: inline-flex; align-items: center; gap: 9px; min-height: 50px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-family: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 12px 28px rgba(7,48,71,.16); transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+.assistant-dock__pill:hover, .assistant-dock__pill:focus-visible { transform: translateY(-2px); border-color: var(--teal); outline: none; }
+.assistant-dock__pill svg { width: 20px; height: 20px; fill: none; stroke: var(--teal); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.assistant-dock.is-busy .assistant-dock__panel { border-top-color: var(--orange); animation: assistant-dock-thinking 1.4s var(--ease-in-out) infinite alternate; }
+@keyframes assistant-dock-thinking { from { box-shadow: -14px 0 34px rgba(7,48,71,.08); } to { box-shadow: -14px 0 40px rgba(244,119,33,.22); } }
+@media (max-width: 640px) {
+  .assistant-dock { top: auto; left: 0; }
+  .assistant-dock__panel { width: 100%; height: auto; max-height: 60vh; border-left: 0; border-radius: 16px 16px 0 0; border-top-width: 3px; box-shadow: 0 -16px 38px rgba(7,48,71,.18); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* G12: ผู้ช่วยต้องนิ่งสนิทใต้การปิดการเคลื่อนไหว — ประกาศตรงนี้ชัด ๆ นอกเหนือจากบล็อกกลาง */
+  .assistant-dock.is-busy .assistant-dock__panel { animation: none; }
+  .assistant-dock-push { transition: none; }
+}
 /* ปุ่มบ้าน: ทางออกจากแอปตามคำวินิจฉัย 2026-08-26 — รูปบ้าน + ป้ายหน้าที่ ห้าม "← ชื่อแบรนด์" */
 .app-shell__home { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
 .app-shell__home svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 150ms var(--ease-out); }

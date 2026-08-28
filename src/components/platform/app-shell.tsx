@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { PlatformApp } from "@/lib/platform";
 import { describeCardClaims } from "@/lib/catalogue-card";
 import { landingActionContract } from "@/lib/landing-interactions";
+import { AssistantDockHost } from "@/components/platform/assistant-dock";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { SiteHeader } from "@/components/platform/site-header";
 import { readCatalogueClaims } from "@/server/app-registry";
@@ -50,22 +51,28 @@ export async function AppShell({
   return (
     <main className="site-shell app-shell">
       <SiteHeader workspace={app.name} />
-      <section className="app-shell__context"><div className="container"><HomeDoor /><span aria-hidden="true">/</span><Link href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Link><span aria-hidden="true">/</span><strong>{app.name}</strong>{mode === "prototype" ? <span className="access access--prototype">ต้นแบบ</span> : says?.access ? <span className={`access access--${says.access.modifier}`}>{says.access.label}</span> : null}</div></section>
-      {mode === "app" ? (
-        /*
-          Every app says what it is in the same place, so arriving from a link never leaves someone
-          guessing what they opened. Deliberately compact: some app pages carry their own heading, and
-          two large headings stacked read as a layout mistake rather than as a hierarchy.
-        */
-        <section className="app-identity">
-          <div className="container">
-            <h1>{app.programName}</h1>
-            <p>{app.purpose}</p>
-          </div>
-        </section>
-      ) : null}
-      {children}
-      <PlatformFooter />
+      {/* IP-185: Assistant Dock (แผงผู้ช่วยกลาง) ห่อทุกอย่างใต้แถบนำทางในทั้งสองโหมด —
+          ผู้ช่วยตัวจริงตัวแรกอยู่ในต้นแบบทดลอง work-plan (IP-184 จะเสียบผ่าน <AppAssistant>)
+          หน้าที่ไม่มีการลงทะเบียนผู้ช่วย Host เป็นแค่ div เปล่า ไม่มีแผงแม้แต่ปุ่ม
+          ตอนกางบนเดสก์ท็อป เนื้อหาทั้งก้อนนี้ถูกดันหลบด้วย padding ไม่ใช่ถูกบัง */}
+      <AssistantDockHost>
+        <section className="app-shell__context"><div className="container"><HomeDoor /><span aria-hidden="true">/</span><Link href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Link><span aria-hidden="true">/</span><strong>{app.name}</strong>{mode === "prototype" ? <span className="access access--prototype">ต้นแบบ</span> : says?.access ? <span className={`access access--${says.access.modifier}`}>{says.access.label}</span> : null}</div></section>
+        {mode === "app" ? (
+          /*
+            Every app says what it is in the same place, so arriving from a link never leaves someone
+            guessing what they opened. Deliberately compact: some app pages carry their own heading, and
+            two large headings stacked read as a layout mistake rather than as a hierarchy.
+          */
+          <section className="app-identity">
+            <div className="container">
+              <h1>{app.programName}</h1>
+              <p>{app.purpose}</p>
+            </div>
+          </section>
+        ) : null}
+        {children}
+        <PlatformFooter />
+      </AssistantDockHost>
     </main>
   );
 }
