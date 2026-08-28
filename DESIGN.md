@@ -235,6 +235,16 @@ components:
 
 # นายช่างหมู — DESIGN.md
 
+> **ไฟล์นี้ไม่ใช่แหล่งอ้างอิงหลักอีกแล้ว (2026-08-28)**
+>
+> เอกสาร Design System หลักคือ [`docs/design-system/platform-ui-system.md`](docs/design-system/platform-ui-system.md)
+> และ **ค่าสีจริงประกาศที่ `src/app/globals.css` บล็อก `:root` ที่เดียว**
+>
+> ไฟล์นี้เก็บไว้เป็นบันทึกภาษาการออกแบบช่วงแรก และมีข้อมูลที่ล้าสมัยอย่างน้อยสองเรื่อง —
+> ระบุฟอนต์เป็น IBM Plex Sans Thai ทั้งที่ของจริงเปลี่ยนเป็น Prompt ตั้งแต่ 2026-08-24
+> และเรียกชื่อ token คนละชุดกับ `globals.css` (`primary` / `surface-2` / `hairline`
+> แทนที่จะเป็น `--teal` / `--mist` / `--line`) **ห้ามใช้ไฟล์นี้ตัดสินค่าใด ๆ**
+
 ## Overview
 
 > ที่มา: `src/app/globals.css`, หน้า landing (`src/app/page.tsx`), Civil Apps Market และ ESTIMETR workspace
