@@ -1274,7 +1274,7 @@ function UnitBoard({ rows, view, onAdd, basket }: { rows: UnitPriceRow[]; view: 
         {rows.map((row, index) => {
           const picked = basket.some((line) => line.key === `unit:${row.code}`);
           return (
-            <li key={row.code} className="gl-slab gl-slab--unit" style={{ "--cat": "var(--teal)", "--cat-soft": "#3aa8a8", "--cat-wash": "#e6f3f3", "--i": Math.min(index, 18) } as React.CSSProperties}>
+            <li key={row.code} className="gl-slab gl-slab--unit" style={{ "--cat": "var(--teal)", "--cat-soft": "var(--teal-soft)", "--cat-wash": "var(--teal-wash)", "--i": Math.min(index, 18) } as React.CSSProperties}>
               <span className="gl-slab__main gl-slab__main--static">
                 <span className="gl-slab__name">{row.name}</span>
                 <span className="gl-slab__meta">
@@ -1327,7 +1327,7 @@ function UnitBoard({ rows, view, onAdd, basket }: { rows: UnitPriceRow[]; view: 
           <article
             key={row.code}
             className="gl-item gl-item--unit"
-            style={{ "--cat": "var(--teal)", "--cat-soft": "#3aa8a8", "--cat-wash": "#e6f3f3", "--i": Math.min(index, 16) } as React.CSSProperties}
+            style={{ "--cat": "var(--teal)", "--cat-soft": "var(--teal-soft)", "--cat-wash": "var(--teal-wash)", "--i": Math.min(index, 16) } as React.CSSProperties}
           >
             <header className="gl-item__head">
               <span className="gl-item__cat">{row.section}</span>

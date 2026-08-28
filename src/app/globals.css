@@ -30,6 +30,11 @@
   --series-requested: #f47721;
   --series-certified: #2f7fe0;
   --series-cash: #2f9e5f;
+
+  /* เฉดอ่อนของ teal สำหรับการ์ดรายการของ PRICEMETR — เคยฝังเป็นเลขดิบในไฟล์คอมโพเนนต์
+     ย้ายเข้ากระปุกตามรั้วสี ADR 0021: สีทุกค่าประกาศที่นี่ที่เดียว */
+  --teal-soft: #3aa8a8;
+  --teal-wash: #e6f3f3;
 }
 
 * { box-sizing: border-box; }
@@ -420,7 +425,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .app-identity p { margin: 7px 0 0; max-width: 76ch; color: var(--muted); font-size: .88rem; line-height: 1.65; }
 /* position+z-index มีไว้กันฉากหลังของ workspace ที่เป็นผืน fixed ทึบ (เช่น .gl-ambient ของ
    PRICEMETR) วาดทับแถบนี้ — ผืนนั้นอยู่ใน stacking context ที่มาทีหลังใน DOM จึงชนะ flow เปล่า ๆ */
-.app-shell__context { position: relative; z-index: 1; background: #e7f1f1; border-bottom: 1px solid var(--line); }.app-shell__context > div { min-height: 50px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: .82rem; }.app-shell__context a { color: var(--teal); font-weight: 600; }
+.app-shell__context { position: relative; z-index: 1; background: #e7f1f1; border-bottom: 1px solid var(--line); }
+/* flex-wrap: แถวนี้ยาวได้ (ปุ่มบ้าน / แอปทั้งหมด / ชื่อแอป / ป้าย) — ที่ LAND ACQUISITION จอ 360
+   ป้าย "เฉพาะบุคลากรกรมทางหลวง" เคยยื่นพ้นขอบขวา 21px เพราะแถวไม่ยอมหักบรรทัด */
+.app-shell__context > div { min-height: 50px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--muted); font-size: .82rem; }.app-shell__context a { color: var(--teal); font-weight: 600; }
 /* ปุ่มบ้าน: ทางออกจากแอปตามคำวินิจฉัย 2026-08-26 — รูปบ้าน + ป้ายหน้าที่ ห้าม "← ชื่อแบรนด์" */
 .app-shell__home { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
 .app-shell__home svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform 150ms var(--ease-out); }
