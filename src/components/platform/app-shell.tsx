@@ -52,7 +52,7 @@ export async function AppShell({
     <main className="site-shell app-shell">
       <SiteHeader workspace={app.name} />
       {/* IP-185: Assistant Dock (แผงผู้ช่วยกลาง) ห่อทุกอย่างใต้แถบนำทางในทั้งสองโหมด —
-          ผู้ช่วยตัวจริงตัวแรกอยู่ในต้นแบบทดลอง work-plan (IP-184 จะเสียบผ่าน <AppAssistant>)
+          ผู้ช่วยตัวแรกที่เสียบแล้วคือ work-plan (IP-184 — เสียบผ่าน <AppAssistant>)
           หน้าที่ไม่มีการลงทะเบียนผู้ช่วย Host เป็นแค่ div เปล่า ไม่มีแผงแม้แต่ปุ่ม
           ตอนกางบนเดสก์ท็อป เนื้อหาทั้งก้อนนี้ถูกดันหลบด้วย padding ไม่ใช่ถูกบัง */}
       <AssistantDockHost>

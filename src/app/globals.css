@@ -961,6 +961,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__source { margin-top: .9rem; }
 
 /* ค่าที่ระบบอ่านได้จากสิ่งที่พิมพ์ลงไป วางคู่กับฟอร์มเพื่อให้เห็นทันทีว่าตีความถูกหรือไม่ */
+/* ---- IP-184: วงจรของข้อเสนอในแผงผู้ช่วยกลาง — การ์ดข้อเสนอ ปุ่มคืนค่า และส่วนตรวจแผน ---- */
+.work-plan__proposal { margin-top: 12px; border: 1px solid var(--line); border-left: 3px solid var(--orange); border-radius: 10px; padding: 12px; background: var(--canvas); }
+.work-plan__proposal-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 5px; max-height: 190px; overflow-y: auto; }
+.work-plan__proposal-list li { display: flex; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--ink-body); }
+.work-plan__proposal-list strong { flex: none; color: var(--ink); font-variant-numeric: tabular-nums; }
+.work-plan__proposal-warning { color: var(--muted); }
+.work-plan__restore { margin-top: 10px; }
+.work-plan__review { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.work-plan__quota { margin-top: 10px; color: var(--muted); font-size: .72rem; }
+
 /* ---- IP-202: ปฏิทินเลือกวันที่ (Date Picker) แบบไทย — เดือนไทย ปี พ.ศ. ทุกช่องทั้งเว็บ
    popover เป็น fixed เพราะช่องอยู่ในตารางที่ overflow (absolute จะโดน clip)
    ปุ่มวัน 48px ตามเกณฑ์เขตกด · การเคลื่อนไหวถูกบล็อกกลางปิดใต้ prefers-reduced-motion ---- */

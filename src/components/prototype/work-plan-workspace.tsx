@@ -39,7 +39,19 @@ import {
   subscribeWorkPlanStore,
   type WorkPlanSnapshot
 } from "@/lib/work-plan-storage";
-import { askWorkPlanAssistant, reviewWorkPlan, type AssistantResult, type ReviewFinding } from "@/server/actions/work-plan-assistant";
+import { AppAssistant } from "@/components/platform/assistant-dock";
+import { requestAssistant, settleAssistantProposal } from "@/server/actions/assistant";
+import {
+  buildReviewFacts,
+  draftToPlan,
+  parseReviewFindings,
+  parseWorkPlanDraft,
+  popSnapshot,
+  pushSnapshot,
+  type ProposalPlan,
+  type ReviewFinding,
+  type PlanRevertSnapshot
+} from "@/lib/work-plan-proposal";
 import { WorkPlanDocument } from "@/components/prototype/work-plan-document";
 import { WorkCalendarPanel } from "@/components/prototype/work-calendar-panel";
 import { defaultWorkCalendar, type WorkCalendar } from "@/lib/work-calendar";
@@ -179,6 +191,19 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const [assistantNote, setAssistantNote] = useState<string | null>(null);
   const [assistantError, setAssistantError] = useState<string | null>(null);
   const [assistantBusy, startAssistant] = useTransition();
+  /**
+   * วงจรของข้อเสนอ (IP-184): คำตอบของแบบจำลองพักที่นี่เป็น "ข้อเสนอรอตัดสิน" —
+   * แผนจริงไม่ขยับจนกว่าคนกด "ปรับตามข้อเสนอ" (ADR 0019) กด "ปฏิเสธ" คือทิ้งทั้งก้อน
+   * และกองประวัติให้ปุ่ม "คืนค่า" ถอยกลับได้ 5 ชั้นหลังรับ (เก็บในหน่วยความจำของหน้า)
+   */
+  const [pendingProposal, setPendingProposal] = useState<{
+    proposalId: string;
+    plan: ProposalPlan;
+    assumptions: string[];
+    warnings: string[];
+  } | null>(null);
+  const [planHistory, setPlanHistory] = useState<PlanRevertSnapshot[]>([]);
+  const [quotaLine, setQuotaLine] = useState<string | null>(null);
   const [showDocument, setShowDocument] = useState(false);
   const [reviewFindings, setReviewFindings] = useState<ReviewFinding[] | null>(null);
   const [reviewError, setReviewError] = useState<string | null>(null);
@@ -344,23 +369,39 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
   const runReview = () => {
     setReviewError(null);
     startReview(async () => {
-      const result = await reviewWorkPlan({
-        projectName: setup.projectName,
-        contractBaht: setup.contract,
-        durationDays: durationValid ? durationDays : 0,
-        milestones: schedule.rows.map((row) => ({
-          title: row.title,
-          percentOfContract: formatPercent(row.weightPpm),
-          periodWorkSatang: row.periodWorkSatang.toString(),
-          activityTitles: activityTitlesByMilestone[row.milestoneId] ?? [],
-          finishPeriod: 0
-        }))
+      // จังหวะตรวจ (critique) เดินประตูกลางเหมือนกัน — นับโควตา ลงบันทึกตรวจสอบครบ
+      // แต่ไม่มีปุ่มรับ/ปฏิเสธ เพราะผลตรวจเป็นข้อความที่ไม่เข้าไปนั่งในข้อมูลแผน (ADR 0019
+      // บังคับตัดสินเฉพาะของที่จะกลายเป็นข้อมูลจริง) ข้อเสนอปล่อยหมดอายุเองใน 24 ชม.
+      const result = await requestAssistant({
+        app: "work-plan",
+        verb: "critique",
+        subject: "prototype:work-plan",
+        input: {
+          projectName: setup.projectName,
+          contractBaht: setup.contract,
+          durationDays: durationValid ? durationDays : 0,
+          milestones: schedule.rows.map((row) => ({
+            title: row.title,
+            percentOfContract: formatPercent(row.weightPpm),
+            activityTitles: activityTitlesByMilestone[row.milestoneId] ?? []
+          }))
+        },
+        facts: buildReviewFacts(
+          schedule.rows.map((row) => ({ title: row.title, periodWorkSatang: row.periodWorkSatang })),
+          contractSatang
+        )
       });
       if (!result.ok) {
         setReviewError(result.message);
         return;
       }
-      setReviewFindings(result.findings);
+      describeQuota(result.proposal.quota);
+      const findings = parseReviewFindings(result.proposal.draft);
+      if (!findings) {
+        setReviewError("ผู้ช่วยตอบกลับมาไม่ครบ ลองกดใหม่อีกครั้ง");
+        return;
+      }
+      setReviewFindings(findings);
     });
   };
 
@@ -387,13 +428,30 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
    * ผลที่ได้กลับมาถือเป็นร่างเสมอ ทุกบรรทัดติดป้ายว่ามาจากผู้ช่วย และป้ายจะหายไปทันทีที่คนแก้ค่านั้น
    * เพราะเอกสารที่ออกไปยื่นเบิกต้องตอบได้ว่าตัวเลขไหนคนตัดสิน ตัวเลขไหนเครื่องเสนอ
    */
+  /** บรรทัดโควตาใต้แผง — "เดือนนี้ใช้ไป X จาก Y ครั้ง" จากประตูกลาง */
+  const describeQuota = (quota: { used: number; limit: number } | undefined | null) => {
+    if (quota && quota.limit > 0) setQuotaLine(`เดือนนี้ใช้ผู้ช่วยไป ${quota.used} จาก ${quota.limit} ครั้ง`);
+  };
+
+  /** แผน (bigint) → ก้อน JSON ส่งข้ามสายให้เซิร์ฟเวอร์คิด hash — bigint เดินทางข้ามสายไม่ได้ */
+  const planWire = (planActivities: PlanActivity[], planMilestones: Milestone[]) => ({
+    activities: planActivities.map((activity) => ({ ...activity, costSatang: activity.costSatang.toString() })),
+    milestones: planMilestones
+  });
+
   const runAssistant = (userInstruction?: string) => {
     setAssistantError(null);
     const templateLabel = templateOptions.find((option) => option.id === setup.templateId)?.label ?? "";
 
     startAssistant(async () => {
-      const result: AssistantResult = await askWorkPlanAssistant(
-        {
+      // เส้นทางใหม่ (IP-184): ผ่านประตูกลาง runAssistant — สิทธิ์ โควตา บันทึกตรวจสอบ ครบ
+      // และคำตอบเป็น "ข้อเสนอ" ที่ยังไม่แตะแผนจริง จนกว่าคนกดรับ
+      const result = await requestAssistant({
+        app: "work-plan",
+        verb: userInstruction ? "revise" : "draft",
+        subject: "prototype:work-plan",
+        instruction: userInstruction,
+        input: {
           projectName: setup.projectName,
           contractBaht: setup.contract,
           durationDays,
@@ -408,24 +466,92 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
                 durationDays: activity.durationDays
               }))
             : undefined
-        },
-        contractSatang.toString()
-      );
+        }
+      });
 
       if (!result.ok) {
-        setAssistantError(result.message);
+        describeQuota(result.quota ?? null);
+        setAssistantError(
+          result.reason === "not_signed_in"
+            ? "ต้องเข้าสู่ระบบก่อนจึงจะใช้ผู้ช่วยได้ — ไปที่หน้าบัญชีของฉันเพื่อเข้าสู่ระบบ"
+            : result.message
+        );
         return;
       }
 
-      const next = result.plan.activities.map((activity) => ({ ...activity, costSatang: BigInt(activity.costSatang) }));
-      setActivities(next);
-      setMilestones(result.plan.milestones);
-      setDraftedIds(new Set(next.map((activity) => activity.id)));
-      setAssistantNote(result.plan.note);
-      setNotice(`ผู้ช่วยเสนอแผน ${next.length} รายการ แบ่ง ${result.plan.milestones.length} งวด ตรวจและแก้ได้ทุกช่อง`);
-      setInstruction("");
-      if (!userInstruction) setTab(2);
+      describeQuota(result.proposal.quota);
+      const wire = parseWorkPlanDraft(result.proposal.draft);
+      if (!wire) {
+        setAssistantError("ผู้ช่วยตอบกลับมาไม่ครบ ลองกดใหม่อีกครั้ง");
+        return;
+      }
+      const plan = draftToPlan(wire, contractSatang, durationDays);
+      setPendingProposal({
+        proposalId: result.proposal.proposalId,
+        plan,
+        assumptions: result.proposal.assumptions,
+        warnings: result.proposal.warnings
+      });
+      setNotice(null);
     });
+  };
+
+  /** คนกดรับ — แผนเดิมเข้ากองประวัติก่อน แล้วข้อเสนอถึงกลายเป็นแผนจริง (ADR 0019) */
+  const acceptProposal = () => {
+    const proposal = pendingProposal;
+    if (!proposal) return;
+    startAssistant(async () => {
+      const settle = await settleAssistantProposal({
+        proposalId: proposal.proposalId,
+        decision: "accepted",
+        before: planWire(activities, milestones),
+        after: planWire(proposal.plan.activities, proposal.plan.milestones)
+      });
+      if (!settle.ok) {
+        setPendingProposal(settle.reason === "expired" ? null : pendingProposal);
+        setAssistantError(settle.message);
+        return;
+      }
+      setPlanHistory((history) =>
+        pushSnapshot(history, {
+          activities,
+          milestones,
+          draftedIds: [...draftedIds],
+          takenAtLabel: `ก่อนรับข้อเสนอ ${proposal.plan.activities.length} รายการ`
+        })
+      );
+      const wasEmpty = activities.length === 0;
+      setActivities(proposal.plan.activities);
+      setMilestones(proposal.plan.milestones);
+      setDraftedIds(new Set(proposal.plan.activities.map((activity) => activity.id)));
+      setAssistantNote(proposal.plan.note);
+      setNotice(`รับข้อเสนอแล้ว ${proposal.plan.activities.length} รายการ แบ่ง ${proposal.plan.milestones.length} งวด ตรวจและแก้ได้ทุกช่อง`);
+      setPendingProposal(null);
+      setInstruction("");
+      if (wasEmpty) setTab(2);
+    });
+  };
+
+  /** คนกดปฏิเสธ — ทิ้งข้อเสนอทั้งก้อน แผนเดิมไม่ขยับสักช่อง (กฎ G4) */
+  const rejectProposal = () => {
+    const proposal = pendingProposal;
+    if (!proposal) return;
+    startAssistant(async () => {
+      await settleAssistantProposal({ proposalId: proposal.proposalId, decision: "rejected" });
+      setPendingProposal(null);
+      setNotice("ปฏิเสธข้อเสนอแล้ว แผนเดิมไม่ถูกแตะ");
+    });
+  };
+
+  /** คืนค่า — ถอยกลับหนึ่งชั้นจากกองประวัติ ไม่ใช่การตัดสินข้อเสนอ จึงไม่เรียกประตูกลาง */
+  const restorePlan = () => {
+    const { rest, snapshot } = popSnapshot(planHistory);
+    if (!snapshot) return;
+    setPlanHistory(rest);
+    setActivities(snapshot.activities);
+    setMilestones(snapshot.milestones);
+    setDraftedIds(new Set(snapshot.draftedIds));
+    setNotice(`คืนค่ากลับเป็นแผน${snapshot.takenAtLabel}แล้ว`);
   };
 
   const updateActivity = (id: string, patch: Partial<PlanActivity>) => {
@@ -527,17 +653,55 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
           </p>
         ) : null}
 
-        <AssistantBar
-          busy={assistantBusy}
-          canAsk={canDraft}
-          hasPlan={activities.length > 0}
-          instruction={instruction}
-          setInstruction={setInstruction}
-          note={assistantNote}
-          error={assistantError}
-          onDraft={() => runAssistant()}
-          onRevise={() => runAssistant(instruction.trim())}
-        />
+        {/* IP-184: ผู้ช่วยทั้งหมดอยู่ในแผงผู้ช่วยกลาง (Assistant Dock) — มองเห็นจากทุกแท็บ
+            และเป็นตัวอย่างอ้างอิงที่แอปอื่นจะลอก เนื้อหาในแผงเป็นของ workspace นี้ 100% */}
+        <AppAssistant
+          title="ผู้ช่วยวางแผน"
+          busy={assistantBusy || reviewBusy}
+          status={
+            assistantBusy || reviewBusy
+              ? { label: "กำลังคิด", tone: "attention" }
+              : pendingProposal
+                ? { label: "มีข้อเสนอรอตัดสิน", tone: "attention" }
+                : activities.length > 0
+                  ? { label: "พร้อมรับคำสั่งแก้", tone: "ready" }
+                  : { label: "พร้อมร่างแผน", tone: "ready" }
+          }
+        >
+          <AssistantBar
+            busy={assistantBusy}
+            canAsk={canDraft}
+            hasPlan={activities.length > 0}
+            instruction={instruction}
+            setInstruction={setInstruction}
+            note={assistantNote}
+            error={assistantError}
+            onDraft={() => runAssistant()}
+            onRevise={() => runAssistant(instruction.trim())}
+          />
+          {pendingProposal ? (
+            <ProposalCard
+              proposal={pendingProposal}
+              contractSatang={contractSatang}
+              busy={assistantBusy}
+              onAccept={acceptProposal}
+              onReject={rejectProposal}
+            />
+          ) : null}
+          {planHistory.length > 0 ? (
+            <button type="button" className="button button--ghost micro-button work-plan__restore" onClick={restorePlan} disabled={assistantBusy}>
+              คืนค่า ({planHistory.length})
+            </button>
+          ) : null}
+          <ReviewSection
+            canReview={canReview}
+            busy={reviewBusy}
+            findings={reviewFindings}
+            error={reviewError}
+            onReview={runReview}
+          />
+          {quotaLine ? <p className="form-note work-plan__quota">{quotaLine}</p> : null}
+        </AppAssistant>
 
         {tab === 1 ? (
           <SetupTab
@@ -594,11 +758,6 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
             contractSatang={contractSatang}
             onMove={moveActivity}
             onAdd={addMilestone}
-            canReview={canReview}
-            reviewBusy={reviewBusy}
-            reviewFindings={reviewFindings}
-            reviewError={reviewError}
-            onReview={runReview}
             onPrint={() => setShowDocument(true)}
             actualById={actualById}
             statusById={statusById}
@@ -646,6 +805,107 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
  * ผู้ใช้กำลังดูตารางงวดอยู่ ไม่ใช่ตอนกรอกข้อมูลโครงการ ถ้าต้องเดินกลับไปแท็บแรกเพื่อสั่งแก้
  * ก็เท่ากับผิดกติกาที่ว่าทำงานให้จบในแท็บเดียว
  */
+const SEVERITY_LABEL: Record<ReviewFinding["severity"], string> = {
+  high: "เสี่ยงสูง",
+  medium: "ควรระวัง",
+  low: "ข้อสังเกต"
+};
+
+/**
+ * การ์ดข้อเสนอรอตัดสิน (IP-184) — ผู้ใช้ต้องเห็นก่อนกดรับ ไม่ใช่รับก่อนแล้วค่อยเห็น:
+ * รายการงานพร้อมค่างาน จำนวนงวด สมมติฐาน และคำเตือน แผนจริงยังไม่ขยับจนกว่ากดปุ่ม
+ */
+function ProposalCard({
+  proposal,
+  contractSatang,
+  busy,
+  onAccept,
+  onReject
+}: {
+  proposal: { plan: ProposalPlan; assumptions: string[]; warnings: string[] };
+  contractSatang: bigint;
+  busy: boolean;
+  onAccept: () => void;
+  onReject: () => void;
+}) {
+  const { plan } = proposal;
+  return (
+    <section className="work-plan__proposal" aria-label="ข้อเสนอจากผู้ช่วย">
+      <p className="eyebrow">ข้อเสนอจากผู้ช่วย — คุณตัดสิน</p>
+      <p className="form-note">
+        เสนอ {plan.activities.length.toLocaleString("th-TH")} รายการ แบ่ง {plan.milestones.length.toLocaleString("th-TH")} งวด
+        รวมเท่ามูลค่าสัญญา {formatBaht(contractSatang)} บาทพอดี — แผนปัจจุบันยังไม่ถูกแตะจนกว่าจะกดรับ
+      </p>
+      <ul className="work-plan__proposal-list">
+        {plan.activities.map((activity) => (
+          <li key={activity.id}>
+            <span>{activity.number}. {activity.title}</span>
+            <strong>{formatBaht(activity.costSatang)} บาท</strong>
+          </li>
+        ))}
+      </ul>
+      {proposal.assumptions.length > 0 ? (
+        <p className="form-note"><strong>สมมติฐานที่ผู้ช่วยตั้งไว้</strong> {proposal.assumptions.join(" · ")}</p>
+      ) : null}
+      {proposal.warnings.map((warning) => (
+        <p key={warning} className="form-note work-plan__proposal-warning">{warning}</p>
+      ))}
+      <div className="work-plan__row-actions">
+        <button type="button" className="button button--orange micro-button" onClick={onAccept} disabled={busy}>
+          ปรับตามข้อเสนอ
+        </button>
+        <button type="button" className="button button--ghost micro-button" onClick={onReject} disabled={busy}>
+          ปฏิเสธ
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** ผู้ช่วยตรวจแผน — ย้ายจากแท็บ 3 มาอยู่แผงกลาง ผลตรวจเป็นคำแนะนำ ไม่มีปุ่มรับ/ปฏิเสธ */
+function ReviewSection({
+  canReview,
+  busy,
+  findings,
+  error,
+  onReview
+}: {
+  canReview: boolean;
+  busy: boolean;
+  findings: ReviewFinding[] | null;
+  error: string | null;
+  onReview: () => void;
+}) {
+  return (
+    <section className="work-plan__review" aria-label="ผู้ช่วยตรวจแผน">
+      <div className="work-plan__row-actions">
+        <button type="button" className="button button--orange micro-button" onClick={onReview} disabled={busy || !canReview}>
+          {busy ? "กำลังตรวจ..." : "ให้ผู้ช่วยตรวจแผน"}
+        </button>
+      </div>
+      {error ? (
+        <p className="form-error work-plan__assistant-message" role="alert">{error}</p>
+      ) : findings ? (
+        findings.length === 0 ? (
+          <p className="form-success work-plan__assistant-message" role="status">ผู้ช่วยตรวจแล้ว ไม่พบจุดเสี่ยงที่ต้องแก้</p>
+        ) : (
+          <ul className="work-plan__findings">
+            {findings.map((finding, index) => (
+              <li key={index} className={`work-plan__finding work-plan__finding--${finding.severity}`}>
+                <span className="work-plan__finding-tag">{SEVERITY_LABEL[finding.severity]}</span>
+                <div>
+                  <strong>{finding.title}</strong>
+                  <p>{finding.detail}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )
+      ) : null}
+    </section>
+  );
+}
+
 function AssistantBar({
   busy,
   canAsk,
@@ -1109,11 +1369,6 @@ function MilestonesTab({
   contractSatang,
   onMove,
   onAdd,
-  canReview,
-  reviewBusy,
-  reviewFindings,
-  reviewError,
-  onReview,
   onPrint,
   actualById,
   statusById,
@@ -1128,11 +1383,6 @@ function MilestonesTab({
   contractSatang: bigint;
   onMove: (activityId: string, milestoneId: string) => void;
   onAdd: () => void;
-  canReview: boolean;
-  reviewBusy: boolean;
-  reviewFindings: ReviewFinding[] | null;
-  reviewError: string | null;
-  onReview: () => void;
   onPrint: () => void;
   actualById: Map<string, MilestoneActual>;
   statusById: Map<string, ReturnType<typeof milestoneStatuses>[number]>;
@@ -1153,51 +1403,19 @@ function MilestonesTab({
     );
   }
 
-  const severityLabel: Record<ReviewFinding["severity"], string> = {
-    high: "เสี่ยงสูง",
-    medium: "ควรระวัง",
-    low: "ข้อสังเกต"
-  };
-
   return (
     <>
-      <Panel eyebrow="ตรวจและออกเอกสาร" title="ผู้ช่วยตรวจแผน และเอกสารแนบสัญญา">
+      {/* IP-184: ผู้ช่วยตรวจแผนย้ายไปอยู่แผงผู้ช่วยกลาง — แท็บนี้เหลือหน้าที่ออกเอกสารอย่างเดียว */}
+      <Panel eyebrow="ออกเอกสาร" title="เอกสารแนบสัญญา">
         <p className="form-note">
-          ให้ผู้ช่วยตรวจแผนก่อนยื่น หรือพิมพ์บัญชีงวดงานเป็นเอกสารแนบท้ายสัญญา
-          ยอดทุกช่องคิดด้วยจำนวนเต็มสตางค์ ตรวจย้อนได้ทุกบาท
+          พิมพ์บัญชีงวดงานเป็นเอกสารแนบท้ายสัญญา ยอดทุกช่องคิดด้วยจำนวนเต็มสตางค์ ตรวจย้อนได้ทุกบาท
+          ส่วนผู้ช่วยตรวจแผนอยู่ที่แผงผู้ช่วยด้านข้าง
         </p>
         <div className="work-plan__row-actions">
-          <button type="button" className="button button--orange micro-button" onClick={onReview} disabled={reviewBusy || !canReview}>
-            {reviewBusy ? "กำลังตรวจ..." : "ให้ผู้ช่วยตรวจแผน"}
-          </button>
           <button type="button" className="button button--ghost micro-button" onClick={onPrint} disabled={!balanced && contractSatang > 0n ? false : schedule.rows.length === 0}>
             พิมพ์บัญชีงวดงาน
           </button>
         </div>
-
-        {reviewError ? (
-          <p className="form-error work-plan__assistant-message" role="alert">
-            {reviewError}
-          </p>
-        ) : reviewFindings ? (
-          reviewFindings.length === 0 ? (
-            <p className="form-success work-plan__assistant-message" role="status">
-              ผู้ช่วยตรวจแล้ว ไม่พบจุดเสี่ยงที่ต้องแก้
-            </p>
-          ) : (
-            <ul className="work-plan__findings">
-              {reviewFindings.map((finding, index) => (
-                <li key={index} className={`work-plan__finding work-plan__finding--${finding.severity}`}>
-                  <span className="work-plan__finding-tag">{severityLabel[finding.severity]}</span>
-                  <div>
-                    <strong>{finding.title}</strong>
-                    <p>{finding.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )
-        ) : null}
       </Panel>
 
       <Panel
