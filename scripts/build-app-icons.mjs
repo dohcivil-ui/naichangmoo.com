@@ -3,7 +3,8 @@ import { join } from "node:path";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
 /**
- * สร้างชุดไอคอนของแอปจากตรา NM (IP-196) — รันซ้ำได้ทุกครั้งที่ตราเปลี่ยน:
+ * Icon Generator (เครื่องมือสร้างไอคอนอัตโนมัติ) — IP-196
+ * สร้างชุดไอคอนของแอปจากตรา NM ใหม่ได้ทุกครั้งที่แบรนด์เปลี่ยน:
  *
  *   node scripts/build-app-icons.mjs
  *
