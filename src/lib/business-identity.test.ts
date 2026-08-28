@@ -52,8 +52,12 @@ describe("a trustmark is only shown once an issuer has granted it", () => {
     expect(row.marks.map((mark) => mark.id)).toEqual(["example"]);
   });
 
-  it("keeps the operator's legal name off the page until that is decided", () => {
-    // Recorded so the decision has something to switch on, not so the footer prints it today.
-    expect(businessOperator.publish).toBe(false);
+  it("publishes the operator's name and address, as the owner decided on 2026-08-28", () => {
+    // The switch flipped: IP-127 is settled. If publish goes back to false, that is a new owner
+    // decision and this test is where it gets recorded — not a silent edit.
+    expect(businessOperator.publish).toBe(true);
+    expect(businessOperator.legalName.length).toBeGreaterThan(0);
+    expect(businessOperator.addressLines.length).toBeGreaterThan(0);
+    for (const line of businessOperator.addressLines) expect(line.trim().length).toBeGreaterThan(0);
   });
 });

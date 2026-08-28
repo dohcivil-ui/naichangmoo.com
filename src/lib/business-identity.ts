@@ -34,13 +34,14 @@ export type TrustMark = {
 /**
  * The legal entity that operates the platform and receives payment.
  *
- * `publish` is false because putting a legal name on the page is the owner's decision and has not
- * been made, and because no payment is collected anywhere yet (IP-081). The fact is recorded here
- * so the decision has something to switch on rather than something to rediscover.
+ * เจ้าของงานตัดสิน 2026-08-28 ให้เปิดเผยชื่อและที่อยู่บนท้ายเว็บ (ปิด IP-127) โดยใช้ หจก. เดิม
+ * ไปก่อน — เขาแจ้งว่าจะจดบริษัทใหม่สำหรับค้าขายอิเล็กทรอนิกส์โดยเฉพาะ (IP-126) เมื่อจดแล้ว
+ * แก้ชื่อและที่อยู่ที่นี่ที่เดียว ท้ายเว็บทุกหน้าเปลี่ยนตาม
  */
 export const businessOperator = {
   legalName: "หจก.ไทสกลวิศวกรรม",
-  publish: false
+  addressLines: ["1780/56 ถนนต.พัฒนา ตำบลธาตุเชิงชุม", "อำเภอเมืองสกลนคร จังหวัดสกลนคร 47000"],
+  publish: true
 } as const;
 
 export const trustMarks: TrustMark[] = [

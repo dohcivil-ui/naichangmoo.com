@@ -443,6 +443,21 @@ export const platformAdministrators = pgTable("platform_administrators", {
   updatedAt
 }, (table) => [index("platform_administrators_user_idx").on(table.userId, table.revokedAt)]);
 
+/**
+ * ช่องทางติดต่อของแพลตฟอร์ม (IP-106): LINE OA, เพจ Facebook, อีเมล — ค่าที่ผู้ดูแลกรอกจากหลังบ้าน
+ * แถวที่ค่าเป็น null คือช่องที่ยังไม่กรอก และท้ายเว็บจะไม่แสดงช่องนั้นเลย (ซ่อนจนกว่าจะกรอกจริง —
+ * คำวินิจฉัยเจ้าของงาน 2026-08-28 แทนการโชว์ค่าปลอม) รายชื่อ key ที่ระบบรู้จักอยู่ใน
+ * src/lib/platform-channels.ts ตารางนี้เก็บเฉพาะค่าและคนกรอก ตามแบบเดียวกับทะเบียนแอป
+ */
+export const platformChannels = pgTable("platform_channels", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull(),
+  value: text("value"),
+  updatedBy: text("updated_by").references(() => users.id),
+  createdAt,
+  updatedAt
+}, (table) => [uniqueIndex("platform_channels_key_unique").on(table.key)]);
+
 // Portable fixed-window rate-limit counter. One row per (scope, identifier, window)
 // so abuse controls work identically on Vercel and the VPS without extra infrastructure.
 export const rateLimitCounters = pgTable("rate_limit_counters", {
