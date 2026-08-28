@@ -10,7 +10,8 @@ export const landingNavigationContract = [
   { id: "apps", label: "แอปของเรา", href: "/#apps" },
   { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
   { id: "pricing", label: "ราคา", href: "/pricing" },
-  { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
+  // "สถานะโครงการ" ถอดออกจากเมนูสาธารณะ 2026-08-28 — โรดแมปเป็นความลับภายใน
+  // ย้ายไปอยู่หลังบ้านที่ /admin/roadmap ตามคำสั่งเจ้าของงาน
   { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise" }
 ] as const;
 
@@ -31,7 +32,6 @@ export const landingActionContract = {
   homeLabel: "หน้าแรก",
   allAppsHref: "/#apps",
   allAppsLabel: "แอปทั้งหมด",
-  roadmapHref: "/roadmap",
   pricingHref: "/pricing",
   cookiesHref: "/cookies",
   cookiesLabel: "นโยบายการใช้คุกกี้"

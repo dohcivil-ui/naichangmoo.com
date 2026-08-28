@@ -14,7 +14,7 @@ export function StatusConsole({ initial }: { initial: ProjectStatus }) {
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetch("/api/project-status", { cache: "no-store" });
+      const response = await fetch("/api/admin/project-status", { cache: "no-store" });
       if (response.ok) setData(await response.json() as ProjectStatus);
     } finally { setIsRefreshing(false); }
   }, []);

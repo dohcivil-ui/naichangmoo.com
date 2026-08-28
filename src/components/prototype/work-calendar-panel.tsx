@@ -264,7 +264,7 @@ export function WorkCalendarPanel({
 
           {view.missingYears.length > 0 ? (
             <p className="work-plan__sim-note" role="alert">
-              ยังไม่มีข้อมูลวันหยุดของปี {view.missingYears.map((year) => year.toLocaleString("th-TH")).join(" และ ")} —
+              ยังไม่มีข้อมูลวันหยุดของปี {view.missingYears.map((year) => String(year)).join(" และ ")} —
               วันหยุดราชการของปีนั้นจะไม่ถูกนับ ทำให้แผนสั้นกว่าความจริง ให้เพิ่มวันหยุดเองด้านล่าง
               หรือรอจนกว่าจะมีประกาศ
             </p>
@@ -277,7 +277,7 @@ export function WorkCalendarPanel({
           ))}
 
           <div className="takeoff-table-wrap">
-            <table className="takeoff-table work-plan__table">
+            <table className="takeoff-table work-plan__table work-plan__table--calendar">
               <thead>
                 <tr>
                   <th>วันที่</th>
@@ -361,8 +361,9 @@ export function WorkCalendarPanel({
             </button>
           </div>
           <p className="form-note">
-            วันหยุดตั้งต้นมาจากประกาศวันหยุดราชการ ปี {buddhistYearOf(startDate).toLocaleString("th-TH")}
-            {buddhistYearOf(endDate) !== buddhistYearOf(startDate) ? ` และ ${buddhistYearOf(endDate).toLocaleString("th-TH")}` : ""}
+            {/* เลขปีเป็นชื่อปี ไม่ใช่จำนวน — ห้ามผ่าน toLocaleString ไม่งั้นได้ "2,569" */}
+            วันหยุดตั้งต้นมาจากประกาศวันหยุดราชการ ปี {String(buddhistYearOf(startDate))}
+            {buddhistYearOf(endDate) !== buddhistYearOf(startDate) ? ` และ ${String(buddhistYearOf(endDate))}` : ""}
             {" "}— ตรวจกับประกาศจริงก่อนใช้ผูกสัญญา
           </p>
         </>

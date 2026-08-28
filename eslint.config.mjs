@@ -67,6 +67,23 @@ const fence = [
         ]
       }]
     }
+  },
+  {
+    /* สถานะโครงการเป็นความลับภายใน (คำสั่งเจ้าของงาน 2026-08-28) — โซนสาธารณะห้ามรู้จัก
+       แหล่งอ่านโรดแมป/เอกสารส่งต่องาน มีเฉพาะโซน admin เท่านั้นที่อ่านได้
+       (ต้อง union กับกฎของ fence/ui-reaches-db-through-server เพราะ flat config ทับทั้งก้อน) */
+    name: "fence/project-status-stays-behind-admin",
+    files: ["src/app/**/*.ts", "src/app/**/*.tsx", "src/components/**/*.ts", "src/components/**/*.tsx"],
+    ignores: ["src/app/admin/**", "src/app/api/admin/**", "src/components/admin/**"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": ["error", {
+        paths: [
+          ...aiSdkPaths,
+          { name: "@/server/project-status", message: "สถานะโครงการเป็นความลับภายใน — อ่านได้เฉพาะโซน admin (คำสั่งเจ้าของงาน 2026-08-28)" }
+        ],
+        patterns: dbPatterns
+      }]
+    }
   }
 ];
 

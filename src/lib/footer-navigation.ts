@@ -33,10 +33,10 @@ export const footerNavigationContract = [
     id: "company",
     heading: "ข้อมูลบริษัท",
     links: [
+      // "สถานะโครงการ" ถอดออก 2026-08-28 — โรดแมปเป็นความลับภายใน อยู่หลังบ้าน /admin/roadmap
       { label: "เกี่ยวกับเรา", href: "/about", exists: false },
       { label: "บทความ", href: "/articles", exists: false },
-      { label: "ติดต่อเรา", href: "/contact", exists: false },
-      { label: "สถานะโครงการ", href: landingActionContract.roadmapHref, exists: true }
+      { label: "ติดต่อเรา", href: "/contact", exists: false }
     ]
   },
   {

@@ -15,7 +15,11 @@ import { BrandLogo } from "@/components/platform/brand-logo";
 export const adminNavigation = [
   {
     group: "ภาพรวม",
-    items: [{ id: "overview", label: "แดชบอร์ด", href: "/admin", ready: true }]
+    items: [
+      { id: "overview", label: "แดชบอร์ด", href: "/admin", ready: true },
+      // สถานะโครงการย้ายจากหน้าสาธารณะเข้ามาที่นี่ 2026-08-28 — โรดแมปเป็นความลับภายใน
+      { id: "roadmap", label: "สถานะโครงการ", href: "/admin/roadmap", ready: true }
+    ]
   },
   {
     group: "เนื้อหาที่ลูกค้าเห็น",

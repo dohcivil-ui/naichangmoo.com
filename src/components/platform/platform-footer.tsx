@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { businessOperator, describeTrustRow } from "@/lib/business-identity";
 import { footerNavigationContract } from "@/lib/footer-navigation";
-import { landingActionContract } from "@/lib/landing-interactions";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { readPublishedChannels } from "@/server/platform-channels";
 
@@ -83,8 +82,8 @@ export async function PlatformFooter() {
         </div>
 
         <div className="footer__base">
+          {/* ลิงก์ "Roadmap & Handoff" ถอดออก 2026-08-28 — เอกสารภายในไม่โชว์ลูกค้า */}
           <span>© {buddhistYear} {businessOperator.publish ? businessOperator.legalName : "นายช่างหมู — CIVIL APPS ASSISTANT"}</span>
-          <Link href={landingActionContract.roadmapHref}>Roadmap &amp; Handoff</Link>
         </div>
       </div>
     </footer>

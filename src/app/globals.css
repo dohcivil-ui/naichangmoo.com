@@ -961,11 +961,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__source { margin-top: .9rem; }
 
 /* ค่าที่ระบบอ่านได้จากสิ่งที่พิมพ์ลงไป วางคู่กับฟอร์มเพื่อให้เห็นทันทีว่าตีความถูกหรือไม่ */
+/* กติกาบ้าน 2026-08-28: ตัวอักษรต้องพอดีช่อง ห้ามพับจนไม่สวย — ค่าที่เป็นช่วงวันที่ยาว
+   ให้ลดขนาดฟอนต์พอดีช่องแทนการปล่อยหักบรรทัด (clamp ตามความกว้างคอลัมน์) */
 .work-plan__readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 1.15rem 0 0; padding-top: 1.1rem; border-top: 1px solid var(--line); }
 .work-plan__readout dt { color: var(--muted); font-size: .72rem; font-weight: 600; }
-.work-plan__readout dd { margin: .25rem 0 0; color: var(--ink); font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.work-plan__readout dd { margin: .25rem 0 0; color: var(--ink); font-size: clamp(.78rem, 1.1vw, .95rem); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 .work-plan__table td { vertical-align: top; }
+/* ตารางวันหยุด (กติกาบ้าน 2026-08-28): วันที่เป็นก้อนเดียวห้ามพับบรรทัด และข้อมูลจัดกึ่งกลางแนวตั้ง
+   คอลัมน์วันที่/วันชิดกลาง คอลัมน์ชื่อวันหยุดคงชิดซ้ายเพราะเป็นข้อความยาว */
+.work-plan__table--calendar td { vertical-align: middle; }
+.work-plan__table--calendar td:nth-child(1), .work-plan__table--calendar td:nth-child(2), .work-plan__table--calendar th:nth-child(1), .work-plan__table--calendar th:nth-child(2) { white-space: nowrap; text-align: center; }
+.work-plan__table--calendar td:nth-child(4) { text-align: center; }
 .work-plan__table tfoot td { border-top: 2px solid var(--line); background: var(--canvas); color: var(--ink); font-weight: 700; }
 .work-plan__table--periods { min-width: 100%; font-size: .74rem; }
 /* คอลัมน์ที่ตรงกับช่วงที่ hover บนกราฟ สว่างขึ้น ให้กราฟกับตารางเป็นเครื่องมือชิ้นเดียวกัน */

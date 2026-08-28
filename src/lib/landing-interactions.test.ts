@@ -9,7 +9,7 @@ describe("Landing interaction contract", () => {
       { id: "apps", label: "แอปของเรา", href: "/#apps" },
       { id: "hermes", label: "Hermes 24/7", href: "/#hermes" },
       { id: "pricing", label: "ราคา", href: "/pricing" },
-      { id: "roadmap", label: "สถานะโครงการ", href: "/roadmap" },
+      // "สถานะโครงการ" หายจากเมนูสาธารณะ 2026-08-28 — โรดแมปเป็นความลับภายใน อยู่หลังบ้าน
       { id: "enterprise", label: "ขอใบเสนอราคา", href: "/enterprise" }
     ]);
     expect(landingActionContract).toEqual({
@@ -17,7 +17,6 @@ describe("Landing interaction contract", () => {
       homeLabel: "หน้าแรก",
       allAppsHref: "/#apps",
       allAppsLabel: "แอปทั้งหมด",
-      roadmapHref: "/roadmap",
       pricingHref: "/pricing",
       cookiesHref: "/cookies",
       cookiesLabel: "นโยบายการใช้คุกกี้"

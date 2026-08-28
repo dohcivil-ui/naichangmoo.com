@@ -55,4 +55,14 @@ describe("รั้วสถาปัตยกรรม (ADR 0020)", () => {
     expect(pageErrors.length).toBeGreaterThan(0);
     expect(componentErrors.length).toBeGreaterThan(0);
   });
+
+  it("สถานะโครงการเป็นความลับภายใน — โซนสาธารณะ import แหล่งอ่านโรดแมปไม่ได้ โซน admin ได้", async () => {
+    // คำสั่งเจ้าของงาน 2026-08-28: โรดแมป/เอกสารส่งต่องานห้ามโชว์ชาวบ้าน
+    const publicErrors = await fenceErrors("src/app/__fence-probe__.tsx", 'import "@/server/project-status";\n');
+    const componentErrors = await fenceErrors("src/components/__fence-probe__.tsx", 'import "@/server/project-status";\n');
+    const adminErrors = await fenceErrors("src/app/admin/__fence-probe__.tsx", 'import "@/server/project-status";\n');
+    expect(publicErrors.length).toBeGreaterThan(0);
+    expect(componentErrors.length).toBeGreaterThan(0);
+    expect(adminErrors).toEqual([]);
+  });
 });

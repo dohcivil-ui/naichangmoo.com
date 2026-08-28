@@ -64,7 +64,7 @@ export function PlatformNav({
             ? pathname === "/" && !activeSection
             : item.id === "apps"
             ? (pathname === "/" ? activeSection === item.id : pathname.startsWith("/market"))
-            : ["pricing", "roadmap", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
+            : ["pricing", "enterprise"].includes(item.id) ? pathname === item.href : pathname === "/" && activeSection === item.id;
             const className = ["nav-pill", item.id === "enterprise" ? "nav-pill--primary" : "", isActive ? "is-active" : ""].filter(Boolean).join(" ");
             return <Link key={item.id} className={className} href={item.href} aria-current={isActive ? "location" : undefined} onClick={() => setActiveSection(item.id === "home" ? null : item.id)}>{item.label}</Link>;
           })}

@@ -85,7 +85,9 @@ export default async function AppBoundaryPage({ params }: { params: Promise<{ sl
           <div className="eyebrow">{app.eyebrow}</div>
           <h1>{app.name}</h1>
           <p>{app.description}</p>
-          <p className="hero__note">หน้านี้ใช้ app shell, navigation, status labels และ responsive system ชุดเดียวกับทุกแอปใน platform โดย workflow เฉพาะจะเปิดตาม roadmap ที่อนุมัติ</p>
+          {/* ข้อความเดิมเป็นศัพท์ครัวหลังบ้าน (app shell / workflow / roadmap) บนหน้าลูกค้า —
+              เปลี่ยนเป็นภาษาลูกค้าตามคำสั่งเจ้าของงาน 2026-08-28 */}
+          <p className="hero__note">ความสามารถเพิ่มเติมของแอปนี้จะทยอยเปิดให้ใช้งาน</p>
           <div className="hero__actions"><Link className="button button--orange micro-button" href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Link></div>
         </div>
       </section>
