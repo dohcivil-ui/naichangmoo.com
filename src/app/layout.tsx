@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import type { Metadata, Viewport } from "next";
 import { Prompt } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/document-print.css";
 import { CookieNotice } from "@/components/platform/cookie-notice";
+import { extractKitchenColour } from "@/lib/kitchen-colours";
 
 /**
  * Loaded through next/font, which downloads the files at build time and serves them from this
@@ -35,6 +38,16 @@ export const metadata: Metadata = {
   title: "นายช่างหมู | CIVIL APPS ASSISTANT",
   description: "เครื่องมือวิศวกรรมที่ทำงานเป็นลำดับ ตรวจสอบได้ และช่วยงานโยธาไทยให้ชัดเจนขึ้น"
 };
+
+/**
+ * IP-196: theme color (สีแถบเบราว์เซอร์) ต้องอยู่ใน viewport export — ใส่ใน metadata
+ * Next จะเตือนว่าย้ายมาที่นี่ · ค่าเป็น teal ตามที่เจ้าของงานเคาะ 2026-08-28 และไม่ประกาศ
+ * เลขสีซ้ำ — อ่านจากแหล่งอ้างอิงหลัก (globals.css) ตอน build ตาม ADR 0021
+ */
+export function generateViewport(): Viewport {
+  const kitchen = readFileSync(join(process.cwd(), "src/app/globals.css"), "utf8");
+  return { themeColor: extractKitchenColour(kitchen, "teal") };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="th"><body className={prompt.variable}>
