@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { AppCard } from "@/components/landing/app-card";
 import { LandingMotion } from "@/components/landing/landing-motion";
-import { HeroEngineeringArt } from "@/components/landing/hero-engineering-art";
+import { HeroLiveDemo } from "@/components/landing/hero-live-demo";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
@@ -63,19 +63,31 @@ export default async function LandingPage() {
             </h1>
             <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
-            {/* A design principle, not a registry claim - true by structure since the assistant
-                schema may not carry a money field (ai-assistant-design.md, guardrail G1). */}
-            <p className="hero__note" data-reveal data-delay="430" style={{ "--fy": "14px" } as CSSProperties}>AI ไม่เคยได้รับโจทย์คำนวณเงิน — โดยโครงสร้าง ไม่ใช่โดยสัญญา</p>
+            {/* IP-197: บรรทัดหลักการใต้ปุ่มถูกตัดตามคำสั่งเจ้าของงาน 2026-08-28 — ฉากสาธิต
+                เล่าเรื่องเดียวกันด้วยภาพแทน (ผู้ช่วยเสนอ คนตัดสิน ระบบคำนวณ) */}
             {/* ADR 0015: naming ESTIMETR is an introduction, but its commercial terms are a
                 claim, so the line renders only while the registry says the app is open and the
                 access word is the registry's own. Unannounced or closed means no line at all. */}
-            {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
+            {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="430" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
           </div>
+          {/* IP-197: หน้าต่างสาธิตสดแทนภาพลายเส้นนิ่ง — ฉากผู้ช่วยสร้างแผนงานสี่จังหวะ
+              ที่ตัวเลขตรวจย้อนได้จริงกับเอกสาร วสท. (docs/research/s-curve-rules-2026-08-25.md) */}
           <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
-            {/* placeholder keeps JSX shape stable */}
-            <HeroEngineeringArt />
-            <aside className="workflow-rail" aria-label="การเริ่มใช้งาน"><h2>เริ่มใช้งาน</h2>{["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => <div className="workflow-step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}><span>0{index + 1}</span><div>{step}</div></div>)}</aside>
+            <HeroLiveDemo />
           </div>
+        </div>
+        {/* IP-197: ราง "เริ่มใช้งาน 01-04" ย้ายจากคอลัมน์ขวามาเป็นแถบแนวนอนเต็มความกว้าง
+            ใต้ hero เหนือแถบข้อความวิ่ง — ไฟเดิน 01→04 ชุดเดิมยังทำงาน */}
+        <div className="container">
+          <aside className="workflow-band" aria-label="การเริ่มใช้งาน" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>
+            <h2>เริ่มใช้งาน</h2>
+            {["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => (
+              <div className="workflow-band__step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}>
+                <span>0{index + 1}</span>
+                <div>{step}</div>
+              </div>
+            ))}
+          </aside>
         </div>
         {/* IP-192: a slow marquee of the platform's standing principles. Introductions, not
             claims - no price, no readiness, nothing the registry owns. Pauses on hover; the
