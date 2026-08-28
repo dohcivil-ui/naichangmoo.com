@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatThaiDate } from "@/lib/thai-format";
 import { DURATION_UNIT_LABELS, type DurationUnit, type ProjectDemand } from "@/lib/work-plan-schedule";
 import { buddhistYearOf, provisionalYears, yearsWithoutData, type ThaiHoliday } from "@/lib/thai-holidays";
+import { ThaiDateField } from "@/components/ui/thai-date-field";
 import {
   calendarHolidays,
   nonWorkingDaysBetween,
@@ -334,7 +335,7 @@ export function WorkCalendarPanel({
           <div className="work-plan__calendar-add">
             <label>
               เพิ่มวันหยุดของโครงการ
-              <input type="date" className="work-plan__cell" value={newDate} onChange={(event) => setNewDate(event.target.value)} />
+              <ThaiDateField value={newDate} onChange={(iso) => setNewDate(iso)} ariaLabel="เพิ่มวันหยุดของโครงการ" />
             </label>
             <label>
               เหตุผล

@@ -925,7 +925,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-form__row { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
 .admin-form label { display: grid; gap: 5px; font-size: .82rem; font-weight: 600; color: var(--ink); }
 .admin-form label > span { font-size: .78rem; }
-.admin-form select, .admin-form input[type="text"], .admin-form input[type="date"] { padding: .55rem .65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-weight: 400; }
+.admin-form select, .admin-form input[type="text"] { padding: .55rem .65rem; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); font-weight: 400; }
 .admin-form small { color: var(--muted); font-size: .72rem; font-weight: 400; line-height: 1.6; }
 .admin-form__foot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .admin-form__ok { margin: 0; color: var(--success); font-size: .82rem; font-weight: 600; }
@@ -961,6 +961,38 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__source { margin-top: .9rem; }
 
 /* ค่าที่ระบบอ่านได้จากสิ่งที่พิมพ์ลงไป วางคู่กับฟอร์มเพื่อให้เห็นทันทีว่าตีความถูกหรือไม่ */
+/* ---- IP-202: ปฏิทินเลือกวันที่ (Date Picker) แบบไทย — เดือนไทย ปี พ.ศ. ทุกช่องทั้งเว็บ
+   popover เป็น fixed เพราะช่องอยู่ในตารางที่ overflow (absolute จะโดน clip)
+   ปุ่มวัน 48px ตามเกณฑ์เขตกด · การเคลื่อนไหวถูกบล็อกกลางปิดใต้ prefers-reduced-motion ---- */
+.thai-date { position: relative; display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+.thai-date__input { width: 100%; min-width: 0; max-width: 148px; border: 1px solid var(--line); border-radius: 6px; padding: .38rem .45rem; background: var(--paper); color: var(--ink); font-family: inherit; font-size: .82rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.thai-date__input[aria-invalid="true"] { border-color: var(--orange); }
+.thai-date__toggle { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--teal); cursor: pointer; position: relative; }
+.thai-date__toggle::before { content: ""; position: absolute; inset: -7px; }
+.thai-date__toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+.thai-date__toggle:hover, .thai-date__toggle:focus-visible { border-color: var(--teal); outline: none; }
+.thai-date__error { position: absolute; top: calc(100% + 3px); left: 0; z-index: 30; background: var(--paper); border: 1px solid var(--orange); border-radius: 7px; padding: 3px 8px; color: var(--fall, var(--orange)); font-size: .7rem; font-weight: 600; white-space: nowrap; box-shadow: 0 8px 18px rgba(7,48,71,.12); }
+.thai-date__popover { position: fixed; z-index: 70; width: min(calc(100vw - 20px), 300px); background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 10px; box-shadow: 0 22px 48px rgba(7,48,71,.22); }
+.thai-date__nav { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+.thai-date__nav button { flex: none; width: 34px; height: 40px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--muted); font-family: inherit; font-size: .95rem; cursor: pointer; }
+.thai-date__nav button:hover, .thai-date__nav button:focus-visible { color: var(--teal); border-color: var(--teal); outline: none; }
+.thai-date__title { flex: 1; text-align: center; font-size: .88rem; font-weight: 700; color: var(--ink); }
+.thai-date__weekdays { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 2px; }
+.thai-date__weekday { text-align: center; font-size: .66rem; font-weight: 700; color: var(--muted); padding: 4px 0; }
+.thai-date__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.thai-date__day { display: grid; place-items: center; min-height: 38px; border: 0; border-radius: 7px; background: none; color: var(--ink); font-family: inherit; font-size: .82rem; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
+.thai-date__day:hover, .thai-date__day:focus-visible { background: #e2f2ee; outline: none; }
+.thai-date__day--sunday { color: var(--muted); }
+.thai-date__day--today { box-shadow: inset 0 0 0 1.5px var(--teal); }
+.thai-date__day--selected { background: var(--teal); color: #fff; }
+.thai-date__day--selected:hover, .thai-date__day--selected:focus-visible { background: var(--teal); }
+.thai-date__day--outside { cursor: default; }
+.thai-date__day--disabled { color: var(--line); cursor: not-allowed; }
+.thai-date__foot { display: flex; justify-content: space-between; margin-top: 8px; }
+.thai-date__foot button { border: 0; background: none; color: var(--teal); font-family: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; min-height: 44px; padding: 0 10px; }
+.thai-date__foot button:disabled { color: var(--line); cursor: not-allowed; }
+@media (pointer: coarse) { .thai-date__day { min-height: 48px; } }
+
 /* กติกาบ้าน 2026-08-28: ตัวอักษรต้องพอดีช่อง ห้ามพับจนไม่สวย — ค่าที่เป็นช่วงวันที่ยาว
    ให้ลดขนาดฟอนต์พอดีช่องแทนการปล่อยหักบรรทัด (clamp ตามความกว้างคอลัมน์) */
 .work-plan__readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 1.15rem 0 0; padding-top: 1.1rem; border-top: 1px solid var(--line); }

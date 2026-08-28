@@ -21,6 +21,7 @@ import { bahtText, formatBaht } from "@/lib/thai-baht";
 import { formatThaiDate } from "@/lib/thai-format";
 import { formatPercent } from "@/lib/work-plan";
 import type { MilestoneSchedule } from "@/lib/payment-milestone";
+import { ThaiDateField } from "@/components/ui/thai-date-field";
 import {
   acceptLogo,
   logoVisible,
@@ -654,11 +655,10 @@ export function WorkPlanDocument({
         </label>
         <label>
           วันที่บนเอกสาร
-          <input
-            type="date"
-            className="work-plan__cell"
+          <ThaiDateField
             value={meta.documentDate}
-            onChange={(event) => patch({ documentDate: event.target.value })}
+            onChange={(iso) => patch({ documentDate: iso })}
+            ariaLabel="วันที่บนเอกสาร"
           />
         </label>
 

@@ -28,6 +28,7 @@ import {
   type MoneyEvent
 } from "@/lib/work-plan-actuals";
 import { newPlanDocumentMeta, type WorkPlanDocumentMeta } from "@/lib/work-plan-document-meta";
+import { ThaiDateField } from "@/components/ui/thai-date-field";
 import {
   getSaveFailed,
   getSaveFailedOnServer,
@@ -809,7 +810,7 @@ function SetupTab({
 
           <label>
             วันเริ่มสัญญา
-            <input type="date" value={setup.startDate} onChange={(event) => set("startDate", event.target.value)} />
+            <ThaiDateField value={setup.startDate} onChange={(iso) => set("startDate", iso)} ariaLabel="วันเริ่มสัญญา" />
           </label>
 
           <label>
@@ -1412,12 +1413,11 @@ function ActualsPanel({
             patchEvent(milestoneId, field, event, { satang: digits === "" ? 0n : BigInt(digits) * 100n });
           }}
         />
-        <input
-          type="date"
-          className={future ? "work-plan__cell work-plan__cell--future" : "work-plan__cell"}
-          aria-label={`วันที่ของ${hint}`}
+        <ThaiDateField
+          className={future ? "thai-date--future" : undefined}
+          ariaLabel={`วันที่ของ${hint}`}
           value={event?.date ?? ""}
-          onChange={(changed) => patchEvent(milestoneId, field, event, { date: changed.target.value })}
+          onChange={(iso) => patchEvent(milestoneId, field, event, { date: iso })}
         />
       </td>
     );
@@ -1811,13 +1811,12 @@ function CurveTab({
         <div className="work-plan__datadate">
           <label htmlFor="work-plan-data-date">
             วันตัดข้อมูล
-            <input
+            <ThaiDateField
               id="work-plan-data-date"
-              type="date"
-              className="work-plan__cell"
               value={dataDate}
               max={todayIso}
-              onChange={(event) => onDataDate(event.target.value)}
+              onChange={(iso) => onDataDate(iso)}
+              ariaLabel="วันตัดข้อมูล"
             />
           </label>
           <p className="form-note">

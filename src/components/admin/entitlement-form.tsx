@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { changeEntitlement, type EntitlementFormState } from "@/server/actions/admin-entitlement";
 import { entitlementStateLabel } from "@/lib/platform-admin-labels";
 import type { AdminSettableState, CustomerEntitlement } from "@/server/admin/entitlement-admin";
+import { ThaiDateField } from "@/components/ui/thai-date-field";
 
 const initial: EntitlementFormState = { ok: false, message: "" };
 
@@ -43,7 +44,8 @@ export function EntitlementForm({
 
         <label>
           <span>วันหมดอายุ</span>
-          <input type="date" name="endsAt" defaultValue={endsAtValue} />
+          {/* โหมด uncontrolled: input hidden ชื่อ endsAt ส่งค่า ISO ให้ FormData ค่าว่าง = ไม่มีกำหนด */}
+          <ThaiDateField name="endsAt" defaultValue={endsAtValue} ariaLabel="วันหมดอายุ" />
           <small>เว้นว่างหมายถึงไม่มีกำหนดสิ้นสุด</small>
         </label>
       </div>

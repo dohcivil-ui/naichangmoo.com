@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { THAI_MONTH_FULL } from "@/lib/thai-date";
 import {
   formatMonthKey,
   formatMonthKeyLong,
@@ -109,7 +110,8 @@ function catStyle(cat: string) {
   } as React.CSSProperties;
 }
 
-const THAI_MONTHS = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+// ชื่อเดือนไทยเต็มเป็นของกลางใน thai-date (IP-202) — เลิกถือสำเนาเอง
+const THAI_MONTHS = THAI_MONTH_FULL;
 
 function directionOf(row: LedgerRow): "rise" | "fall" | "flat" {
   if (row.previousPrice === null) return "flat";

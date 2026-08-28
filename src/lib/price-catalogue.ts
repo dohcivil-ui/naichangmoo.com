@@ -13,6 +13,7 @@
  *    จะถูกคูณด้วยปริมาณแล้วบวกกันเป็นค่างานต้นทุน ซึ่งเป็นจุดที่ทศนิยมลอยเริ่มสะสมความคลาดเคลื่อน
  */
 
+import { THAI_MONTH_FULL } from "@/lib/thai-date";
 export type MonthKey = string;
 export type ProvinceCode = string;
 
@@ -218,7 +219,6 @@ export function sparkGeometry(series: (number | null)[], width: number, height: 
 
 /** "2569-07" เป็น "ก.ค. 69" — ปีในชุดข้อมูลเป็น พ.ศ. อยู่แล้ว ห้ามแปลงซ้ำ */
 const THAI_MONTH_ABBR = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-const THAI_MONTH_FULL = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
 
 export function formatMonthKey(month: MonthKey): string {
   const [year, monthNumber] = month.split("-");
