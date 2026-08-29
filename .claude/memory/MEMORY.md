@@ -15,7 +15,7 @@
 | Design System (ระบบหน้าตากลาง) | `docs/design-system/platform-ui-system.md` — เอกสารหลัก · ค่าสีจริงอยู่ที่ `src/app/globals.css` |
 | UI Patterns (พฤติกรรมหน้าจอที่ต้องเหมือนกัน) | `.claude/skills/app-shell/SKILL.md` · `src/components/platform/app-shell.tsx` |
 | Security Rules (กฎความปลอดภัย) | `AGENTS.md` หมวด Safety rules · `~/.claude/security-browser.md` สำหรับ login และข้อมูลลับ |
-| Important Decisions (การตัดสินใจสำคัญ) | `docs/adr/` — 21 ฉบับ เทมเพลตอยู่ที่ `.agent/commands/adr.md` |
+| Important Decisions (การตัดสินใจสำคัญ) | `docs/adr/` — 22 ฉบับ เทมเพลตอยู่ที่ `.agent/commands/adr.md` |
 | Current Progress (สถานะงานปัจจุบัน) | `docs/roadmap/roadmap.json` · ไฟล์ล่าสุดใน `docs/handoff/` |
 | ศัพท์และคำแปล | `CONTEXT.md` สำหรับศัพท์ของโปรเจกต์ · `~/.claude/thai-terms.md` สำหรับศัพท์ระดับเครื่อง |
 | กฎวิศวกรรมและหนังสือเวียน | `docs/rules/engineering.md` — Factor F, ว480, ว481 |
