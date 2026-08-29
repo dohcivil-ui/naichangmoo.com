@@ -1,6 +1,6 @@
 import { and, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
-import { appEntitlements, apps, organizationMembers, platformAdministrators } from "@/db/schema";
+import { appEntitlements, apps, organizationMembers, organizations, platformAdministrators } from "@/db/schema";
 import {
   canUseCapability,
   resolveEntitlement,
@@ -25,6 +25,9 @@ import {
  */
 
 type Database = ReturnType<typeof getDb>;
+type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+/** A query runs the same inside a transaction or outside one; callers decide which they need. */
+export type Executor = Database | Transaction;
 
 export type AppEntitlementRecord = {
   id: string;
@@ -93,6 +96,47 @@ export async function readEntitlementForApp(
       limits: parseStoredLimits(row.limits)
     }
   };
+}
+
+/**
+ * Gate 1 of ADR 0006: the personal organization that owns a member's work.
+ *
+ * It moved here from `estimeter-access.ts` for the same reason the entitlement read did — PRICEMETR
+ * needs it too (IP-163), and a second copy of an id convention drifts the day one of them changes.
+ * It is written lazily on the first write that needs it, never while reading, and is safe to call
+ * again: both inserts collide on the primary key rather than issuing a second organization.
+ */
+export const personalOrgId = (userId: string) => `org_personal_${userId}`;
+const membershipId = (organizationId: string, userId: string) => `member_${organizationId}_${userId}`;
+
+export async function ensurePersonalOrganization(
+  tx: Executor,
+  userId: string,
+  memberName: string
+): Promise<string> {
+  const existing = await readOrganizationOf(tx, userId);
+  if (existing) return existing;
+
+  const organizationId = personalOrgId(userId);
+  await tx
+    .insert(organizations)
+    .values({ id: organizationId, kind: "personal", name: memberName })
+    .onConflictDoNothing();
+  await tx
+    .insert(organizationMembers)
+    .values({ id: membershipId(organizationId, userId), organizationId, userId, role: "owner" })
+    .onConflictDoNothing();
+  return organizationId;
+}
+
+/** Works inside a transaction too, which `readMembershipOrganization` cannot. */
+export async function readOrganizationOf(tx: Executor, userId: string): Promise<string | null> {
+  const rows = await tx
+    .select({ organizationId: organizationMembers.organizationId })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userId, userId))
+    .limit(1);
+  return rows[0]?.organizationId ?? null;
 }
 
 export async function readMembershipOrganization(db: Database, userId: string): Promise<string | null> {

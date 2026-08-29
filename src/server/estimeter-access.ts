@@ -1,6 +1,6 @@
 import { count, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { appEntitlements, apps, auditEvents, organizationMembers, organizations, projects, users } from "@/db/schema";
+import { appEntitlements, apps, auditEvents, projects, users } from "@/db/schema";
 import {
   listCapabilities,
   notActivatedCapabilities,
@@ -10,7 +10,7 @@ import {
   type EffectiveEntitlementState,
   type Entitlement
 } from "@/lib/entitlement";
-import { parseStoredLimits, readEntitlementForApp } from "@/server/app-access";
+import { ensurePersonalOrganization, parseStoredLimits, readEntitlementForApp, readOrganizationOf } from "@/server/app-access";
 import {
   ESTIMETR_APP_SLUG,
   ESTIMETR_TRIAL_DAYS,
@@ -22,8 +22,6 @@ import { platformApps } from "@/lib/platform";
 import { appRowId } from "@/server/app-registry";
 
 type Database = ReturnType<typeof getDb>;
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type Executor = Database | Transaction;
 
 /**
  * Server-side decision record. `toAccessView` strips it down to what the client may see.
@@ -43,9 +41,8 @@ export type EstimeterAccess = {
 // Identifiers are derived from the member and the app slug so a concurrent or repeated
 // activation collides on the primary key instead of issuing a second trial. The app row id comes
 // from the registry module rather than being spelled out again here, because two copies of an id
-// convention drift the day one of them is changed.
-const personalOrgId = (userId: string) => `org_personal_${userId}`;
-const membershipId = (organizationId: string, userId: string) => `member_${organizationId}_${userId}`;
+// convention drift the day one of them is changed. `personalOrgId` and the membership id moved to
+// `app-access.ts` in IP-163 for that same reason, once PRICEMETR needed gate 1 too.
 const entitlementRowId = (organizationId: string, appId: string) => `ent_${organizationId}_${appId}`;
 const trialAuditId = (entitlementId: string) => `audit_trial_activated_${entitlementId}`;
 
@@ -57,41 +54,12 @@ export { parseStoredLimits };
 const readEstimeterEntitlement = (db: Database, userId: string) =>
   readEntitlementForApp(db, userId, ESTIMETR_APP_SLUG);
 
-async function readOrganizationOf(db: Executor, userId: string): Promise<string | null> {
-  const rows = await db
-    .select({ organizationId: organizationMembers.organizationId })
-    .from(organizationMembers)
-    .where(eq(organizationMembers.userId, userId))
-    .limit(1);
-  return rows[0]?.organizationId ?? null;
-}
-
 async function countOrganizationProjects(db: Database, organizationId: string): Promise<number> {
   const rows = await db
     .select({ value: count() })
     .from(projects)
     .where(eq(projects.organizationId, organizationId));
   return rows[0]?.value ?? 0;
-}
-
-/**
- * Gate 1 of ADR 0006: the personal organization that owns a member's work. It is written
- * lazily on the first write that needs it, never while reading, and is safe to call again.
- */
-async function ensurePersonalOrganization(tx: Executor, userId: string, memberName: string): Promise<string> {
-  const existing = await readOrganizationOf(tx, userId);
-  if (existing) return existing;
-
-  const organizationId = personalOrgId(userId);
-  await tx
-    .insert(organizations)
-    .values({ id: organizationId, kind: "personal", name: memberName })
-    .onConflictDoNothing();
-  await tx
-    .insert(organizationMembers)
-    .values({ id: membershipId(organizationId, userId), organizationId, userId, role: "owner" })
-    .onConflictDoNothing();
-  return organizationId;
 }
 
 export type TrialActivation =

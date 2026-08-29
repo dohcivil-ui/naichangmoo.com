@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   type AnyPgColumn,
+  bigint,
   boolean,
   check,
   index,
@@ -387,6 +388,97 @@ export const priceSets = pgTable("price_sets", {
   updatedAt
 });
 
+/**
+ * รายการราคาที่ผู้ใช้หยิบไว้ใน PRICEMETR — ของที่ยังแก้ได้ ยังไม่ผูกโครงการ (IP-163)
+ *
+ * แยกจาก `price_sets` โดยตั้งใจ ไม่ใช่เพราะขี้เกียจทำ `project_id` ให้ว่างได้
+ * **ตะกร้าเปลี่ยนตลอดเวลา ชุดราคาของโครงการต้องนิ่ง** ADR 0008 ถือว่าวิธีคิดราคาเป็นของ
+ * revision ราคาที่ขึ้น ปร.4 จึงต้องตรวจย้อนได้ว่ามาจากเดือนไหน สำเนาที่ขยับตามตะกร้าได้
+ * จะทำให้เอกสารที่พิมพ์ไปแล้วไม่ตรงกับของจริงโดยไม่มีใครรู้ตัว สองตารางนี้มีอายุคนละแบบ
+ * การยัดไว้ตารางเดียวคือการบังคับให้ของสองอายุใช้กฎเดียวกัน
+ *
+ * เจ้าของคือองค์กร ไม่ใช่คน เพราะโครงการที่ปลายทางเป็นขององค์กรอยู่แล้ว ตะกร้าที่เป็น
+ * ของส่วนตัวจะข้ามไปหาโครงการขององค์กรไม่ได้โดยไม่มีใครอธิบายได้ว่าใครอนุญาต
+ * ส่วน "ใครหยิบ" จดไว้ทั้งระดับใบและระดับบรรทัด
+ */
+export const priceBaskets = pgTable("price_baskets", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  createdBy: text("created_by").notNull().references(() => users.id),
+  name: text("name").notNull().default("รายการที่หยิบไว้"),
+  createdAt,
+  updatedAt
+}, (table) => [
+  // ใบเดียวต่อองค์กรในรุ่นนี้ ตรงกับหน้าจอที่มีตะกร้าใบเดียว ถอดดัชนีนี้ออกวันที่ทำหลายใบ
+  uniqueIndex("price_baskets_organization_unique").on(table.organizationId)
+]);
+
+/**
+ * บรรทัดของตะกร้า พร้อมหลักฐานที่ทำให้ตรวจย้อนได้
+ *
+ * เดิมหน้าจอเก็บแค่ชื่อ หน่วย ราคา และจำนวน ซึ่งพอสำหรับการคูณให้ดูบนจอ แต่ไม่พอสำหรับ
+ * ใบสรุปที่เอกสารเส้นแบ่งสัญญาไว้ว่า "ทุกบรรทัดมีแหล่ง เดือนประกาศ เลขหน้าเอกสาร และ
+ * เงื่อนไขปริมาณงานของอัตราค่าแรง" ช่องหลักฐานจึงเก็บตอนหยิบ ไม่ใช่ตอนส่งออก
+ * เพราะตอนส่งออกเดือนอาจเปลี่ยนไปแล้ว และเราจะไม่มีทางรู้ว่าตอนเขากดหยิบเขาเห็นอะไร
+ */
+export const priceBasketLines = pgTable("price_basket_lines", {
+  id: text("id").primaryKey(),
+  basketId: text("basket_id").notNull().references(() => priceBaskets.id, { onDelete: "cascade" }),
+  addedBy: text("added_by").notNull().references(() => users.id),
+  /** คีย์เดียวกับที่หน้าจอใช้ เช่น `market:<รหัส>` — กันหยิบซ้ำที่ระดับฐานข้อมูล */
+  lineKey: text("line_key").notNull(),
+  /** แหล่งของราคา: tpso (สนค.) · obec (สพฐ.) · cgd (ว809) */
+  sourceKey: text("source_key").notNull(),
+  catalogCode: text("catalog_code").notNull(),
+  /** ว่างได้ บัญชี สพฐ. และ ว809 เป็นบัญชีทั้งประเทศ ไม่แยกจังหวัด */
+  provinceCode: text("province_code"),
+  /** ว่างได้ ด้วยเหตุผลเดียวกัน สองบัญชีนั้นเป็นเล่มรายปี ไม่ใช่ราคารายเดือน */
+  effectiveMonth: text("effective_month"),
+  /** เลขหน้าในเอกสารต้นฉบับ สำหรับบรรทัดที่มาจากเล่ม */
+  documentPage: text("document_page"),
+  /** ช่วงปริมาณงานที่ทำให้อัตราค่าแรงบรรทัดนี้ถูกต้อง หยิบผิดช่วงคือขึ้นราคากลางผิด */
+  rateCondition: text("rate_condition"),
+  name: text("name").notNull(),
+  unit: text("unit").notNull(),
+  /** เก็บเป็นสตางค์จำนวนเต็ม ไม่ใช่ทศนิยมของบาท เงินที่ปัดเศษเองคือเงินที่อธิบายไม่ได้ */
+  unitSatang: bigint("unit_satang", { mode: "bigint" }).notNull(),
+  quantity: numeric("quantity", { precision: 18, scale: 4 }).notNull().default("1"),
+  createdAt,
+  updatedAt
+}, (table) => [
+  uniqueIndex("price_basket_lines_key_unique").on(table.basketId, table.lineKey),
+  index("price_basket_lines_basket_idx").on(table.basketId)
+]);
+
+/**
+ * บรรทัดของชุดราคาที่ส่งเข้าโครงการแล้ว — สำเนาที่นิ่ง
+ *
+ * รูปร่างเหมือนบรรทัดของตะกร้าทุกช่อง เพราะมันคือสำเนา ณ วินาทีที่กดส่ง ความต่างอยู่ที่
+ * ไม่มีใครแก้มันอีก ตะกร้าต้นทางจะถูกแก้ต่อไปอย่างไรก็ไม่กระทบเอกสารที่พิมพ์ไปแล้ว
+ */
+export const priceSetLines = pgTable("price_set_lines", {
+  id: text("id").primaryKey(),
+  priceSetId: text("price_set_id").notNull().references(() => priceSets.id, { onDelete: "cascade" }),
+  /** คนที่หยิบบรรทัดนี้เข้าตะกร้าตอนแรก ไม่ใช่คนที่กดส่ง ทั้งสองคนอยู่ในบันทึกตรวจสอบ */
+  addedBy: text("added_by").notNull().references(() => users.id),
+  lineKey: text("line_key").notNull(),
+  sourceKey: text("source_key").notNull(),
+  catalogCode: text("catalog_code").notNull(),
+  provinceCode: text("province_code"),
+  effectiveMonth: text("effective_month"),
+  documentPage: text("document_page"),
+  rateCondition: text("rate_condition"),
+  name: text("name").notNull(),
+  unit: text("unit").notNull(),
+  unitSatang: bigint("unit_satang", { mode: "bigint" }).notNull(),
+  quantity: numeric("quantity", { precision: 18, scale: 4 }).notNull().default("1"),
+  createdAt,
+  updatedAt
+}, (table) => [
+  uniqueIndex("price_set_lines_key_unique").on(table.priceSetId, table.lineKey),
+  index("price_set_lines_set_idx").on(table.priceSetId)
+]);
+
 export const estimateRevisions = pgTable("estimate_revisions", {
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
@@ -565,14 +657,19 @@ export const schema = {
   takeoffMeasurements,
   evidenceReferences,
   priceSources,
+  priceCatalogueItems,
   priceObservations,
   priceSets,
+  priceSetLines,
+  priceBaskets,
+  priceBasketLines,
   estimateRevisions,
   backgroundJobs,
   hermesReviewJobs,
   approvalRequests,
   auditEvents,
   platformAdministrators,
+  platformChannels,
   rateLimitCounters,
   assistantProposals
 };

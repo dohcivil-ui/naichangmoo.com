@@ -6,6 +6,8 @@ import unitPriceData from "@/data/obec/obec-2569-unit-prices.json";
 import labourData from "@/data/cgd/cgd-w809-labour-be2568.json";
 import { platformApps } from "@/lib/platform";
 import { getPricemetrAccess } from "@/server/pricemetr-access";
+import { readBasket } from "@/server/price-basket";
+import { getPlatformSessionUser } from "@/server/auth-session";
 import { headers } from "next/headers";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -60,11 +62,30 @@ function readCategoryArtwork(): string[] {
 export default async function PriceCheckPrototypePage() {
   // สิทธิ์ถูกตัดสินที่นี่ ไม่ใช่ที่เบราว์เซอร์ (IP-164) หน้าจอได้แค่ตัวเลขที่ตัดสินแล้ว
   // ไม่เคยเห็นแถวสิทธิ์ดิบ และ API ก็ตรวจซ้ำเองอีกชั้นโดยไม่เชื่อค่าที่หน้าจอส่งมา
-  const [master, firstAnswer, access] = await Promise.all([
+  const requestHeaders = await headers();
+  const viewer = await getPlatformSessionUser(requestHeaders);
+  const [master, firstAnswer, access, storedBasket] = await Promise.all([
     readProvinces(),
     firstAnswerWithin(2500),
-    getPricemetrAccess(await headers())
+    getPricemetrAccess(requestHeaders),
+    // รายการที่หยิบไว้จากรอบก่อน เครื่องไหนก็ได้ (IP-163) — ทางอ่าน ไม่สร้างอะไรทั้งนั้น
+    readBasket(viewer?.id ?? null)
   ]);
+
+  // bigint ข้ามรอยต่อจาก server component ไปหน้าจอไม่ได้ จึงส่งเป็นสตริงแล้วแปลงกลับฝั่งโน้น
+  const initialBasket = storedBasket.lines.map((line) => ({
+    key: line.lineKey,
+    name: line.name,
+    unit: line.unit,
+    unitSatang: line.unitSatang.toString(),
+    quantity: line.quantity,
+    sourceKey: line.sourceKey,
+    catalogCode: line.catalogCode,
+    provinceCode: line.provinceCode,
+    effectiveMonth: line.effectiveMonth,
+    documentPage: line.documentPage,
+    rateCondition: line.rateCondition
+  }));
   const unitRows = unitPriceData as UnitPriceRow[];
   const labourRows = labourData as LabourRow[];
   const artwork = readCategoryArtwork();
@@ -74,7 +95,7 @@ export default async function PriceCheckPrototypePage() {
 
   return (
     <AppShell app={app} mode="prototype">
-      <PriceWorkspace provinces={master.provinces} period={master.period} unitRows={unitRows} labourRows={labourRows} firstAnswer={firstAnswer} artwork={artwork} access={access} />
+      <PriceWorkspace provinces={master.provinces} period={master.period} unitRows={unitRows} labourRows={labourRows} firstAnswer={firstAnswer} artwork={artwork} access={access} initialBasket={initialBasket} />
 
       {/* ก้อน "ขอบเขตของต้นแบบนี้" ถูกถอดออก 2026-08-28 — โน้ต dev/admin (แหล่งไฟล์ภายใน
           ขีดจำกัดการอ่าน ว809, path docs/requirements) ไม่ใช่ของโชว์ชาวบ้าน — คำสั่งเจ้าของงาน

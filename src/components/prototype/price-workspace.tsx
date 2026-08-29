@@ -17,6 +17,13 @@ import Image from "next/image";
 import { MaterialCategoryIcon } from "@/components/icons/material-category-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { canPickAnotherLine, remainingLines, type PricemetrAllowance } from "@/lib/pricemetr-tier";
+import {
+  dropPriceLine,
+  listBasketTargetProjects,
+  pickPriceLine,
+  sendPriceBasketToProject,
+  setPriceLineQuantity
+} from "@/server/actions/price-basket";
 
 /**
  * ต้นแบบแอปราคาวัสดุและค่าแรง — แผงบัญชีราคา
@@ -83,14 +90,39 @@ type Desk = "market" | "unit" | "labour";
 type ItemView = "card" | "row";
 type SortKey = "name" | "price-desc" | "price-asc";
 
+/**
+ * บรรทัดในรายการที่หยิบไว้
+ *
+ * ช่องหลักฐานหกช่องล่างเพิ่มใน IP-163 เก็บ **ตอนหยิบ** ไม่ใช่ตอนส่งออก เพราะตอนส่งออก
+ * เดือนอาจเปลี่ยนไปแล้ว แล้วเราจะไม่มีทางรู้ว่าตอนเขากดหยิบเขาเห็นราคาของเดือนไหน
+ *
+ * ข้อความบอกที่มาไม่ได้เก็บไว้ สร้างจากหลักฐานทุกครั้งด้วย `originOf` ข้อความแสดงผลที่เก็บไว้
+ * จะเน่าในวันที่ถ้อยคำเปลี่ยน แล้วของเก่าจะพูดคนละแบบกับของใหม่ทั้งที่เป็นราคาชุดเดียวกัน
+ */
 type BasketEntry = {
   key: string;
   name: string;
   unit: string;
   unitSatang: bigint;
-  origin: string;
   quantity: number;
+  sourceKey: "tpso" | "obec" | "cgd";
+  catalogCode: string;
+  provinceCode?: string | null;
+  effectiveMonth?: string | null;
+  documentPage?: string | null;
+  rateCondition?: string | null;
 };
+
+/** สิ่งที่หน้าจอส่งขึ้นเซิร์ฟเวอร์ตอนหยิบ — เหมือน BasketEntry แต่ไม่มีจำนวนที่ตั้งต้นเป็นหนึ่งเสมอ */
+type PickedLine = Omit<BasketEntry, "quantity">;
+
+function originOf(line: Pick<BasketEntry, "sourceKey" | "effectiveMonth" | "documentPage" | "rateCondition">, provinceName: string): string {
+  if (line.sourceKey === "tpso") {
+    return `สนค. · ${provinceName}${line.effectiveMonth ? ` · ${formatMonthKeyLong(line.effectiveMonth as MonthKey)}` : ""}`;
+  }
+  if (line.sourceKey === "obec") return `สพฐ. 2569 · หน้า ${line.documentPage ?? "-"}`;
+  return `กรมบัญชีกลาง ว809 · หน้า ${line.documentPage ?? "-"}${line.rateCondition ? ` · ${line.rateCondition}` : ""}`;
+}
 
 /**
  * สีประจำหมวดวัสดุ ยี่สิบเอ็ดค่า
@@ -279,7 +311,8 @@ export function PriceWorkspace({
   labourRows,
   firstAnswer,
   artwork,
-  access
+  access,
+  initialBasket
 }: {
   provinces: Province[];
   period: { start: { year: number; month: number }; end: { year: number; month: number } };
@@ -289,6 +322,12 @@ export function PriceWorkspace({
   artwork: string[];
   /** ตัดสินมาแล้วจากเซิร์ฟเวอร์ (IP-164) หน้าจอบังคับตาม ไม่ได้ตัดสินเอง */
   access: PricemetrAllowance & { signedIn: boolean };
+  /**
+   * รายการที่หยิบไว้จากรอบก่อน อ่านมาจากฐานข้อมูล (IP-163)
+   *
+   * `unitSatang` เดินทางมาเป็นสตริง เพราะ bigint ข้ามรอยต่อจาก server component ไม่ได้
+   */
+  initialBasket: (Omit<BasketEntry, "unitSatang"> & { unitSatang: string })[];
 }) {
   const [desk, setDesk] = useState<Desk>("market");
   /** ค่าตั้งต้นเป็นการ์ดตามมติเจ้าของงาน 2026-08-26 แถวยังอยู่ให้กดเองสำหรับคนที่ไล่เทียบราคาทีละมาก ๆ */
@@ -306,7 +345,9 @@ export function PriceWorkspace({
   const [focusCode, setFocusCode] = useState<string | null>(null);
   const [history, setHistory] = useState<{ code: string; months: MonthKey[]; values: (number | null)[] } | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [basket, setBasket] = useState<BasketEntry[]>([]);
+  const [basket, setBasket] = useState<BasketEntry[]>(() =>
+    initialBasket.map((line) => ({ ...line, unitSatang: BigInt(line.unitSatang) }))
+  );
   const [basketOpen, setBasketOpen] = useState(false);
   /** เหตุผลที่หยิบไม่ได้ ขึ้นเมื่อผู้ใช้กดจริงเท่านั้น ไม่ใช่ป้ายที่ค้างอยู่ตั้งแต่เปิดหน้า */
   const [pickNotice, setPickNotice] = useState<string | null>(null);
@@ -385,6 +426,11 @@ export function PriceWorkspace({
 
   const atHome = desk === "market" && level === "cats";
   const provinceName = provinces.find((entry) => entry.code === province)?.name ?? province;
+  /** ใช้กับบรรทัดในรายการที่หยิบไว้ ซึ่งอาจมาจากจังหวัดอื่นที่ไม่ใช่จังหวัดที่กำลังเลือกอยู่ */
+  const provinceNameOf = useCallback(
+    (code: string | null | undefined) => (code ? provinces.find((entry) => entry.code === code)?.name ?? code : "-"),
+    [provinces]
+  );
 
   /**
    * ทุกคำขอราคาออกจากที่นี่ที่เดียว และยกเลิกคำขอเก่าเสมอเมื่อผู้ใช้เปลี่ยนใจ
@@ -519,23 +565,76 @@ export function PriceWorkspace({
    * และปุ่มไม่หายไปสำหรับผู้มาเยือน คนต้องรู้ว่ามีของอยู่และได้มาอย่างไร การซ่อนปุ่มทำให้
    * เขาคิดว่าแอปทำไม่ได้ ไม่ใช่ว่าต้องเข้าสู่ระบบก่อน
    */
+  /**
+   * ด่านเดียวของการหยิบ — หน้าจอเดาไปก่อน แล้วเซิร์ฟเวอร์เป็นคนตัดสิน (IP-163)
+   *
+   * ปุ่มหยิบมีอยู่หกที่ในไฟล์นี้ ทุกปุ่มเรียกตัวนี้ตัวเดียว กฎจึงอยู่ที่เดียว
+   *
+   * เพิ่มบรรทัดลงจอทันทีเพื่อไม่ให้ต้องรอเครือข่าย แล้วถ้าเซิร์ฟเวอร์ปฏิเสธก็ถอยกลับ
+   * **คำตอบของเซิร์ฟเวอร์ชนะเสมอ** เพราะเพดานอยู่ที่นั่น ไม่ได้อยู่ที่นี่ การนับที่หน้าจอ
+   * เป็นแค่การเดาให้ปุ่มตอบสนองเร็ว ใครเรียก server action ตรงก็ยังโดนปฏิเสธเหมือนกัน
+   *
+   * และปุ่มไม่หายไปสำหรับผู้มาเยือน คนต้องรู้ว่ามีของอยู่และได้มาอย่างไร การซ่อนปุ่มทำให้
+   * เขาคิดว่าแอปทำไม่ได้ ไม่ใช่ว่าต้องเข้าสู่ระบบก่อน
+   */
   const addToBasket = useCallback(
-    (entry: Omit<BasketEntry, "quantity">) => {
+    (entry: PickedLine) => {
       if (basket.some((line) => line.key === entry.key)) return;
-      if (!canPickAnotherLine(access, basket.length)) {
-        setPickNotice(
-          access.signedIn
-            ? `รายการที่หยิบไว้ครบ ${access.lineLimit} บรรทัดของสมาชิกแล้ว เอาบรรทัดที่ไม่ใช้ออกก่อนจึงหยิบเพิ่มได้`
-            : "เข้าสู่ระบบก่อนจึงจะหยิบราคาเก็บไว้ได้ ราคาทุกบรรทัดบนหน้านี้เปิดให้อ่านอยู่แล้วโดยไม่ต้องเข้าสู่ระบบ"
-        );
+
+      if (!access.signedIn) {
+        setPickNotice("เข้าสู่ระบบก่อนจึงจะหยิบราคาเก็บไว้ได้ ราคาทุกบรรทัดบนหน้านี้เปิดให้อ่านอยู่แล้วโดยไม่ต้องเข้าสู่ระบบ");
         return;
       }
+      if (!canPickAnotherLine(access, basket.length)) {
+        setPickNotice(`รายการที่หยิบไว้ครบ ${access.lineLimit} บรรทัดของสมาชิกแล้ว เอาบรรทัดที่ไม่ใช้ออกก่อนจึงหยิบเพิ่มได้`);
+        return;
+      }
+
       setPickNotice(null);
       setBasket((current) => [...current, { ...entry, quantity: 1 }]);
       setBasketOpen(true);
+
+      void pickPriceLine({
+        lineKey: entry.key,
+        sourceKey: entry.sourceKey,
+        catalogCode: entry.catalogCode,
+        name: entry.name,
+        unit: entry.unit,
+        unitSatang: entry.unitSatang.toString(),
+        provinceCode: entry.provinceCode ?? null,
+        effectiveMonth: entry.effectiveMonth ?? null,
+        documentPage: entry.documentPage ?? null,
+        rateCondition: entry.rateCondition ?? null
+      })
+        .then((result) => {
+          if (result.ok) return;
+          // ถอยของที่เดาไว้ออก แล้วบอกเหตุผลจริงจากเซิร์ฟเวอร์ ไม่ใช่เหตุผลที่หน้าจอเดาเอง
+          setBasket((current) => current.filter((line) => line.key !== entry.key));
+          setPickNotice(
+            result.reason === "over_line_limit"
+              ? `รายการที่หยิบไว้ครบ ${access.lineLimit} บรรทัดของสมาชิกแล้ว เอาบรรทัดที่ไม่ใช้ออกก่อนจึงหยิบเพิ่มได้`
+              : "หยิบรายการนี้ไม่ได้ ลองเข้าสู่ระบบใหม่อีกครั้ง"
+          );
+        })
+        .catch(() => {
+          setBasket((current) => current.filter((line) => line.key !== entry.key));
+          setPickNotice("บันทึกรายการไม่สำเร็จในรอบนี้ ลองใหม่อีกครั้ง");
+        });
     },
     [access, basket]
   );
+
+  const removeFromBasket = useCallback((key: string) => {
+    setBasket((current) => current.filter((line) => line.key !== key));
+    setPickNotice(null);
+    void dropPriceLine(key).catch(() => setPickNotice("เอารายการออกไม่สำเร็จในรอบนี้ ลองใหม่อีกครั้ง"));
+  }, []);
+
+  const changeQuantity = useCallback((key: string, quantity: number) => {
+    setBasket((current) => current.map((line) => (line.key === key ? { ...line, quantity } : line)));
+    // ปริมาณศูนย์หรือติดลบไม่ใช่ปริมาณ เซิร์ฟเวอร์ปฏิเสธอยู่แล้ว ไม่ต้องยิงไปให้เปลือง
+    if (quantity > 0) void setPriceLineQuantity(key, quantity).catch(() => undefined);
+  }, []);
 
   const basketTotal = sumSatang(basket.map((line) => lineCost(line.unitSatang, line.quantity)));
   const years = useMemo(() => {
@@ -699,7 +798,10 @@ export function PriceWorkspace({
                   name: focusRow.name,
                   unit: focusRow.unit,
                   unitSatang: toSatang(focusRow.price),
-                  origin: `สนค. · ${provinceName} · ${formatMonthKeyLong(focusRow.month)}`
+                  sourceKey: "tpso",
+                  catalogCode: focusRow.code,
+                  provinceCode: province,
+                  effectiveMonth: focusRow.month
                 })
               }
               inBasket={basket.some((line) => line.key === `market:${focusRow.code}`)}
@@ -716,7 +818,11 @@ export function PriceWorkspace({
                   name: `${row.title}${variant.name ? ` · ${variant.name}` : ""}`,
                   unit: rate.unit,
                   unitSatang: toSatang(rate.baht),
-                  origin: `กรมบัญชีกลาง ว809 · หน้า ${rate.page}${rate.condition ? ` · ${rate.condition}` : ""}`
+                  sourceKey: "cgd",
+                  catalogCode: row.code,
+                  documentPage: String(rate.page),
+                  // เงื่อนไขปริมาณงานเดินทางไปกับบรรทัด เพราะอัตราเดียวกันคนละช่วงคือคนละราคา
+                  rateCondition: rate.condition ?? null
                 })
               }
               basket={basket}
@@ -909,7 +1015,10 @@ export function PriceWorkspace({
                         name: row.name,
                         unit: row.unit,
                         unitSatang: toSatang(row.price),
-                        origin: `สนค. · ${provinceName} · ${formatMonthKeyLong(row.month)}`
+                        sourceKey: "tpso",
+                        catalogCode: row.code,
+                        provinceCode: province,
+                        effectiveMonth: row.month
                       })
                     }
                     basket={basket}
@@ -930,7 +1039,9 @@ export function PriceWorkspace({
                         name: row.name,
                         unit: row.unit,
                         unitSatang: toSatang((row.materialBaht ?? 0) + (row.labourBaht ?? 0)),
-                        origin: `สพฐ. 2569 · หน้า ${row.page}`
+                        sourceKey: "obec",
+                        catalogCode: row.code,
+                        documentPage: String(row.page)
                       })
                     }
                     basket={basket}
@@ -985,9 +1096,11 @@ export function PriceWorkspace({
               total={basketTotal}
               open={basketOpen}
               remaining={remainingLines(access, basket.length)}
+              provinceNameOf={provinceNameOf}
+              signedIn={access.signedIn}
               onToggle={() => setBasketOpen((current) => !current)}
-              onQuantity={(key, quantity) => setBasket((current) => current.map((line) => (line.key === key ? { ...line, quantity } : line)))}
-              onRemove={(key) => setBasket((current) => current.filter((line) => line.key !== key))}
+              onQuantity={changeQuantity}
+              onRemove={removeFromBasket}
             />
           ) : null}
         </div>
@@ -1676,6 +1789,8 @@ function BasketBar({
   total,
   open,
   remaining,
+  provinceNameOf,
+  signedIn,
   onToggle,
   onQuantity,
   onRemove
@@ -1685,6 +1800,15 @@ function BasketBar({
   open: boolean;
   /** เหลือหยิบได้อีกกี่บรรทัด · null คือไม่จำกัด — ตัวเลขมาจากเซิร์ฟเวอร์ ไม่ได้นับเอาเอง */
   remaining: number | null;
+  /**
+   * ชื่อจังหวัดของบรรทัดนั้น ไม่ใช่ของจังหวัดที่กำลังเลือกอยู่
+   *
+   * ก่อน IP-163 ที่มาของทุกบรรทัดถูกประกอบจากจังหวัดที่เลือกอยู่ ณ ตอนหยิบ แล้วแช่ไว้เป็น
+   * ข้อความ หยิบราคาเชียงใหม่แล้วสลับไปสงขลา ข้อความเก่าก็ยังบอกเชียงใหม่ถูกอยู่ แต่พอ
+   * รายการถูกอ่านกลับมาจากฐานข้อมูล ข้อความนั้นไม่มีแล้ว เหลือแต่รหัสจังหวัดที่ถูกต้อง
+   */
+  provinceNameOf: (code: string | null | undefined) => string;
+  signedIn: boolean;
   onToggle: () => void;
   onQuantity: (key: string, quantity: number) => void;
   onRemove: (key: string) => void;
@@ -1724,7 +1848,7 @@ function BasketBar({
                 <tr key={line.key}>
                   <td>
                     <strong>{line.name}</strong>
-                    <small>{line.origin}</small>
+                    <small>{originOf(line, provinceNameOf(line.provinceCode))}</small>
                   </td>
                   <td className="gl-num">
                     {formatPrice(line.unitSatang)}
@@ -1757,7 +1881,90 @@ function BasketBar({
             ทุกบรรทัดจำเดือนและแหล่งของราคาที่หยิบมา ตอนส่งต่อเข้างานประมาณราคาจึงตรวจย้อนได้ว่า
             ตัวเลขนี้มาจากประกาศฉบับไหน เดือนไหน
           </p>
+          <SendToEstimeter signedIn={signedIn} lineCount={basket.length} />
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการใน ESTIMETR (IP-163)
+ *
+ * รายชื่อโครงการโหลดตอนกดเปิดเท่านั้น ไม่ใช่ตอนเปิดหน้า เพราะคนส่วนใหญ่ที่เปิดหน้าราคา
+ * มาดูราคา ไม่ได้มาส่งเข้าโครงการ การยิงคิวรีให้ทุกคนคือภาระที่คนส่วนใหญ่ไม่ได้ใช้
+ *
+ * ตะกร้าไม่ถูกล้างหลังส่ง เพราะคนที่ทำหลายโครงการพร้อมกันต้องส่งชุดเดิมเข้าหลายโครงการได้
+ */
+function SendToEstimeter({ signedIn, lineCount }: { signedIn: boolean; lineCount: number }) {
+  const [open, setOpen] = useState(false);
+  const [projects, setProjects] = useState<{ id: string; name: string }[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  if (!signedIn) return null;
+
+  const openPicker = () => {
+    setOpen(true);
+    setNotice(null);
+    if (projects === null) {
+      void listBasketTargetProjects()
+        .then(setProjects)
+        .catch(() => setProjects([]));
+    }
+  };
+
+  const send = (projectId: string, projectName: string) => {
+    setBusy(true);
+    setNotice(null);
+    void sendPriceBasketToProject(projectId)
+      .then((result) => {
+        setNotice(
+          result.ok
+            ? `ส่ง ${result.lineCount} บรรทัดเข้าโครงการ ${projectName} แล้ว รายการที่หยิบไว้ยังอยู่ครบ`
+            : result.reason === "empty_basket"
+              ? "ยังไม่มีรายการให้ส่ง"
+              : "ส่งเข้าโครงการนี้ไม่ได้"
+        );
+        if (result.ok) setOpen(false);
+      })
+      .catch(() => setNotice("ส่งไม่สำเร็จในรอบนี้ ลองใหม่อีกครั้ง"))
+      .finally(() => setBusy(false));
+  };
+
+  return (
+    <div className="gl-send">
+      {open ? (
+        <div className="gl-send__picker">
+          <p className="gl-send__lead">ส่ง {lineCount} บรรทัดนี้เข้าโครงการไหน</p>
+          {projects === null ? (
+            <p className="form-note">กำลังอ่านรายชื่อโครงการ</p>
+          ) : projects.length === 0 ? (
+            <p className="form-note">ยังไม่มีโครงการใน ESTIMETR สร้างโครงการก่อนจึงจะส่งชุดราคาเข้าไปได้</p>
+          ) : (
+            <ul className="gl-send__list">
+              {projects.map((project) => (
+                <li key={project.id}>
+                  <button type="button" className="gl-chip" disabled={busy} onClick={() => send(project.id, project.name)}>
+                    {project.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <button type="button" className="gl-pickgate__close" onClick={() => setOpen(false)}>
+            ปิด
+          </button>
+        </div>
+      ) : (
+        <button type="button" className="gl-chip gl-chip--primary" onClick={openPicker} disabled={lineCount === 0}>
+          ส่งเข้า ESTIMETR เป็นชุดราคาของโครงการ
+        </button>
+      )}
+      {notice ? (
+        <p className="form-note" role="status">
+          {notice}
+        </p>
       ) : null}
     </div>
   );

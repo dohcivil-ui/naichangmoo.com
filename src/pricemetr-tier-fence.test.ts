@@ -19,6 +19,8 @@ const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 const PRICEMETR_SOURCES = [
   "src/lib/pricemetr-tier.ts",
   "src/server/pricemetr-access.ts",
+  "src/server/price-basket.ts",
+  "src/server/actions/price-basket.ts",
   "src/app/api/prototype/price-history/route.ts",
   "src/app/api/prototype/price-ledger/route.ts",
   "src/app/prototype/price-check/page.tsx",
@@ -144,7 +146,47 @@ describe("รูปร่างของชั้นตัดสินสิท�
 });
 
 /* ------------------------------------------------------------------------------------------- */
-/* สี่ — ตัวตรวจเองต้องยังกัด (IP-091)                                                            */
+/* สี่ — รายการที่หยิบไว้ (IP-163) คำวินิจฉัยที่ห้ามรื้อโดยไม่ถาม                                   */
+/* ------------------------------------------------------------------------------------------- */
+
+describe("รายการที่หยิบไว้", () => {
+  const basket = read("src/server/price-basket.ts");
+
+  it("นับบรรทัดในทรานแซกชันเดียวกับการเขียน ไม่ใช่ตรวจก่อนแล้วค่อยเขียน", () => {
+    // สองแท็บที่กดพร้อมกันตอนอยู่ที่สี่สิบเก้าบรรทัดจะผ่านการตรวจทั้งคู่แล้วได้ห้าสิบเอ็ด
+    // ถ้าการนับอยู่นอกทรานแซกชัน จึงตรวจว่าทั้งการนับและการกันอยู่ในบล็อกเดียวกัน
+    const transaction = basket.slice(basket.indexOf("db.transaction("), basket.indexOf("return outcome.blocked"));
+    expect(transaction).toMatch(/count\(\*\)/);
+    expect(transaction).toMatch(/canPickAnotherLine\(/);
+  });
+
+  it("ส่งเข้าโครงการแล้วตะกร้าไม่ถูกล้าง — คัดลอก ไม่ใช่ย้าย", () => {
+    const send = basket.slice(basket.indexOf("export async function sendBasketToProject"));
+    expect(send).not.toMatch(/delete\(priceBasketLines\)|delete\(priceBaskets\)/);
+  });
+
+  it("ชั้น server action ไม่ตัดสินอะไรเอง ทุกด่านอยู่ชั้นล่าง", () => {
+    const actions = read("src/server/actions/price-basket.ts");
+    expect(actions).not.toMatch(/canPickAnotherLine|FREE_LINE_LIMIT|lineLimit|allowance\./);
+  });
+
+  it("ที่มาของบรรทัดไม่ถูกเก็บเป็นข้อความ แต่สร้างจากหลักฐานทุกครั้ง", () => {
+    // ข้อความแสดงผลที่แช่ไว้จะเน่าวันที่ถ้อยคำเปลี่ยน แล้วของเก่ากับของใหม่จะพูดคนละแบบ
+    expect(basket).not.toMatch(/origin:\s*["'`]/);
+    expect(read("src/db/schema.ts")).not.toMatch(/priceBasketLines[\s\S]{0,900}?origin:/);
+  });
+
+  it("บรรทัดเก็บหลักฐานครบทุกช่องที่ใบสรุปสัญญาไว้", () => {
+    const schema = read("src/db/schema.ts");
+    const table = schema.slice(schema.indexOf("priceBasketLines = pgTable"), schema.indexOf("priceSetLines = pgTable"));
+    for (const column of ["source_key", "catalog_code", "province_code", "effective_month", "document_page", "rate_condition"]) {
+      expect(table).toContain(column);
+    }
+  });
+});
+
+/* ------------------------------------------------------------------------------------------- */
+/* ห้า — ตัวตรวจเองต้องยังกัด (IP-091)                                                            */
 /* ------------------------------------------------------------------------------------------- */
 
 describe("พิสูจน์ว่าตัวตรวจยังกัด", () => {

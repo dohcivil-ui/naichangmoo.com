@@ -1795,6 +1795,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-pickgate__close { min-height: 38px; padding: .4rem .95rem; border: 1px solid var(--glass-line); border-radius: 999px; background: transparent; color: var(--ink-body); font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; }
 .gl-pickgate__close:hover { border-color: var(--price-lead); color: var(--ink); }
 
+/* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
+.gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+.gl-send__picker { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--paper); }
+.gl-send__lead { margin: 0; font-size: .88rem; font-weight: 700; color: var(--ink); }
+.gl-send__list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
 .gl-afterword { padding-bottom: 7rem; }
 .gl-afterword__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin: 1.1rem 0; }
 .gl-afterword__grid h3 { margin: 0 0 .5rem; font-size: 1rem; color: var(--ink); }

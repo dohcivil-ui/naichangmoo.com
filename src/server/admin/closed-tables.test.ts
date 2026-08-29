@@ -22,6 +22,11 @@ const CLOSED_TABLES = [
   "takeoffMeasurements",
   "evidenceReferences",
   "priceSets",
+  // IP-163: ชุดราคาที่ส่งเข้าโครงการแล้ว และตะกร้าที่ยังหยิบอยู่ ทั้งคู่คืองานของลูกค้า
+  // หลังบ้านจัดการสิทธิ์ ไม่ใช่จัดการงาน — เหตุผลเดียวกับ priceSets ที่อยู่บรรทัดบน
+  "priceSetLines",
+  "priceBaskets",
+  "priceBasketLines",
   "priceObservations",
   "priceCatalogueItems",
   "estimateRevisions"
