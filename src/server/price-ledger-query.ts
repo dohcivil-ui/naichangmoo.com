@@ -1,5 +1,7 @@
 import "server-only";
-import { LEDGER_WINDOW_MONTHS, readMaster, readSnapshot, type LedgerRow, type LedgerSnapshot, type TpsoPeriod } from "@/server/tpso-prices";
+import { LEDGER_WINDOW_MONTHS, ledgerMonths, peekLedger, readMaster, readSnapshot, type LedgerRow, type LedgerSnapshot, type TpsoPeriod } from "@/server/tpso-prices";
+import { readStoredLedger, readStoredPeriod, readStoredVersion, storeLedger, type StoredLedger } from "@/server/price-archive";
+import { anchorSeries } from "@/lib/price-catalogue";
 import fallbackCatalogue from "@/data/tpso/cmip-sample-2569-07.json";
 
 /**
@@ -7,6 +9,8 @@ import fallbackCatalogue from "@/data/tpso/cmip-sample-2569-07.json";
  *
  * แยกจาก `tpso-prices.ts` เพราะโมดูลนั้นรู้จักแต่ สนค. ส่วนโมดูลนี้รู้ว่าหน้าจอถามอะไร
  * คือ ค้นหา กรองหมวด แบ่งหน้า และต้องมีอะไรตอบกลับเสมอแม้ต้นทางล่ม
+ *
+ * ตั้งแต่ IP-162 โมดูลนี้เป็นที่เดียวที่รู้ลำดับความเชื่อของสี่ที่มา ดูเหตุผลเต็มใน ADR 0022
  */
 
 /**
@@ -18,15 +22,29 @@ import fallbackCatalogue from "@/data/tpso/cmip-sample-2569-07.json";
  */
 export type LedgerFacet = { cat: string; catName: string; count: number; rise: number; fall: number; flat: number };
 
+/**
+ * ที่มาของคำตอบหนึ่งชุด — สามค่า ไม่ใช่ธงจริงเท็จ
+ *
+ * ก่อน IP-162 มีแค่สองที่มาจึงใช้ธงพอ พอคลังราคาเข้ามาเป็นที่มาที่สาม ธงจริงเท็จเริ่มโกหก
+ * เพราะ "ไม่ใช่ไฟล์ตัวอย่าง" ไม่ได้แปลว่า "สดจากต้นทาง" อีกต่อไป
+ *
+ * - `live` ดึงจาก สนค. ในคำขอนี้เอง
+ * - `stored` มาจากคลังของเรา ซึ่งเคยดึงมาจาก สนค. และรุ่นยังตรงกัน
+ * - `sample` ไฟล์ตัวอย่างในรีโป ใช้เมื่อไม่เหลืออะไรแล้ว
+ */
+export type LedgerOrigin = "live" | "stored" | "sample";
+
 export type LedgerAnswer = {
   province: string;
   period: TpsoPeriod;
   months: string[];
   lastUpdated: string;
   fetchedAt: string;
-  /** จริงเมื่อคำตอบนี้มาจากไฟล์สำรองในรีโป ไม่ใช่จาก สนค. */
-  stale: boolean;
-  staleReason?: string;
+  origin: LedgerOrigin;
+  /** เหตุผลที่ไม่ได้ของสด มีเมื่อที่มาไม่ใช่ `live` เท่านั้น หน้าจอมีหน้าที่พูดออกไป ไม่ใช่กลบ */
+  originNote?: string;
+  /** เวลาที่คำตอบชุดนี้ถูกเก็บลงคลัง มีเมื่อที่มาเป็น `stored` */
+  storedAt?: string;
   total: number;
   matched: number;
   page: number;
@@ -41,7 +59,7 @@ export const PAGE_SIZE = 40;
  * ไฟล์สำรองในรีโป ใช้เมื่อ สนค. ล่มหรือช้าเกินรอ
  *
  * ยอมให้หน้าจอมีของเก่าที่ติดป้ายว่าเก่า ดีกว่าหน้าว่างที่ไม่บอกอะไรเลย แต่ห้ามเงียบ
- * ทุกคำตอบที่มาจากไฟล์นี้ติดธง stale กลับไปเสมอ และหน้าจอมีหน้าที่พูดออกไป
+ * ทุกคำตอบที่มาจากไฟล์นี้ติดที่มา `sample` กลับไปเสมอ และหน้าจอมีหน้าที่พูดออกไป
  */
 function fallbackRows(province: string): { rows: LedgerRow[]; period: TpsoPeriod; months: string[]; lastUpdated: string } {
   const data = fallbackCatalogue as unknown as {
@@ -58,21 +76,9 @@ function fallbackRows(province: string): { rows: LedgerRow[]; period: TpsoPeriod
     if (!full) continue;
     const series = full.slice(offset);
 
-    let latest = -1;
-    for (let i = series.length - 1; i >= 0; i -= 1) {
-      if (series[i] !== null && series[i] !== undefined) {
-        latest = i;
-        break;
-      }
-    }
-    if (latest < 0) continue;
-    let previous = -1;
-    for (let i = latest - 1; i >= 0; i -= 1) {
-      if (series[i] !== null && series[i] !== undefined) {
-        previous = i;
-        break;
-      }
-    }
+    const anchor = anchorSeries(series);
+    if (!anchor) continue;
+    const { latest, previous } = anchor;
 
     const price = series[latest] as number;
     rows.push({
@@ -84,8 +90,8 @@ function fallbackRows(province: string): { rows: LedgerRow[]; period: TpsoPeriod
       price,
       priceVat: Math.round(price * (1 + data.source.vatRate) * 100) / 100,
       month: window[latest],
-      previousPrice: previous >= 0 ? (series[previous] as number) : null,
-      previousMonth: previous >= 0 ? window[previous] : null,
+      previousPrice: previous === null ? null : (series[previous] as number),
+      previousMonth: previous === null ? null : window[previous],
       series
     });
   }
@@ -124,30 +130,120 @@ export type LedgerQuery = {
   page?: number;
 };
 
+const why = (error: unknown, fallbackMessage: string) => (error instanceof Error ? error.message : fallbackMessage);
+
+/**
+ * คำตอบหนึ่งชุดของแผงบัญชีราคา ผ่านลำดับความเชื่อสี่ที่มา ห้าขั้น (ADR 0022)
+ *
+ * **ทำไมถาม `master` ก่อนเสมอ** เพราะคำถามที่ต้องตอบให้ได้ก่อนตัดสินใจคือ "สำเนาที่เรามี
+ * ยังตรงกับต้นทางไหม" ซึ่งตอบจากสำเนาของตัวเองไม่ได้ `master` เป็นคำขอเล็กที่ตอบคำถามนั้น
+ * โดยไม่ต้องลากก้อนสามเมกะไบต์ลงมา ถ้ารุ่นตรงกัน คำขอใหญ่ก็ไม่ต้องเกิดขึ้นเลย
+ *
+ * **ทำไมคลังมาก่อนต้นทาง** เพราะโจทย์ของ IP-162 คือรีสตาร์ตแล้วต้องไม่ช้าเหมือนเดิม
+ * ถ้าให้คลังเป็นแค่ตาข่ายรับตอนต้นทางล่ม ผู้ใช้คนแรกหลังรีสตาร์ตก็ยังรอสิบสองวินาทีอยู่ดี
+ */
 export async function answerLedger(request: LedgerQuery): Promise<LedgerAnswer> {
   const province = request.province || "10";
-  const period = request.year && request.month ? { year: request.year, month: request.month } : undefined;
+  const asked = request.year && request.month ? { year: request.year, month: request.month } : undefined;
 
-  let snapshot: LedgerSnapshot;
+  const master = await readMaster().catch(() => null);
+  const target = asked ?? master?.period.end ?? null;
+
+  // ชั้นหนึ่ง ของร้อนในหน่วยความจำ — เร็วกว่าอ่านสามหมื่นแปดพันแถวจากคลังแล้วประกอบใหม่หลายเท่า
+  // ของในแคชนี้มาจาก สนค. โดยตรงในชั่วโมงนี้ จึงยังเป็น live ตามความหมายเดิมก่อนรุ่นนี้ ไม่ใช่สำเนา
+  if (master && target) {
+    const hot = peekLedger(province, target);
+    if (hot) {
+      return shape(
+        {
+          province,
+          period: target,
+          months: ledgerMonths(target),
+          lastUpdated: master.lastUpdated,
+          rows: hot.rows,
+          version: master.lastUpdated,
+          payloadHash: hot.payloadHash,
+          fetchedAt: new Date().toISOString()
+        },
+        request,
+        "live"
+      );
+    }
+  }
+
+  // ชั้นสอง คลังของเรา — เข้าทางนี้เฉพาะเมื่อรู้รุ่นล่าสุดของต้นทางและรุ่นในคลังตรงกันเท่านั้น
+  if (master && target) {
+    const known = await readStoredVersion(province, target);
+    if (known && known.version === master.lastUpdated) {
+      const stored = await readStoredLedger(province, ledgerMonths(target));
+      if (stored) return shapeStored(stored, province, target, master.lastUpdated, request);
+    }
+  }
+
+  // ชั้นสาม ต้นทาง — ได้มาแล้วเก็บลงคลังทันที โดยไม่ให้ผู้ใช้รอการเก็บ
   try {
-    snapshot = await readSnapshot(province, period);
+    const snapshot = await readSnapshot(province, asked);
+    void storeLedger({
+      province,
+      period: snapshot.period,
+      months: snapshot.months,
+      version: snapshot.version,
+      payloadHash: snapshot.payloadHash,
+      rows: snapshot.rows
+    });
+    return shape(snapshot, request, "live");
   } catch (error) {
+    // ชั้นสี่ คลังเท่าที่มี — ของจริงที่เคยดึงมาได้ ยังดีกว่าไฟล์ตัวอย่างชุดเดียวในรีโปเสมอ
+    const period = target ?? (await readStoredPeriod(province));
+    if (period) {
+      const stored = await readStoredLedger(province, ledgerMonths(period));
+      if (stored) {
+        const note = master
+          ? `ต้นทางไม่ตอบ ใช้สำเนาที่เก็บไว้ (${why(error, "ไม่ทราบสาเหตุ")})`
+          : `ต้นทางไม่ตอบ ใช้สำเนาที่เก็บไว้ และตรวจไม่ได้ว่ามีรุ่นใหม่กว่านี้แล้วหรือยัง (${why(error, "ไม่ทราบสาเหตุ")})`;
+        return shapeStored(stored, province, period, stored.version, request, note);
+      }
+    }
+
+    // ชั้นห้า ไฟล์ตัวอย่างในรีโป
     const fallback = fallbackRows(province);
-    snapshot = {
+    const snapshot: LedgerSnapshot = {
       province,
       period: fallback.period,
       months: fallback.months,
       lastUpdated: fallback.lastUpdated,
       rows: fallback.rows,
-      stale: true,
+      version: fallback.lastUpdated,
+      payloadHash: "",
       fetchedAt: new Date().toISOString()
     };
-    return shape(snapshot, request, error instanceof Error ? error.message : "ต้นทางไม่ตอบ");
+    return shape(snapshot, request, "sample", why(error, "ต้นทางไม่ตอบ"));
   }
-  return shape(snapshot, request);
 }
 
-function shape(snapshot: LedgerSnapshot, request: LedgerQuery, staleReason?: string): LedgerAnswer {
+/** คลังราคาแปลงร่างเป็นสแนปช็อตหน้าตาเดียวกับของต้นทาง ชั้นล่างจากนี้ไปจึงแยกไม่ออกว่ามาจากไหน */
+function shapeStored(
+  stored: StoredLedger,
+  province: string,
+  period: TpsoPeriod,
+  lastUpdated: string,
+  request: LedgerQuery,
+  note?: string
+): LedgerAnswer {
+  const snapshot: LedgerSnapshot = {
+    province,
+    period,
+    months: stored.months,
+    lastUpdated,
+    rows: stored.rows,
+    version: stored.version,
+    payloadHash: "",
+    fetchedAt: new Date().toISOString()
+  };
+  return shape(snapshot, request, "stored", note, stored.storedAt);
+}
+
+function shape(snapshot: LedgerSnapshot, request: LedgerQuery, origin: LedgerOrigin, originNote?: string, storedAt?: string): LedgerAnswer {
   const terms = (request.query ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
   const withinCategory = request.cat && request.cat !== "all" ? snapshot.rows.filter((row) => row.cat === request.cat) : snapshot.rows;
   const found = withinCategory.filter((row) => matches(row, terms));
@@ -165,8 +261,9 @@ function shape(snapshot: LedgerSnapshot, request: LedgerQuery, staleReason?: str
     months: snapshot.months,
     lastUpdated: snapshot.lastUpdated,
     fetchedAt: snapshot.fetchedAt,
-    stale: snapshot.stale,
-    staleReason,
+    origin,
+    originNote,
+    storedAt,
     total: snapshot.rows.length,
     matched: sorted.length,
     page,

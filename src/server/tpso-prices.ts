@@ -1,4 +1,6 @@
 import "server-only";
+import { createHash } from "node:crypto";
+import { anchorSeries } from "@/lib/price-catalogue";
 
 /**
  * เส้นข้อมูลราคาวัสดุก่อสร้างรายจังหวัดของ สนค.
@@ -58,10 +60,20 @@ export type LedgerSnapshot = {
   months: string[];
   lastUpdated: string;
   rows: LedgerRow[];
-  /** จริงเมื่อชุดนี้มาจากไฟล์สำรอง ไม่ใช่จาก สนค. — หน้าจอต้องบอกผู้ใช้ ไม่ใช่เงียบ */
-  stale: boolean;
+  /**
+   * รุ่นของชุดข้อมูลตามที่ สนค. ประกาศ ไม่ใช่เวลาที่เครื่องเราไปอ่าน (IP-162)
+   *
+   * ค่านี้คือสิ่งเดียวที่บอกได้ว่าสำเนาในคลังของเรายังตรงกับต้นทางไหม เดือนของราคาบอกไม่ได้
+   * เพราะต้นทางแก้ราคาย้อนหลังของเดือนเดิมได้โดยเดือนไม่เปลี่ยน
+   */
+  version: string;
+  /** ลายนิ้วมือของก้อนคำตอบดิบทั้งก้อนของการดึงรอบนี้ ใช้ตอบว่า "แถวนี้มาจากการดึงรอบไหน" */
+  payloadHash: string;
   fetchedAt: string;
 };
+
+/** ผลของการดึงหนึ่งรอบ ราคาที่แปลงแล้วมาคู่กับลายนิ้วมือของก้อนดิบที่มันเกิดมาจากเสมอ */
+export type LedgerFetch = { rows: LedgerRow[]; payloadHash: string };
 
 export type PriceHistory = {
   code: string;
@@ -153,6 +165,29 @@ function timelineOf(end: TpsoPeriod, months: number) {
 }
 
 /**
+ * ของร้อนในหน่วยความจำ ถ้ามี — ถามโดยไม่ยิงคำขอออกไปไม่ว่ากรณีใด
+ *
+ * มีไว้ให้ชั้นบนถามก่อนลงไปหาคลังราคา เพราะแคชในหน่วยความจำเร็วกว่าการอ่านสามหมื่นแปดพันแถว
+ * จากฐานข้อมูลแล้วประกอบใหม่หลายเท่า ถ้าไม่มีทางถาม ชั้นบนจะไม่มีวันได้ใช้แคชนี้เลย
+ * เพราะมันซ่อนอยู่หลังฟังก์ชันที่ยิงคำขอออกไปเมื่อไม่เจอ
+ */
+export function peekLedger(province: string, period: TpsoPeriod, windowMonths = LEDGER_WINDOW_MONTHS): LedgerFetch | null {
+  const hit = cache.get(`ledger:${province}:${monthKey(period.year, period.month)}:${windowMonths}`);
+  if (!hit || Date.now() - hit.at >= CACHE_TTL_MS) return null;
+  return hit.value as LedgerFetch;
+}
+
+/**
+ * เดือนทั้งหมดของหน้าต่างที่ลงท้ายด้วยเดือนที่ระบุ เรียงจากเก่าไปใหม่
+ *
+ * เปิดออกมาเพราะชั้นคลังราคาต้องถามหาเดือนชุดเดียวกันกับที่ต้นทางให้มา ไม่ใช่ชุดที่คำนวณเอง
+ * สองที่ที่คิดเดือนกันคนละแบบคือสองที่ที่จะให้กราฟยาวไม่เท่ากันโดยไม่มีใครรู้
+ */
+export function ledgerMonths(period: TpsoPeriod, months = LEDGER_WINDOW_MONTHS): string[] {
+  return timelineOf(period, months).keys;
+}
+
+/**
  * ดัชนีราคาของทั้งจังหวัด ใช้เป็นข้อมูลของแผงบัญชีราคา
  *
  * **ทำไมต้องขอย้อนหลังหลายเดือน ไม่ใช่เดือนเดียว** วัดจากของจริงของส่วนกลาง เดือนล่าสุดเดือนเดียว
@@ -160,7 +195,7 @@ function timelineOf(end: TpsoPeriod, months: number) {
  * ทั้งที่ราคามีอยู่จริงเมื่อสี่เดือนก่อน ซึ่งเป็นคำตอบที่ผิด หน้าต่างหกเดือนครอบคลุม 6,430 รายการ
  * และได้ราคาก่อนหน้าสำหรับคิดการขยับมาในคำขอเดียวกัน ไม่ต้องยิงซ้ำ
  */
-export async function readLedger(province: string, period: TpsoPeriod, windowMonths = LEDGER_WINDOW_MONTHS): Promise<LedgerRow[]> {
+export async function readLedger(province: string, period: TpsoPeriod, windowMonths = LEDGER_WINDOW_MONTHS): Promise<LedgerFetch> {
   return cached(`ledger:${province}:${monthKey(period.year, period.month)}:${windowMonths}`, async () => {
     const { keys, start } = timelineOf(period, windowMonths);
     const items = await postFilter({
@@ -186,22 +221,9 @@ export async function readLedger(province: string, period: TpsoPeriod, windowMon
         })
       );
 
-      let latest = -1;
-      for (let i = series.length - 1; i >= 0; i -= 1) {
-        if (series[i] !== null) {
-          latest = i;
-          break;
-        }
-      }
-      if (latest < 0) continue;
-
-      let previous = -1;
-      for (let i = latest - 1; i >= 0; i -= 1) {
-        if (series[i] !== null) {
-          previous = i;
-          break;
-        }
-      }
+      const anchor = anchorSeries(series);
+      if (!anchor) continue;
+      const { latest, previous } = anchor;
 
       const price = series[latest] as number;
       rows.push({
@@ -213,14 +235,25 @@ export async function readLedger(province: string, period: TpsoPeriod, windowMon
         price,
         priceVat: vat[latest] ?? Math.round(price * 107) / 100,
         month: keys[latest],
-        previousPrice: previous >= 0 ? (series[previous] as number) : null,
-        previousMonth: previous >= 0 ? keys[previous] : null,
+        previousPrice: previous === null ? null : (series[previous] as number),
+        previousMonth: previous === null ? null : keys[previous],
         series
       });
     }
     rows.sort((a, b) => a.name.localeCompare(b.name, "th"));
-    return rows;
+    return { rows, payloadHash: fingerprint(items) };
   });
+}
+
+/**
+ * ลายนิ้วมือของก้อนคำตอบดิบหนึ่งก้อน
+ *
+ * คิดจากก้อนดิบก่อนแปลง ไม่ใช่จากแถวที่แปลงแล้ว เพราะคำถามที่ต้องตอบตอนตรวจย้อนคือ
+ * "ต้นทางส่งอะไรมาให้เราในรอบนั้น" ถ้าคิดจากของที่แปลงแล้ว วันที่เราแก้ตัวแปลง
+ * ลายนิ้วมือของข้อมูลที่ไม่เคยเปลี่ยนจะเปลี่ยนตาม ซึ่งทำให้มันโกหก
+ */
+function fingerprint(payload: unknown): string {
+  return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }
 
 /**
@@ -266,14 +299,15 @@ export async function readHistory(province: string, codes: string[], end: TpsoPe
 export async function readSnapshot(province: string, period?: TpsoPeriod): Promise<LedgerSnapshot> {
   const master = await readMaster();
   const target = period ?? master.period.end;
-  const rows = await readLedger(province, target);
+  const fetched = await readLedger(province, target);
   return {
     province,
     period: target,
     months: timelineOf(target, LEDGER_WINDOW_MONTHS).keys,
     lastUpdated: master.lastUpdated,
-    rows,
-    stale: false,
+    rows: fetched.rows,
+    version: master.lastUpdated,
+    payloadHash: fetched.payloadHash,
     fetchedAt: new Date().toISOString()
   };
 }

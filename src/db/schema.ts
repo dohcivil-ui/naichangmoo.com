@@ -332,6 +332,25 @@ export const priceSources = pgTable("price_sources", {
   updatedAt
 });
 
+/**
+ * What a commodity IS, held once instead of once per month. See ADR 0022.
+ *
+ * A price observation carries a catalogue code and nothing a human can read. The name, the unit
+ * and the category belong to the commodity, not to the month, so repeating them on every one of
+ * the six monthly rows would be six chances for the same item to disagree with itself.
+ */
+export const priceCatalogueItems = pgTable("price_catalogue_items", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id").notNull().references(() => priceSources.id),
+  catalogCode: text("catalog_code").notNull(),
+  name: text("name").notNull(),
+  unit: text("unit").notNull(),
+  categoryCode: text("category_code").notNull(),
+  categoryName: text("category_name").notNull(),
+  createdAt,
+  updatedAt
+}, (table) => [uniqueIndex("price_catalogue_items_source_code_unique").on(table.sourceId, table.catalogCode)]);
+
 export const priceObservations = pgTable("price_observations", {
   id: text("id").primaryKey(),
   sourceId: text("source_id").notNull().references(() => priceSources.id),
@@ -339,11 +358,22 @@ export const priceObservations = pgTable("price_observations", {
   provinceCode: text("province_code"),
   effectiveMonth: text("effective_month").notNull(),
   priceExcludingVat: numeric("price_excluding_vat", { precision: 18, scale: 4 }).notNull(),
+  // Stored as the publisher sent it rather than derived from the line above. Their rounding is
+  // theirs, and a price the screen shows today must not shift by a satang tomorrow merely because
+  // it came back from our own copy instead of from theirs.
+  priceIncludingVat: numeric("price_including_vat", { precision: 18, scale: 4 }),
   currency: text("currency").notNull().default("THB"),
+  // The publisher's own revision stamp for the dataset, not the month the price applies to. A
+  // source that revises an old month keeps the same effective month and changes this, which is the
+  // only signal that a stored copy has gone out of date. See ADR 0022.
+  sourceVersion: text("source_version").notNull(),
   rawPayloadHash: text("raw_payload_hash").notNull(),
   createdAt,
   updatedAt
-});
+}, (table) => [
+  uniqueIndex("price_observations_reading_unique").on(table.sourceId, table.catalogCode, table.provinceCode, table.effectiveMonth),
+  index("price_observations_province_month_idx").on(table.provinceCode, table.effectiveMonth)
+]);
 
 export const priceSets = pgTable("price_sets", {
   id: text("id").primaryKey(),

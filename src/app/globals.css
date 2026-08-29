@@ -1503,6 +1503,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-live__line--busy .gl-live__when { color: var(--muted); animation: gl-pulse 1.4s ease-in-out infinite; }
 .gl-live__line--warn { border-left-color: var(--orange); }
 .gl-live__line--warn .gl-live__word { color: color-mix(in srgb, var(--orange) 78%, var(--ink)); }
+/* ราคาที่เก็บไว้ (IP-162) — ไม่ใช่ของสด จึงไม่ใช่สีเขียวน้ำเงินของแบรนด์ และไม่ใช่ความผิดปกติ
+   จึงไม่ใช่สีส้มเตือน เป็นเส้นหมึกเงียบ ๆ ที่บอกว่าอ่านได้ตามปกติแต่มาจากสำเนาของเรา */
+.gl-live__line--stored { border-left-color: var(--ink-body); }
+.gl-live__line--stored .gl-live__word { color: var(--ink-body); }
 @keyframes gl-pulse { 50% { opacity: .35; } }
 .gl-live__detail { position: absolute; left: 0; top: calc(100% + 8px); z-index: 20; width: min(440px, 82vw); margin: 0; padding: 12px 14px; border: 1px solid var(--glass-line); border-radius: 14px; background: linear-gradient(160deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .86)); backdrop-filter: saturate(185%) blur(22px); box-shadow: var(--glass-lift); color: var(--ink-body); font-size: .78rem; line-height: 1.65; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity 160ms var(--ease-out), transform 160ms var(--ease-out); }
 .gl-live__detail.is-shown { opacity: 1; transform: none; }

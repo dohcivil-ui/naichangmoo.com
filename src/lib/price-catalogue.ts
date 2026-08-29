@@ -136,6 +136,39 @@ export function movement(
   };
 }
 
+/** ตำแหน่งสองจุดในเส้นราคา คือจุดล่าสุดที่มีค่า และจุดก่อนหน้าที่มีค่าถัดจากนั้น */
+export type SeriesAnchor = { latest: number; previous: number | null };
+
+/**
+ * หาจุดยึดของเส้นราคาหนึ่งเส้น — ที่เดียวในระบบ
+ *
+ * ตรรกะนี้เคยถูกเขียนซ้ำสองที่ คือตอนแปลงคำตอบของ สนค. และตอนอ่านไฟล์สำรอง
+ * และกำลังจะเป็นที่สามตอนอ่านคลังราคาจากฐานข้อมูล (IP-162) ถ้าปล่อยไว้แล้ววันหนึ่ง
+ * มีคนแก้ที่เดียว ราคาชุดเดียวกันจะรายงาน "การขยับ" ไม่ตรงกันตามที่มาของมัน
+ * ซึ่งเป็นบั๊กที่ผู้ใช้จับได้ก่อนเราเสมอ
+ *
+ * คืน null เมื่อทั้งเส้นไม่มีค่าสักจุด ซึ่งแปลว่ารายการนี้ไม่ควรขึ้นจอเลย ไม่ใช่ขึ้นด้วยราคาศูนย์
+ */
+export function anchorSeries(series: readonly (number | null | undefined)[]): SeriesAnchor | null {
+  let latest = -1;
+  for (let i = series.length - 1; i >= 0; i -= 1) {
+    if (series[i] !== null && series[i] !== undefined) {
+      latest = i;
+      break;
+    }
+  }
+  if (latest < 0) return null;
+
+  let previous = -1;
+  for (let i = latest - 1; i >= 0; i -= 1) {
+    if (series[i] !== null && series[i] !== undefined) {
+      previous = i;
+      break;
+    }
+  }
+  return { latest, previous: previous >= 0 ? previous : null };
+}
+
 /** ค่าวัสดุของรายการหนึ่งตามปริมาณที่ระบุ ปริมาณเป็นทศนิยมได้ ผลลัพธ์ปัดที่สตางค์ */
 export function lineCost(unitSatang: bigint, quantity: number): bigint {
   return BigInt(Math.round(Number(unitSatang) * quantity));

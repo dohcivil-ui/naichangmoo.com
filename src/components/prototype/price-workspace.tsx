@@ -47,8 +47,10 @@ type LedgerAnswer = {
   months: MonthKey[];
   lastUpdated: string;
   fetchedAt: string;
-  stale: boolean;
-  staleReason?: string;
+  /** ที่มาของตัวเลขชุดนี้ ประกาศโดยเซิร์ฟเวอร์เท่านั้น หน้าจอห้ามเดาเอง (IP-162) */
+  origin: "live" | "stored" | "sample";
+  originNote?: string;
+  storedAt?: string;
   total: number;
   matched: number;
   page: number;
@@ -637,7 +639,11 @@ export function PriceWorkspace({
           <nav className="gl-decks" aria-label="ชุดข้อมูล">
             <button type="button" className={desk === "market" ? "gl-deck is-active" : "gl-deck"} onClick={() => switchDesk("market")} aria-pressed={desk === "market"}>
               <span className="gl-deck__name">ราคาวัสดุรายจังหวัด</span>
-              <span className="gl-deck__origin">สนค. กระทรวงพาณิชย์ · ดึงสด</span>
+              {/* คำท้ายบรรทัดตามที่มาจริงของคำตอบ ไม่ใช่คำตายตัว — ป้ายที่พูดว่า "ดึงสด"
+                  ขณะที่คำตอบมาจากคลังของเรา คือป้ายที่ไม่ตรงกับเซิร์ฟเวอร์ (IP-162) */}
+              <span className="gl-deck__origin">
+                สนค. กระทรวงพาณิชย์ · {answer?.origin === "stored" ? "จากคลัง" : answer?.origin === "sample" ? "ชุดตัวอย่าง" : "ดึงสด"}
+              </span>
             </button>
             <button type="button" className={desk === "unit" ? "gl-deck is-active" : "gl-deck"} onClick={() => switchDesk("unit")} aria-pressed={desk === "unit"}>
               <span className="gl-deck__name">ค่าวัสดุและค่าแรงต่อหน่วยงาน</span>
@@ -946,16 +952,32 @@ export function PriceWorkspace({
  */
 function LiveStamp({ answer, loading, failed, provinceName }: { answer: LedgerAnswer | null; loading: boolean; failed: string | null; provinceName: string }) {
   const [checkedAt, setCheckedAt] = useState<string | null>(null);
+  const [storedAt, setStoredAt] = useState<string | null>(null);
   const [shown, setShown] = useState(false);
 
   /** เวลาแปลงฝั่งเบราว์เซอร์เท่านั้น เพราะเซิร์ฟเวอร์กับเครื่องผู้ใช้อยู่คนละเขตเวลาได้ */
   useEffect(() => {
     if (!answer) return;
-    const timer = window.setTimeout(() => setCheckedAt(new Date(answer.fetchedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })), 0);
+    const timer = window.setTimeout(() => {
+      setCheckedAt(new Date(answer.fetchedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }));
+      setStoredAt(
+        answer.storedAt
+          ? new Date(answer.storedAt).toLocaleString("th-TH", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
+          : null
+      );
+    }, 0);
     return () => window.clearTimeout(timer);
   }, [answer]);
 
-  const state = failed || answer?.stale ? "warn" : loading ? "busy" : "live";
+  /**
+   * สถานะของแถบมาจากที่มาที่เซิร์ฟเวอร์ประกาศ ไม่ใช่จากการเดาของหน้าจอ (IP-162)
+   *
+   * ราคาที่เก็บไว้ไม่ใช่ความผิดปกติ จึงไม่ควรขึ้นสีเตือนเหมือนตอนต้นทางล่ม แต่ก็ไม่ใช่ของสด
+   * จึงไม่ควรขึ้นสีเดียวกับของสดด้วย มันเป็นสถานะที่สามจริง ๆ ไม่ใช่สองสถานะเดิมที่ยืมกันใช้
+   */
+  const origin = answer?.origin;
+  const state = failed || origin === "sample" ? "warn" : origin === "stored" ? "stored" : loading ? "busy" : "live";
+  const word = origin === "stored" ? "ราคาที่เก็บไว้" : origin === "sample" ? "ราคาตัวอย่าง" : "Real-time price";
 
   return (
     <div className="gl-live">
@@ -969,7 +991,7 @@ function LiveStamp({ answer, loading, failed, provinceName }: { answer: LedgerAn
         onBlur={() => setShown(false)}
         onClick={() => setShown((current) => !current)}
       >
-        <span className="gl-live__word">Real-time price</span>
+        <span className="gl-live__word">{word}</span>
         {loading ? (
           <span className="gl-live__when">กำลังอ่านข้อมูล</span>
         ) : answer ? (
@@ -983,11 +1005,13 @@ function LiveStamp({ answer, loading, failed, provinceName }: { answer: LedgerAn
       <p id="gl-live-detail" className={shown ? "gl-live__detail is-shown" : "gl-live__detail"} role="tooltip">
         {failed
           ? failed
-          : answer?.stale
-            ? `ใช้ชุดสำรองในระบบ เพราะต้นทางไม่ตอบ (${answer.staleReason ?? "ไม่ทราบสาเหตุ"})`
-            : answer
-              ? `สนค. กระทรวงพาณิชย์ · ${provinceName} · ${answer.total.toLocaleString("th-TH")} รายการ · ผู้ประกาศปรับปรุง ${new Date(answer.lastUpdated).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} · เครื่องตรวจของใหม่ทุก 1 ชั่วโมง ส่วนต้นทางประกาศเดือนละครั้ง`
-              : "กำลังติดต่อ สนค."}
+          : answer?.origin === "sample"
+            ? `ใช้ชุดตัวอย่างในระบบ เพราะต้นทางไม่ตอบ (${answer.originNote ?? "ไม่ทราบสาเหตุ"})`
+            : answer?.origin === "stored"
+              ? `สำเนาที่ระบบเก็บไว้จากคำประกาศของ สนค. · ${provinceName} · ${answer.total.toLocaleString("th-TH")} รายการ · เก็บเมื่อ ${storedAt ?? "—"} · ${answer.originNote ?? "รุ่นตรงกับที่ต้นทางประกาศล่าสุด จึงไม่ต้องดึงซ้ำ"}`
+              : answer
+                ? `สนค. กระทรวงพาณิชย์ · ${provinceName} · ${answer.total.toLocaleString("th-TH")} รายการ · ผู้ประกาศปรับปรุง ${new Date(answer.lastUpdated).toLocaleDateString("th-TH", { day: "numeric", month: "long", year: "numeric" })} · เครื่องตรวจของใหม่ทุก 1 ชั่วโมง ส่วนต้นทางประกาศเดือนละครั้ง`
+                : "กำลังติดต่อ สนค."}
       </p>
     </div>
   );

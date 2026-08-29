@@ -23,6 +23,7 @@ const CLOSED_TABLES = [
   "evidenceReferences",
   "priceSets",
   "priceObservations",
+  "priceCatalogueItems",
   "estimateRevisions"
 ] as const;
 
