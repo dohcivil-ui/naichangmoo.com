@@ -15,6 +15,8 @@ import {
 } from "@/lib/price-catalogue";
 import Image from "next/image";
 import { MaterialCategoryIcon } from "@/components/icons/material-category-icons";
+import { SignInButton } from "@/components/landing/sign-in-button";
+import { canPickAnotherLine, remainingLines, type PricemetrAllowance } from "@/lib/pricemetr-tier";
 
 /**
  * ต้นแบบแอปราคาวัสดุและค่าแรง — แผงบัญชีราคา
@@ -276,7 +278,8 @@ export function PriceWorkspace({
   unitRows,
   labourRows,
   firstAnswer,
-  artwork
+  artwork,
+  access
 }: {
   provinces: Province[];
   period: { start: { year: number; month: number }; end: { year: number; month: number } };
@@ -284,6 +287,8 @@ export function PriceWorkspace({
   labourRows: LabourRow[];
   firstAnswer: LedgerAnswer | null;
   artwork: string[];
+  /** ตัดสินมาแล้วจากเซิร์ฟเวอร์ (IP-164) หน้าจอบังคับตาม ไม่ได้ตัดสินเอง */
+  access: PricemetrAllowance & { signedIn: boolean };
 }) {
   const [desk, setDesk] = useState<Desk>("market");
   /** ค่าตั้งต้นเป็นการ์ดตามมติเจ้าของงาน 2026-08-26 แถวยังอยู่ให้กดเองสำหรับคนที่ไล่เทียบราคาทีละมาก ๆ */
@@ -303,6 +308,8 @@ export function PriceWorkspace({
   const [historyLoading, setHistoryLoading] = useState(false);
   const [basket, setBasket] = useState<BasketEntry[]>([]);
   const [basketOpen, setBasketOpen] = useState(false);
+  /** เหตุผลที่หยิบไม่ได้ ขึ้นเมื่อผู้ใช้กดจริงเท่านั้น ไม่ใช่ป้ายที่ค้างอยู่ตั้งแต่เปิดหน้า */
+  const [pickNotice, setPickNotice] = useState<string | null>(null);
   const [floating, setFloating] = useState(false);
   /**
    * แถบลอยต้องเริ่มใต้แถบนำทางของเปลือกกลาง ซึ่งความสูงไม่คงที่ — บนจอแคบเมนูห่อได้หลายแถว
@@ -431,7 +438,8 @@ export function PriceWorkspace({
         const response = await fetch("/api/prototype/price-history", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ province, codes: [focusRow.code], year, month, months: 24 }),
+          // ขอเท่าที่สิทธิ์ให้ ไม่ใช่ 24 ตายตัวแบบเดิม — และถึงขอเกิน เซิร์ฟเวอร์ก็หนีบให้อยู่ดี
+          body: JSON.stringify({ province, codes: [focusRow.code], year, month, months: access.historyMonths }),
           signal: controller.signal
         });
         const data = (await response.json()) as { series: { code: string; months: MonthKey[]; values: (number | null)[] }[] };
@@ -444,7 +452,7 @@ export function PriceWorkspace({
     };
     void run();
     return () => controller.abort();
-  }, [focusRow, province, year, month]);
+  }, [focusRow, province, year, month, access.historyMonths]);
 
   const unitSections = useMemo(() => {
     const tally = new Map<string, number>();
@@ -502,10 +510,32 @@ export function PriceWorkspace({
   const drawerTotal = desk === "market" ? answer?.total ?? 0 : desk === "unit" ? unitRows.length : labourRows.length;
   const pageCount = Math.max(1, Math.ceil(matched / 40));
 
-  const addToBasket = useCallback((entry: Omit<BasketEntry, "quantity">) => {
-    setBasket((current) => (current.some((line) => line.key === entry.key) ? current : [...current, { ...entry, quantity: 1 }]));
-    setBasketOpen(true);
-  }, []);
+  /**
+   * ด่านเดียวของการหยิบ (IP-164)
+   *
+   * ปุ่มหยิบมีอยู่หกที่ในไฟล์นี้ การเอาเงื่อนไขไปแปะทีละปุ่มคือการสร้างสำเนาของกฎหกชุด
+   * ที่วันหนึ่งจะไม่ตรงกัน ทุกปุ่มจึงเรียกตัวนี้ตัวเดียวเหมือนเดิม แล้วกฎอยู่ตรงนี้ที่เดียว
+   *
+   * และปุ่มไม่หายไปสำหรับผู้มาเยือน คนต้องรู้ว่ามีของอยู่และได้มาอย่างไร การซ่อนปุ่มทำให้
+   * เขาคิดว่าแอปทำไม่ได้ ไม่ใช่ว่าต้องเข้าสู่ระบบก่อน
+   */
+  const addToBasket = useCallback(
+    (entry: Omit<BasketEntry, "quantity">) => {
+      if (basket.some((line) => line.key === entry.key)) return;
+      if (!canPickAnotherLine(access, basket.length)) {
+        setPickNotice(
+          access.signedIn
+            ? `รายการที่หยิบไว้ครบ ${access.lineLimit} บรรทัดของสมาชิกแล้ว เอาบรรทัดที่ไม่ใช้ออกก่อนจึงหยิบเพิ่มได้`
+            : "เข้าสู่ระบบก่อนจึงจะหยิบราคาเก็บไว้ได้ ราคาทุกบรรทัดบนหน้านี้เปิดให้อ่านอยู่แล้วโดยไม่ต้องเข้าสู่ระบบ"
+        );
+        return;
+      }
+      setPickNotice(null);
+      setBasket((current) => [...current, { ...entry, quantity: 1 }]);
+      setBasketOpen(true);
+    },
+    [access, basket]
+  );
 
   const basketTotal = sumSatang(basket.map((line) => lineCost(line.unitSatang, line.quantity)));
   const years = useMemo(() => {
@@ -926,15 +956,41 @@ export function PriceWorkspace({
         </div>
       </section>
 
-      {basket.length > 0 ? (
-        <BasketBar
-          basket={basket}
-          total={basketTotal}
-          open={basketOpen}
-          onToggle={() => setBasketOpen((current) => !current)}
-          onQuantity={(key, quantity) => setBasket((current) => current.map((line) => (line.key === key ? { ...line, quantity } : line)))}
-          onRemove={(key) => setBasket((current) => current.filter((line) => line.key !== key))}
-        />
+      {/*
+        แถบล่างเป็นกองเดียว ไม่ใช่ของสองชิ้นที่ต่างคนต่างลอย
+
+        รอบแรกผมให้คำอธิบายลอยเองที่ `bottom: 64px` แล้วเปิดดูของจริง มันไปแทรกกลางตาราง
+        เพราะแผงรายการที่เปิดอยู่สูงได้ถึง 44vh ไม่ใช่ 64px ค่าคงที่จึงเดาผิดเสมอ
+        กองเดียวที่เรียงจากล่างขึ้นบนไม่ต้องเดาความสูงของใครเลย
+      */}
+      {pickNotice || basket.length > 0 ? (
+        <div className="gl-dock">
+          {pickNotice ? (
+            <div className="gl-pickgate" role="status">
+              <div className="container gl-pickgate__inner">
+                <p className="gl-pickgate__text">{pickNotice}</p>
+                <div className="gl-pickgate__actions">
+                  {access.signedIn ? null : <SignInButton callbackURL="/prototype/price-check" className="button button--orange micro-button" />}
+                  <button type="button" className="gl-pickgate__close" onClick={() => setPickNotice(null)} aria-label="ปิดคำอธิบาย">
+                    ปิด
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {basket.length > 0 ? (
+            <BasketBar
+              basket={basket}
+              total={basketTotal}
+              open={basketOpen}
+              remaining={remainingLines(access, basket.length)}
+              onToggle={() => setBasketOpen((current) => !current)}
+              onQuantity={(key, quantity) => setBasket((current) => current.map((line) => (line.key === key ? { ...line, quantity } : line)))}
+              onRemove={(key) => setBasket((current) => current.filter((line) => line.key !== key))}
+            />
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
@@ -1619,6 +1675,7 @@ function BasketBar({
   basket,
   total,
   open,
+  remaining,
   onToggle,
   onQuantity,
   onRemove
@@ -1626,6 +1683,8 @@ function BasketBar({
   basket: BasketEntry[];
   total: bigint;
   open: boolean;
+  /** เหลือหยิบได้อีกกี่บรรทัด · null คือไม่จำกัด — ตัวเลขมาจากเซิร์ฟเวอร์ ไม่ได้นับเอาเอง */
+  remaining: number | null;
   onToggle: () => void;
   onQuantity: (key: string, quantity: number) => void;
   onRemove: (key: string) => void;
@@ -1641,6 +1700,13 @@ function BasketBar({
           ค่างานต้นทุนรวม <strong>{formatPrice(total)}</strong> บาท
         </p>
       </div>
+      {remaining !== null && remaining <= 10 ? (
+        <div className="container gl-basket__quota">
+          <p role="status">
+            {remaining === 0 ? "หยิบครบเพดานของสมาชิกแล้ว" : `หยิบได้อีก ${remaining} บรรทัด`}
+          </p>
+        </div>
+      ) : null}
       {open ? (
         <div className="container gl-basket__panel">
           <table>

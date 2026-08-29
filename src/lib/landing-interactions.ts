@@ -51,7 +51,14 @@ export function getAppInteractionContract(app: Pick<PlatformApp, "slug" | "href"
   };
 }
 
-export function getLoginInteractionContract(authEnabled: boolean) {
+/** ปลายทางเดิมของปุ่มบนหน้าแรก คงไว้เป็นค่าตั้งต้นเพื่อไม่ให้ผู้เรียกเดิมเปลี่ยนพฤติกรรม */
+export const DEFAULT_LOGIN_CALLBACK = "/apps/estimeter";
+
+/**
+ * `callbackURL` รับเข้ามาได้ เพราะปุ่มเข้าสู่ระบบเริ่มมีหลายที่ที่ต้องกลับมาที่เดิม
+ * คนที่กดจากหน้าราคาวัสดุแล้วถูกโยนไปหน้า ESTIMETR คือคนที่ต้องเดินกลับมาเอง
+ */
+export function getLoginInteractionContract(authEnabled: boolean, callbackURL: string = DEFAULT_LOGIN_CALLBACK) {
   if (!authEnabled) {
     return {
       kind: "preview_notice" as const,
@@ -64,7 +71,7 @@ export function getLoginInteractionContract(authEnabled: boolean) {
     kind: "google_sign_in" as const,
     label: "เข้าสู่ระบบด้วย Google",
     provider: "google" as const,
-    callbackURL: "/apps/estimeter"
+    callbackURL
   };
 }
 

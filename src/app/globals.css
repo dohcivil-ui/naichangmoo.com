@@ -1777,6 +1777,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-basket__remove svg { width: 14px; height: 14px; fill: none; stroke: var(--muted); stroke-width: 2.4; stroke-linecap: round; }
 .gl-basket__remove:hover { border-color: var(--fall); }
 .gl-basket__remove:hover svg { stroke: var(--fall); }
+.gl-basket__quota { padding-bottom: 10px; }
+.gl-basket__quota p { margin: 0; font-size: .8rem; font-weight: 600; color: var(--muted); }
+
+/* ---------------------------------------------------------------------------------------------
+   IP-164 · คำอธิบายว่าทำไมหยิบไม่ได้ ขึ้นเมื่อผู้ใช้กดจริงเท่านั้น
+
+   ทึบสนิท ไม่ใช่กระจก ตามคำวินิจฉัยเจ้าของงาน 2026-08-29 ข้อ 9 — ของที่ลอยทับเนื้อหาอื่น
+   ต้องอ่านออกในทุกฉากหลังที่มันบังเอิญไปลอยอยู่ข้างบน
+--------------------------------------------------------------------------------------------- */
+.gl-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; flex-direction: column; }
+.gl-dock .gl-basket { position: static; }
+.gl-pickgate { border-top: 1px solid var(--glass-line); background: var(--paper); box-shadow: 0 -18px 40px -32px rgba(7, 48, 71, .85); }
+.gl-pickgate__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; padding-bottom: 12px; }
+.gl-pickgate__text { flex: 1 1 260px; margin: 0; font-size: .88rem; line-height: 1.6; color: var(--ink-body); }
+.gl-pickgate__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.gl-pickgate__close { min-height: 38px; padding: .4rem .95rem; border: 1px solid var(--glass-line); border-radius: 999px; background: transparent; color: var(--ink-body); font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; }
+.gl-pickgate__close:hover { border-color: var(--price-lead); color: var(--ink); }
 
 .gl-afterword { padding-bottom: 7rem; }
 .gl-afterword__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin: 1.1rem 0; }

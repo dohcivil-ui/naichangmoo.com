@@ -5,6 +5,8 @@ import { answerLedger, readProvinces } from "@/server/price-ledger-query";
 import unitPriceData from "@/data/obec/obec-2569-unit-prices.json";
 import labourData from "@/data/cgd/cgd-w809-labour-be2568.json";
 import { platformApps } from "@/lib/platform";
+import { getPricemetrAccess } from "@/server/pricemetr-access";
+import { headers } from "next/headers";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -56,7 +58,13 @@ function readCategoryArtwork(): string[] {
 }
 
 export default async function PriceCheckPrototypePage() {
-  const [master, firstAnswer] = await Promise.all([readProvinces(), firstAnswerWithin(2500)]);
+  // สิทธิ์ถูกตัดสินที่นี่ ไม่ใช่ที่เบราว์เซอร์ (IP-164) หน้าจอได้แค่ตัวเลขที่ตัดสินแล้ว
+  // ไม่เคยเห็นแถวสิทธิ์ดิบ และ API ก็ตรวจซ้ำเองอีกชั้นโดยไม่เชื่อค่าที่หน้าจอส่งมา
+  const [master, firstAnswer, access] = await Promise.all([
+    readProvinces(),
+    firstAnswerWithin(2500),
+    getPricemetrAccess(await headers())
+  ]);
   const unitRows = unitPriceData as UnitPriceRow[];
   const labourRows = labourData as LabourRow[];
   const artwork = readCategoryArtwork();
@@ -66,7 +74,7 @@ export default async function PriceCheckPrototypePage() {
 
   return (
     <AppShell app={app} mode="prototype">
-      <PriceWorkspace provinces={master.provinces} period={master.period} unitRows={unitRows} labourRows={labourRows} firstAnswer={firstAnswer} artwork={artwork} />
+      <PriceWorkspace provinces={master.provinces} period={master.period} unitRows={unitRows} labourRows={labourRows} firstAnswer={firstAnswer} artwork={artwork} access={access} />
 
       {/* ก้อน "ขอบเขตของต้นแบบนี้" ถูกถอดออก 2026-08-28 — โน้ต dev/admin (แหล่งไฟล์ภายใน
           ขีดจำกัดการอ่าน ว809, path docs/requirements) ไม่ใช่ของโชว์ชาวบ้าน — คำสั่งเจ้าของงาน
