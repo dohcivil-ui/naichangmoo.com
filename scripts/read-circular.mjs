@@ -82,9 +82,9 @@ if (mode === "image") {
   }
   const img = await new Promise((resolve) => page.objs.get(ops.argsArray[index][0], resolve));
   const { width: W, height: H, data, kind } = img;
-  const bpp = kind === 3 ? 4 : 3;
   const w = Math.floor(W / divisor);
   const h = Math.floor(H / divisor);
+  const read = pixelReader(kind, W, data);
 
   const raw = Buffer.alloc((w * 3 + 1) * h);
   let p = 0;
@@ -94,8 +94,8 @@ if (mode === "image") {
       let r = 0, g = 0, b = 0;
       for (let dy = 0; dy < divisor; dy++) {
         for (let dx = 0; dx < divisor; dx++) {
-          const i = ((y * divisor + dy) * W + (x * divisor + dx)) * bpp;
-          r += data[i]; g += data[i + 1]; b += data[i + 2];
+          const px = read(x * divisor + dx, y * divisor + dy);
+          r += px[0]; g += px[1]; b += px[2];
         }
       }
       const n = divisor * divisor;
@@ -109,6 +109,35 @@ if (mode === "image") {
 
 console.error(`unknown mode: ${mode}`);
 process.exit(1);
+
+/**
+ * อ่านหนึ่งพิกเซลออกมาเป็น RGB ไม่ว่าต้นทางจะเก็บมาแบบไหน
+ *
+ * pdf.js ส่งภาพกลับมาได้สามแบบ และเคยมีบั๊กตรงนี้เพราะโค้ดเดิมสมมติว่าทุกภาพเป็นสามไบต์ต่อพิกเซล
+ * เว้นแต่เป็น RGBA เท่านั้น หน้าสแกนขาวดำจึงถูกอ่านผิดทั้งหน้าโดยไม่มี error สักบรรทัด
+ * (ว 109 หน้า 2 ถึง 4 เป็น kind 1 ขนาด 2496x3507 ข้อมูลจริง 1,094,184 ไบต์
+ * แต่โค้ดเดิมไปหาไบต์ที่ตำแหน่งสูงถึง 26,260,416 ซึ่งเลยปลายอาร์เรย์ไปยี่สิบห้าเมกะไบต์
+ * ผลคือได้ undefined กลับมาแล้วบวกเข้าไปในผลรวม ภาพที่ออกมาจึงเป็นขยะ)
+ *
+ * - kind 1 GRAYSCALE_1BPP หนึ่งบิตต่อพิกเซล แต่ละแถวปัดขึ้นเป็นจำนวนไบต์เต็ม บิตซ้ายสุดมาก่อน
+ * - kind 2 RGB_24BPP สามไบต์ต่อพิกเซล
+ * - kind 3 RGBA_32BPP สี่ไบต์ต่อพิกเซล อ่านสามไบต์แรกพอ
+ */
+function pixelReader(kind, width, data) {
+  if (kind === 1) {
+    const rowBytes = (width + 7) >> 3;
+    return (x, y) => {
+      const bit = (data[y * rowBytes + (x >> 3)] >> (7 - (x & 7))) & 1;
+      const value = bit ? 255 : 0;
+      return [value, value, value];
+    };
+  }
+  const bpp = kind === 3 ? 4 : 3;
+  return (x, y) => {
+    const i = (y * width + x) * bpp;
+    return [data[i], data[i + 1], data[i + 2]];
+  };
+}
 
 /** Minimal 8-bit RGB PNG encoder, so no image library is needed for a one-off read. */
 function png(width, height, raw) {

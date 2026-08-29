@@ -1308,7 +1308,7 @@ function ActivitiesTab({
                 </td>
                 <td className="number-cell">
                   <input
-                    className="work-plan__cell work-plan__cell--number"
+                    className="work-plan__cell work-plan__cell--number work-plan__cell--money"
                     value={formatBaht(activity.costSatang)}
                     inputMode="decimal"
                     onChange={(event) => {

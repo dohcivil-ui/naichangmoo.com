@@ -1161,6 +1161,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__cell:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--focus); outline: none; }
 .work-plan__cell--number { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
 .work-plan__cell--tiny { min-width: 54px; }
+/* ช่องค่างานต้องกว้างพอสำหรับจำนวนเงินที่ยาวที่สุดที่พิมพ์ลงไปได้จริง คือสิบสามหลักกับสตางค์
+   1,234,567,890,123.00 ซึ่งวัดในเบราว์เซอร์จริงได้ 138.38px บวกช่องไฟกับเส้นขอบเป็น 153.84px
+   กว้างเป็น ch ไม่ใช่ px เพราะ ch คือความกว้างของเลขศูนย์ในฟอนต์ของช่องเอง วันที่เปลี่ยนฟอนต์
+   หรือขนาดตัวอักษร ช่องจะโตตามโดยไม่ต้องมีใครจำได้ว่ามีเลขวิเศษตัวนี้อยู่
+   ก่อนแก้ ช่องกว้างแค่ 104.6px ค่าตั้งต้นของแผนตัวอย่าง 1,407,697,000.00 ก็ถูกตัดแล้ว 6.11px */
+.work-plan__cell--money { min-width: 20ch; }
 .work-plan__row-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 1rem; }
 
 .work-plan__afterword { padding-top: 0; }
