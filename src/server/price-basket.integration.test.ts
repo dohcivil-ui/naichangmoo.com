@@ -219,6 +219,41 @@ describe.skipIf(!enabled)("รายการราคาที่หยิบ�
     expect(audits[0]?.eventType).toBe("price_set.created_from_basket");
   });
 
+  it("ฝั่ง ESTIMETR อ่านชุดราคาที่รับมาได้ครบ พร้อมหลักฐานรายบรรทัด", async () => {
+    const repo = await import("@/server/estimeter/price-set-repository");
+    const sets = await repo.listPriceSets(ORG_ID, "test-basket-project");
+    expect(sets).toHaveLength(1);
+    expect(sets[0].lineCount).toBe(50);
+    expect(sets[0].provinceCode).toBe("10");
+    expect(sets[0].effectiveMonth).toBe("2569-07");
+    // ยอดรวมคิดที่ฐานข้อมูลจากบรรทัดจริง ไม่ใช่ตัวเลขที่ใครพิมพ์เก็บไว้
+    expect(sets[0].totalSatang).toBeGreaterThan(0n);
+
+    const lines = await repo.listPriceSetLines(ORG_ID, sets[0].id);
+    expect(lines).toHaveLength(50);
+    const one = lines.find((row) => row.catalogCode === "TEST-BASKET-1");
+    expect(one?.sourceKey).toBe("tpso");
+    expect(one?.effectiveMonth).toBe("2569-07");
+    expect(one?.provinceCode).toBe("10");
+    expect(one?.addedBy).toBe(USER_ID);
+  });
+
+  it("ยอดรวมของฝั่งรับตรงกับที่คูณเองทีละบรรทัด ไม่เพี้ยนในหลักสตางค์", async () => {
+    const repo = await import("@/server/estimeter/price-set-repository");
+    const [set] = await repo.listPriceSets(ORG_ID, "test-basket-project");
+    const lines = await repo.listPriceSetLines(ORG_ID, set.id);
+    const byHand = lines.reduce((total, row) => total + BigInt(Math.round(Number(row.unitSatang) * row.quantity)), 0n);
+    expect(set.totalSatang).toBe(byHand);
+  });
+
+  it("องค์กรอื่นอ่านชุดราคาของโครงการนี้ไม่ได้ แม้จะรู้ id", async () => {
+    const repo = await import("@/server/estimeter/price-set-repository");
+    const [set] = await repo.listPriceSets(ORG_ID, "test-basket-project");
+    // ขอบเขตผูกที่ join ไม่ใช่ตรวจทีหลัง id ขององค์กรอื่นจึงแยกไม่ออกจาก id ที่ไม่มีอยู่จริง
+    expect(await repo.listPriceSets("test-basket-not-my-org", "test-basket-project")).toEqual([]);
+    expect(await repo.listPriceSetLines("test-basket-not-my-org", set.id)).toEqual([]);
+  });
+
   it("ตะกร้าว่างส่งไม่ได้", async () => {
     for (const row of (await mod.readBasket(USER_ID)).lines) {
       await mod.dropLine(USER_ID, row.lineKey);

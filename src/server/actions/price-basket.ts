@@ -1,7 +1,10 @@
 "use server";
 
 import { headers } from "next/headers";
+import { getDb } from "@/db";
 import { getPlatformSessionUser } from "@/server/auth-session";
+import { readMembershipOrganization } from "@/server/app-access";
+import { listProjects } from "@/server/estimeter/project-repository";
 import {
   dropLine,
   pickLine,
@@ -53,14 +56,14 @@ export type BasketTargetProject = { id: string; name: string };
  *
  * ขอบเขตองค์กรอยู่ใน `listProjects` อยู่แล้ว ที่นี่จึงแค่หาว่าผู้ใช้อยู่องค์กรไหน
  * คนที่ยังไม่เคยมีองค์กรได้รายการว่าง ไม่ใช่ error เพราะเขายังไม่เคยสร้างโครงการเลย
+ *
+ * รอบแรกเขียนด้วย `await import()` เพื่อให้ไฟล์นี้บาง ผลคือคำขอค้างอยู่ฝั่งเซิร์ฟเวอร์
+ * ไม่ตอบและไม่โยน หน้าจอขึ้น "กำลังอ่านรายชื่อโครงการ" ค้างตลอดกาล และไม่มี error
+ * ให้เห็นที่ไหนเลย จับได้ตอนเปิดของจริงเท่านั้น — import ปกติเหมือนไฟล์ action อื่น
  */
 export async function listBasketTargetProjects(): Promise<BasketTargetProject[]> {
   const userId = await viewer();
   if (!userId) return [];
-
-  const { getDb } = await import("@/db");
-  const { readMembershipOrganization } = await import("@/server/app-access");
-  const { listProjects } = await import("@/server/estimeter/project-repository");
 
   const organizationId = await readMembershipOrganization(getDb(), userId);
   if (!organizationId) return [];

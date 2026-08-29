@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
+import { PriceSetPanel } from "@/components/estimeter/price-set-panel";
+import { listPriceSetLines, listPriceSets, type PriceSetLineView } from "@/server/estimeter/price-set-repository";
 import { formatQuantity } from "@/lib/takeoff-quantity";
 import { summarizeConfirmedQuantities } from "@/lib/takeoff-summary";
 import { unitLabel } from "@/lib/takeoff-units";
@@ -30,6 +32,15 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   const closedRuns = runs.filter((run) => run.state === "succeeded");
   const canEdit = result.context.access.capabilities.edit;
 
+  // ชุดราคาที่ PRICEMETR ส่งเข้ามา (IP-163) อ่านบรรทัดของทุกชุดพร้อมกัน เพราะหน้านี้แสดงครบ
+  // อยู่แล้ว การเปิดทีละชุดจะเพิ่มรอบไปกลับโดยไม่ได้ลดข้อมูลที่ต้องอ่าน
+  const priceSets = await listPriceSets(organizationId, project.id);
+  const priceSetLines = await Promise.all(priceSets.map((set) => listPriceSetLines(organizationId, set.id)));
+  const linesBySet: Record<string, PriceSetLineView[]> = {};
+  priceSets.forEach((set, index) => {
+    linesBySet[set.id] = priceSetLines[index];
+  });
+
   const takeoffStatus = openRun
     ? `กำลังทำงาน · ${items.length} รายการ ยืนยันแล้ว ${summary.reduce((total, row) => total + row.itemCount, 0)}`
     : closedRuns.length > 0
@@ -45,7 +56,15 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
       status: "ยังไม่เปิดใช้งาน · ระหว่างนี้อ้างอิงแบบเป็นข้อความได้"
     },
     { id: 3, label: "ถอดปริมาณพร้อมหลักฐาน", note: "หน่วย ปริมาณ และที่มาของการวัด", status: takeoffStatus },
-    { id: 4, label: "ประมาณราคาและสรุป BOQ", note: "price set ที่อนุมัติ และเอกสาร", status: "ยังไม่เปิดใช้งาน" }
+    {
+      id: 4,
+      label: "ประมาณราคาและสรุป BOQ",
+      note: "ชุดราคาที่รับมา และเอกสาร",
+      status:
+        priceSets.length > 0
+          ? `รับชุดราคาแล้ว ${priceSets.length} ชุด · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด`
+          : "ยังไม่มีชุดราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้"
+    }
   ];
 
   return (
@@ -142,6 +161,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
             </>
           )}
         </div>
+
+        <PriceSetPanel priceSets={priceSets} linesBySet={linesBySet} projectName={project.name} />
 
         <div className="hero__actions">
           <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Link>

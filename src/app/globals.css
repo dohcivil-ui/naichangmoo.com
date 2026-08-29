@@ -1795,6 +1795,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-pickgate__close { min-height: 38px; padding: .4rem .95rem; border: 1px solid var(--glass-line); border-radius: 999px; background: transparent; color: var(--ink-body); font-family: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; }
 .gl-pickgate__close:hover { border-color: var(--price-lead); color: var(--ink); }
 
+/* IP-163 · ชุดราคาที่โครงการรับมาแล้ว ฝั่ง ESTIMETR */
+.price-set { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--glass-line); }
+.price-set__head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.price-set__head h3 { margin: 0 0 .25rem; font-size: 1rem; color: var(--ink); }
+.price-set__head p { margin: 0; font-size: .82rem; color: var(--muted); }
+.price-set__total { text-align: right; }
+.price-set__total span { display: block; font-size: .74rem; font-weight: 700; color: var(--muted); }
+.price-set__total strong { font-size: 1.28rem; font-weight: 800; color: var(--ink); }
+.price-set__total small { font-size: .8rem; color: var(--muted); }
+.price-set .takeoff-table small { display: block; margin-top: .2rem; font-size: .74rem; font-weight: 500; color: var(--muted); }
+.price-set code { font-size: .76rem; }
+
 /* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
 .gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
 .gl-send__picker { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--paper); }

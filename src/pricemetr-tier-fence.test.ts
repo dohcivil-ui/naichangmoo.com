@@ -16,6 +16,17 @@ import { FREE_HISTORY_MONTHS, FREE_LINE_LIMIT, allowanceOf } from "@/lib/priceme
 
 const read = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8");
 
+/**
+ * อ่านเฉพาะโค้ด ตัดคอมเมนต์ทิ้ง
+ *
+ * กฎที่ห้ามเขียนโค้ดแบบหนึ่งไม่ควรยิงใส่คอมเมนต์ที่อธิบายว่าทำไมถึงห้าม — ด่าน `await import()`
+ * ข้างล่างจับคอมเมนต์ของตัวเองได้ในรอบแรก ซึ่งทำให้คนถัดไปต้องลบคำอธิบายทิ้งเพื่อให้เทสต์เขียว
+ */
+const codeOf = (rel: string) =>
+  read(rel)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+
 const PRICEMETR_SOURCES = [
   "src/lib/pricemetr-tier.ts",
   "src/server/pricemetr-access.ts",
@@ -170,6 +181,17 @@ describe("รายการที่หยิบไว้", () => {
     expect(actions).not.toMatch(/canPickAnotherLine|FREE_LINE_LIMIT|lineLimit|allowance\./);
   });
 
+  it("ไฟล์ server action ห้ามใช้ await import() — คำขอจะค้างเงียบโดยไม่มี error ให้เห็น", () => {
+    // เจ็บมาแล้ว 2026-08-29: listBasketTargetProjects เขียนด้วย await import() เพื่อให้ไฟล์บาง
+    // ผลคือคำขอไม่ตอบและไม่โยน หน้าจอขึ้น "กำลังอ่านรายชื่อโครงการ" ค้างตลอดกาล
+    // log ของเซิร์ฟเวอร์ไม่มีบรรทัดของ action นั้นเลย เพราะมันไม่เคยจบ
+    // จับได้ตอนเปิดของจริงเท่านั้น เทสต์และ typecheck เขียวหมด
+    const offenders = PRICEMETR_SOURCES.filter(
+      (rel) => rel.includes("/actions/") && /await\s+import\(/.test(codeOf(rel))
+    );
+    expect(offenders).toEqual([]);
+  });
+
   it("ที่มาของบรรทัดไม่ถูกเก็บเป็นข้อความ แต่สร้างจากหลักฐานทุกครั้ง", () => {
     // ข้อความแสดงผลที่แช่ไว้จะเน่าวันที่ถ้อยคำเปลี่ยน แล้วของเก่ากับของใหม่จะพูดคนละแบบ
     expect(basket).not.toMatch(/origin:\s*["'`]/);
@@ -208,5 +230,8 @@ describe("พิสูจน์ว่าตัวตรวจยังกัด"
 
     const copyTrap = "body: JSON.stringify({ months: 24 })";
     expect(/months:\s*(6|24)\b|lineLimit:\s*\d|limit\s*=\s*50\b/.test(copyTrap)).toBe(true);
+
+    const dynamicImportTrap = 'const { listProjects } = await import("@/server/estimeter/project-repository");';
+    expect(/await\s+import\(/.test(dynamicImportTrap)).toBe(true);
   });
 });
