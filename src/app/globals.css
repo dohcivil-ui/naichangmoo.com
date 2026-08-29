@@ -777,8 +777,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    box split by a hairline. Invisible until a category held more than one app. 16px separates cards
    inside a category; .market-category-stack uses 18px because it separates whole categories. */
 .market-category__apps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-/* พื้นของการ์ดมาจากครัวกลางท้ายไฟล์ กฎนี้เหลือแต่การจัดวาง — ถ้าตั้งพื้นตรงนี้ด้วย
-   มันจะชนะครัวกลางเพราะเจาะจงกว่า (0,2,0 เทียบ 0,1,0) โดยไม่มีอะไรเตือน */
+/* พื้นของการ์ดมาจาก SSOT (แหล่งอ้างอิงหลัก) ท้ายไฟล์ กฎนี้เหลือแต่การจัดวาง
+   ถ้าตั้งพื้นตรงนี้ด้วย มันจะชนะ SSOT เพราะเจาะจงกว่า (0,2,0 เทียบ 0,1,0) โดยไม่มีอะไรเตือน */
 .market-category__apps .app-card { min-height: 0; display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(180px, auto); align-items: center; gap: 21px; padding: 20px 22px; }
 .market-category__apps .app-card__icon-wrap { width: 88px; height: 88px; margin: 0; border-radius: 22px; }
 .market-category__apps .app-card__icon { width: 94px; height: 94px; }
@@ -2153,7 +2153,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-group__rule { flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
 
 /* ============================================================================
-   การ์ดกระจกของกลาง — ที่เดียวของทั้งเว็บ
+   การ์ดกระจก — SSOT (แหล่งอ้างอิงหลัก) ของทั้งเว็บ
    เจ้าของงานสั่ง 2026-08-29 "ทำให้เหมือนกันทั้งเว็บเลย รวมถึงหน้า landing ด้วย"
    โดยยึดหน้า PRICEMETR เป็นต้นฉบับ
 
@@ -2168,16 +2168,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    - ตารางข้อมูล ช่องกรอก และกราฟ คือของที่คนมาอ่านและมาพิมพ์ ตัวหนังสือบนพื้นโปร่ง
      อ่านยากกว่าที่ตาเห็นตอนออกแบบ
    - เอกสารสำหรับพิมพ์ลงกระดาษ กระจกไม่มีความหมายบนกระดาษ
+   - **เมนูที่ลอยทับเนื้อหาอื่น** เช่นเมนูบัญชีบนแถบนำทาง ต้องทึบเสมอ เพราะของที่อยู่ข้างหลัง
+     เป็นอะไรก็ได้ ครั้งแรกผมใส่กระจกให้มัน ภาพประกอบของหน้าข้างหลังก็ทะลุขึ้นมาจนอ่านไม่ออก
+     กระจกใช้กับการ์ดที่นั่งอยู่บนพื้นของหน้า ไม่ใช้กับของที่ลอยทับของอื่น
    ============================================================================ */
 .glass-card,
 .admin-card, .admin-stat,
 .workspace-panel, .estimation-evidence,
 .app-card, .hermes-panel, .evidence-gap__item,
 .access-tier, .day-pass,
-.account-page__card, .account-panel,
+.account-page__card,
 .policy-page__panel, .quote-form,
 .market-detail__card {
-  position: relative;
   border: 1px solid var(--glass-line);
   /* ทึบกว่ากระจกของ PRICEMETR เพราะการ์ดพวกนี้แบกย่อหน้าอธิบายกับตัวเลขตัวเล็ก
      ไม่ใช่ป้ายราคาตัวโต ส่วนความเป็นกระจกที่ตาเห็นมาจากฉากหลังที่ลอดขึ้นมา เส้นขอบ เงา
@@ -2200,6 +2202,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
 }
 
+/* ตั้ง position ให้เฉพาะใบที่ยังไม่มีตำแหน่งของตัวเอง เพราะแสงกวาดเป็น ::after ที่ต้องมี
+   บรรพบุรุษที่ถูกวางตำแหน่งไว้ · **ห้ามใส่ position: relative รวดเดียวทั้งรายการ** สองใบข้างล่าง
+   มีตำแหน่งของตัวเองอยู่แล้วและพังทันทีถ้าถูกทับ:  เป็นเมนูลอย (absolute)
+   ถ้าถูกทับเป็น relative มันจะตกลงมาอยู่ในสายเนื้อหาแล้วดันปุ่มทรงแคปซูลให้ยืดเป็นวงรีทั้งแถบบน
+   ส่วน .estimation-evidence เกาะขอบบนตอนเลื่อน (sticky) ถ้าถูกทับก็เลิกเกาะ
+   ทั้งสองอย่างนี้หลุดออกไปกับรุ่น v0.91.0 และเจ้าของงานเป็นคนเห็นก่อน */
+.glass-card, .admin-card, .admin-stat, .workspace-panel,
+.access-tier, .day-pass, .account-page__card,
+.policy-page__panel, .quote-form, .market-detail__card { position: relative; }
+
 /* แสงกวาดทแยง เลื่อนด้วย background-position ไม่ใช่ transform โดยตั้งใจ
    ของหลังบ้านชุดเดิมใช้ transform คู่กับ overflow: hidden ที่ใบการ์ด ซึ่งใช้ทั้งเว็บไม่ได้
    เพราะ overflow ที่บรรพบุรุษฆ่า position: sticky และมีของที่ sticky อยู่จริงหลายจุด
@@ -2209,7 +2221,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .workspace-panel::after, .estimation-evidence::after,
 .hermes-panel::after, .evidence-gap__item::after,
 .access-tier::after, .day-pass::after,
-.account-page__card::after, .account-panel::after,
+.account-page__card::after,
 .policy-page__panel::after, .quote-form::after,
 .market-detail__card::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -2225,7 +2237,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .workspace-panel:hover,
 .hermes-panel:hover, .evidence-gap__item:hover,
 .access-tier:hover, .day-pass:hover,
-.account-page__card:hover, .account-panel:hover,
+.account-page__card:hover,
 .policy-page__panel:hover, .quote-form:hover,
 .market-detail__card:hover {
   transform: translateY(-4px);
@@ -2238,7 +2250,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .workspace-panel:hover::after, .estimation-evidence:hover::after,
 .hermes-panel:hover::after, .evidence-gap__item:hover::after,
 .access-tier:hover::after, .day-pass:hover::after,
-.account-page__card:hover::after, .account-panel:hover::after,
+.account-page__card:hover::after,
 .policy-page__panel:hover::after, .quote-form:hover::after,
 .market-detail__card:hover::after { background-position: -50% 0; }
 
@@ -2285,16 +2297,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   /* G12: ปิดการเคลื่อนไหวแล้วต้องนิ่งสนิท ทั้งตอนเปิดหน้าและตอนชี้ — ที่เดียวของทั้งเว็บ */
   .glass-card, .admin-card, .admin-stat, .workspace-panel, .estimation-evidence,
   .app-card, .hermes-panel, .evidence-gap__item, .access-tier, .day-pass,
-  .account-page__card, .account-panel, .policy-page__panel, .quote-form, .market-detail__card { animation: none; }
+  .account-page__card, .policy-page__panel, .quote-form, .market-detail__card { animation: none; }
   .glass-card:hover, .admin-card:hover, .admin-stat:hover, .workspace-panel:hover,
   .app-card:hover, .hermes-panel:hover, .evidence-gap__item:hover, .access-tier:hover,
-  .day-pass:hover, .account-page__card:hover, .account-panel:hover,
+  .day-pass:hover, .account-page__card:hover,
   .policy-page__panel:hover, .quote-form:hover, .market-detail__card:hover,
   .glass-card:active, .admin-card:active, .admin-stat:active, .workspace-panel:active { transform: none; }
   .glass-card::after, .admin-card::after, .admin-stat::after, .workspace-panel::after,
   .estimation-evidence::after, .app-card::after, .hermes-panel::after,
   .evidence-gap__item::after, .access-tier::after, .day-pass::after,
-  .account-page__card::after, .account-panel::after, .policy-page__panel::after,
+  .account-page__card::after, .policy-page__panel::after,
   .quote-form::after, .market-detail__card::after { display: none; }
   .work-plan__tab:hover { transform: none; }
 }
