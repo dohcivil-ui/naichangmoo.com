@@ -39,7 +39,24 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--canvas); color: var(--ink-body); font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", Arial, sans-serif; }
+/* ฉากหลังของทั้งเว็บอยู่ที่นี่ที่เดียว — เจ้าของงานสั่ง 2026-08-29 ให้ทุกหน้าเหมือนกัน
+ * โดยยึดหน้า PRICEMETR เป็นต้นฉบับ ค่าสีทั้งสี่ก้อนถอดมาจากหน้านั้นจริง วิธีวัดกับตัวเลข
+ * ที่ไล่มาสี่รอบอยู่ในบล็อก "การ์ดกระจกของกลาง" ท้ายไฟล์
+ *
+ * วางที่ body เพราะเป็นผืนเดียวที่ทุกหน้ามีร่วมกัน หน้าไหนมีพื้นของตัวเองทับ (hero สีเข้ม
+ * ของหน้าแรก · .gl-ambient ของ PRICEMETR) ก็ทับได้ตามเดิม ไม่ต้องยกเว้นเป็นราย ๆ */
+body {
+  margin: 0;
+  background:
+    radial-gradient(48vw 74vh at 6% 20%, rgb(196, 223, 223) 0 24%, transparent 80%),
+    radial-gradient(44vw 54vh at 18% 92%, rgb(200, 225, 225) 0 14%, transparent 78%),
+    radial-gradient(32vw 54vh at 84% 50%, rgb(210, 217, 221) 0 14%, transparent 72%),
+    radial-gradient(26vw 30vh at 46% 74%, rgb(243, 238, 233), transparent 66%),
+    var(--canvas);
+  background-attachment: fixed;
+  color: var(--ink-body);
+  font-family: var(--font-prompt), "Prompt", "Noto Sans Thai", Arial, sans-serif;
+}
 button, input, select, textarea { font: inherit; }
 
 /* IP-203 — คอลัมน์ตัวเลขในตารางใช้ฟอนต์ที่เลขกว้างเท่ากัน
@@ -657,6 +674,60 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .estimation-evidence { position: sticky; top: 98px; padding: 1.2rem; }.estimation-evidence h2 { margin: .3rem 0 1.15rem; color: #0b3c4e; font-size: 1.15rem; line-height: 1.25; }.estimation-evidence ol { display: grid; gap: .95rem; margin: 0; padding: 0; list-style: none; }.estimation-evidence li { display: flex; gap: .65rem; }.estimation-evidence li > span { display: grid; width: 1.65rem; height: 1.65rem; flex: 0 0 auto; place-items: center; border-radius: 50%; background: #e7f3f1; color: #0b7777; font-size: .65rem; font-weight: 800; }.estimation-evidence strong { color: #224855; font-size: .8rem; }.estimation-evidence p { margin: .12rem 0 0; color: #768b91; font-size: .72rem; line-height: 1.42; }.estimation-evidence__note { margin-top: 1.2rem; border-top: 1px solid #e3edeb; padding-top: .9rem; }.estimation-evidence__note strong { color: #0c6668; font-size: .78rem; }
 
 @media (max-width: 960px) { .estimation-board { grid-template-columns: 1fr; }.estimation-evidence { position: static; }.estimation-evidence ol { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---- ธีมกระจกของแอปแผนงานและ ESTIMETR — เจ้าของงานสั่งเอาธีม PRICEMETR มาใส่ 2026-08-29
+ *
+ * ใช้กระปุกกระจกชุดเดียวกับ PRICEMETR ที่อยู่ใน :root อยู่แล้ว (--glass-line, --glass-lift)
+ * ไม่มีสีใหม่เข้ามาในเว็บ · reaction ลอกมาครบตามที่สั่ง ชี้แล้วยก 4px พร้อมเงาสีนำ
+ * แสงกวาดทแยงผ่านใบ กดแล้วยุบ และทยอยโผล่ทีละใบตอนเปิดหน้า
+ *
+ * สามอย่างที่ **คง** พื้นทึบไว้ตามที่เคาะกัน คือตารางเงิน ช่องกรอก และกราฟ S-Curve
+ * หน้านี้คือหน้าที่คนมาอ่านตัวเลขแล้วพิมพ์ตัวเลข ตัวหนังสือบนพื้นโปร่งอ่านยากกว่าที่ตาเห็น
+ * ตอนออกแบบ การ์ดจึงเป็นกรอบกระจก ส่วนเนื้อข้อมูลข้างในยืนบนพื้นทึบเหมือนเดิม ---- */
+
+/* ฉากหลังไล่สี ค่าสีทั้งสี่ก้อนไม่ได้เดา — ถอดหน้า PRICEMETR ให้เหลือแต่ฉากหลัง ถ่ายจอ
+   แล้วอ่านค่าพิกเซลจริงออกมาเป็นตาราง 7x5 เมื่อ 2026-08-29 ที่จอ 1514x822 ได้ว่า
+   ริมซ้ายเป็น teal ตั้งแต่บนจรดล่าง เข้มสุด rgb(192,221,221) ฝั่งขวากลางเป็นเทาหมึก
+   rgb(210,217,221) มีรอยส้มอุ่นกลางล่าง rgb(243,238,233) และใจกลางจอเท่ากับ --canvas
+   พอดีคือ rgb(244,247,247) ความห่างจากขาวเฉลี่ยของต้นฉบับคือ 21.8
+
+   ตำแหน่งกับรัศมีไล่มาสี่รอบโดยถ่ายจอเทียบกับต้นฉบับทุกรอบ ไม่ใช่ปรับด้วยสายตา
+   รอบสุดท้ายได้ความห่างจากขาวเฉลี่ย 21.5 เทียบต้นฉบับ 21.8 ต่างกันเฉลี่ยจุดละ 3.5 จาก 255
+   (รอบแรกต่าง 7.4) จุดที่ยังต่างมากสุดคือมุมซ้ายล่าง ต่าง 9.7
+
+   เทียบเฉพาะพื้นที่ซ้าย 71% ของจอโดยตั้งใจ เพราะขวามือของหน้านี้เป็นแผงผู้ช่วยกว้าง 380px
+   ที่ยืนทับอยู่จริง ครั้งแรกผมเทียบทั้งจอแล้วได้ตัวเลขที่ดูแย่กว่าความจริง เพราะตอนถ่ายต้นฉบับ
+   ผมซ่อนแผงผู้ช่วยไว้ ฉากหลังของมันจึงโผล่เต็มจอ ส่วนของหน้านี้ตรงนั้นเป็นแผงทึบ
+
+   ต่างจากหลังบ้านตรงตำแหน่ง หลังบ้านต้องเลื่อนก้อน teal ไปที่ 28% เพราะมีแถบข้างทึบ
+   กว้าง 252px ยืนทับริมซ้ายอยู่ หน้านี้ไม่มีแถบข้าง ก้อน teal จึงกลับไปอยู่ริมซ้ายตามต้นฉบับ
+
+   ใช้ background-attachment: fixed แทนผืน ::before ที่ position: fixed ด้วยเหตุผลสองข้อ
+   หนึ่ง หน้า /apps/estimeter มี .estimation-workspace สองก้อนในหน้าเดียว ผืน fixed สองผืน
+   จะทับกันจนสีเข้มเป็นสองเท่า ส่วนพื้นหลังแบบนี้แต่ละก้อนทาเฉพาะพื้นที่ของตัวเองแต่ยึดกับจอ
+   จึงต่อกันสนิท สอง ผืน fixed คือของที่เคยทาทับท้ายเว็บมาแล้วในรุ่น v0.89.0 */
+/* ปล่อยให้ฉากหลังของ body โผล่ขึ้นมา — ของเดิมเป็นไล่สีแนวตั้งทึบที่ปิดฉากหลังทั้งผืน */
+.estimation-workspace { background: transparent; }
+
+/* คำนำหัวการ์ดอ่านไม่ออกมาตั้งแต่ก่อนธีมนี้ วัดได้ 1.31:1 บนพื้นการ์ด (เกณฑ์ 4.5:1)
+   เพราะสีพื้นฐานของ .eyebrow คือมิ้นต์อ่อน #aee6dd ที่ออกแบบมาสำหรับพื้นเข้มของ hero
+   หน้าอื่นที่วางมันบนพื้นสว่างทับเป็น var(--teal) กันหมดแล้ว (บัญชี ตลาด การ์ดรายละเอียด)
+   หน้านี้ตกหล่นมาแต่แรก จึงทำตามแบบเดียวกัน ไม่ได้คิดวิธีใหม่
+
+   ต่างจากหน้าอื่นตรงเดียวคือหน้าอื่นใช้ var(--teal) เปล่า ๆ ซึ่งวัดบนพื้นการ์ดนี้ได้ 4.37:1
+   ยังไม่ถึงเกณฑ์ 4.5:1 เพราะ .eyebrow เป็นตัวอักษร 12px ซึ่งไม่นับเป็นตัวใหญ่แม้จะหนา 700
+   ค่านี้คือ --teal 88% ผสมหมึก --ink 12% คำนวณไว้แล้ว วัดได้ 4.96:1 บนพื้นการ์ด
+
+   **เขียนเป็นเลขตรง ๆ ไม่ใช่ color-mix โดยตั้งใจ** — ตัวแปลง CSS ของ Next แปลง
+   color-mix ที่ผสมตัวแปรสองตัวเข้าด้วยกัน ให้เหลือแค่ตัวแรกเงียบ ๆ
+   `color-mix(in srgb, var(--teal) 88%, var(--ink))` ออกมาที่เบราว์เซอร์เป็น `var(--teal)`
+   ตรวจจากสไตล์ชีตที่หน้าโหลดจริงเมื่อ 2026-08-29 ไม่มี error ไม่มีคำเตือน สีก็แค่ไม่เปลี่ยน
+   (ผสมตัวแปรกับค่าคงที่ยังทำงาน เช่นเงาตอนชี้ของการ์ด ที่พังคือตัวแปรผสมตัวแปร) */
+.estimation-workspace .eyebrow { color: rgb(12, 120, 123); }
+
+/* แท็บสี่อันเป็นชิปกระจก — แก้ที่กฎเดิมของแท็บด้านล่างโดยตรง ไม่เขียนกฎซ้อนทับตรงนี้
+   เพราะกฎเดิมอยู่ล่างกว่าในไฟล์ กฎซ้อนที่นี่จะแพ้ทุกครั้งโดยไม่มีอะไรเตือน (เจอมาแล้วรอบนี้)
+   และการแก้ด้วย !important คือการทิ้งปัญหาไว้ให้คนถัดไป */
 @media (max-width: 720px) { .estimation-workspace { padding: 2rem 0 3.5rem; }.estimation-workspace__head { display: grid; gap: 1rem; }.estimation-workspace__progress { width: 100%; }.estimation-steps { display: flex; overflow-x: auto; padding-bottom: .35rem; scroll-snap-type: x proximity; }.estimation-step { min-width: 176px; scroll-snap-align: start; }.review-grid, .cost-breakdown, .boq-summary-grid { grid-template-columns: 1fr; }.workspace-callout, .workspace-split, .cost-source-card, .document-readiness { align-items: flex-start; flex-direction: column; }.workspace-callout .button, .workspace-split .button { width: 100%; justify-content: center; }.cost-source-card__meta { width: 100%; }.estimation-evidence ol { grid-template-columns: 1fr; } }
 
 /* The three failures a defensible estimate has to answer for. Each card carries the failure and what the
@@ -673,7 +744,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* --fy and --fx are per element: a heading can come down while the card under it rises, which
    is what stops a long page from reading as one repeated gesture. Positive --fy rises. */
 [data-reveal] { opacity: 0; transform: translateY(var(--fy, 18px)) translateX(var(--fx, 0)); transition: opacity 800ms var(--ease-reveal), transform 800ms var(--ease-reveal); transition-delay: calc(var(--reveal-delay, 0) * 70ms); }[data-revealed="true"] { opacity: 1; transform: none; }.app-card[data-revealed="true"] { animation: app-reveal 420ms var(--ease-out) both; }
-@media (hover: none), (pointer: coarse) { .app-card:hover, .hermes-panel:hover, .button:hover { transform: none; box-shadow: none; }.app-card::before { display: none; } }
+@media (hover: none), (pointer: coarse) { .hermes-panel:hover, .button:hover { transform: none; box-shadow: none; }.app-card::before { display: none; } }
 
 /* IP-197: ภาพลายเส้นสะพาน (hero-art-*) เกษียณพร้อม HeroEngineeringArt — หน้าต่างสาธิตถือ
    การเคลื่อนไหวของตัวเองแล้ว เหลือเพียงไฟเดิน 01→04 ของแถบเริ่มใช้งานแนวนอน */
@@ -706,7 +777,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    box split by a hairline. Invisible until a category held more than one app. 16px separates cards
    inside a category; .market-category-stack uses 18px because it separates whole categories. */
 .market-category__apps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
-.market-category__apps .app-card { min-height: 0; display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(180px, auto); align-items: center; gap: 21px; padding: 20px 22px; background: #fff; }
+/* พื้นของการ์ดมาจากครัวกลางท้ายไฟล์ กฎนี้เหลือแต่การจัดวาง — ถ้าตั้งพื้นตรงนี้ด้วย
+   มันจะชนะครัวกลางเพราะเจาะจงกว่า (0,2,0 เทียบ 0,1,0) โดยไม่มีอะไรเตือน */
+.market-category__apps .app-card { min-height: 0; display: grid; grid-template-columns: 104px minmax(0, 1fr) minmax(180px, auto); align-items: center; gap: 21px; padding: 20px 22px; }
 .market-category__apps .app-card__icon-wrap { width: 88px; height: 88px; margin: 0; border-radius: 22px; }
 .market-category__apps .app-card__icon { width: 94px; height: 94px; }
 .market-category__apps .app-card__topline { margin-bottom: 7px; }
@@ -971,8 +1044,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-shell { position: relative; isolation: isolate; }
 /* ผืนไล่สีตรึงจอแบบเดียวกับ .gl-ambient แต่ไม่ต้องมีก้อนกลม 4 ใบใน DOM
    z-index -1 ในกล่องที่ isolate ไว้ วางตัวเองไว้เหนือพื้น --canvas แต่ใต้เนื้อหาทุกชิ้น */
+/* ถอดผืนฉากหลังของหลังบ้านออกแล้ว 2026-08-29 ตอนรวมธีมเป็นชุดกลางชุดเดียว
+   ฉากหลังของทั้งเว็บย้ายไปอยู่ที่ body ที่เดียว ผืนนี้จึงกลายเป็นสำเนาที่ซ้ำซ้อน
+   คำอธิบายค่าสีเดิมเก็บไว้เพราะเป็นที่มาของตัวเลขที่ body ใช้อยู่ตอนนี้ */
 .admin-shell::before {
-  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  content: none;
   /* สามสีข้างล่างไม่ได้เดา — ถอดหน้า PRICEMETR ให้เหลือแต่ฉากหลัง ถ่ายจอ แล้วอ่านค่าพิกเซลจริง
      ออกมาเป็นตาราง 7x5 เมื่อ 2026-08-29 ค่าที่ได้: โซนซ้ายเป็น teal rgb(197,224,224)
      โซนขวาเป็นเทาหมึก rgb(214,222,225) และมีรอยส้มอุ่น ๆ กลางล่าง rgb(243,238,233)
@@ -1075,8 +1151,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* แท็บคือขั้นตอน ไม่ใช่ตัวกรอง จึงติดเลขกำกับไว้ให้รู้ตำแหน่งในกระบวนการตลอดเวลา */
 .work-plan__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.1rem 0 1.4rem; }
-.work-plan__tab { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: .5rem .95rem; background: var(--paper); color: var(--muted); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: border-color 150ms var(--ease-out), color 150ms var(--ease-out), background 150ms var(--ease-out); }
-.work-plan__tab:hover { border-color: var(--teal); color: var(--ink); }
+/* ชิปกระจกแบบเดียวกับแท็บชุดข้อมูลของ PRICEMETR (.gl-deck) — ธีม 2026-08-29 */
+.work-plan__tab { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--glass-line); border-radius: 999px; padding: .5rem .95rem; background: var(--glass-fill); -webkit-backdrop-filter: saturate(185%) blur(22px); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 10px 22px -20px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); color: var(--muted); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), background 150ms var(--ease-out); }
+/* เส้นขอบตอนชี้เขียนเป็นค่าตรง ไม่ใช้ color-mix ที่ผสมตัวแปรสองตัว เพราะตัวแปลง CSS ของ Next
+   ย่อคำสั่งแบบนั้นให้เหลือแค่สีแรกเงียบ ๆ คำสั่งจะอ่านเหมือนทำงานแต่ไม่เคยผสมจริง */
+.work-plan__tab:hover { transform: translateY(-1px); border-color: rgba(13, 130, 130, .55); color: var(--ink); }
 .work-plan__tab.is-active { border-color: var(--teal); background: var(--teal); color: var(--paper); }
 .work-plan__tab-number { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--mist); color: var(--ink); font-size: .68rem; font-weight: 800; }
 .work-plan__tab.is-active .work-plan__tab-number { background: var(--paper); color: var(--teal); }
@@ -2072,3 +2151,150 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gl-group:first-child { margin-top: 0; }
 .gl-group__count { flex: none; font-size: .74rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
 .gl-group__rule { flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, var(--line), transparent); }
+
+/* ============================================================================
+   การ์ดกระจกของกลาง — ที่เดียวของทั้งเว็บ
+   เจ้าของงานสั่ง 2026-08-29 "ทำให้เหมือนกันทั้งเว็บเลย รวมถึงหน้า landing ด้วย"
+   โดยยึดหน้า PRICEMETR เป็นต้นฉบับ
+
+   ก่อนหน้านี้สูตรกระจกถูกลอกไว้สามชุด (PRICEMETR · หลังบ้าน · แผนงาน) และกำลังจะเป็นชุดที่สี่
+   บล็อกนี้รวมให้เหลือชุดเดียว แก้ที่นี่แล้วเปลี่ยนทั้งเว็บพร้อมกัน
+   วางไว้ท้ายไฟล์โดยตั้งใจ เพราะกฎของแต่ละหน้าที่ตั้งพื้นทึบไว้อยู่เหนือขึ้นไป
+   ถ้าวางไว้บนจะแพ้ทุกใบโดยไม่มีอะไรเตือน (เจอมาแล้วกับแท็บของหน้าแผนงานรอบนี้)
+
+   สิ่งที่ **ไม่** เอากระจก และเหตุผล
+   - hero สีเข้มของหน้าแรก คือจุดตัดสายตาที่ทำให้คนหยุดอ่าน ตัวหนังสือสีขาวบนพื้นเข้ม
+     คอนทราสต์ดีที่สุดอยู่แล้ว (มติเจ้าของงาน 2026-08-29)
+   - ตารางข้อมูล ช่องกรอก และกราฟ คือของที่คนมาอ่านและมาพิมพ์ ตัวหนังสือบนพื้นโปร่ง
+     อ่านยากกว่าที่ตาเห็นตอนออกแบบ
+   - เอกสารสำหรับพิมพ์ลงกระดาษ กระจกไม่มีความหมายบนกระดาษ
+   ============================================================================ */
+.glass-card,
+.admin-card, .admin-stat,
+.workspace-panel, .estimation-evidence,
+.app-card, .hermes-panel, .evidence-gap__item,
+.access-tier, .day-pass,
+.account-page__card, .account-panel,
+.policy-page__panel, .quote-form,
+.market-detail__card {
+  position: relative;
+  border: 1px solid var(--glass-line);
+  /* ทึบกว่ากระจกของ PRICEMETR เพราะการ์ดพวกนี้แบกย่อหน้าอธิบายกับตัวเลขตัวเล็ก
+     ไม่ใช่ป้ายราคาตัวโต ส่วนความเป็นกระจกที่ตาเห็นมาจากฉากหลังที่ลอดขึ้นมา เส้นขอบ เงา
+     และการเบลอ ไม่ได้มาจากความโปร่งของแผ่นอย่างเดียว
+
+     ค่าความทึบไล่มาสามรอบโดยวัดพิกเซลจริงทุกรอบ ไม่ใช่ปรับด้วยสายตา
+     .66/.34/.5 (ของ PRICEMETR)  ข้อความรองตกไปที่ 3.48:1 — เจอตอนทำหลังบ้าน
+     .88/.80/.86 (ของหลังบ้าน)   พื้นได้ rgb(245,249,249) ข้อความรองผ่านที่ 4.81:1
+                                 แต่ตัวหนังสือสี teal ของแบรนด์ตกเหลือ 4.37:1
+                                 ซึ่ง **แย่ลงกว่าเดิม** เพราะบนพื้นขาวล้วนมันอยู่ที่ 4.55:1
+     .95/.90/.93 (ที่ใช้อยู่)     พื้นได้ rgb(253,254,254) teal กลับมา 4.59:1 ข้อความรอง 5.04:1
+
+     บทเรียน: การ์ดที่เข้มขึ้นแม้แค่สิบหน่วย ก็ผลักสีที่เคยผ่านแบบเฉียดฉิวให้ตก
+     ทุกครั้งที่ขยับความทึบของแผ่น ต้องวัดสีตัวหนังสือที่เดิมผ่านแบบเฉียดฉิวใหม่ด้วยเสมอ */
+  background: linear-gradient(158deg, rgba(255, 255, 255, .95) 0%, rgba(250, 252, 252, .9) 56%, rgba(255, 255, 255, .93) 100%);
+  -webkit-backdrop-filter: saturate(185%) blur(22px);
+  backdrop-filter: saturate(185%) blur(22px);
+  box-shadow: var(--glass-lift);
+  animation: gl-rise 380ms var(--ease-reveal) backwards;
+  transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
+}
+
+/* แสงกวาดทแยง เลื่อนด้วย background-position ไม่ใช่ transform โดยตั้งใจ
+   ของหลังบ้านชุดเดิมใช้ transform คู่กับ overflow: hidden ที่ใบการ์ด ซึ่งใช้ทั้งเว็บไม่ได้
+   เพราะ overflow ที่บรรพบุรุษฆ่า position: sticky และมีของที่ sticky อยู่จริงหลายจุด
+   วิธีนี้ชิ้นแสงไม่เคยออกนอกใบ จึงไม่ต้องตัดขอบเลย */
+.glass-card::after,
+.admin-card::after, .admin-stat::after,
+.workspace-panel::after, .estimation-evidence::after,
+.hermes-panel::after, .evidence-gap__item::after,
+.access-tier::after, .day-pass::after,
+.account-page__card::after, .account-panel::after,
+.policy-page__panel::after, .quote-form::after,
+.market-detail__card::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, .55) 50%, transparent 62%);
+  background-size: 300% 100%;
+  background-position: 150% 0;
+  transition: background-position 640ms var(--ease-out);
+}
+
+.glass-card:hover,
+.admin-card:hover, .admin-stat:hover,
+.workspace-panel:hover,
+.hermes-panel:hover, .evidence-gap__item:hover,
+.access-tier:hover, .day-pass:hover,
+.account-page__card:hover, .account-panel:hover,
+.policy-page__panel:hover, .quote-form:hover,
+.market-detail__card:hover {
+  transform: translateY(-4px);
+  /* ผสมตัวแปรกับค่าคงที่ ไม่ใช่ตัวแปรกับตัวแปร — ดูหมายเหตุเรื่อง color-mix ท้ายบล็อกนี้ */
+  box-shadow: 0 32px 58px -34px color-mix(in srgb, var(--price-lead) 45%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .92);
+}
+
+.glass-card:hover::after,
+.admin-card:hover::after, .admin-stat:hover::after,
+.workspace-panel:hover::after, .estimation-evidence:hover::after,
+.hermes-panel:hover::after, .evidence-gap__item:hover::after,
+.access-tier:hover::after, .day-pass:hover::after,
+.account-page__card:hover::after, .account-panel:hover::after,
+.policy-page__panel:hover::after, .quote-form:hover::after,
+.market-detail__card:hover::after { background-position: -50% 0; }
+
+.glass-card:active,
+.admin-card:active, .admin-stat:active,
+.workspace-panel:active,
+.access-tier:active, .day-pass:active { transform: translateY(-1px) scale(.995); }
+
+/* แผงที่เกาะขอบบนตอนเลื่อน ยกตัวไม่ได้เพราะจะสู้กับ sticky — ให้เงาทำงานอย่างเดียว */
+.estimation-evidence:hover { transform: none; }
+
+/* ทยอยโผล่ทีละใบ ไล่ตามลำดับลูกในกริด ไม่ต้องส่งลำดับมาจาก markup */
+.estimation-board > :nth-child(2),
+.admin-stat-row > :nth-child(2), .admin-grid > :nth-child(2),
+.market-category__apps > :nth-child(2) { animation-delay: 24ms; }
+.admin-stat-row > :nth-child(3), .admin-grid > :nth-child(3),
+.market-category__apps > :nth-child(3) { animation-delay: 48ms; }
+.admin-stat-row > :nth-child(4), .admin-grid > :nth-child(4),
+.market-category__apps > :nth-child(4) { animation-delay: 72ms; }
+.admin-grid > :nth-child(5), .market-category__apps > :nth-child(5) { animation-delay: 96ms; }
+.admin-grid > :nth-child(6), .market-category__apps > :nth-child(6) { animation-delay: 120ms; }
+
+/* ข้อยกเว้นเดียวของฉากหลัง: หลังบ้านมีแถบข้างทึบกว้าง 252px ยืนทับริมซ้าย
+   ก้อน teal ที่ 6% จึงตกหลังแถบจนมองไม่เห็น ทั้งหน้าเลยดูจางกว่าหน้าอื่น
+   เลื่อนใจกลางของสองก้อนซ้ายมาที่ 30% และ 34% ให้ตกในพื้นที่เนื้อหาที่คนมองจริง
+   สูตรเดียวกันกับ body ทุกประการ ต่างแค่ตำแหน่งแนวนอน ไม่ใช่สำเนาคนละชุด
+   (เรื่องนี้เคยแก้มาแล้วครั้งหนึ่งใน v0.89.0 แล้วหลุดตอนรวมธีม จึงเขียนเหตุผลไว้ให้ชัด) */
+.admin-shell {
+  background:
+    radial-gradient(48vw 74vh at 30% 20%, rgb(196, 223, 223) 0 24%, transparent 80%),
+    radial-gradient(44vw 54vh at 34% 92%, rgb(200, 225, 225) 0 14%, transparent 78%),
+    radial-gradient(32vw 54vh at 84% 50%, rgb(210, 217, 221) 0 14%, transparent 72%),
+    radial-gradient(26vw 30vh at 56% 74%, rgb(243, 238, 233), transparent 66%),
+    var(--canvas);
+  background-attachment: fixed;
+}
+
+/* เนื้อข้อมูลยืนบนพื้นทึบเสมอ ไม่ว่าจะอยู่ในการ์ดใบไหน */
+.admin-card .admin-table, .admin-entitlement,
+.work-plan__table, .takeoff-table, .takeoff-table-wrap,
+.work-plan__chart-wrap { background: var(--paper); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* G12: ปิดการเคลื่อนไหวแล้วต้องนิ่งสนิท ทั้งตอนเปิดหน้าและตอนชี้ — ที่เดียวของทั้งเว็บ */
+  .glass-card, .admin-card, .admin-stat, .workspace-panel, .estimation-evidence,
+  .app-card, .hermes-panel, .evidence-gap__item, .access-tier, .day-pass,
+  .account-page__card, .account-panel, .policy-page__panel, .quote-form, .market-detail__card { animation: none; }
+  .glass-card:hover, .admin-card:hover, .admin-stat:hover, .workspace-panel:hover,
+  .app-card:hover, .hermes-panel:hover, .evidence-gap__item:hover, .access-tier:hover,
+  .day-pass:hover, .account-page__card:hover, .account-panel:hover,
+  .policy-page__panel:hover, .quote-form:hover, .market-detail__card:hover,
+  .glass-card:active, .admin-card:active, .admin-stat:active, .workspace-panel:active { transform: none; }
+  .glass-card::after, .admin-card::after, .admin-stat::after, .workspace-panel::after,
+  .estimation-evidence::after, .app-card::after, .hermes-panel::after,
+  .evidence-gap__item::after, .access-tier::after, .day-pass::after,
+  .account-page__card::after, .account-panel::after, .policy-page__panel::after,
+  .quote-form::after, .market-detail__card::after { display: none; }
+  .work-plan__tab:hover { transform: none; }
+}
