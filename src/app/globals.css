@@ -14,6 +14,19 @@
   --paper: #ffffff;
   --mist: #d8e4e4;
   --muted: #5f7178;
+  /* teal สำหรับตัวหนังสือเล็กบนพื้นสีจาง (IP-210)
+     --teal ปกติวัดได้ 4.63:1 บนพื้นขาว ผ่านเฉียดฉิว แต่พอไปอยู่บนพื้นเขียวจาง เช่นแถบบริบท
+     ของเปลือกแอป (#e7f1f1) หรือช่องตัวเลขหมวด (#e7f2f2) จะตกเหลือ 4.03 และ 4.06
+     ค่านี้เข้มลงราวห้าเปอร์เซ็นต์ ตาแทบแยกไม่ออก แต่ดันกลับขึ้นมาที่ 4.62 และ 4.65
+     ใช้เฉพาะกับตัวหนังสือเล็กบนพื้นจาง ส่วนพื้นขาวใช้ --teal ตามเดิม */
+  --teal-text: #0c7878;
+  /* ส้มสำหรับตัวหนังสือเล็กบนพื้นสว่าง (IP-210)
+     --orange เป็นสีของปุ่มและพื้น ซึ่งทำหน้าที่นั้นได้ดี แต่พอเอามาเป็นตัวหนังสือบนพื้นขาว
+     วัดได้ 2.80:1 ไม่ผ่านเกณฑ์ 4.5:1 และไม่มีทางผ่านได้เลยถ้ายังสว่างเท่านี้
+     ค่านี้ไม่ได้คิดใหม่ แต่หยิบมาจากสีที่ไฟล์นี้ใช้อยู่แล้วกับปุ่มนำทางที่กำลังเปิดอยู่
+     วัดได้ 5.70:1 บนขาว และ 5.29:1 บนพื้นการ์ด มีระยะเผื่อพอให้พื้นขยับได้โดยไม่ตก
+     ใช้กับตัวหนังสือ ส่วนปุ่มกับพื้นยังใช้ --orange ตามเดิม */
+  --orange-text: #a34f14;
   --line: #c9d8d9;
   --success: #32765d;
   --ease-out: cubic-bezier(.23, 1, .32, 1);
@@ -163,7 +176,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-panel__identity span { color: var(--muted); font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account-panel__section { padding: 13px 16px 15px; border-bottom: 1px solid var(--line); }
 .account-panel__heading { margin: 0 0 9px; color: var(--muted); font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-.account-panel__empty { margin: 0; color: #93a5ab; font-size: .82rem; line-height: 1.6; }
+.account-panel__empty { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.6; }
 .account-apps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .account-app { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 10px; padding: .5rem .6rem; border-radius: 9px; transition: background 140ms var(--ease-out); }
 .account-app:hover, .account-app:focus-visible { background: #eef4f4; color: inherit; }
@@ -562,7 +575,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .policy-table tbody tr:last-child td { border-bottom: 0; }
 .policy-table td { color: var(--muted); line-height: 1.65; }
 .policy-table code { color: var(--ink); font-size: .82rem; word-break: break-all; }
-.policy-table__attrs { display: block; margin-top: 5px; font-size: .7rem; color: #93a5ab; }
+.policy-table__attrs { display: block; margin-top: 5px; font-size: .7rem; color: var(--muted); }
 .footer__mark { display: flex; align-items: center; gap: 11px; font-size: .74rem; color: #9fbcc0; }
 .footer__mark img { display: block; height: 40px; width: auto; background: #fff; border-radius: 6px; padding: 3px; }
 .footer strong { color: white; }
@@ -588,7 +601,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-page__count { margin: 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .account-page__note { margin: 0; color: var(--muted); font-size: .82rem; line-height: 1.7; }
 .account-page__note strong { color: var(--ink); }
-.account-page__empty { margin: 0; color: #93a5ab; font-size: .88rem; line-height: 1.7; }
+.account-page__empty { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.7; }
 .account-page__action { display: grid; gap: 7px; justify-items: start; }
 .account-page__hint { margin: 0; color: var(--muted); font-size: .78rem; }
 .account-page__ok { margin: 0; color: var(--success); font-size: .82rem; font-weight: 600; }
@@ -605,7 +618,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .app-shell__context { position: relative; z-index: 1; background: #e7f1f1; border-bottom: 1px solid var(--line); }
 /* flex-wrap: แถวนี้ยาวได้ (ปุ่มบ้าน / แอปทั้งหมด / ชื่อแอป / ป้าย) — ที่ LAND ACQUISITION จอ 360
    ป้าย "เฉพาะบุคลากรกรมทางหลวง" เคยยื่นพ้นขอบขวา 21px เพราะแถวไม่ยอมหักบรรทัด */
-.app-shell__context > div { min-height: 50px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--muted); font-size: .82rem; }.app-shell__context a { color: var(--teal); font-weight: 600; }
+.app-shell__context > div { min-height: 50px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--ink-body); font-size: .82rem; }.app-shell__context a { color: var(--teal-text); font-weight: 600; }
 
 /* ---- IP-185: Assistant Dock (แผงผู้ช่วยกลาง) — ช่องเดียวของผู้ช่วยใน AppShell ทุกแอป
    เดสก์ท็อป: แผงตรึงริมขวาเต็มความสูงใต้แถบนำทาง (--dock-top วัดจากของจริง เพราะเมนูจอแคบ
@@ -718,11 +731,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ยังไม่ถึงเกณฑ์ 4.5:1 เพราะ .eyebrow เป็นตัวอักษร 12px ซึ่งไม่นับเป็นตัวใหญ่แม้จะหนา 700
    ค่านี้คือ --teal 88% ผสมหมึก --ink 12% คำนวณไว้แล้ว วัดได้ 4.96:1 บนพื้นการ์ด
 
-   **เขียนเป็นเลขตรง ๆ ไม่ใช่ color-mix โดยตั้งใจ** — ตัวแปลง CSS ของ Next แปลง
-   color-mix ที่ผสมตัวแปรสองตัวเข้าด้วยกัน ให้เหลือแค่ตัวแรกเงียบ ๆ
-   `color-mix(in srgb, var(--teal) 88%, var(--ink))` ออกมาที่เบราว์เซอร์เป็น `var(--teal)`
-   ตรวจจากสไตล์ชีตที่หน้าโหลดจริงเมื่อ 2026-08-29 ไม่มี error ไม่มีคำเตือน สีก็แค่ไม่เปลี่ยน
-   (ผสมตัวแปรกับค่าคงที่ยังทำงาน เช่นเงาตอนชี้ของการ์ด ที่พังคือตัวแปรผสมตัวแปร) */
+   เขียนเป็นเลขตรง ๆ ค่านี้คือ --teal 88% ผสม --ink 12% ที่คำนวณไว้ล่วงหน้า
+
+   **แก้บันทึก 2026-08-30** — เดิมตรงนี้เขียนว่าต้องเขียนเลขตรงเพราะตัวแปลง CSS ย่อ
+   `color-mix` ที่ผสมตัวแปรสองตัวให้เหลือแค่ตัวแรก **ข้อนั้นไม่จริง** สิ่งที่เห็นตอนนั้นคือ
+   กฎ fallback ที่ Lightning CSS ใส่ให้เบราว์เซอร์เก่าตามแบบ progressive enhancement
+   มันวางกฎธรรมดาไว้ก่อน แล้ววางของจริงใน `@supports` ตามหลัง ซึ่งชนะ cascade
+   วัดใน production build จริงแล้ว color-mix ของเรารอดครบ 30 จาก 30 จุด และค่าที่
+   เรนเดอร์จริงตรงสูตรทุกจุด — บทเรียนคือ **อ่านข้อความในสไตล์ชีตไม่ใช่การวัด
+   ต้องอ่านค่าที่คำนวณแล้วบน element จริง**
+
+   ค่าตรงตรงนี้จึงคงไว้เพราะมันทำงานถูกอยู่แล้ว ไม่ใช่เพราะ color-mix ใช้ไม่ได้ */
 .estimation-workspace .eyebrow { color: rgb(12, 120, 123); }
 
 /* แท็บสี่อันเป็นชิปกระจก — แก้ที่กฎเดิมของแท็บด้านล่างโดยตรง ไม่เขียนกฎซ้อนทับตรงนี้
@@ -734,7 +753,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    product does about it, so the pair is read together rather than as a marketing claim on its own. */
 .evidence-gap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .evidence-gap__item { position: relative; border: 1px solid #dcebe8; border-radius: 14px; background: #fff; padding: 26px 24px 24px; display: grid; align-content: start; gap: 10px; }
-.evidence-gap__index { color: var(--orange); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+.evidence-gap__index { color: var(--orange-text); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
 .evidence-gap__item h3 { margin: 0; color: #0b3c4e; font-size: 1.06rem; line-height: 1.35; }
 .evidence-gap__problem { margin: 0; color: #607a83; font-size: .93rem; line-height: 1.6; }
 .evidence-gap__answer { margin: 6px 0 0; border-top: 1px solid #e6f1ef; padding-top: 12px; color: #0b6668; font-size: .9rem; line-height: 1.58; }
@@ -769,7 +788,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .market-category-stack { display: grid; gap: 18px; margin-top: 30px; }
 .market-category { background: linear-gradient(118deg, #ffffff, #f7fbfb); border: 1px solid rgba(7, 48, 71, .12); border-radius: 26px; padding: 22px; box-shadow: 0 10px 24px rgba(7, 48, 71, .05); }
 .market-category__header { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 14px; align-items: start; padding: 0 2px 18px; }
-.market-category__index { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--teal); background: color-mix(in srgb, var(--teal) 10%, white); border: 1px solid color-mix(in srgb, var(--teal) 26%, white); font-size: .75rem; font-weight: 800; letter-spacing: .09em; }
+.market-category__index { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--teal-text); background: color-mix(in srgb, var(--teal) 10%, white); border: 1px solid color-mix(in srgb, var(--teal) 26%, white); font-size: .75rem; font-weight: 800; letter-spacing: .09em; }
 .market-category__header .eyebrow { color: var(--teal); margin: 0 0 4px; font-size: .64rem; }
 .market-category__header h3 { margin: 0; color: var(--ink); font-size: 1.18rem; letter-spacing: -.025em; }
 .market-category__header p:not(.eyebrow) { margin: 5px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
@@ -793,7 +812,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Spans, not paragraphs: `.app-card p` and its .market-category__apps override both out-rank a
    single class, and losing that fight quietly is worse than not picking it. */
 .app-card__progname { display: block; color: var(--muted); font-size: .78rem; font-weight: 500; margin-top: 2px; }
-.app-card__since { display: block; color: #93a5ab; font-size: .72rem; white-space: nowrap; }
+.app-card__since { display: block; color: var(--muted); font-size: .72rem; white-space: nowrap; }
 .app-card__cta { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; padding: .58rem 1rem; font-size: .84rem; font-weight: 600; white-space: nowrap; margin-top: 2px; transition: background-color 180ms var(--ease-out), border-color 180ms var(--ease-out), color 180ms var(--ease-out); }
 .app-card__cta--go { background: var(--teal); color: #fff; }
 .app-card__cta--go:hover { background: var(--ink); }
@@ -897,13 +916,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* The only data-driven block on the card: apps an administrator announced as free. */
 .tier-apps { border-top: 1px solid var(--mist); padding-top: 13px; display: grid; gap: 8px; }
 .tier-apps__label { margin: 0; color: var(--ink); font-size: .8rem; font-weight: 600; }
-.tier-apps__pending { margin: 0; color: #93a5ab; font-size: .85rem; line-height: 1.72; }
+.tier-apps__pending { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.72; }
 .tier-apps ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .tier-apps li { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--ink); font-size: .87rem; font-weight: 600; }
 .tier-apps li em { flex-shrink: 0; font-style: normal; background: #f1f5f5; color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: .7rem; font-weight: 600; }
 .access-tier .button { margin-top: auto; text-align: center; text-decoration: none; }
 .access-panel { background: var(--ink); color: white; border-radius: 14px; padding: 24px; position: sticky; top: 118px; display: grid; gap: 14px; }
-.access-panel h2 { font-size: 1.18rem; margin: 0; letter-spacing: -.02em; }
+/* หัวข้อบนแผงพื้นเข้มต้องสั่งสีเอง (IP-210)
+   แผงตั้ง color: white ไว้ที่ตัวเองแล้ว แต่กฎรวมของหัวข้อที่บรรทัด 122 ตั้ง color: var(--ink)
+   ลงบนตัว h2 โดยตรง ซึ่งชนะค่าที่สืบทอดลงมาเสมอ ผลคือหัวข้อ --ink บนพื้น --ink สีเดียวกันเป๊ะ
+   อัตราส่วน 1:1 มองไม่เห็นทั้งบรรทัด เห็นเป็นช่องว่างเปล่าเหนืออีเมล */
+.access-panel h2 { font-size: 1.18rem; margin: 0; letter-spacing: -.02em; color: inherit; }
 .access-panel__lead { color: #cfe0e2; font-size: .87rem; line-height: 1.65; margin: 0; word-break: break-word; }
 .access-panel__facts { display: grid; gap: 12px; margin: 0; padding: 15px 0 0; border-top: 1px solid rgba(255,255,255,.17); }
 .access-panel__facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
@@ -924,7 +947,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .capability-table tbody th { font-weight: 600; color: var(--ink); }
 .capability-table tbody td { text-align: center; font-weight: 700; font-size: 1.02rem; }
 .capability-table tbody td[data-allowed="true"] { color: var(--success); }
-.capability-table tbody td[data-allowed="false"] { color: #93a5ab; }
+.capability-table tbody td[data-allowed="false"] { color: var(--muted); }
 .capability-table tbody tr:last-child th, .capability-table tbody tr:last-child td { border-bottom: 0; }
 .capability-table__count { padding: 13px 24px; margin: 0; color: var(--muted); font-size: .77rem; border-top: 1px solid var(--line); }
 .access-footnote { margin: 26px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.72; padding-left: 15px; border-left: 3px solid var(--mist); max-width: 760px; }
@@ -937,12 +960,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    per-day figure is computed from the selected cycle so 29 never appears beside the 39 cycle. */
 .access-main { display: grid; gap: 0; }
 .billing-switch { display: inline-flex; gap: 4px; padding: 4px; background: #eaf1f1; border: 1px solid var(--line); border-radius: 999px; margin: 0 0 20px; }
-.billing-switch__option { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 999px; padding: .5rem 1rem; font-weight: 600; font-size: .88rem; color: var(--muted); cursor: pointer; transition: background 160ms var(--ease-out), color 160ms var(--ease-out); }
+.billing-switch__option { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; border-radius: 999px; padding: .5rem 1rem; font-weight: 600; font-size: .88rem; color: var(--ink-body); cursor: pointer; transition: background 160ms var(--ease-out), color 160ms var(--ease-out); }
 .billing-switch__option[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px rgba(7,48,71,.12); }
 .billing-switch__save { background: #ffe9d6; color: #8a4413; border-radius: 999px; padding: .16rem .5rem; font-size: .72rem; font-weight: 700; }
 .access-tier__price { margin-top: 12px; }
 .access-tier__was { margin: 0 0 4px; color: var(--muted); font-size: .82rem; }
-.access-tier__was s { color: #93a5ab; }
+.access-tier__was s { color: var(--muted); }
 .access-tier__amount { margin: 0; display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
 .access-tier__amount strong { font-size: 2rem; letter-spacing: -.04em; color: var(--ink); font-variant-numeric: tabular-nums; }
 .access-tier__amount span { color: var(--muted); font-size: .9rem; font-weight: 600; }
@@ -977,9 +1000,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-sidebar__link { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: .5rem .62rem; border-radius: 8px; color: var(--ink); font-size: .89rem; font-weight: 600; }
 .admin-sidebar__link:hover { background: #eef4f4; }
 .admin-sidebar__link.is-active { background: #e3f1ef; color: #0b5f5f; }
-.admin-sidebar__link--pending { color: #93a5ab; font-weight: 500; cursor: default; }
+.admin-sidebar__link--pending { color: var(--muted); font-weight: 500; cursor: default; }
 .admin-sidebar__link--pending:hover { background: transparent; }
-.admin-sidebar__link em { font-style: normal; font-size: .66rem; font-weight: 600; color: #93a5ab; background: #f1f5f5; border-radius: 999px; padding: 2px 6px; white-space: nowrap; }
+.admin-sidebar__link em { font-style: normal; font-size: .66rem; font-weight: 600; color: var(--muted); background: #f1f5f5; border-radius: 999px; padding: 2px 6px; white-space: nowrap; }
 
 .admin-main { display: grid; grid-template-rows: auto 1fr; min-width: 0; }
 .admin-topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding: 18px 26px; background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -998,8 +1021,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-stat { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 6px; align-content: start; }
 .admin-stat__label { margin: 0; color: var(--muted); font-size: .8rem; font-weight: 600; }
 .admin-stat__value { margin: 0; font-size: 1.85rem; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
-.admin-stat__empty { margin: 0; color: #93a5ab; font-size: .86rem; font-weight: 600; padding: .3rem 0; }
-.admin-stat__hint { margin: 0; color: #93a5ab; font-size: .72rem; }
+.admin-stat__empty { margin: 0; color: var(--muted); font-size: .86rem; font-weight: 600; padding: .3rem 0; }
+.admin-stat__hint { margin: 0; color: var(--muted); font-size: .72rem; }
 
 .admin-grid { display: grid; gap: 14px; align-items: start; }
 .admin-grid[data-columns="1"] { grid-template-columns: 1fr; }
@@ -1020,7 +1043,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .admin-card__foot { padding: 12px 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: .78rem; }
 .admin-card__body:has(.admin-table-wrap) { padding: 0; }
 
-.admin-empty { margin: 0; color: #93a5ab; font-size: .88rem; line-height: 1.72; }
+.admin-empty { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.72; }
 .admin-card__body > .admin-empty { padding: 0; }
 
 .admin-table-wrap { overflow-x: auto; }
@@ -1136,7 +1159,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Shown while the administrator is still choosing, not after the server says no. A rule a
    person only meets as a rejection is a rule they learn by annoyance. */
 .admin-form__warning { margin: 0; padding: 12px 14px; border: 1px solid #f0d3bb; border-radius: 10px; background: #fdf6f0; color: var(--ink); font-size: .82rem; line-height: 1.7; font-weight: 400; }
-.admin-registry-status { display: block; color: #93a5ab; font-size: .72rem; margin-top: 3px; }
+.admin-registry-status { display: block; color: var(--muted); font-size: .72rem; margin-top: 3px; }
 .admin-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 600; background: #f1f5f5; color: var(--muted); }
 .admin-pill--announced { background: #e3f1ef; color: #0b5f5f; }
 .admin-pill--conflict { background: #fdf1e8; color: #a4402f; }
@@ -1153,8 +1176,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 1.1rem 0 1.4rem; }
 /* ชิปกระจกแบบเดียวกับแท็บชุดข้อมูลของ PRICEMETR (.gl-deck) — ธีม 2026-08-29 */
 .work-plan__tab { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--glass-line); border-radius: 999px; padding: .5rem .95rem; background: var(--glass-fill); -webkit-backdrop-filter: saturate(185%) blur(22px); backdrop-filter: saturate(185%) blur(22px); box-shadow: 0 10px 22px -20px rgba(7, 48, 71, .6), inset 0 1px 0 rgba(255, 255, 255, .9); color: var(--muted); font-family: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), background 150ms var(--ease-out); }
-/* เส้นขอบตอนชี้เขียนเป็นค่าตรง ไม่ใช้ color-mix ที่ผสมตัวแปรสองตัว เพราะตัวแปลง CSS ของ Next
-   ย่อคำสั่งแบบนั้นให้เหลือแค่สีแรกเงียบ ๆ คำสั่งจะอ่านเหมือนทำงานแต่ไม่เคยผสมจริง */
+/* เส้นขอบตอนชี้เขียนเป็นค่าตรง คือ --teal ที่ความทึบ .55
+   (เดิมคอมเมนต์ตรงนี้อ้างว่าต้องเขียนตรงเพราะ color-mix ที่ผสมตัวแปรสองตัวถูกย่อทิ้ง
+   ข้อนั้นไม่จริง ดูคำอธิบายเต็มที่คอมเมนต์ของ .estimation-workspace .eyebrow — 2026-08-30) */
 .work-plan__tab:hover { transform: translateY(-1px); border-color: rgba(13, 130, 130, .55); color: var(--ink); }
 .work-plan__tab.is-active { border-color: var(--teal); background: var(--teal); color: var(--paper); }
 .work-plan__tab-number { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--mist); color: var(--ink); font-size: .68rem; font-weight: 800; }
@@ -1344,7 +1368,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__readbar dt { color: var(--muted); font-size: .7rem; font-weight: 600; }
 .work-plan__readbar dd { margin: 0; color: var(--ink); font-size: .86rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .work-plan__readbar-gap { margin-left: auto; padding-left: 20px; border-left: 1px solid var(--line); }
-.work-plan__readbar-gap dd { color: var(--orange); }
+.work-plan__readbar-gap dd { color: var(--orange-text); }
 
 /* ชื่องวดอยู่ใต้กราฟ ไม่ใช่บนกราฟ รอบก่อนพิมพ์ทับกันจนอ่านไม่ออก */
 .work-plan__marker-key { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 18px; margin: 1rem 0 0; padding: 0; list-style: none; }
@@ -2276,7 +2300,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .policy-page__panel:hover, .quote-form:hover,
 .market-detail__card:hover {
   transform: translateY(-4px);
-  /* ผสมตัวแปรกับค่าคงที่ ไม่ใช่ตัวแปรกับตัวแปร — ดูหมายเหตุเรื่อง color-mix ท้ายบล็อกนี้ */
+  /* เงาสีเดียวกับสีนำของหน้า · color-mix ที่นี่ทำงานจริง ไม่ว่าจะผสมกับตัวแปรหรือค่าคงที่
+     (ข้อห้ามเดิมเรื่องผสมตัวแปรสองตัวถูกถอนแล้ว 2026-08-30 ดูคอมเมนต์ของ .estimation-workspace .eyebrow) */
   box-shadow: 0 32px 58px -34px color-mix(in srgb, var(--price-lead) 45%, rgba(7, 48, 71, .6)), inset 0 1px 0 rgba(255, 255, 255, .92);
 }
 
