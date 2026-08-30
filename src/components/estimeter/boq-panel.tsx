@@ -1,3 +1,4 @@
+import { MethodClaimsPanel } from "@/components/platform/method-claims-panel";
 import { formatPrice } from "@/lib/price-catalogue";
 import { TAKEOFF_CATEGORIES, categoryLabel, unitLabel } from "@/lib/takeoff-units";
 import type { BoqLineView } from "@/server/estimeter/boq-repository";
@@ -141,6 +142,10 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
               <small>&nbsp;บาท</small>
             </div>
           </div>
+
+          {/* วางไว้ใต้ยอดรวมโดยตั้งใจ เพราะจังหวะที่คนอยากรู้ว่าเชื่อตัวเลขนี้ได้แค่ไหน
+              คือจังหวะที่เพิ่งเห็นตัวเลข ไม่ใช่ตอนอ่านหน้าโฆษณาก่อนสมัคร */}
+          <MethodClaimsPanel appSlug="estimeter" compact />
         </>
       )}
     </div>

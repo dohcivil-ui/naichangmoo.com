@@ -1893,6 +1893,24 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .boq-category-summary strong { display: block; margin-top: .18rem; font-size: 1.05rem; font-weight: 800; color: var(--ink); }
 .boq-category-summary small { display: block; font-size: .72rem; color: var(--muted); }
 
+/* IP-220 · แผงบอกวิธีทำงาน แสดงทั้งบนหน้าแนะนำแอปและในตัวแอป เนื้อความมาจากที่เดียว
+   จึงต้องยืดหยุ่นตามที่ที่มันไปอยู่ ไม่ใช่มีสองชุดสไตล์ */
+.method-claims { margin-top: 34px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+.method-claims__head h2 { margin: .2rem 0 .35rem; font-size: 1.35rem; color: var(--ink); }
+.method-claims__head p { margin: 0; max-width: 62ch; font-size: .9rem; line-height: 1.65; color: var(--ink-body); }
+.method-claims__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin: 18px 0 0; padding: 0; list-style: none; }
+.method-claims__list li { padding: 14px 15px; border: 1px solid var(--mist); border-radius: 13px; background: var(--canvas); }
+.method-claims__list strong { display: block; font-size: .92rem; line-height: 1.4; color: var(--ink); }
+.method-claims__list p { margin: .35rem 0 0; font-size: .8rem; line-height: 1.6; color: var(--muted); }
+
+.method-claims--compact { margin-top: 18px; padding: 16px; }
+.method-claims--compact .method-claims__head h2 { font-size: 1.05rem; }
+.method-claims--compact .method-claims__head p { font-size: .82rem; }
+.method-claims--compact .method-claims__list { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-top: 12px; }
+.method-claims--compact .method-claims__list li { padding: 11px 12px; }
+
+@media (max-width: 720px) { .method-claims { padding: 16px; }.method-claims__list { grid-template-columns: 1fr; } }
+
 /* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
 .gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
 .gl-send__picker { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--paper); }

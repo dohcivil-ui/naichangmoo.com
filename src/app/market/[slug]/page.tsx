@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { MethodClaimsPanel } from "@/components/platform/method-claims-panel";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { SiteHeader } from "@/components/platform/site-header";
 import { accessLabel, appReadinessLabel, marketCategories, platformApps } from "@/lib/platform";
@@ -45,6 +46,10 @@ export default async function MarketAppDetailPage({ params }: { params: Promise<
             <article className="market-detail__card"><div className="eyebrow">WHAT TO PREPARE</div><h2>เริ่มจากสิ่งที่ต้องเตรียม</h2><ul>{app.marketDetail.preparation.map((item, index) => <li key={item}><span>0{index + 1}</span>{item}</li>)}</ul></article>
             <article className="market-detail__card"><div className="eyebrow">GUIDED FLOW</div><h2>ลำดับการทำงาน</h2><ol>{app.marketDetail.flow.map((item) => <li key={item}>{item}</li>)}</ol></article>
           </div>
+
+          {/* คำแนะนำเรื่องกลไก ไม่ใช่คำแถลงเรื่องสิทธิ์หรือความพร้อม จึงมาจาก source ได้
+              ตาม ADR 0015 ข้อ 2 · เนื้อความอยู่ที่ method-claims.ts ที่เดียว ไม่คัดลอกมาไว้ที่นี่ */}
+          <MethodClaimsPanel appSlug={app.slug} />
           <section className="market-entry-panel">
             {/* ADR 0018: the availability sentence is a registry claim. An app nobody announced keeps the
                  heading (there is factually no way in) and gets no sentence at all, which is what stopped
