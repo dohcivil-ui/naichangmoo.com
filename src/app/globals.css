@@ -211,7 +211,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .hero__grid { position: relative; z-index: 1; }
 .hero__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.02fr); gap: 48px; align-items: center; }
 .eyebrow { color: #aee6dd; font-size: .75rem; font-weight: 700; letter-spacing: .16em; }
-.hero h1 { max-width: 760px; font-size: clamp(2.3rem, 5vw, 4.65rem); line-height: 1.06; letter-spacing: -.05em; margin: 14px 0 22px; }
+/* ขนาดตัวอักษรของพาดหัวมาจากความยาวของถ้อยคำที่เจ้าของงานเคาะ ไม่ใช่ตัวเลขที่ตั้งไว้ก่อน
+   พาดหัวปัจจุบันสองบรรทัดกว้าง 728 กับ 710 จุดที่ 74.4px ขณะที่คอลัมน์ของ hero กว้าง 550
+   ที่จอ 1516 ถ้าคงขนาดเดิมไว้ทั้งสองบรรทัดจะตัดเป็นสี่บรรทัด และบรรทัดที่ตัดกลางวลี
+   อ่านเหมือนพิมพ์ผิดในภาษาที่ไม่มีช่องว่างระหว่างคำ จึงลดขนาดลงจนพอดีสองบรรทัดตามที่ออกแบบไว้ */
+.hero h1 { max-width: 760px; font-size: clamp(2.1rem, 3.6vw, 3.45rem); line-height: 1.08; letter-spacing: -.05em; margin: 14px 0 22px; }
 .hero p { max-width: 645px; color: #d6e3e4; font-size: 1.12rem; line-height: 1.8; margin: 0; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
 .hero__note { margin-top: 18px; color: #a9c4c7; font-size: .87rem; }

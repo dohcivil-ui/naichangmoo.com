@@ -58,10 +58,10 @@ export default async function LandingPage() {
                 thing on the page. The split point is chosen so each line is a whole phrase:
                 Thai has no word spaces, and a line break landing mid-phrase reads as a typo. */}
             <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
-              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">ถอดแบบ คิดราคา</span></span>
-              <span className="h1-line"><span className="h1-line__text">ให้ทันวันยื่นประมูล<span className="h1-dot">.</span></span></span>
+              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">ถอดแบบ ประมาณราคา</span></span>
+              <span className="h1-line"><span className="h1-line__text">สำหรับผู้รับเหมายุค AI<span className="h1-dot">.</span></span></span>
             </h1>
-            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>สำหรับวิศวกร ผู้รับเหมา และห้างร้านที่ประมาณราคางานอาคาร จากเดิมที่คิดด้วยมือหลายวัน ให้ผู้ช่วย AI ร่างให้ก่อน แล้วคุณตรวจและตัดสิน</p>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>งานที่เคยถอดแบบและคิดราคาด้วยมือหลายวัน ให้ผู้ช่วย AI ร่างให้ก่อน แล้วคุณตรวจและตัดสิน เหมาะกับวิศวกร ผู้รับเหมา และห้างร้านที่ประมาณราคางานอาคาร</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
             {/* IP-197: บรรทัดหลักการใต้ปุ่มถูกตัดตามคำสั่งเจ้าของงาน 2026-08-28 — ฉากสาธิต
                 เล่าเรื่องเดียวกันด้วยภาพแทน (ผู้ช่วยเสนอ คนตัดสิน ระบบคำนวณ) */}
