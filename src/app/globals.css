@@ -130,7 +130,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* The bar carries more than the page columns do — brand, workspace, five pills and the account
    corner — so it gets its own width instead of the 1160px the body reads at. At 1160 the pills and
    the account corner collided on any screen, not just narrow ones. */
-.site-nav .container { width: min(1400px, calc(100% - 40px)); }
+/* The bar is not a page column. Its brand sits at one edge and its account corner at the other, so
+   it takes the full width with a small symmetric gutter instead of the body's centred column —
+   which pushed the wordmark far inboard of the breadcrumb directly beneath it. The gutter shrinks
+   with the screen so a phone does not spend a fifth of the bar on empty margin. */
+.site-nav .container { width: calc(100% - clamp(28px, 3vw, 48px)); max-width: none; }
 .site-nav__inner { min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 /* The wordmark is the brand at full size elsewhere; in a sticky bar it is a way back to the home
    page, and 84px of it crowded everything else out. */
