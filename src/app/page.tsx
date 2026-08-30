@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { AppCard } from "@/components/landing/app-card";
+import { orderByReadiness } from "@/lib/app-showcase-order";
 import { LandingMotion } from "@/components/landing/landing-motion";
 import { HeroLiveDemo } from "@/components/landing/hero-live-demo";
 import { SignInButton } from "@/components/landing/sign-in-button";
@@ -10,31 +11,14 @@ import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { readCatalogueClaims } from "@/server/app-registry";
-import { StatStrip } from "@/components/landing/stat-strip";
-import obecPrices from "@/data/obec/obec-2569-unit-prices.json";
-import labourSchedule from "@/data/cgd/cgd-w809-labour-be2568.json";
-import escalationRules from "@/data/escalation-k/cabinet-w109-be2532.json";
-import { DocCompare } from "@/components/landing/doc-compare";
-import { EvidencePeek } from "@/components/landing/evidence-peek";
 
 export default async function LandingPage() {
   // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
   // open only as far as the registry has been made to say so. One read serves every category.
   const claims = await readCatalogueClaims();
-  // IP-192: the stat strip counts up, so every number in it must be one the platform can stand
-  // behind AND one a customer actually cares about. The owner cut the internal roadmap counts
-  // (2026-08-27) - progress bookkeeping lives on /roadmap for those who go looking. What remains
-  // is counted from the real datasets shipped in the repo, never typed as a literal.
-  const labourRateCount = (labourSchedule as { variants: { rates: unknown[] }[] }[]).reduce(
-    (total, item) => total + item.variants.reduce((sum, variant) => sum + variant.rates.length, 0),
-    0
-  );
-  const platformStats = [
-    { value: platformApps.length, label: "แอปงานโยธาในทะเบียน" },
-    { value: obecPrices.length, label: "รายการบัญชีราคา สพฐ. 2569" },
-    { value: labourRateCount, label: "อัตราค่าแรงราชการ ว 809" },
-    { value: (escalationRules as { formulas: unknown[] }).formulas.length, label: "สูตรค่า K ตาม ว 109" }
-  ];
+  // IP-225: แถบเลื่อนเรียงจากแอปที่พร้อมใช้ที่สุดลงมา ลำดับคิดจากสิ่งที่ทะเบียนพูดไว้แล้วเท่านั้น
+  // ไม่ใช่เปอร์เซ็นต์ความคืบหน้า ซึ่ง ADR 0015 ปฏิเสธไว้เพราะพิสูจน์ไม่ได้
+  const showcaseApps = orderByReadiness(platformApps, (app) => claims[app.slug]);
   // The quotation page is where a Hermes use case is submitted; the nav contract owns the route.
   const hermesRequestHref = landingNavigationContract.find((item) => item.id === "enterprise")?.href ?? "/enterprise";
   const estimeter = claims.estimeter;
@@ -111,76 +95,29 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
-        <div className="container">
-          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — นับจากชุดข้อมูลจริงในระบบ</div>
-          <div data-reveal data-delay="120"><StatStrip stats={platformStats} /></div>
-        </div>
-      </section>
-
+      {/* IP-225: แถบเลื่อนแอป แทนแถบตัวเลขกับการ์ดปัญหาสามใบ ตามที่เจ้าของงานสั่ง 2026-08-30
+          ลูกเล่นยืมมาจากแถบข้อความใต้ hero ที่มีอยู่แล้ว คือรางคู่ที่เลื่อนวนด้วย CSS อย่างเดียว
+          หยุดเมื่อชี้หรือโฟกัส และหยุดสนิทใต้กฎปิดการเคลื่อนไหวรวมของไฟล์ globals
+          สำเนาชุดที่สองมีไว้ให้ภาพต่อเนื่องเท่านั้น จึงถูกซ่อนจากโปรแกรมอ่านหน้าจอ */}
       <section className="section section--white" id="why">
         <div className="container">
           <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
-              <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
-              <h2>สามจุดที่ทำให้ใบประมาณราคาถูกตีกลับ</h2>
+              <div className="eyebrow" style={{ color: "var(--teal)" }}>แอปของเรา</div>
+              <h2>เรียงตามความพร้อมใช้งาน</h2>
             </div>
-            <p>ตัวเลขในตัวอย่างของส่วนนี้เป็นตัวอย่างประกอบเพื่อสาธิต</p>
+            <p>แอปที่เปิดให้ใช้แล้วอยู่ต้นแถว ตามด้วยแอปที่กำลังพัฒนา ชี้ค้างไว้เพื่อหยุดแถบ</p>
           </div>
-          <div className="evidence-gap">
-            {[
-              {
-                title: "ปริมาณที่ตรวจย้อนกลับไม่ได้",
-                proof: (
-                  <div className="evidence-proof">
-                    <span className="evidence-proof__line">2 × 2.50 × 2.50 × 2.00 = <b>12.50 ลบ.ม.</b> <i className="evidence-proof__tag">อ่านได้จากแบบ</i></span>
-                    <s className="evidence-proof__bad">1.25 — ไม่มีรายการถอดแบบ</s>
-                  </div>
-                ),
-                problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม อยู่ในตารางแล้วหน้าตาเหมือนกัน ตอนถูกซักในที่ประชุมจึงไม่มีอะไรยืนยันว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00",
-                answer: "ปริมาณมาจากรายการถอดแบบ จำนวน × กว้าง × ยาว × หนา ที่ชี้กลับไปหาแบบได้ทุกบรรทัด",
-              },
-              {
-                title: "ค่าเผื่อที่ไม่รู้ว่ามาจากเกณฑ์ข้อไหน",
-                proof: (
-                  <div className="evidence-proof">
-                    <span className="evidence-proof__line"><i className="evidence-proof__tag">หลักเกณฑ์เผื่อฯ · ข้อ 4.1</i> <b>3%</b> บันทึกได้</span>
-                    <s className="evidence-proof__bad">7% ไม่ระบุที่มา — ถูกปฏิเสธ</s>
-                  </div>
-                ),
-                problem: "ค่าเผื่อเศษ 7% ที่ติดมากับไฟล์เดิม มักไม่มีใครตอบได้ว่าใครใส่ เมื่อไร และอ้างหลักเกณฑ์ข้อไหน",
-                answer: "ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้ ระบบเก็บเกณฑ์ไว้กับรายการนั้นตลอดอายุโครงการ",
-              },
-              {
-                title: "ตัวคูณที่หยิบมาจากไฟล์เดิม",
-                proof: (
-                  <div className="evidence-proof">
-                    <span className="evidence-proof__line">งานอาคาร · ดอกเบี้ย 6% · <b>Factor F ตามแถวพิมพ์</b></span>
-                    <span className="evidence-proof__ref">อ้างหนังสือ กค 0433.2/ว 481</span>
-                  </div>
-                ),
-                problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ หยิบค่าจากไฟล์โครงการก่อนมาใช้ ใบที่ได้จะดูเป็นทางการทุกช่องแต่ตัวเลขผิด",
-                answer: "ทุกตัวคูณผูกกับหนังสือที่ระบุผู้ออก เลขที่ และวันที่ — ส่วนของราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
-              },
-            ].map((item, index) => (
-              <article className="evidence-gap__item" key={item.title} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
-                <span className="evidence-gap__index">0{index + 1}</span>
-                <h3>{item.title}</h3>
-                <p className="evidence-gap__problem">{item.problem}</p>
-                <p className="evidence-gap__answer">{item.answer}</p>
-                <EvidencePeek proof={item.proof} />
-              </article>
+        </div>
+        <div className="app-rail" data-reveal data-delay="120">
+          <div className="app-rail__track">
+            {[0, 1].map((copy) => (
+              <div className="app-rail__half" key={copy} aria-hidden={copy === 1 ? true : undefined}>
+                {showcaseApps.map((app) => (
+                  <AppCard key={`${copy}-${app.slug}`} app={app} claim={claims[app.slug]} />
+                ))}
+              </div>
             ))}
-          </div>
-
-          {/* IP-192: the draggable before/after from the approved mockup. An illustration and
-              labelled as one - it introduces the difference, and claims nothing. */}
-          <div className="doc-compare-block" data-reveal>
-            <div className="doc-compare-block__head">
-              <h3>เอกสารเดิมของคุณ เทียบของเรา</h3>
-              <p>ลากแถบตรงกลางหรือใช้ปุ่มลูกศรเทียบดู — ตัวอย่างประกอบเพื่อสาธิต</p>
-            </div>
-            <DocCompare />
           </div>
         </div>
       </section>

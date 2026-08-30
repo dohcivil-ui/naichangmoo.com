@@ -362,6 +362,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .principle-marquee__half span{display:flex;align-items:center;gap:26px;padding-right:26px;font-size:.94rem;font-weight:600;letter-spacing:.02em;color:rgba(215,232,233,.65);white-space:nowrap}
 .principle-marquee__half span i{width:6px;height:6px;background:var(--orange);opacity:.85;flex:none}
 @keyframes principle-mq{to{transform:translateX(-50%)}}
+
+/* แถบเลื่อนแอปหน้าแรก (IP-225) — กลไกเดียวกับแถบข้อความด้านบน คือรางคู่ที่เลื่อนวนด้วย CSS
+   ต่างกันสองอย่าง หนึ่งเลื่อนจากซ้ายไปขวาตามที่เจ้าของงานสั่ง จึงวิ่งจาก -50% กลับมา 0
+   สองการ์ดในรางกดโฟกัสได้ แถบจึงต้องหยุดตอนโฟกัสด้วย ไม่ใช่หยุดเฉพาะตอนเอาเมาส์ชี้
+   การ์ดใช้หน้าตาเดิมของ .app-card ทุกประการ ที่นี่กำหนดแค่ความกว้างกับการไม่ให้ยืดหด */
+.app-rail{overflow:hidden;padding:6px 0 10px}
+.app-rail__track{display:flex;width:max-content;animation:app-rail-mq 72s linear infinite}
+.app-rail:hover .app-rail__track,.app-rail:focus-within .app-rail__track{animation-play-state:paused}
+.app-rail__half{display:flex;gap:18px;padding-right:18px;flex:none}
+.app-rail .app-card{width:clamp(268px,26vw,340px);flex:none;white-space:normal}
+.app-rail .app-card__icon-wrap{margin:14px 0 12px}
+@keyframes app-rail-mq{from{transform:translateX(-50%)}to{transform:translateX(0)}}
 .stat-band{padding-top:40px;padding-bottom:40px;border-bottom:1px solid var(--line)}
 .stat-band__eyebrow{margin-bottom:18px}
 .stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
