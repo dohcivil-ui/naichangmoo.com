@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AppAssistant } from "@/components/platform/assistant-dock";
 import { formatPrice } from "@/lib/price-catalogue";
+import { formatPricedQuantity, roundPricedQuantity } from "@/lib/takeoff-quantity";
 import { requestAssistant, settleAssistantProposal } from "@/server/actions/assistant";
 import { acceptBoqMatches, loadBoqMatchInput } from "@/server/actions/estimeter-boq";
 
@@ -96,9 +97,11 @@ export function BoqAssistant({
             matchedBy,
             itemDescription: item.description,
             itemUnit: item.unit,
-            quantity: item.quantity,
+            // ปัดปริมาณตั้งแต่ตอนพรีวิว ด้วยกฎเดียวกับที่ repository ใช้ตอนบันทึก
+            // ตัวเลขที่คนเห็นก่อนกดรับจึงเป็นตัวเลขเดียวกับที่เข้าใบ ไม่ใช่คนละค่าที่ต่างกันนิดเดียว
+            quantity: roundPricedQuantity(item.quantity),
             priceName: line.name,
-            amountSatang: BigInt(Math.round(Number(unit) * Number(item.quantity)))
+            amountSatang: BigInt(Math.round(Number(unit) * Number(roundPricedQuantity(item.quantity))))
           }
         ];
       };
@@ -301,7 +304,8 @@ export function BoqAssistant({
                         {row.confidence} · {row.reason}
                       </small>
                       <small>
-                        {row.quantity} {row.itemUnit} · เป็นเงิน {formatPrice(row.amountSatang)} บาท
+                        {formatPricedQuantity(row.quantity)} {row.itemUnit} · เป็นเงิน{" "}
+                        {formatPrice(row.amountSatang)} บาท
                       </small>
                     </span>
                   </label>

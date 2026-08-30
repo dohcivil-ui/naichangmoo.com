@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatPricedQuantity,
   formatQuantity,
   fromScaledUnits,
   increaseByPercent,
   multiplyQuantities,
   parseQuantity,
+  roundPricedQuantity,
   sumQuantities,
   toScaledUnits
 } from "@/lib/takeoff-quantity";
@@ -102,5 +104,37 @@ describe("percentage increase", () => {
 
   it("changes nothing at zero", () => {
     expect(increaseByPercent("0.7875", "0")).toBe("0.7875");
+  });
+});
+
+describe("ปริมาณที่ขึ้นใบราคา", () => {
+  it("ปัดเหลือสองตำแหน่งแบบครึ่งขึ้น", () => {
+    expect(roundPricedQuantity("10.804")).toBe("10.8");
+    expect(roundPricedQuantity("10.805")).toBe("10.81");
+    expect(roundPricedQuantity("10.806")).toBe("10.81");
+    expect(roundPricedQuantity("0.005")).toBe("0.01");
+    expect(roundPricedQuantity("0.004")).toBe("0");
+  });
+
+  it("ไม่ขยับปริมาณที่มีไม่เกินสองตำแหน่งอยู่แล้ว", () => {
+    expect(roundPricedQuantity("10.8")).toBe("10.8");
+    expect(roundPricedQuantity("120")).toBe("120");
+    expect(roundPricedQuantity("85.5")).toBe("85.5");
+  });
+
+  it("แสดงสองตำแหน่งเสมอ พร้อมคั่นหลักพัน", () => {
+    expect(formatPricedQuantity("10.8")).toBe("10.80");
+    expect(formatPricedQuantity("1234.5")).toBe("1,234.50");
+    expect(formatPricedQuantity("120")).toBe("120.00");
+    expect(formatPricedQuantity("0")).toBe("0.00");
+  });
+
+  it("ใบบวกตรงกับที่ตาเห็น เพราะเลขที่พิมพ์คือเลขที่คูณ", () => {
+    // ปริมาณจริง 10.804 ที่ปัดเข้าบรรทัดแล้วเป็น 10.80 · ราคาต่อหน่วย 2,990 บาท
+    const printed = roundPricedQuantity("10.804");
+    expect(formatPricedQuantity(printed)).toBe("10.80");
+    const unitSatang = 299_000n;
+    const amountSatang = (unitSatang * toScaledUnits(printed)) / 10n ** 6n;
+    expect(amountSatang).toBe(3_229_200n);
   });
 });

@@ -1,5 +1,6 @@
 import { MethodClaimsPanel } from "@/components/platform/method-claims-panel";
 import { formatPrice } from "@/lib/price-catalogue";
+import { formatPricedQuantity } from "@/lib/takeoff-quantity";
 import { TAKEOFF_CATEGORIES, categoryLabel, unitLabel } from "@/lib/takeoff-units";
 import type { BoqLineView } from "@/server/estimeter/boq-repository";
 
@@ -124,7 +125,7 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
                       {/* หน่วยของชั้นถอดปริมาณเก็บเป็นรหัส ต้องแปลงเป็นคำไทยก่อนขึ้นจอเสมอ */}
                       <small> บาท/{unitLabel(line.unit)}</small>
                     </td>
-                    <td className="number-cell">{line.quantity.toLocaleString("th-TH")}</td>
+                    <td className="number-cell">{formatPricedQuantity(line.quantity.toFixed(6))}</td>
                     <td className="number-cell">{formatPrice(line.amountSatang)}</td>
                   </tr>
                   ))}

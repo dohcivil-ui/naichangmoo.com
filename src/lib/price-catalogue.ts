@@ -13,6 +13,7 @@
  *    จะถูกคูณด้วยปริมาณแล้วบวกกันเป็นค่างานต้นทุน ซึ่งเป็นจุดที่ทศนิยมลอยเริ่มสะสมความคลาดเคลื่อน
  */
 
+import { formatBaht } from "@/lib/thai-baht";
 import { THAI_MONTH_FULL } from "@/lib/thai-date";
 export type MonthKey = string;
 export type ProvinceCode = string;
@@ -64,8 +65,6 @@ export type PriceMovement = {
   percent: number;
   direction: "rise" | "fall" | "flat";
 };
-
-const SATANG_PER_BAHT = 100n;
 
 /**
  * ทศนิยมจาก JSON เข้าสู่โลกจำนวนเต็ม
@@ -267,13 +266,15 @@ export function formatMonthKeyLong(month: MonthKey): string {
   return `${THAI_MONTH_FULL[index]} ${year}`;
 }
 
-/** ราคาสำหรับอ่าน ไม่ใช่สำหรับคำนวณ — การคำนวณใช้สตางค์เสมอ */
+/**
+ * ราคาสำหรับอ่าน ไม่ใช่สำหรับคำนวณ — การคำนวณใช้สตางค์เสมอ
+ *
+ * ทศนิยมสองตำแหน่งทุกครั้ง แม้ยอดจะเป็นบาทถ้วน ก่อนหน้านี้ที่นี่ตัดทศนิยมทิ้งเมื่อลงตัวพอดี
+ * ทำให้คอลัมน์เงินคอลัมน์เดียวมีทั้ง 879,935 และ 508.33 ปนกัน ซึ่งใบ ปร.4 ไม่เคยพิมพ์แบบนั้น
+ * กฎอยู่ที่ `thai-baht.ts` ที่เดียว เพราะอ่านมาจากใบจริง ที่นี่จึงเรียกใช้ ไม่เขียนกฎซ้ำ
+ */
 export function formatPrice(satang: bigint): string {
-  const hasSatang = satang % SATANG_PER_BAHT !== 0n;
-  return satangToBaht(satang).toLocaleString("th-TH", {
-    minimumFractionDigits: hasSatang ? 2 : 0,
-    maximumFractionDigits: 2
-  });
+  return formatBaht(satang);
 }
 
 /**

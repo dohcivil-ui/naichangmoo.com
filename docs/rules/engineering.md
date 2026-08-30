@@ -20,6 +20,16 @@ Every roadmap version, annotated tag, commit message and handoff must use an ali
 
 Schema is source-controlled. A schema change must include a reviewed Drizzle migration, authorization impact, rollback/risk note and tests. Do not use `db push` as a substitute for a production migration process.
 
+## Numbers on a priced sheet
+
+Money is displayed with two decimal places everywhere, including whole-baht amounts and the prices on the marketing page: `1,170.00`, never `1,170`. The rule lives in `src/lib/thai-baht.ts`, which was read off a complete ปร.4/ปร.5/ปร.6 set; every other money formatter delegates to it rather than restating the rule.
+
+Money is computed in satang as `bigint`. A line is rounded once, where it is priced — `round(unit_satang × quantity)` — and a total is the sum of those already-rounded lines. Summing at full precision and rounding the total instead would print a sheet that does not add up as printed, which is the error nobody catches by eye.
+
+A quantity is rounded to two decimal places at the moment it becomes a priced line, not at display time. Take-off keeps six decimal places upstream, because one line is count × width × length × thickness and rounding each factor would compound; but a sheet that prints `10.80` and multiplies `10.804` gives a reader a total they cannot reproduce. Use `roundPricedQuantity` on the write path and `formatPricedQuantity` on the read path.
+
+A coefficient is not money. ค่า K keeps the three decimal places its circular defines, and a percentage keeps the precision its own rule gives it.
+
 ## Authentication and access
 
 Entitlement must be checked by server-side policy on every protected action. Trial locks, read-only retention, app membership, organization boundaries and DOH-only access cannot rely on client-side visibility alone.

@@ -1,6 +1,7 @@
 import { RevisionForm } from "@/components/estimeter/revision-form";
 import { AUTHORITY_LABEL } from "@/lib/price-authority";
 import { formatPrice } from "@/lib/price-catalogue";
+import { formatPricedQuantity } from "@/lib/takeoff-quantity";
 import { formatThaiDateTime } from "@/lib/thai-format";
 import type { PriceSetLineView, PriceSetSummary } from "@/server/estimeter/price-set-repository";
 
@@ -124,7 +125,7 @@ export function PriceSetPanel({
                       {formatPrice(line.unitSatang)}
                       <small> บาท/{line.unit}</small>
                     </td>
-                    <td className="number-cell">{line.quantity.toLocaleString("th-TH")}</td>
+                    <td className="number-cell">{formatPricedQuantity(line.quantity.toFixed(6))}</td>
                     <td className="number-cell">
                       {formatPrice(BigInt(Math.round(Number(line.unitSatang) * line.quantity)))}
                     </td>

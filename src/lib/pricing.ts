@@ -71,7 +71,11 @@ export function taxBaseBaht(amount: number): number {
   return amount / (1 + VAT_PERCENT / 100);
 }
 
-export function formatBaht(amount: number, fractionDigits = 0): string {
+/**
+ * ทศนิยมสองตำแหน่งเป็นค่าตั้งต้น ตามกฎของโปรเจกต์ที่ว่าตัวเลขเงินแสดงสองตำแหน่งเสมอ
+ * ราคาที่หน้าขายกับยอดในใบงานจึงอ่านเป็นแบบเดียวกัน ไม่ใช่ 1,170 ที่หนึ่งและ 1,170.00 ที่หนึ่ง
+ */
+export function formatBaht(amount: number, fractionDigits = 2): string {
   return amount.toLocaleString("th-TH", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits

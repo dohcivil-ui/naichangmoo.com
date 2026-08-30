@@ -12,6 +12,7 @@ import {
   takeoffRuns
 } from "@/db/schema";
 import { planMatches, type MatchPlan } from "@/lib/boq-matching";
+import { roundPricedQuantity } from "@/lib/takeoff-quantity";
 import { unitLabel } from "@/lib/takeoff-units";
 import type { BoqMatchInput } from "@/server/ai/estimeter-prompt";
 
@@ -207,8 +208,13 @@ export async function acceptMatches(input: {
     };
   }
 
+  // ปริมาณถูกปัดเหลือสองตำแหน่งตรงนี้ ตอนที่มันกลายเป็นบรรทัดที่มีราคา ไม่ใช่ตอนแสดงผล
+  // เพราะยอดของบรรทัดคิดจากค่าที่เก็บ ถ้าเก็บ 10.804 แล้วพิมพ์ 10.80 ใบจะบวกไม่ตรงกับที่ตาเห็น
   const quantityById = new Map(
-    candidates.input.items.map((item) => [candidates.itemByRef.get(item.ref) ?? "", item.quantity])
+    candidates.input.items.map((item) => [
+      candidates.itemByRef.get(item.ref) ?? "",
+      roundPricedQuantity(item.quantity)
+    ])
   );
 
   await db.transaction(async (tx) => {

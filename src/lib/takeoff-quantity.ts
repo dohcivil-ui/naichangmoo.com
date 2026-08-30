@@ -102,3 +102,27 @@ export function formatQuantity(value: string): string {
   const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return decimalPart ? `${grouped}.${decimalPart}` : grouped;
 }
+
+/** ทศนิยมของปริมาณที่ขึ้นใบราคา สองตำแหน่งเท่ากับที่ใบ ปร.4 พิมพ์ */
+export const PRICED_QUANTITY_SCALE = 2;
+const PRICED_FACTOR = 10n ** BigInt(QUANTITY_SCALE - PRICED_QUANTITY_SCALE);
+
+/**
+ * ปัดปริมาณเหลือสองตำแหน่งแบบครึ่งขึ้น สำหรับตอนที่ปริมาณกลายเป็นบรรทัดที่มีราคา
+ *
+ * หน้าถอดปริมาณคิดละเอียดถึงหกตำแหน่ง เพราะบรรทัดหนึ่งคือ จำนวน คูณ กว้าง คูณ ยาว คูณ หนา
+ * ที่ปัดครั้งเดียวตอนจบ แต่ **ใบที่มีราคาต้องบวกตรงกับที่ตาเห็น** ถ้าใบพิมพ์ 10.80 แล้วระบบ
+ * คิดด้วย 10.804 คนที่เอาราคาต่อหน่วยคูณเลขที่เห็นจะได้ยอดไม่ตรงกับที่ระบบขึ้น และนั่นคือ
+ * ความผิดพลาดชนิดที่ทุกตัวเลขยังดูสมเหตุสมผล จุดปัดจึงอยู่ตรงที่ปริมาณเข้าสู่บรรทัดราคา
+ * ไม่ใช่ตอนแสดงผล
+ */
+export function roundPricedQuantity(value: string): string {
+  return fromScaledUnits(divideRoundHalfUp(toScaledUnits(value), PRICED_FACTOR) * PRICED_FACTOR);
+}
+
+/** ปริมาณบนใบที่มีราคา สองตำแหน่งเสมอ แม้ลงตัวพอดี เพื่อให้คอลัมน์อ่านเป็นแนวเดียวกัน */
+export function formatPricedQuantity(value: string): string {
+  const [integerPart = "0", decimalPart = ""] = roundPricedQuantity(value).split(".");
+  const grouped = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return `${grouped}.${decimalPart.padEnd(PRICED_QUANTITY_SCALE, "0")}`;
+}

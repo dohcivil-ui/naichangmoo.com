@@ -233,7 +233,13 @@ export async function dropLine(userId: string | null, lineKey: string, now = new
   return readBasket(userId, now);
 }
 
-/** ปริมาณเป็นทศนิยมได้ เพราะงานจริงมี 12.5 ลบ.ม. ศูนย์หรือติดลบไม่ใช่ปริมาณ */
+/**
+ * ปริมาณเป็นทศนิยมได้ เพราะงานจริงมี 12.5 ลบ.ม. ศูนย์หรือติดลบไม่ใช่ปริมาณ
+ *
+ * เก็บสองตำแหน่ง แม้คอลัมน์จะรับได้สี่ เพราะรายการในตะกร้าเดินต่อไปเป็นบรรทัดของชุดราคา
+ * ที่มียอดเงินกำกับ และใบที่มีราคาต้องบวกตรงกับที่ตาเห็น ตำแหน่งที่สามเป็นต้นไปจึงถูกปัด
+ * ตั้งแต่ตรงนี้ ไม่ใช่ไปโผล่เป็นส่วนต่างที่อธิบายไม่ได้ตอนขึ้นใบ
+ */
 export async function setLineQuantity(
   userId: string | null,
   lineKey: string,
@@ -246,7 +252,7 @@ export async function setLineQuantity(
 
   await getDb()
     .update(priceBasketLines)
-    .set({ quantity: quantity.toFixed(4), updatedAt: new Date() })
+    .set({ quantity: quantity.toFixed(2), updatedAt: new Date() })
     .where(and(eq(priceBasketLines.basketId, view.basketId), eq(priceBasketLines.lineKey, lineKey)));
   return readBasket(userId, now);
 }
@@ -341,7 +347,8 @@ export async function sendBasketToProject(
         name: line.name,
         unit: line.unit,
         unitSatang: line.unitSatang,
-        quantity: line.quantity.toFixed(4)
+        // สองตำแหน่งเท่ากับที่ใบพิมพ์ ชุดราคาที่ส่งไปแล้วแก้ไม่ได้ ตัวเลขจึงต้องนิ่งตั้งแต่วินาทีนี้
+        quantity: line.quantity.toFixed(2)
       }))
     );
 

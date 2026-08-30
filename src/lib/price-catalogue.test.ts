@@ -174,9 +174,10 @@ describe("การแสดงผล", () => {
     expect(formatMonthKey("2567-12")).toBe("ธ.ค. 67");
   });
 
-  it("ตัดทศนิยมทิ้งเมื่อราคาเป็นบาทถ้วน", () => {
-    expect(formatPrice(51000n)).toBe("510");
+  it("ทศนิยมสองตำแหน่งทุกครั้ง แม้ราคาจะเป็นบาทถ้วน", () => {
+    expect(formatPrice(51000n)).toBe("510.00");
     expect(formatPrice(50833n)).toBe("508.33");
+    expect(formatPrice(0n)).toBe("0.00");
   });
 
   it("ติดเครื่องหมายบวกให้ราคาที่ขยับขึ้น", () => {
