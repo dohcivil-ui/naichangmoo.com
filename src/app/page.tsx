@@ -51,17 +51,17 @@ export default async function LandingPage() {
               settles down from above, then everything under it rises, so the eye is led to the
               headline instead of meeting the whole panel at once. */}
           <div className="hero__copy">
-            <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
+            <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานประมาณราคาก่อสร้าง</div>
             {/* IP-192: the headline rises a line at a time behind a clipping mask - the motion
                 trick from the approved mockup. The first line wears an outline stroke so the
                 second one, which names what the platform actually sells, stays the loudest
                 thing on the page. The split point is chosen so each line is a whole phrase:
                 Thai has no word spaces, and a line break landing mid-phrase reads as a typo. */}
             <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
-              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">เสริมพลังให้แอป</span></span>
-              <span className="h1-line"><span className="h1-line__text">ด้วยผู้ช่วย AI<span className="h1-dot">.</span></span></span>
+              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">ถอดแบบ คิดราคา</span></span>
+              <span className="h1-line"><span className="h1-line__text">ให้ทันวันยื่นประมูล<span className="h1-dot">.</span></span></span>
             </h1>
-            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>สำหรับวิศวกร ผู้รับเหมา และห้างร้านที่ประมาณราคางานอาคาร จากเดิมที่คิดด้วยมือหลายวัน ให้ผู้ช่วย AI ร่างให้ก่อน แล้วคุณตรวจและตัดสิน</p>
           <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
             {/* IP-197: บรรทัดหลักการใต้ปุ่มถูกตัดตามคำสั่งเจ้าของงาน 2026-08-28 — ฉากสาธิต
                 เล่าเรื่องเดียวกันด้วยภาพแทน (ผู้ช่วยเสนอ คนตัดสิน ระบบคำนวณ) */}
@@ -97,11 +97,11 @@ export default async function LandingPage() {
             {[0, 1].map((half) => (
               <div className="principle-marquee__half" key={half}>
                 {[
-                  "ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้",
+                  "ทุกยอดย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้",
                   "AI ร่าง — คุณตัดสิน — ระบบคำนวณ",
-                  "เงินเป็นสตางค์จำนวนเต็มเสมอ",
-                  "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่บันทึก",
-                  "ทุกคำแถลงมีผู้ดูแลเป็นเจ้าของ"
+                  "คิดเงินละเอียดถึงสตางค์ ไม่ปัดทิ้งระหว่างทาง",
+                  "ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้",
+                  "ราคาวัสดุและค่าแรงอ้างบัญชีที่ทางราชการประกาศ"
                 ].map((line) => (
                   <span key={line}>{line}<i /></span>
                 ))}
@@ -123,7 +123,7 @@ export default async function LandingPage() {
           <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
               <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
-              <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
+              <h2>สามจุดที่ทำให้ใบประมาณราคาถูกตีกลับ</h2>
             </div>
             <p>ตัวเลขในตัวอย่างของส่วนนี้เป็นตัวอย่างประกอบเพื่อสาธิต</p>
           </div>
@@ -134,11 +134,11 @@ export default async function LandingPage() {
                 proof: (
                   <div className="evidence-proof">
                     <span className="evidence-proof__line">2 × 2.50 × 2.50 × 2.00 = <b>12.50 ลบ.ม.</b> <i className="evidence-proof__tag">อ่านได้จากแบบ</i></span>
-                    <s className="evidence-proof__bad">1.25 — ไม่มีบรรทัดวัด</s>
+                    <s className="evidence-proof__bad">1.25 — ไม่มีรายการถอดแบบ</s>
                   </div>
                 ),
-                problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม หน้าตาเหมือนกันหมดในตาราง ไม่มีอะไรบอกว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00 หรือมาจากนิ้วที่พลาด",
-                answer: "ปริมาณเป็นผลรวมของบรรทัดวัด จำนวน × กว้าง × ยาว × หนา ที่อ่านออกจากแบบได้ ไม่ใช่ตัวเลขที่พิมพ์เข้าไปเฉย ๆ",
+                problem: "12.5 ลบ.ม. ที่ถูก กับ 1.25 ที่พิมพ์ตกหลักทศนิยม อยู่ในตารางแล้วหน้าตาเหมือนกัน ตอนถูกซักในที่ประชุมจึงไม่มีอะไรยืนยันว่าเลขนี้มาจาก 2.50 × 2.50 × 2.00",
+                answer: "ปริมาณมาจากรายการถอดแบบ จำนวน × กว้าง × ยาว × หนา ที่ชี้กลับไปหาแบบได้ทุกบรรทัด",
               },
               {
                 title: "ค่าเผื่อที่ไม่รู้ว่ามาจากเกณฑ์ข้อไหน",
@@ -148,8 +148,8 @@ export default async function LandingPage() {
                     <s className="evidence-proof__bad">7% ไม่ระบุที่มา — ถูกปฏิเสธ</s>
                   </div>
                 ),
-                problem: "เผื่อ 7% ใส่ไว้ตั้งแต่เมื่อไหร่ ใครใส่ อ้างหลักเกณฑ์ฉบับไหน วันที่ถูกซัก ถ้าชี้เอกสารต้นทางไม่ได้ ตัวเลขนั้นก็ยืนไม่ได้",
-                answer: "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึกลงฐานข้อมูล ไม่ใช่แค่ข้อความเตือนบนหน้าจอที่กดข้ามได้",
+                problem: "ค่าเผื่อเศษ 7% ที่ติดมากับไฟล์เดิม มักไม่มีใครตอบได้ว่าใครใส่ เมื่อไร และอ้างหลักเกณฑ์ข้อไหน",
+                answer: "ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้ ระบบเก็บเกณฑ์ไว้กับรายการนั้นตลอดอายุโครงการ",
               },
               {
                 title: "ตัวคูณที่หยิบมาจากไฟล์เดิม",
@@ -159,8 +159,8 @@ export default async function LandingPage() {
                     <span className="evidence-proof__ref">อ้างหนังสือ กค 0433.2/ว 481</span>
                   </div>
                 ),
-                problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ โครงการที่คิดบนอัตราหนึ่งจะใช้ค่าจากตารางอีกอัตราไม่ได้ ผลลัพธ์จะออกมาหน้าตาเป็นทางการและผิด",
-                answer: "ทุกค่าที่เข้าการคำนวณต้องผูกกับเอกสารที่ระบุผู้ออก เลขที่หนังสือและวันที่ — ชั้นราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
+                problem: "ตาราง Factor F ผูกกับอัตราดอกเบี้ยเงินกู้ที่ประกาศไว้ หยิบค่าจากไฟล์โครงการก่อนมาใช้ ใบที่ได้จะดูเป็นทางการทุกช่องแต่ตัวเลขผิด",
+                answer: "ทุกตัวคูณผูกกับหนังสือที่ระบุผู้ออก เลขที่ และวันที่ — ส่วนของราคายังอยู่ระหว่างพัฒนา ยังไม่เปิดใช้งาน",
               },
             ].map((item, index) => (
               <article className="evidence-gap__item" key={item.title} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
@@ -187,14 +187,14 @@ export default async function LandingPage() {
 
       <section className="section" id="apps">
         <div className="container">
-          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามประเภทงาน</h2></div></div>
           <div className="market-category-stack">
             {marketCategories.map((category, index) => {
               const apps = platformApps.filter((app) => app.categoryId === category.id);
               return <section className="market-category" key={category.id} data-reveal>
                 <header className="market-category__header">
                   <span className="market-category__index">0{index + 1}</span>
-                  <div><p className="eyebrow">หมวดงาน</p><h3>{category.label}</h3><p>{category.description}</p></div>
+                  <div><p className="eyebrow">ประเภทงาน</p><h3>{category.label}</h3><p>{category.description}</p></div>
                 </header>
                 <div className="market-category__apps">{apps.map((app) => <AppCard key={app.slug} app={app} claim={claims[app.slug]} />)}</div>
               </section>;
@@ -210,7 +210,7 @@ export default async function LandingPage() {
               design record. The panel introduces the service and routes the request into the
               enterprise quotation intake (ADR 0005) - it claims no price and no readiness, so it
               stays on the introduction side of ADR 0015. */}
-          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตาม use case ที่ส่งเข้ามา</p></div><a className="button button--primary micro-button" href={hermesRequestHref}>ส่ง use case ให้ออกแบบ</a></div>
+          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตามลักษณะงานที่ส่งเข้ามา</p></div><a className="button button--primary micro-button" href={hermesRequestHref}>ส่งรายละเอียดงานให้ออกแบบ</a></div>
         </div>
       </section>
 
