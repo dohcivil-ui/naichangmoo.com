@@ -1858,6 +1858,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 @media (max-width: 720px) { .revision-columns { grid-template-columns: 1fr; }.revision-issue .button, .revision-issue > label { width: 100%; flex-basis: 100%; } }
 
+/* IP-217 · ผู้ช่วยจัดทำ BOQ ในแผงผู้ช่วยกลาง
+   แผงกว้างจำกัดตามเปลือกแอป ทุกอย่างจึงเรียงลงเป็นคอลัมน์เดียว และชื่อรายการยาวได้
+   จึงต้อง overflow-wrap ไม่งั้นชื่อวัสดุยาว ๆ ดันแผงจนล้น */
+.boq-assistant { display: grid; gap: 10px; overflow-wrap: anywhere; }
+.boq-assistant__lead { margin: 0; font-size: .8rem; line-height: 1.55; color: var(--ink-body); }
+.boq-assistant__target { margin: 0; font-size: .76rem; font-weight: 700; color: var(--teal-text); }
+.boq-assistant .button { width: 100%; margin-top: 0; }
+.boq-assistant__message { margin: 0; font-size: .78rem; font-weight: 700; color: var(--ink); }
+.boq-assistant__warning { margin: 0; padding: .55rem .65rem; border: 1px solid #e9d2a9; border-radius: 9px; background: #fffaf2; font-size: .74rem; line-height: 1.5; color: #7c541f; }
+.boq-assistant__note { margin: 0; font-size: .74rem; line-height: 1.5; color: var(--muted); }
+.boq-assistant__matches { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.boq-assistant__matches li { padding: 9px 10px; border: 1px solid var(--mist); border-radius: 10px; background: var(--paper); }
+.boq-assistant__matches label { display: flex; gap: 9px; align-items: flex-start; cursor: pointer; }
+.boq-assistant__matches input { margin-top: .2rem; width: 17px; height: 17px; accent-color: var(--teal); flex: 0 0 auto; }
+.boq-assistant__matches strong { display: block; font-size: .82rem; color: var(--ink); }
+.boq-assistant__matches small { display: block; margin-top: .18rem; font-size: .72rem; line-height: 1.45; color: var(--muted); }
+.boq-assistant__total { margin: 0; font-size: .82rem; font-weight: 800; color: var(--ink); }
+.boq-assistant__actions { display: grid; gap: 8px; }
+.boq-assistant__unmatched { padding: .6rem .7rem; border: 1px solid var(--mist); border-radius: 10px; background: var(--canvas); }
+.boq-assistant__unmatched strong { font-size: .78rem; color: var(--ink); }
+.boq-assistant__unmatched ul { margin: .3rem 0 0; padding-left: 1.05rem; }
+.boq-assistant__unmatched li { font-size: .73rem; line-height: 1.5; color: var(--muted); }
+/* ชื่อรายการกับบรรทัดที่มาต้องอยู่คนละบรรทัด small ปริยายเป็น inline จึงต้องสั่งเอง
+   เหมือนที่ .price-set ทำไว้แล้ว การลืมข้อนี้ทำให้สองประโยคต่อกันจนอ่านผิด */
+.boq-table small { display: block; margin-top: .2rem; font-size: .74rem; font-weight: 500; line-height: 1.45; color: var(--muted); }
+.boq-table .number-cell small { display: inline; margin-top: 0; }
+
 /* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
 .gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
 .gl-send__picker { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--paper); }

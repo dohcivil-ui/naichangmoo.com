@@ -77,6 +77,18 @@ const SAMPLES: Record<string, unknown> = {
     contractSignedOn: "2569-01-15",
     periodDeliveredOn: "2569-06-30",
     question: "งวดนี้ใช้เกณฑ์ส่วนต่างเท่าไร"
+  },
+  "estimeter:draft": {
+    ...PRIVATE_FIELDS,
+    projectName: "อาคารเรียน 4 ชั้น 12 ห้องเรียน",
+    items: [
+      { ref: "ST-01", description: "คอนกรีตโครงสร้างฐานราก กำลังอัด 240", unit: "ลบ.ม.", quantity: "18.4000", addedBy: "user_0193abc" },
+      { ref: "AR-01", description: "ผนังก่ออิฐมอญครึ่งแผ่น", unit: "ตร.ม.", quantity: "286.7500", addedBy: "user_0193abc" }
+    ],
+    lines: [
+      { ref: "P1", name: "คอนกรีตผสมเสร็จรูปลูกบาศก์ 240 กก./ตร.ซม.", unit: "ลบ.ม.", unitSatang: "299000" },
+      { ref: "P2", name: "อิฐมอญ ขนาด 6.5x14x3 ซม.", unit: "ก้อน", unitSatang: "180" }
+    ]
   }
 };
 

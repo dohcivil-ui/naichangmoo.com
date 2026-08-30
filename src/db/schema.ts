@@ -534,6 +534,41 @@ export const estimateRevisions = pgTable("estimate_revisions", {
   index("estimate_revisions_price_set_idx").on(table.priceSetId)
 ]);
 
+/**
+ * บรรทัด BOQ — จุดที่ปริมาณกับราคามาเจอกัน (IP-217)
+ *
+ * ก่อนหน้านี้ปริมาณที่ถอดไว้กับชุดราคาที่รับมาอยู่บนหน้าเดียวกันคนละแผง และไม่เคยเจอกันเลย
+ * คนต้องไล่จับคู่เองทีละบรรทัด ตารางนี้คือที่เก็บคู่ที่จับแล้วและมีคนยืนยันแล้ว
+ *
+ * **ไม่มีช่องเงินสักช่อง** เป็นกฎเดียวกับที่ schema ของผู้ช่วยถืออยู่ ยอดของบรรทัดคำนวณจาก
+ * ราคาต่อหน่วยใน `price_set_lines` คูณปริมาณที่บันทึกไว้ตรงนี้ การเก็บยอดซ้ำคือการเปิดโอกาส
+ * ให้ตัวเลขสองที่ขัดกันเองในวันที่ใครสักคนแก้ที่เดียว
+ *
+ * **ปริมาณถูกคัดลอกมา ไม่ได้อ้างอิงสด** เพราะรายการถอดปริมาณยังแก้ได้ต่อ แต่บรรทัดที่ขึ้น
+ * เอกสารไปแล้วต้องนิ่ง ด้วยเหตุผลเดียวกับที่ชุดราคาเป็นสำเนาไม่ใช่ตะกร้า
+ *
+ * ผูกกับ revision ไม่ใช่กับโครงการ ตาม ADR 0008 ที่ให้เอกสารราคาเป็นของฉบับคำนวณ
+ */
+export const boqItems = pgTable("boq_items", {
+  id: text("id").primaryKey(),
+  revisionId: text("revision_id").notNull().references(() => estimateRevisions.id, { onDelete: "cascade" }),
+  takeoffItemId: text("takeoff_item_id").notNull().references(() => takeoffItems.id),
+  priceSetLineId: text("price_set_line_id").notNull().references(() => priceSetLines.id),
+  /** สำเนาปริมาณ ณ วินาทีที่คนกดรับคู่นี้ */
+  quantity: numeric("quantity", { precision: 18, scale: 6 }).notNull(),
+  /** `assistant` คือผู้ช่วยเสนอแล้วคนรับ · `manual` คือคนจับคู่เอง */
+  matchedBy: text("matched_by").notNull().default("manual"),
+  /** ระดับความมั่นใจที่ผู้ช่วยให้ไว้ตอนเสนอ ว่างเมื่อคนจับคู่เอง */
+  matchConfidence: text("match_confidence"),
+  acceptedBy: text("accepted_by").notNull().references(() => users.id),
+  createdAt,
+  updatedAt
+}, (table) => [
+  // หนึ่งรายการปริมาณขึ้นได้บรรทัดเดียวต่อฉบับ การรับซ้ำคือการนับปริมาณเดิมสองรอบ
+  uniqueIndex("boq_items_revision_takeoff_unique").on(table.revisionId, table.takeoffItemId),
+  index("boq_items_revision_idx").on(table.revisionId)
+]);
+
 export const backgroundJobs = pgTable("background_jobs", {
   id: text("id").primaryKey(),
   type: text("type").notNull(),
@@ -709,6 +744,7 @@ export const schema = {
   priceBaskets,
   priceBasketLines,
   estimateRevisions,
+  boqItems,
   backgroundJobs,
   hermesReviewJobs,
   approvalRequests,

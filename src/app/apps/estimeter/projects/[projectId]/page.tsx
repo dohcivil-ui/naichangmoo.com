@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
+import { BoqAssistant } from "@/components/estimeter/boq-assistant";
+import { BoqPanel } from "@/components/estimeter/boq-panel";
 import { PriceSetPanel } from "@/components/estimeter/price-set-panel";
 import { RevisionPanel } from "@/components/estimeter/revision-panel";
+import { COSTING_METHOD_LABEL } from "@/lib/price-authority";
+import { listBoqLines, readMatchCandidates } from "@/server/estimeter/boq-repository";
 import { listPriceSetLines, listPriceSets, type PriceSetLineView } from "@/server/estimeter/price-set-repository";
 import { listRevisions } from "@/server/estimeter/revision-repository";
 import { formatQuantity } from "@/lib/takeoff-quantity";
@@ -40,6 +44,14 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   const priceSetLines = await Promise.all(priceSets.map((set) => listPriceSetLines(organizationId, set.id)));
   // ฉบับคำนวณที่ออกจากชุดราคาเหล่านั้น (IP-216)
   const revisions = await listRevisions(organizationId, project.id);
+
+  // ผู้ช่วยจับคู่ปริมาณกับราคา และบรรทัด BOQ ที่รับไว้แล้ว (IP-217)
+  //
+  // ฉบับที่ผู้ช่วยจะรับเข้าคือฉบับที่ออกล่าสุด เพราะเป็นฉบับที่กำลังทำอยู่จริง ฉบับก่อนหน้า
+  // ออกไปแล้วและไม่ควรมีบรรทัดงอกเพิ่มทีหลังโดยไม่มีใครสังเกต
+  const newestRevision = [...revisions].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null;
+  const candidates = await readMatchCandidates(organizationId, project.id);
+  const boqLines = newestRevision ? await listBoqLines(organizationId, newestRevision.id) : [];
   const linesBySet: Record<string, PriceSetLineView[]> = {};
   priceSets.forEach((set, index) => {
     linesBySet[set.id] = priceSetLines[index];
@@ -176,6 +188,27 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
         />
 
         <RevisionPanel revisions={revisions} />
+
+        <BoqPanel
+          lines={boqLines}
+          revisionLabel={
+            newestRevision
+              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ฉบับที่ ${newestRevision.revisionNumber}`
+              : null
+          }
+        />
+
+        <BoqAssistant
+          projectId={project.id}
+          revisionId={newestRevision?.id ?? null}
+          revisionLabel={
+            newestRevision
+              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ฉบับที่ ${newestRevision.revisionNumber}`
+              : null
+          }
+          canEdit={canEdit}
+          unitSatangByRef={Object.fromEntries(candidates?.unitSatangByRef ?? [])}
+        />
 
         <div className="hero__actions">
           <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Link>
