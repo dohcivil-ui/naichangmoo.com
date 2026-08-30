@@ -35,9 +35,9 @@ This is the target logical model. Drizzle schema and migrations implement it in 
 | `takeoff_items` | proposed/confirmed quantities | run, category, unit, quantity, review state |
 | `evidence_references` | trace to drawing/source details | takeoff item, page, geometry, source, note |
 | `cost_catalog_items` | controlled cost catalogue item | code, name, unit, editable scope |
-| `price_sources`, `price_observations`, `price_sets` | price provenance and approved snapshot | source metadata, geo/time, source value, approval |
+| `price_sources`, `price_observations`, `price_sets` | price provenance and approved snapshot | source metadata, geo/time, source value, approval, authority source |
 | `boq_items` | reviewed preliminary BOQ | project/revision/category/quantity/cost components |
-| `estimate_revisions` | immutable revision boundary | project, number, status, price set, locked by |
+| `estimate_revisions` | immutable revision boundary | project, costing method, number, status, price set (required) |
 | `government_form_projections` | derived ปร.4(ก)/ปร.5(ก)/ปร.6 outputs | revision, document type, payload hash, release state |
 | `document_releases` | gated export/print release record | revision, type, actor, artifact reference, quality gate result |
 

@@ -1,3 +1,5 @@
+import { RevisionForm } from "@/components/estimeter/revision-form";
+import { AUTHORITY_LABEL } from "@/lib/price-authority";
 import { formatPrice } from "@/lib/price-catalogue";
 import { formatThaiDateTime } from "@/lib/thai-format";
 import type { PriceSetLineView, PriceSetSummary } from "@/server/estimeter/price-set-repository";
@@ -31,11 +33,17 @@ function evidenceOf(line: PriceSetLineView): string {
 export function PriceSetPanel({
   priceSets,
   linesBySet,
-  projectName
+  projectId,
+  projectName,
+  canEdit,
+  lockReason
 }: {
   priceSets: PriceSetSummary[];
   linesBySet: Record<string, PriceSetLineView[]>;
+  projectId: string;
   projectName: string;
+  canEdit: boolean;
+  lockReason: string | null;
 }) {
   if (priceSets.length === 0) {
     return (
@@ -85,7 +93,7 @@ export function PriceSetPanel({
               <h3>{set.name}</h3>
               <p>
                 {set.lineCount} บรรทัด · จังหวัด {set.provinceCode} · เดือน {set.effectiveMonth} ·
-                รับเข้า {formatThaiDateTime(set.createdAt)}
+                รับเข้า {formatThaiDateTime(set.createdAt)} · {AUTHORITY_LABEL[set.authoritySource]}
               </p>
             </div>
             <div className="price-set__total">
@@ -130,6 +138,14 @@ export function PriceSetPanel({
             ลายนิ้วมือของชุดนี้ <code>{set.payloadHash.slice(0, 16)}</code> · คิดจากบรรทัดที่คัดลอกมาจริง
             ณ วินาทีที่รับเข้า ไม่ใช่จากรายการต้นทางในวันนั้น
           </p>
+
+          <RevisionForm
+            projectId={projectId}
+            priceSetId={set.id}
+            authority={set.authoritySource}
+            canEdit={canEdit}
+            lockReason={lockReason}
+          />
         </section>
       ))}
 

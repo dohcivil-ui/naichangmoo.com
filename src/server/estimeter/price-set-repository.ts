@@ -1,6 +1,7 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { priceSetLines, priceSets, projects } from "@/db/schema";
+import type { PriceAuthoritySource } from "@/lib/price-authority";
 
 /**
  * ชุดราคาที่โครงการรับมาแล้ว — ฝั่งรับของ IP-163
@@ -19,6 +20,8 @@ export type PriceSetSummary = {
   provinceCode: string;
   effectiveMonth: string;
   status: string;
+  /** ทางการหรือขององค์กร — ตัดสินว่าชุดนี้ออกฉบับแบบ Factor F ได้หรือไม่ (ADR 0008 ข้อ 5) */
+  authoritySource: PriceAuthoritySource;
   payloadHash: string;
   lineCount: number;
   /** ยอดรวมเป็นสตางค์ คิดที่ฐานข้อมูลจากบรรทัดจริง ไม่ใช่ตัวเลขที่ใครพิมพ์เก็บไว้ */
@@ -50,6 +53,7 @@ export async function listPriceSets(organizationId: string, projectId: string): 
       provinceCode: priceSets.provinceCode,
       effectiveMonth: priceSets.effectiveMonth,
       status: priceSets.status,
+      authoritySource: priceSets.authoritySource,
       payloadHash: priceSets.payloadHash,
       createdAt: priceSets.createdAt,
       lineCount: sql<number>`count(${priceSetLines.id})::int`,

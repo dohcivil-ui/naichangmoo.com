@@ -11,6 +11,7 @@ import {
   users
 } from "@/db/schema";
 import { readEntitlementForApp, ensurePersonalOrganization, readOrganizationOf } from "@/server/app-access";
+import { authorityOfLines } from "@/lib/price-authority";
 import {
   PRICEMETR_APP_SLUG,
   canPickAnotherLine,
@@ -308,6 +309,11 @@ export async function sendBasketToProject(
   const province = mode(view.lines.map((line) => line.provinceCode).filter(Boolean) as string[]) ?? "-";
   const month = mode(view.lines.map((line) => line.effectiveMonth).filter(Boolean) as string[]) ?? "-";
 
+  // แหล่งอำนาจคิดจากที่มาของทุกบรรทัด ณ วินาทีที่ส่ง ไม่ใช่ช่องที่ใครเลือกเอง ต่างจากจังหวัด
+  // และเดือนข้างบนที่เป็นป้ายบอกซึ่งใช้ค่าที่พบบ่อยที่สุด เพราะข้อนี้เป็นด่านที่ปฏิเสธจริง
+  // ตาม ADR 0008 ข้อ 5 การเลือก "ค่าที่พบบ่อยที่สุด" จะทำให้บรรทัดที่ไม่ทางการหายไปเงียบ ๆ
+  const authoritySource = authorityOfLines(view.lines.map((line) => line.sourceKey));
+
   await db.transaction(async (tx) => {
     await tx.insert(priceSets).values({
       id: priceSetId,
@@ -316,6 +322,7 @@ export async function sendBasketToProject(
       provinceCode: province,
       effectiveMonth: month,
       status: "draft",
+      authoritySource,
       payloadHash: hashOf(snapshot)
     });
 
@@ -352,6 +359,7 @@ export async function sendBasketToProject(
         lineCount: view.lines.length,
         provinceCode: province,
         effectiveMonth: month,
+        authoritySource,
         basketId: view.basketId
       }
     });

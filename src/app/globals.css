@@ -1831,6 +1831,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .price-set .takeoff-table small { display: block; margin-top: .2rem; font-size: .74rem; font-weight: 500; color: var(--muted); }
 .price-set code { font-size: .76rem; }
 
+/* IP-216 · ออกฉบับคำนวณจากชุดราคา และแผงฉบับของโครงการ
+   สองคอลัมน์ยืนคู่กันเสมอแม้วิธีหนึ่งยังไม่มีฉบับ ตาม ADR 0008 ข้อ 4 ที่ว่าโครงการไม่มี
+   "ฉบับปัจจุบัน" เดี่ยว ๆ · ใช้ minmax(0,1fr) เพราะชื่อชุดราคายาวได้ และคอลัมน์ที่ไม่มี
+   ขอบล่างจะถ่างจนทั้งหน้าเลื่อนข้าง แบบเดียวกับที่หน้าราคาเคยเจอ */
+.revision-issue { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem; margin-top: 12px; padding: .85rem .95rem; }
+.revision-issue > label { margin-top: 0; flex: 1 1 220px; font-size: .78rem; }
+.revision-issue__submit { display: grid; align-content: end; }
+.revision-issue .button { width: auto; margin-top: 0; }
+.revision-issue__note { flex: 1 1 100%; margin: 0; font-size: .74rem; font-weight: 500; line-height: 1.5; color: var(--muted); }
+.revision-issue__ok, .revision-issue__error { flex: 1 1 100%; margin: 0; font-size: .78rem; font-weight: 700; }
+.revision-issue__ok { color: var(--success); }
+.revision-issue__error { color: #8a3b3b; }
+
+.revision-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+.revision-column { padding: 14px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); }
+.revision-column > header { margin-bottom: 10px; }
+.revision-column h3 { margin: 0 0 .2rem; font-size: .95rem; color: var(--ink); }
+.revision-column > header span { font-size: .76rem; font-weight: 700; color: var(--teal-text); }
+.revision-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.revision-list li { padding: 10px 12px; border: 1px solid var(--mist); border-radius: 11px; background: var(--canvas); }
+.revision-list__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+.revision-list__head strong { font-size: .92rem; color: var(--ink); }
+.revision-list__head span { font-size: .92rem; font-weight: 800; color: var(--ink); }
+.revision-list small { display: block; margin-top: .22rem; font-size: .74rem; font-weight: 500; line-height: 1.45; color: var(--muted); }
+
+@media (max-width: 720px) { .revision-columns { grid-template-columns: 1fr; }.revision-issue .button, .revision-issue > label { width: 100%; flex-basis: 100%; } }
+
 /* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
 .gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
 .gl-send__picker { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--glass-line); border-radius: 14px; background: var(--paper); }

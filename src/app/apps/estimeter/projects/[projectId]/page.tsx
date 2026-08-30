@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { PriceSetPanel } from "@/components/estimeter/price-set-panel";
+import { RevisionPanel } from "@/components/estimeter/revision-panel";
 import { listPriceSetLines, listPriceSets, type PriceSetLineView } from "@/server/estimeter/price-set-repository";
+import { listRevisions } from "@/server/estimeter/revision-repository";
 import { formatQuantity } from "@/lib/takeoff-quantity";
 import { summarizeConfirmedQuantities } from "@/lib/takeoff-summary";
 import { unitLabel } from "@/lib/takeoff-units";
@@ -36,6 +38,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   // อยู่แล้ว การเปิดทีละชุดจะเพิ่มรอบไปกลับโดยไม่ได้ลดข้อมูลที่ต้องอ่าน
   const priceSets = await listPriceSets(organizationId, project.id);
   const priceSetLines = await Promise.all(priceSets.map((set) => listPriceSetLines(organizationId, set.id)));
+  // ฉบับคำนวณที่ออกจากชุดราคาเหล่านั้น (IP-216)
+  const revisions = await listRevisions(organizationId, project.id);
   const linesBySet: Record<string, PriceSetLineView[]> = {};
   priceSets.forEach((set, index) => {
     linesBySet[set.id] = priceSetLines[index];
@@ -62,7 +66,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
       note: "ชุดราคาที่รับมา และเอกสาร",
       status:
         priceSets.length > 0
-          ? `รับชุดราคาแล้ว ${priceSets.length} ชุด · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด`
+          ? `รับชุดราคาแล้ว ${priceSets.length} ชุด · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด · ${revisions.length > 0 ? `ออกฉบับคำนวณแล้ว ${revisions.length} ฉบับ` : "ยังไม่ได้ออกฉบับคำนวณ"}`
           : "ยังไม่มีชุดราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้"
     }
   ];
@@ -162,7 +166,16 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           )}
         </div>
 
-        <PriceSetPanel priceSets={priceSets} linesBySet={linesBySet} projectName={project.name} />
+        <PriceSetPanel
+          priceSets={priceSets}
+          linesBySet={linesBySet}
+          projectId={project.id}
+          projectName={project.name}
+          canEdit={canEdit}
+          lockReason={canEdit ? null : "สิทธิ์ปัจจุบันเปิดดูโครงการนี้ได้ แต่ออกฉบับคำนวณไม่ได้"}
+        />
+
+        <RevisionPanel revisions={revisions} />
 
         <div className="hero__actions">
           <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Link>

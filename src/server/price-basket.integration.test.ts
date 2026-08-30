@@ -73,13 +73,24 @@ describe.skipIf(!enabled)("รายการราคาที่หยิบ�
   async function cleanup() {
     const s = schema ?? (await import("@/db/schema"));
     const d = db ?? (await open());
-    const sets = await d.select({ id: s.priceSets.id }).from(s.priceSets).where(like(s.priceSets.id, "pset_%"));
-    const ids = sets.map((row) => row.id);
-    if (ids.length > 0) {
-      await d.delete(s.priceSetLines).where(inArray(s.priceSetLines.priceSetId, ids));
+    // ลบเฉพาะชุดราคาที่อยู่ในโครงการของผู้ใช้ทดสอบ
+    //
+    // รอบก่อนบรรทัดนี้เขียนว่า `like(name, '%PRICEMETR%')` ซึ่งเป็นชื่อที่โค้ดจริงตั้งให้ทุกชุด
+    // ที่ส่งจากหน้าราคา ผลคือการรันเทสต์ลบชุดราคาของคนอื่นในฐานข้อมูลเครื่องนี้ไปด้วย
+    // และมันเกิดขึ้นจริงแล้วหนึ่งครั้งเมื่อ 2026-08-30 · ขอบเขตต้องเป็นของที่เทสต์สร้างเอง
+    // ไม่ใช่ข้อความที่บังเอิญตรงกัน
+    const ownProjects = await d.select({ id: s.projects.id }).from(s.projects).where(eq(s.projects.ownerId, USER_ID));
+    const projectIds = ownProjects.map((row) => row.id);
+    if (projectIds.length > 0) {
+      const sets = await d
+        .select({ id: s.priceSets.id })
+        .from(s.priceSets)
+        .where(inArray(s.priceSets.projectId, projectIds));
+      const ids = sets.map((row) => row.id);
+      if (ids.length > 0) await d.delete(s.priceSetLines).where(inArray(s.priceSetLines.priceSetId, ids));
+      await d.delete(s.priceSets).where(inArray(s.priceSets.projectId, projectIds));
     }
     await d.delete(s.auditEvents).where(eq(s.auditEvents.actorId, USER_ID));
-    await d.delete(s.priceSets).where(like(s.priceSets.name, "%PRICEMETR%"));
     await d.delete(s.projects).where(eq(s.projects.ownerId, USER_ID));
     await d.delete(s.priceBasketLines).where(like(s.priceBasketLines.lineKey, "market:test-basket-%"));
     await d.delete(s.priceBaskets).where(eq(s.priceBaskets.organizationId, ORG_ID));
@@ -226,6 +237,9 @@ describe.skipIf(!enabled)("รายการราคาที่หยิบ�
     expect(sets[0].lineCount).toBe(50);
     expect(sets[0].provinceCode).toBe("10");
     expect(sets[0].effectiveMonth).toBe("2569-07");
+    // แหล่งอำนาจถูกบันทึกตอนส่ง ไม่ใช่คิดใหม่ตอนอ่าน ทุกบรรทัดมาจาก สนค. ชุดนี้จึงเป็นทางการ
+    // และเป็นเงื่อนไขที่ทำให้ออกฉบับแบบ Factor F ได้ตาม ADR 0008 ข้อ 5
+    expect(sets[0].authoritySource).toBe("official");
     // ยอดรวมคิดที่ฐานข้อมูลจากบรรทัดจริง ไม่ใช่ตัวเลขที่ใครพิมพ์เก็บไว้
     expect(sets[0].totalSatang).toBeGreaterThan(0n);
 

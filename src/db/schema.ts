@@ -26,6 +26,23 @@ export const projectState = pgEnum("project_state", ["draft", "active", "locked"
 // Which costing stack a project's quantities will be priced through. See ADR 0007: the two
 // stacks are not interchangeable, so a project declares one at creation instead of switching.
 export const projectPath = pgEnum("project_path", ["private", "government"]);
+/**
+ * วิธีคิดราคาของฉบับคำนวณหนึ่งฉบับ ตาม ADR 0008 ข้อ 1 และ 2
+ *
+ * ชื่อบอกว่า **คำนวณด้วยวิธีไหน** ไม่ได้บอกว่าใครเป็นเจ้าของงาน จึงไม่ใช้ `private`/`government`
+ * ที่ชนกับ `organization_kind` และไม่ใช้ `cost_plus` ซึ่งเป็นชื่อประเภทสัญญาจ้างที่มีความหมาย
+ * ตายตัวอยู่แล้ว โครงการเดียวมีฉบับทั้งสองแบบบนปริมาณชุดเดียวกันได้ ซึ่งเป็นเคสของผู้รับเหมา
+ * เอกชนที่ต้องรู้ทั้งราคากลางที่เป็นเพดาน และต้นทุนกับกำไรของตัวเอง
+ */
+export const costingMethod = pgEnum("costing_method", ["factor_f", "contractor_cost"]);
+/**
+ * ตัวเลขในชุดราคาชุดนี้มาจากอำนาจไหน ตาม ADR 0008 ข้อ 5
+ *
+ * เป็นข้อเท็จจริงว่าตัวเลขมาจากไหน ไม่ใช่ระดับความน่าเชื่อถือที่ใครให้คะแนน ฉบับแบบ `factor_f`
+ * ใช้ได้เฉพาะชุดที่มาจากแหล่งทางการ การเอาราคาทางการไปใช้ฝั่งผู้รับเหมาไม่ได้ถูกห้าม
+ * แต่ต้องคัดลอกเป็นชุดใหม่ที่บันทึกต้นทางไว้ เพื่อไม่ให้ตัวเลขของบริษัทถูกอ้างว่าเป็นราคาทางการ
+ */
+export const priceAuthoritySource = pgEnum("price_authority_source", ["official", "organization"]);
 export const reviewState = pgEnum("review_state", ["proposed", "review_required", "confirmed", "rejected"]);
 export const jobState = pgEnum("job_state", ["queued", "running", "succeeded", "failed", "cancelled", "dead_letter"]);
 export const approvalState = pgEnum("approval_state", ["pending", "approved", "rejected", "cancelled"]);
@@ -383,6 +400,13 @@ export const priceSets = pgTable("price_sets", {
   provinceCode: text("province_code").notNull(),
   effectiveMonth: text("effective_month").notNull(),
   status: text("status").notNull().default("draft"),
+  /**
+   * แหล่งอำนาจของชุด คิดตอนกดส่งจากที่มาของทุกบรรทัด ไม่ใช่ช่องที่ใครเลือกเอง
+   *
+   * ชุดจะเป็น `official` ก็ต่อเมื่อ **ทุกบรรทัด** มาจากบัญชีที่หน่วยงานรัฐประกาศ บรรทัดเดียว
+   * ที่มาจากราคาขององค์กรทำให้ทั้งชุดไม่ใช่ราคาทางการ เพราะยอดรวมของใบเดียวแยกกันไม่ได้
+   */
+  authoritySource: priceAuthoritySource("authority_source").notNull(),
   payloadHash: text("payload_hash").notNull(),
   createdAt,
   updatedAt
@@ -479,15 +503,36 @@ export const priceSetLines = pgTable("price_set_lines", {
   index("price_set_lines_set_idx").on(table.priceSetId)
 ]);
 
+/**
+ * ฉบับคำนวณของโครงการ — ขอบเขตที่ ADR 0008 ให้เป็นเจ้าของวิธีคิดราคา
+ *
+ * **ชุดราคาห้ามว่าง** ฉบับที่ไม่มีราคาคิดอะไรไม่ได้ ฉบับจึงเกิดจากชุดราคาที่รับมาแล้วเสมอ
+ * ไม่ใช่กล่องเปล่าที่รอใครมาเติมทีหลัง และชุดเดียวออกได้ทั้งสองวิธี เพราะเคสที่ ADR 0008
+ * ยกมาเป็นเหตุผลหลักคือผู้รับเหมาที่ต้องรู้สองเลขบนปริมาณชุดเดียวกัน
+ *
+ * **เลขฉบับนับแยกตามวิธีคิด** ตาม ADR 0008 ข้อ 4 เพราะเลขนี้ไปโผล่บนเอกสารที่ยื่นจริง
+ * และถูกอ้างในหนังสือโต้ตอบ เลขที่กระโดดหายโดยอธิบายไม่ได้เป็นปัญหาตอนถูกตรวจ
+ * ผลคือโครงการไม่มี "ฉบับปัจจุบัน" เดี่ยว ๆ หน้าจอต้องแสดงฉบับล่าสุดของทั้งสองวิธีคู่กันเสมอ
+ */
 export const estimateRevisions = pgTable("estimate_revisions", {
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  priceSetId: text("price_set_id").references(() => priceSets.id),
+  priceSetId: text("price_set_id").notNull().references(() => priceSets.id),
+  costingMethod: costingMethod("costing_method").notNull(),
   revisionNumber: integer("revision_number").notNull(),
-  status: text("status").notNull().default("draft"),
+  /**
+   * ค่าตั้งต้นเป็น `issued` ไม่ใช่ `draft` เพราะ CONTEXT.md นิยามฉบับคำนวณว่าเป็นผลที่แช่แข็ง
+   * แล้ว และเขียน _Avoid_ ไว้ตรง ๆ ว่าห้ามเป็น "draft ที่ยังแก้ได้" ฉบับเกิดจากชุดราคาที่นิ่ง
+   * อยู่แล้วและไม่มีทางแก้หลังออก การตั้งค่าเริ่มต้นเป็นร่างคือการเปิดช่องให้สถานะที่นิยาม
+   * ของโปรเจกต์นี้ห้ามไว้ หลุดเข้าฐานข้อมูลผ่านโค้ดที่ลืมระบุค่า
+   */
+  status: text("status").notNull().default("issued"),
   createdAt,
   updatedAt
-}, (table) => [uniqueIndex("estimate_revisions_project_number_unique").on(table.projectId, table.revisionNumber)]);
+}, (table) => [
+  uniqueIndex("estimate_revisions_method_number_unique").on(table.projectId, table.costingMethod, table.revisionNumber),
+  index("estimate_revisions_price_set_idx").on(table.priceSetId)
+]);
 
 export const backgroundJobs = pgTable("background_jobs", {
   id: text("id").primaryKey(),
