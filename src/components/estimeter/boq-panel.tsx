@@ -111,9 +111,11 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
                         {line.effectiveMonth ? ` · เดือน ${line.effectiveMonth}` : ""}
                       </small>
                       <small>
-                        {line.matchedBy === "assistant"
-                          ? `ผู้ช่วยเสนอและมีคนรับ · ความมั่นใจ ${line.matchConfidence ?? "ไม่ระบุ"}`
-                          : "คนจับคู่เอง"}
+                        {line.matchedBy === "algorithm"
+                          ? `อัลกอริทึมเสนอและมีคนรับ · ความมั่นใจ ${line.matchConfidence ?? "ไม่ระบุ"}`
+                          : line.matchedBy === "assistant"
+                            ? `ผู้ช่วยเสนอและมีคนรับ · ความมั่นใจ ${line.matchConfidence ?? "ไม่ระบุ"}`
+                            : "คนจับคู่เอง"}
                       </small>
                     </td>
                     <td className="number-cell">

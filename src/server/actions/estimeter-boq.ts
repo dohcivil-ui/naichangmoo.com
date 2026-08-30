@@ -4,7 +4,8 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getPlatformSessionUser } from "@/server/auth-session";
 import { getEstimeterAccess } from "@/server/estimeter-access";
-import { acceptMatches, readMatchCandidates } from "@/server/estimeter/boq-repository";
+import { acceptMatches, planProjectMatches } from "@/server/estimeter/boq-repository";
+import type { MatchPlan } from "@/lib/boq-matching";
 import type { BoqMatchInput } from "@/server/ai/estimeter-prompt";
 
 /**
@@ -34,7 +35,18 @@ async function viewer() {
 }
 
 export type MatchCandidatesResult =
-  | { ok: true; input: BoqMatchInput }
+  | {
+      ok: true;
+      /** ชื่อและหน่วยทั้งสองฝั่ง สำหรับหน้าจอใช้แสดงผล */
+      input: BoqMatchInput;
+      /** ผลของอัลกอริทึม คู่ที่ชัด คู่ที่ไม่ชัด และรายการที่ไม่มีคู่ */
+      plan: MatchPlan;
+      /**
+       * โจทย์ที่จะส่งให้แบบจำลอง **เฉพาะคู่ที่อัลกอริทึมตัดสินไม่ได้** และเฉพาะตัวเลือกที่
+       * ผ่านด่านแล้ว `null` เมื่อไม่มีอะไรต้องถาม ซึ่งแปลว่าไม่ต้องเรียกแบบจำลองเลยรอบนั้น
+       */
+      modelInput: BoqMatchInput | null;
+    }
   | { ok: false; message: string };
 
 /** โจทย์ที่จะส่งให้ผู้ช่วย ประกอบที่เซิร์ฟเวอร์ทุกครั้ง ไม่ใช่ให้หน้าจอประกอบเอง */
@@ -44,21 +56,39 @@ export async function loadBoqMatchInput(projectId: string): Promise<MatchCandida
   const organizationId = current.access.organizationId;
   if (!organizationId) return { ok: false, message: "บัญชีนี้ยังไม่มีองค์กรสำหรับเก็บโครงการ" };
 
-  const candidates = await readMatchCandidates(organizationId, projectId);
-  if (!candidates) return { ok: false, message: "ไม่พบโครงการนี้" };
+  const planned = await planProjectMatches(organizationId, projectId);
+  if (!planned) return { ok: false, message: "ไม่พบโครงการนี้" };
+
+  const { candidates, plan } = planned;
   if (candidates.input.items.length === 0) {
     return { ok: false, message: "ยังไม่มีรายการปริมาณที่ยืนยันแล้ว ผู้ช่วยจึงยังไม่มีอะไรให้จับคู่" };
   }
   if (candidates.input.lines.length === 0) {
     return { ok: false, message: "โครงการนี้ยังไม่มีชุดราคา หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาก่อน" };
   }
-  return { ok: true, input: candidates.input };
+
+  // คู่ที่ไม่ชัดเท่านั้นที่ต้องถามแบบจำลอง และถามพร้อมเฉพาะตัวเลือกที่ผ่านด่านหน่วยกับ
+  // คะแนนขั้นต่ำแล้ว บัญชีราคาทั้งเล่มไม่ต้องเดินทางไปกับโจทย์อีกต่อไป
+  const unclear = plan.matched.filter((match) => match.band === "ไม่ชัด");
+  const unclearItemRefs = new Set(unclear.map((match) => match.itemRef));
+  const unclearLineRefs = new Set(unclear.flatMap((match) => match.shortlist.map((candidate) => candidate.lineRef)));
+
+  const modelInput: BoqMatchInput | null =
+    unclear.length === 0
+      ? null
+      : {
+          projectName: candidates.input.projectName,
+          items: candidates.input.items.filter((item) => unclearItemRefs.has(item.ref)),
+          lines: candidates.input.lines.filter((line) => unclearLineRefs.has(line.ref))
+        };
+
+  return { ok: true, input: candidates.input, plan, modelInput };
 }
 
 export type AcceptMatchesInput = {
   projectId: string;
   revisionId: string;
-  matches: { itemRef: string; lineRef: string; confidence: string | null }[];
+  matches: { itemRef: string; lineRef: string; confidence: string | null; matchedBy: string }[];
 };
 
 export async function acceptBoqMatches(input: AcceptMatchesInput): Promise<BoqActionState> {

@@ -34,10 +34,32 @@ function listSourceFiles(dir: string): string[] {
   return out;
 }
 
+/**
+ * ตัดคอมเมนต์ทิ้งก่อนตรวจ — คำอธิบายไม่ใช่การประกาศสี
+ *
+ * เคยเกิดขึ้นแล้วสองครั้งในโปรเจกต์นี้ ครั้งแรกกับด่านห้าม `await import()` ใน v0.94.0
+ * และครั้งนี้กับคอมเมนต์ที่อธิบายว่าทำไม token ตัวเลขถึงไม่ควรขึ้นต้นด้วย `#` — ตัวอย่างที่
+ * ยกมาประกอบคำอธิบายดันมีหน้าตาเหมือนเลขสี **คำวินิจฉัยเดิมคือแก้ด่านให้ตัดคอมเมนต์
+ * ก่อนตรวจ ไม่ใช่ลบคำอธิบายทิ้งเพื่อให้เขียว** กฎที่ห้ามเขียนโค้ดแบบหนึ่งไม่ควรยิงใส่
+ * คำอธิบายว่าทำไมถึงห้าม
+ *
+ * ตัดแบบหยาบโดยตั้งใจ: คอมเมนต์บรรทัดเดียว และคอมเมนต์แบบบล็อกเท่านั้น ไม่พยายามเข้าใจ
+ * สตริงที่มีเครื่องหมายคอมเมนต์อยู่ข้างใน เพราะการตัดเกินไปในไฟล์ที่ไม่มีสีอยู่แล้วไม่เสียหาย
+ * ส่วนการตัดพลาดจนปล่อยสีจริงผ่านต่างหากที่เสียหาย ซึ่งมีเทสต์ข้างล่างดักไว้แล้ว
+ *
+ * แทนที่ตัวอักษรในบล็อกด้วยช่องว่างแทนการลบทิ้ง เพื่อให้เลขบรรทัดที่รายงานยังตรงกับไฟล์จริง
+ */
+export function stripComments(content: string): string {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, (block) => block.replace(/[^\n]/g, " "))
+    .replace(/\/\/[^\n]*/g, "");
+}
+
 export function findColourLiterals(content: string): { line: number; snippet: string }[] {
   const hits: { line: number; snippet: string }[] = [];
+  const scannable = stripComments(content).split("\n");
   content.split("\n").forEach((line, index) => {
-    if (COLOUR_LITERAL.test(line)) hits.push({ line: index + 1, snippet: line.trim().slice(0, 90) });
+    if (COLOUR_LITERAL.test(scannable[index] ?? "")) hits.push({ line: index + 1, snippet: line.trim().slice(0, 90) });
   });
   return hits;
 }
@@ -66,6 +88,18 @@ describe("รั้วสี (ADR 0021)", () => {
     ].join("\n");
     expect(findColourLiterals(trap)).toHaveLength(5);
     expect(findColourLiterals("color: var(--teal); background: var(--paper);")).toHaveLength(0);
+  });
+
+  it("มองข้ามคำอธิบาย แต่ยังกัดโค้ดในบรรทัดถัดไปเสมอ", () => {
+    const source = [
+      "// อธิบายว่าทำไมห้ามเขียน #a1b2c3 ตรง ๆ",
+      "const good = 'var(--teal)';",
+      "const bad = '#a1b2c3';"
+    ].join("\n");
+    const hits = findColourLiterals(source);
+    // บรรทัดคำอธิบายไม่ถูกนับ แต่บรรทัดที่ฝังสีจริงต้องถูกนับ และเลขบรรทัดต้องยังตรง
+    expect(hits).toHaveLength(1);
+    expect(hits[0].line).toBe(3);
   });
 
   it("บัญชียกเว้นต้องชี้ไฟล์ที่มีอยู่จริง — รายการค้างของไฟล์ที่ถูกลบคือรูของรั้ว", () => {

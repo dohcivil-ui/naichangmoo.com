@@ -19,7 +19,8 @@ import { acceptBoqMatches, loadBoqMatchInput } from "@/server/actions/estimeter-
  */
 
 type Proposal = {
-  id: string;
+  /** `null` เมื่อรอบนั้นอัลกอริทึมตัดสินได้หมด จึงไม่มีข้อเสนอของแบบจำลองให้ตัดสิน */
+  id: string | null;
   matches: { itemRef: string; lineRef: string; confidence: string; reason: string }[];
   unmatched: { itemRef: string; why: string }[];
   note: string;
@@ -32,11 +33,18 @@ type Row = {
   lineRef: string;
   confidence: string;
   reason: string;
+  /** `algorithm` คืออัลกอริทึมตัดสินเอง `assistant` คือแบบจำลองช่วยตัดสินคู่ที่คะแนนสูสี */
+  matchedBy: "algorithm" | "assistant";
   itemDescription: string;
   itemUnit: string;
   quantity: string;
   priceName: string;
   amountSatang: bigint;
+};
+
+const SOURCE_LABEL: Record<Row["matchedBy"], string> = {
+  algorithm: "อัลกอริทึม",
+  assistant: "ผู้ช่วย"
 };
 
 export function BoqAssistant({
@@ -71,44 +79,21 @@ export function BoqAssistant({
         return;
       }
 
-      const result = await requestAssistant({
-        app: "estimeter",
-        verb: "draft",
-        subject: `project:${projectId}`,
-        input: loaded.input,
-        facts: [
-          `รายการปริมาณที่ยืนยันแล้ว ${loaded.input.items.length} รายการ`,
-          `บรรทัดในชุดราคาที่โครงการรับมาแล้ว ${loaded.input.lines.length} บรรทัด`
-        ]
-      });
-
-      if (!result.ok) {
-        setMessage(result.message);
-        return;
-      }
-
-      // ประตูคืน draft เป็น unknown เพราะมันไม่รู้จักแอปไหนเลย ชนิดจริงถูกบังคับด้วย zod
-      // ที่ฝั่งเซิร์ฟเวอร์ไปแล้วก่อนถึงตรงนี้ การอ่านค่าที่นี่จึงอ่านตามรูปที่ schema รับประกัน
-      const draft = result.proposal.draft as {
-        matches: Proposal["matches"];
-        unmatched: Proposal["unmatched"];
-        note: string;
-      };
-
       const byItemRef = new Map(loaded.input.items.map((item) => [item.ref, item]));
       const byLineRef = new Map(loaded.input.lines.map((line) => [line.ref, line]));
 
-      const built = draft.matches.flatMap((match) => {
+      const build = (
+        match: { itemRef: string; lineRef: string; confidence: string; reason: string },
+        matchedBy: Row["matchedBy"]
+      ): Row[] => {
         const item = byItemRef.get(match.itemRef);
         const line = byLineRef.get(match.lineRef);
         if (!item || !line) return [];
         const unit = BigInt(unitSatangByRef[match.lineRef] ?? "0");
         return [
           {
-            itemRef: match.itemRef,
-            lineRef: match.lineRef,
-            confidence: match.confidence,
-            reason: match.reason,
+            ...match,
+            matchedBy,
             itemDescription: item.description,
             itemUnit: item.unit,
             quantity: item.quantity,
@@ -116,19 +101,82 @@ export function BoqAssistant({
             amountSatang: BigInt(Math.round(Number(unit) * Number(item.quantity)))
           }
         ];
-      });
+      };
 
+      // คู่ที่อัลกอริทึมตัดสินได้เอง ไม่ต้องเสียเงินเรียกแบบจำลอง และได้ผลเดิมทุกครั้ง
+      const settled = loaded.plan.matched
+        .filter((match) => match.band === "ชัด")
+        .flatMap((match) =>
+          build(
+            {
+              itemRef: match.itemRef,
+              lineRef: match.lineRef,
+              confidence: "สูง",
+              reason: `หน่วยตรงกัน และชื่อใกล้เคียงกว่าตัวเลือกรองอยู่ ${match.margin.toFixed(2)} คะแนน`
+            },
+            "algorithm"
+          )
+        );
+
+      let fromModel: Row[] = [];
+      let proposalId: string | null = null;
+      let assumptions: string[] = [];
+      let warnings: string[] = [];
+      let unmatchedFromModel: Proposal["unmatched"] = [];
+      let note = "";
+
+      if (loaded.modelInput) {
+        const result = await requestAssistant({
+          app: "estimeter",
+          verb: "draft",
+          subject: `project:${projectId}`,
+          input: loaded.modelInput,
+          facts: [
+            `อัลกอริทึมตัดสินได้เองแล้ว ${settled.length} คู่ ที่เหลือคือคู่ที่คะแนนสูสีจนตัดสินไม่ได้`,
+            `ตัวเลือกที่ให้มาผ่านด่านหน่วยและคะแนนขั้นต่ำแล้ว ไม่ใช่บัญชีราคาทั้งเล่ม`
+          ]
+        });
+
+        if (!result.ok) {
+          setMessage(result.message);
+          return;
+        }
+
+        // ประตูคืน draft เป็น unknown เพราะมันไม่รู้จักแอปไหนเลย ชนิดจริงถูกบังคับด้วย zod
+        // ที่ฝั่งเซิร์ฟเวอร์ไปแล้วก่อนถึงตรงนี้ การอ่านค่าที่นี่จึงอ่านตามรูปที่ schema รับประกัน
+        const draft = result.proposal.draft as {
+          matches: Proposal["matches"];
+          unmatched: Proposal["unmatched"];
+          note: string;
+        };
+
+        fromModel = draft.matches.flatMap((match) => build(match, "assistant"));
+        proposalId = result.proposal.proposalId;
+        assumptions = result.proposal.assumptions;
+        warnings = result.proposal.warnings;
+        unmatchedFromModel = draft.unmatched;
+        note = draft.note;
+      }
+
+      const built = [...settled, ...fromModel];
       setProposal({
-        id: result.proposal.proposalId,
-        matches: draft.matches,
-        unmatched: draft.unmatched,
-        note: draft.note,
-        assumptions: result.proposal.assumptions,
-        warnings: result.proposal.warnings
+        id: proposalId,
+        matches: [],
+        unmatched: [
+          ...loaded.plan.unmatched.map((row) => ({ itemRef: row.itemRef, why: row.reason })),
+          ...unmatchedFromModel
+        ],
+        note,
+        assumptions,
+        warnings
       });
       setRows(built);
       setPicked(new Set());
-      setMessage(built.length === 0 ? "ผู้ช่วยยังจับคู่ไม่ได้สักคู่" : null);
+      setMessage(
+        built.length === 0
+          ? "ยังจับคู่ไม่ได้สักคู่"
+          : `อัลกอริทึมตัดสินเอง ${settled.length} คู่ · ผู้ช่วยช่วยตัดสินอีก ${fromModel.length} คู่`
+      );
     } catch {
       setMessage("เรียกผู้ช่วยไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
     } finally {
@@ -154,18 +202,26 @@ export function BoqAssistant({
       const result = await acceptBoqMatches({
         projectId,
         revisionId,
-        matches: chosen.map((row) => ({ itemRef: row.itemRef, lineRef: row.lineRef, confidence: row.confidence }))
+        matches: chosen.map((row) => ({
+          itemRef: row.itemRef,
+          lineRef: row.lineRef,
+          confidence: row.confidence,
+          matchedBy: row.matchedBy
+        }))
       });
       setMessage(result.message);
       if (!result.ok) return;
 
       // บันทึกว่าคนตัดสินอย่างไรกับข้อเสนอนี้ รับบางส่วนก็คือรับบางส่วน ไม่ใช่รับทั้งชุด
-      await settleAssistantProposal({
-        proposalId: proposal.id,
-        decision: "accepted",
-        before: { accepted: 0 },
-        after: { accepted: chosen.map((row) => `${row.itemRef}->${row.lineRef}`) }
-      });
+      // รอบที่อัลกอริทึมตัดสินได้หมดจะไม่มีข้อเสนอของแบบจำลอง จึงไม่มีอะไรให้ปิด
+      if (proposal.id) {
+        await settleAssistantProposal({
+          proposalId: proposal.id,
+          decision: "accepted",
+          before: { accepted: 0 },
+          after: { accepted: chosen.filter((row) => row.matchedBy === "assistant").map((row) => `${row.itemRef}->${row.lineRef}`) }
+        });
+      }
       setProposal(null);
       setRows([]);
       setPicked(new Set());
@@ -178,7 +234,7 @@ export function BoqAssistant({
 
   async function reject() {
     if (!proposal) return;
-    await settleAssistantProposal({ proposalId: proposal.id, decision: "rejected" });
+    if (proposal.id) await settleAssistantProposal({ proposalId: proposal.id, decision: "rejected" });
     setProposal(null);
     setRows([]);
     setPicked(new Set());
@@ -241,7 +297,8 @@ export function BoqAssistant({
                     <span>
                       <strong>{row.itemDescription}</strong>
                       <small>
-                        คู่กับ {row.priceName} · ความมั่นใจ {row.confidence} · {row.reason}
+                        คู่กับ {row.priceName} · {SOURCE_LABEL[row.matchedBy]}เสนอ · ความมั่นใจ{" "}
+                        {row.confidence} · {row.reason}
                       </small>
                       <small>
                         {row.quantity} {row.itemUnit} · เป็นเงิน {formatPrice(row.amountSatang)} บาท

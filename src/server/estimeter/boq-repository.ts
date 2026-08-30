@@ -11,6 +11,7 @@ import {
   takeoffItems,
   takeoffRuns
 } from "@/db/schema";
+import { planMatches, type MatchPlan } from "@/lib/boq-matching";
 import { unitLabel } from "@/lib/takeoff-units";
 import type { BoqMatchInput } from "@/server/ai/estimeter-prompt";
 
@@ -129,6 +130,27 @@ export async function readMatchCandidates(organizationId: string, projectId: str
   };
 }
 
+/**
+ * คิดแผนการจับคู่ด้วยอัลกอริทึมก่อนถามแบบจำลอง (IP-219)
+ *
+ * ผลที่ได้แบ่งงานเป็นสามกอง — คู่ที่ชัดจบที่นี่โดยไม่ต้องเสียเงินเรียกแบบจำลอง คู่ที่ไม่ชัด
+ * ส่งต่อไปพร้อม **เฉพาะตัวเลือกที่ผ่านด่านแล้ว** ไม่ใช่บัญชีราคาทั้งเล่ม และรายการที่ไม่มีคู่
+ * รายงานตรง ๆ ว่าทำไม
+ */
+export async function planProjectMatches(
+  organizationId: string,
+  projectId: string
+): Promise<{ candidates: MatchCandidates; plan: MatchPlan } | null> {
+  const candidates = await readMatchCandidates(organizationId, projectId);
+  if (!candidates) return null;
+
+  const plan = planMatches(
+    candidates.input.items.map((item) => ({ ref: item.ref, description: item.description, unit: item.unit })),
+    candidates.input.lines
+  );
+  return { candidates, plan };
+}
+
 export type AcceptRejection = "unknown_project" | "unknown_revision" | "unknown_ref" | "nothing_to_accept";
 
 export type AcceptResult = { ok: true; accepted: number } | { ok: false; reason: AcceptRejection; message: string };
@@ -145,7 +167,7 @@ export async function acceptMatches(input: {
   actorId: string;
   projectId: string;
   revisionId: string;
-  matches: { itemRef: string; lineRef: string; confidence: string | null }[];
+  matches: { itemRef: string; lineRef: string; confidence: string | null; matchedBy: string }[];
 }): Promise<AcceptResult> {
   if (input.matches.length === 0) {
     return { ok: false, reason: "nothing_to_accept", message: "ยังไม่ได้ติ๊กคู่ไหนไว้เลย" };
@@ -172,7 +194,10 @@ export async function acceptMatches(input: {
   const rows = input.matches.map((match) => ({
     takeoffItemId: candidates.itemByRef.get(match.itemRef),
     priceSetLineId: candidates.lineByRef.get(match.lineRef),
-    confidence: match.confidence
+    confidence: match.confidence,
+    // `algorithm` คือคู่ที่อัลกอริทึมตัดสินได้เอง `assistant` คือคู่ที่แบบจำลองช่วยตัดสิน
+    // ทั้งสองยังต้องมีคนกดรับเหมือนกัน ต่างกันที่ใครเป็นคนเสนอ ซึ่งเป็นข้อเท็จจริงที่ต้องจดไว้
+    matchedBy: match.matchedBy === "algorithm" ? "algorithm" : "assistant"
   }));
   if (rows.some((row) => !row.takeoffItemId || !row.priceSetLineId)) {
     return {
@@ -196,7 +221,7 @@ export async function acceptMatches(input: {
           takeoffItemId: row.takeoffItemId!,
           priceSetLineId: row.priceSetLineId!,
           quantity: quantityById.get(row.takeoffItemId!) ?? "0",
-          matchedBy: "assistant",
+          matchedBy: row.matchedBy,
           matchConfidence: row.confidence,
           acceptedBy: input.actorId
         }))
