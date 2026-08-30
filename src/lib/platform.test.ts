@@ -19,7 +19,9 @@ describe("Civil Apps Market registry", () => {
     // ADR 0009 reverses the earlier rule that the project cap had to appear before entry. The cap
     // is still enforced server-side and is still stated on the activation screen and the in-app
     // counter; what changed is that a limit is no longer the first thing said about the tool.
-    expect(accessLabel.paid_trial).toBe("ฟรี ทดลองใช้งาน 7 วัน");
+    // ถ้อยคำตาม docs/rules/copy-th.md 2026-08-30: SaaS ไทยที่ขายจริงเขียนว่า ทดลองใช้ฟรี N วัน
+    // ไม่ใช่ ฟรี ทดลองใช้งาน N วัน ที่อ่านสะดุดเพราะเอาคำว่าฟรีขึ้นต้นแล้วตามด้วยคำนามซ้อน
+    expect(accessLabel.paid_trial).toBe("ทดลองใช้ฟรี 7 วัน");
     expect(accessLabel.paid_trial).not.toContain("โครงการ");
     // ADR 0010: no surface before entry names the cap, so an accidental walk-back is caught here.
     for (const app of platformApps) expect(app.marketDetail.availabilityNote).not.toContain("โครงการ");

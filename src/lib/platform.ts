@@ -73,20 +73,20 @@ export const platformApps: PlatformApp[] = [
     eyebrow: "ประมาณราคา",
     description: "ประมาณราคางานอาคาร",
     programName: "แอปประมาณราคางานอาคาร",
-    purpose: "สำหรับถอดปริมาณและประมาณราคางานอาคารอย่างเป็นลำดับ",
+    purpose: "สำหรับถอดแบบ ถอดปริมาณ และประมาณราคางานอาคาร ตั้งแต่ตั้งโครงการจนได้ BOQ",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
     seededAccess: "paid_trial",
     href: "/apps/estimeter",
     categoryId: "building-cost",
     marketDetail: {
-      outcome: "ประมาณราคางานอาคารอย่างเป็นลำดับ",
-      preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่ต้องตรวจสอบก่อนถอดปริมาณ"],
+      outcome: "ถอดปริมาณและประมาณราคางานอาคาร จนได้ BOQ ที่ตรวจย้อนได้ทุกบรรทัด",
+      preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่จะถอดปริมาณ"],
       flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
       // ADR 0010 fixed this sentence; ADR 0018 moved its public copy into the registry. What is
       // written here is only the suggestion an administrator sees in the back office - the public
       // pages render the registry's sentence, or nothing at all.
-      availabilityNote: "ทดลองใช้งานฟรี 7 วัน"
+      availabilityNote: "ทดลองใช้ฟรี 7 วัน"
     }
   },
   {
@@ -114,7 +114,7 @@ export const platformApps: PlatformApp[] = [
     slug: "rcopt",
     name: "Retaining Wall Cantilever",
     eyebrow: "OPTIMIZE BY BISECTION ALGORITHM",
-    description: "Optimize cantilever dimensions with a bounded bisection search, then review stability checks and the calculation trail before confirmation.",
+    description: "หาขนาดหน้าตัดกำแพงกันดินที่ผ่านเกณฑ์และประหยัดที่สุด พร้อมผลตรวจเสถียรภาพและที่มาของทุกตัวเลข",
     programName: "แอปออกแบบกำแพงกันดินแบบ cantilever",
     purpose: "สำหรับคำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
     iconSrc: visualAssetUrl("retaining_wall"),
@@ -126,14 +126,14 @@ export const platformApps: PlatformApp[] = [
       outcome: "คำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
       preparation: ["ข้อมูลดินและแรงกระทำที่ตรวจสอบแล้ว", "เงื่อนไขออกแบบและข้อจำกัดพื้นที่", "ค่าตั้งต้นที่วิศวกรรับผิดชอบการยืนยัน"],
       flow: ["ระบุเงื่อนไข", "คำนวณ", "ตรวจทาน", "ยืนยันผล"],
-      availabilityNote: "สมาชิกใช้ได้ฟรีเมื่อแอปที่ปรับโครงสร้างใหม่พร้อมเปิดใช้งาน"
+      availabilityNote: "สมาชิกใช้ฟรี เมื่อเปิดให้ใช้งาน"
     }
   },
   {
     slug: "traffic-sign",
     name: "TRAFFIC SIGN",
     eyebrow: "MATERIAL CALCULATOR",
-    description: "คำนวณรายการวัสดุป้ายจราจรแบบ form → list → BOQ สำหรับสมาชิก",
+    description: "คำนวณรายการวัสดุป้ายจราจร ตั้งแต่ระบุลักษณะป้ายจนได้ BOQ",
     programName: "แอปคำนวณวัสดุป้ายจราจร",
     purpose: "สำหรับจัดทำรายการวัสดุป้ายจราจรจนถึง BOQ",
     iconSrc: visualAssetUrl("traffic_sign"),
@@ -145,7 +145,7 @@ export const platformApps: PlatformApp[] = [
       outcome: "จัดทำรายการวัสดุป้ายจราจร",
       preparation: ["ชนิดป้ายและตำแหน่งติดตั้ง", "ขนาด/วัสดุ/อุปกรณ์ประกอบ", "ข้อกำหนดหน้างานที่เกี่ยวข้อง"],
       flow: ["ระบุลักษณะงาน", "เลือกวัสดุ", "ตรวจรายการ", "ทบทวน"],
-      availabilityNote: "สมาชิกใช้ได้ฟรีเมื่อแอปที่ปรับโครงสร้างใหม่พร้อมเปิดใช้งาน"
+      availabilityNote: "สมาชิกใช้ฟรี เมื่อเปิดให้ใช้งาน"
     }
   },
   {
@@ -214,7 +214,7 @@ export const platformApps: PlatformApp[] = [
 ];
 
 export const accessLabel: Record<AppAccess, string> = {
-  paid_trial: "ฟรี ทดลองใช้งาน 7 วัน",
+  paid_trial: "ทดลองใช้ฟรี 7 วัน",
   member_free: "สมาชิกใช้ฟรี",
   doh_staff_only: "เฉพาะบุคลากรกรมทางหลวง",
   agent_service: "ผู้ช่วยทำงาน 24/7"
@@ -227,7 +227,7 @@ export const accessLabel: Record<AppAccess, string> = {
  * has more to say, like rcopt's restructuring note.
  */
 export const availabilityNotePresets = [
-  "ทดลองใช้งานฟรี 7 วัน",
+  "ทดลองใช้ฟรี 7 วัน",
   "สมาชิกใช้ฟรี",
   "เฉพาะบุคลากรกรมทางหลวง",
   "กำลังพัฒนา ยังไม่เปิดใช้งาน"
