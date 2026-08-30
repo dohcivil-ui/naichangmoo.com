@@ -1884,6 +1884,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    เหมือนที่ .price-set ทำไว้แล้ว การลืมข้อนี้ทำให้สองประโยคต่อกันจนอ่านผิด */
 .boq-table small { display: block; margin-top: .2rem; font-size: .74rem; font-weight: 500; line-height: 1.45; color: var(--muted); }
 .boq-table .number-cell small { display: inline; margin-top: 0; }
+/* หัวหมวดในตาราง — ใบ ปร.4 แยกตามหมวดงาน ตารางบนจอจึงต้องแยกให้เห็นแบบเดียวกัน */
+.boq-table__heading th, .boq-table__heading td { padding-top: .85rem; background: var(--canvas); font-size: .82rem; font-weight: 800; color: var(--ink); text-align: left; }
+.boq-table__heading td { text-align: right; }
+.boq-category-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 14px 0 4px; }
+.boq-category-summary article { padding: 10px 12px; border: 1px solid var(--mist); border-radius: 11px; background: var(--paper); }
+.boq-category-summary span { display: block; font-size: .74rem; font-weight: 700; color: var(--muted); }
+.boq-category-summary strong { display: block; margin-top: .18rem; font-size: 1.05rem; font-weight: 800; color: var(--ink); }
+.boq-category-summary small { display: block; font-size: .72rem; color: var(--muted); }
 
 /* IP-163 · ส่งรายการที่หยิบไว้เข้าเป็นชุดราคาของโครงการ */
 .gl-send { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }

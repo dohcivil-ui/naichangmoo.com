@@ -43,6 +43,8 @@ export type MatchCandidates = {
 
 export type BoqLineView = {
   id: string;
+  /** หมวดงานของรายการถอดปริมาณ ใบ ปร.4 แยกตามนี้ จึงต้องเดินทางมาถึงแผง BOQ ด้วย */
+  category: string;
   description: string;
   unit: string;
   quantity: number;
@@ -221,6 +223,7 @@ export async function listBoqLines(organizationId: string, revisionId: string): 
   const rows = await getDb()
     .select({
       id: boqItems.id,
+      category: takeoffItems.category,
       description: takeoffItems.description,
       unit: takeoffItems.unit,
       quantity: boqItems.quantity,
@@ -239,7 +242,9 @@ export async function listBoqLines(organizationId: string, revisionId: string): 
     .innerJoin(takeoffItems, eq(takeoffItems.id, boqItems.takeoffItemId))
     .innerJoin(priceSetLines, eq(priceSetLines.id, boqItems.priceSetLineId))
     .where(and(eq(boqItems.revisionId, revisionId), eq(projects.organizationId, organizationId)))
-    .orderBy(asc(boqItems.createdAt));
+    // เรียงตามหมวดก่อนเวลา เพราะใบ ปร.4 แยกตามหมวดงาน การเรียงตามเวลาที่คนกดรับ
+    // จะทำให้รายการของหมวดเดียวกันกระจายอยู่คนละที่ในใบเดียว
+    .orderBy(asc(takeoffItems.category), asc(boqItems.createdAt));
 
   return rows.map((row) => ({
     ...row,

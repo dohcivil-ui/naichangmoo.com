@@ -1,5 +1,5 @@
 import { formatPrice } from "@/lib/price-catalogue";
-import { unitLabel } from "@/lib/takeoff-units";
+import { TAKEOFF_CATEGORIES, categoryLabel, unitLabel } from "@/lib/takeoff-units";
 import type { BoqLineView } from "@/server/estimeter/boq-repository";
 
 /**
@@ -18,8 +18,32 @@ const SOURCE_LABEL: Record<string, string> = {
   cgd: "กรมบัญชีกลาง ว809"
 };
 
+/**
+ * จัดกลุ่มตามลำดับหมวดของ `TAKEOFF_CATEGORIES` ไม่ใช่ลำดับที่ข้อมูลบังเอิญมา
+ *
+ * ลำดับหมวดคือลำดับที่ใบ ปร.4 เดิน งานดินมาก่อนงานโครงสร้าง ไม่ใช่เรียงตามตัวอักษรหรือ
+ * ตามว่าใครกดรับก่อน หมวดที่ไม่มีรายการจะไม่ขึ้น เพราะใบเปล่าไม่ได้บอกอะไรนอกจากกินที่
+ */
+type CategoryGroup = { code: string; label: string; lines: BoqLineView[] };
+
+function groupByCategory(lines: BoqLineView[]): CategoryGroup[] {
+  return TAKEOFF_CATEGORIES.map<CategoryGroup>((category) => ({
+    code: category.code,
+    label: category.label,
+    lines: lines.filter((line) => line.category === category.code)
+  }))
+    .concat(
+      // หมวดที่ไม่รู้จัก เช่น รหัสเก่าที่ถูกถอดออกจากรายการแล้ว ต้องยังมองเห็นได้ ไม่ใช่หายเงียบ
+      [...new Set(lines.map((line) => line.category))]
+        .filter((code) => !TAKEOFF_CATEGORIES.some((category) => category.code === code))
+        .map((code) => ({ code, label: categoryLabel(code), lines: lines.filter((line) => line.category === code) }))
+    )
+    .filter((group) => group.lines.length > 0);
+}
+
 export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revisionLabel: string | null }) {
   const total = lines.reduce((sum, line) => sum + line.amountSatang, 0n);
+  const groups = groupByCategory(lines);
 
   return (
     <div className="workspace-panel">
@@ -42,9 +66,20 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
       ) : (
         <>
           <p className="workspace-notice">
-            บรรทัดของ <strong>{revisionLabel}</strong> · ปริมาณเป็นสำเนา ณ วินาทีที่รับคู่
-            แก้รายการถอดปริมาณทีหลังแล้วบรรทัดนี้ไม่ขยับตาม
+            บรรทัดของ <strong>{revisionLabel}</strong> · แยกตามหมวดงานเหมือนที่ใบ ปร.4 แยก ·
+            ปริมาณเป็นสำเนา ณ วินาทีที่รับคู่ แก้รายการถอดปริมาณทีหลังแล้วบรรทัดนี้ไม่ขยับตาม
           </p>
+
+          <div className="boq-category-summary">
+            {groups.map((group) => (
+              <article key={group.code}>
+                <span>{group.label}</span>
+                <strong>{formatPrice(group.lines.reduce((sum, line) => sum + line.amountSatang, 0n))}</strong>
+                <small>{group.lines.length} บรรทัด</small>
+              </article>
+            ))}
+          </div>
+
           <div className="takeoff-table-wrap">
             {/* คลาส boq-table มีไว้ให้ small เป็น block เหมือนที่แผงชุดราคาทำ ไม่งั้นชื่อรายการ
                 กับบรรทัดที่มาจะต่อกันเป็นประโยคเดียว แบบเดียวกับบั๊ก PRICEMETRการนำไป ใน v0.94.0 */}
@@ -57,8 +92,17 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
                   <th className="number-cell">เป็นเงิน</th>
                 </tr>
               </thead>
-              <tbody>
-                {lines.map((line) => (
+              {groups.map((group) => (
+                <tbody key={group.code}>
+                  <tr className="boq-table__heading">
+                    <th colSpan={3} scope="colgroup">
+                      {group.label}
+                    </th>
+                    <td className="number-cell">
+                      {formatPrice(group.lines.reduce((sum, line) => sum + line.amountSatang, 0n))}
+                    </td>
+                  </tr>
+                  {group.lines.map((line) => (
                   <tr key={line.id}>
                     <td>
                       <strong>{line.description}</strong>
@@ -80,8 +124,9 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
                     <td className="number-cell">{line.quantity.toLocaleString("th-TH")}</td>
                     <td className="number-cell">{formatPrice(line.amountSatang)}</td>
                   </tr>
-                ))}
-              </tbody>
+                  ))}
+                </tbody>
+              ))}
             </table>
           </div>
           <div className="workspace-callout">
