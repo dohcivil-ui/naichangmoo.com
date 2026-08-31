@@ -23,11 +23,9 @@ export const footerNavigationContract = [
     links: [
       { label: landingActionContract.allAppsLabel, href: landingActionContract.allAppsHref, exists: true },
       /* ป้ายตามที่เจ้าของงานเคาะ 2026-08-28: ชื่อบริการ Hermes + การกระทำที่กดแล้วได้จริง
-         (หน้า /enterprise คือฟอร์มรับรายละเอียดงาน) ไม่ใช้คำว่า "บริการติดตั้งระบบ 24/7"
-         เดี่ยว ๆ เพราะอ่านได้ว่าทีมติดตั้งเปิด 24 ชม. ซึ่งไม่มีใครสัญญา
-         คำว่า use case ถอดออกเมื่อ 2026-08-30 ตาม docs/rules/copy-th.md ที่ห้ามศัพท์อังกฤษ
-         ซึ่งลูกค้ากลุ่มผู้รับเหมาไม่ได้ใช้ โครงของป้ายยังเป็นชื่อบริการบวกการกระทำเหมือนเดิม */
-      { label: "Hermes 24/7 — ส่งรายละเอียดงาน", href: "/enterprise", exists: true },
+         (หน้า /enterprise คือฟอร์มส่ง use case — ยืนยันจากคอมเมนต์ในหน้าแรก) ไม่ใช้คำว่า
+         "บริการติดตั้งระบบ 24/7" เดี่ยว ๆ เพราะอ่านได้ว่าทีมติดตั้งเปิด 24 ชม. ซึ่งไม่มีใครสัญญา */
+      { label: "Hermes 24/7 — ส่ง use case", href: "/enterprise", exists: true },
       { label: "ราคา", href: landingActionContract.pricingHref, exists: true }
     ]
   },

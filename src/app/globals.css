@@ -211,11 +211,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .hero__grid { position: relative; z-index: 1; }
 .hero__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.02fr); gap: 48px; align-items: center; }
 .eyebrow { color: #aee6dd; font-size: .75rem; font-weight: 700; letter-spacing: .16em; }
-/* ขนาดตัวอักษรของพาดหัวมาจากความยาวของถ้อยคำที่เจ้าของงานเคาะ ไม่ใช่ตัวเลขที่ตั้งไว้ก่อน
-   พาดหัวปัจจุบันสองบรรทัดกว้าง 728 กับ 710 จุดที่ 74.4px ขณะที่คอลัมน์ของ hero กว้าง 550
-   ที่จอ 1516 ถ้าคงขนาดเดิมไว้ทั้งสองบรรทัดจะตัดเป็นสี่บรรทัด และบรรทัดที่ตัดกลางวลี
-   อ่านเหมือนพิมพ์ผิดในภาษาที่ไม่มีช่องว่างระหว่างคำ จึงลดขนาดลงจนพอดีสองบรรทัดตามที่ออกแบบไว้ */
-.hero h1 { max-width: 760px; font-size: clamp(2.1rem, 3.6vw, 3.45rem); line-height: 1.08; letter-spacing: -.05em; margin: 14px 0 22px; }
+.hero h1 { max-width: 760px; font-size: clamp(2.3rem, 5vw, 4.65rem); line-height: 1.06; letter-spacing: -.05em; margin: 14px 0 22px; }
 .hero p { max-width: 645px; color: #d6e3e4; font-size: 1.12rem; line-height: 1.8; margin: 0; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
 .hero__note { margin-top: 18px; color: #a9c4c7; font-size: .87rem; }
@@ -362,18 +358,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .principle-marquee__half span{display:flex;align-items:center;gap:26px;padding-right:26px;font-size:.94rem;font-weight:600;letter-spacing:.02em;color:rgba(215,232,233,.65);white-space:nowrap}
 .principle-marquee__half span i{width:6px;height:6px;background:var(--orange);opacity:.85;flex:none}
 @keyframes principle-mq{to{transform:translateX(-50%)}}
-
-/* แถบเลื่อนแอปหน้าแรก (IP-225) — กลไกเดียวกับแถบข้อความด้านบน คือรางคู่ที่เลื่อนวนด้วย CSS
-   ต่างกันสองอย่าง หนึ่งเลื่อนจากซ้ายไปขวาตามที่เจ้าของงานสั่ง จึงวิ่งจาก -50% กลับมา 0
-   สองการ์ดในรางกดโฟกัสได้ แถบจึงต้องหยุดตอนโฟกัสด้วย ไม่ใช่หยุดเฉพาะตอนเอาเมาส์ชี้
-   การ์ดใช้หน้าตาเดิมของ .app-card ทุกประการ ที่นี่กำหนดแค่ความกว้างกับการไม่ให้ยืดหด */
-.app-rail{overflow:hidden;padding:6px 0 10px}
-.app-rail__track{display:flex;width:max-content;animation:app-rail-mq 72s linear infinite}
-.app-rail:hover .app-rail__track,.app-rail:focus-within .app-rail__track{animation-play-state:paused}
-.app-rail__half{display:flex;gap:18px;padding-right:18px;flex:none}
-.app-rail .app-card{width:clamp(268px,26vw,340px);flex:none;white-space:normal}
-.app-rail .app-card__icon-wrap{margin:14px 0 12px}
-@keyframes app-rail-mq{from{transform:translateX(-50%)}to{transform:translateX(0)}}
 .stat-band{padding-top:40px;padding-bottom:40px;border-bottom:1px solid var(--line)}
 .stat-band__eyebrow{margin-bottom:18px}
 .stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
