@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="th" data-mode="ours">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เทียบฟอนต์ไทย นายช่างหมู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Anuphan:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;600;700&family=Sarabun:wght@400;500;600;700&family=Bai+Jamjuree:wght@400;500;600;700&family=Kanit:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@7/fonts/LINESeedSansTH/LINESeedSansTH.css">
+<style>
+  :root{
+    --bg:#f2f5f4; --surface:#fff; --surface-2:#e9efee; --ink:#0f1d1c; --muted:#5d7175;
+    --line:#d3dedc; --accent:#0c6f6f; --accent-soft:#d9ecea; --warn:#b8500f; --warn-soft:#fbe8da;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d1514; --surface:#14201f; --surface-2:#1b2827; --ink:#e4edeb; --muted:#98adb0;
+      --line:#263634; --accent:#5cbdb3; --accent-soft:#12302e; --warn:#e79457; --warn-soft:#33210f;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"IBM Plex Sans Thai","Noto Sans Thai",system-ui,sans-serif;line-height:1.75}
+  .wrap{width:min(100% - 32px,1060px);margin:0 auto;padding:0 0 100px}
+
+  header.top{padding:48px 0 26px;border-bottom:2px solid var(--ink)}
+  .kick{font-size:.72rem;letter-spacing:.14em;color:var(--accent);margin:0 0 12px;font-weight:600}
+  h1.page{font-size:clamp(1.9rem,4.5vw,2.7rem);line-height:1.3;margin:0 0 12px;font-weight:700}
+  .standfirst{margin:0;color:var(--muted);max-width:62ch}
+
+  h2{font-size:clamp(1.25rem,3vw,1.6rem);margin:0 0 6px;font-weight:700;line-height:1.4}
+  section{padding-top:46px}
+  .lede{color:var(--muted);margin:0 0 18px;max-width:66ch}
+  h3{font-size:1rem;margin:30px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);font-weight:600}
+
+  /* ---- switch ---- */
+  .switch{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0;
+    border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .switch b{font-size:.85rem;font-weight:600}
+  .switch button{font:inherit;font-size:.86rem;padding:7px 14px;cursor:pointer;
+    background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:2px}
+  .switch button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .switch small{color:var(--muted);font-size:.8rem}
+
+  /* ---- specimen ---- */
+  .spec{background:var(--surface);border:1px solid var(--line);margin:18px 0;overflow:hidden}
+  .spec__head{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+    padding:12px 18px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+  .spec__name{font-weight:700;font-size:1.02rem}
+  .spec__meta{color:var(--muted);font-size:.8rem}
+  .tag{font-size:.7rem;letter-spacing:.06em;padding:2px 8px;border-radius:2px;white-space:nowrap}
+  .tag--free{background:var(--accent-soft);color:var(--accent)}
+  .tag--paid{background:var(--warn-soft);color:var(--warn)}
+  .tag--now{background:var(--ink);color:var(--bg)}
+  .spec__body{padding:22px 18px 24px}
+
+  /* the demo type — sizes driven by data-mode on <html> */
+  .demo-h1{margin:0 0 14px;font-weight:600;
+    font-size:clamp(2.2rem,5.4vw,4.5rem);letter-spacing:-.05em;line-height:1.06}
+  html[data-mode="fixed"] .demo-h1{letter-spacing:-.005em;line-height:1.28;font-weight:600}
+  .demo-sub{margin:0 0 16px;font-size:1.05rem;color:var(--muted);max-width:52ch;line-height:1.8}
+  .demo-body{margin:0 0 16px;font-size:1rem;max-width:62ch;line-height:1.8}
+  .demo-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+  .demo-btn{font:inherit;font-weight:600;font-size:.95rem;padding:11px 20px;border:0;
+    background:var(--accent);color:#fff;border-radius:2px}
+  .demo-eyebrow{font-size:.75rem;font-weight:700;letter-spacing:.16em;color:var(--accent);margin:0 0 10px}
+  .demo-nums{margin-top:16px;font-size:1.05rem;font-variant-numeric:tabular-nums;
+    display:grid;gap:2px;width:max-content}
+  .demo-nums span{display:block}
+
+  /* ---- tables ---- */
+  .scroller{overflow-x:auto;margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:.92rem}
+  th,td{text-align:left;padding:10px 14px 10px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.72rem;letter-spacing:.08em;color:var(--muted);border-bottom-color:var(--ink);font-weight:600}
+  td:first-child{font-weight:600;padding-right:20px;white-space:nowrap}
+
+  .note{background:var(--surface-2);border:1px solid var(--line);padding:18px 20px;margin:20px 0}
+  .note--warn{background:var(--warn-soft);border-color:var(--warn)}
+  .note h4{margin:0 0 8px;font-size:.74rem;letter-spacing:.1em;color:var(--warn);font-weight:700}
+  .note--plain h4{color:var(--accent)}
+  .note p{margin:0;max-width:70ch}
+  .note p+p{margin-top:9px}
+  a{color:var(--accent);text-underline-offset:3px}
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+
+  .f-prompt{font-family:"Prompt",sans-serif}
+  .f-anuphan{font-family:"Anuphan",sans-serif}
+  .f-plex{font-family:"IBM Plex Sans Thai",sans-serif}
+  .f-plexloop{font-family:"IBM Plex Sans Thai Looped",sans-serif}
+  .f-noto{font-family:"Noto Sans Thai",sans-serif}
+  .f-notoserif{font-family:"Noto Serif Thai",serif}
+  .f-sarabun{font-family:"Sarabun",sans-serif}
+  .f-lineseed{font-family:"LINE Seed Sans TH",sans-serif}
+  .f-jamjuree{font-family:"Bai Jamjuree",sans-serif}
+  .f-kanit{font-family:"Kanit",sans-serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="kick">งานศึกษาฟอนต์ · 1 กันยายน 2569</p>
+  <h1 class="page">เทียบฟอนต์ไทย ก่อนตัดสินใจเปลี่ยน</h1>
+  <p class="standfirst">ทุกช่องข้างล่างใช้ถ้อยคำจริงจากหน้าแรกของเรา ขนาดจริงที่ใช้อยู่ กดปุ่มด้านบนเพื่อสลับระหว่างค่าที่เราตั้งไว้ตอนนี้ กับค่าที่แก้ให้เหมาะกับภาษาไทย</p>
+</header>
+
+<div class="switch">
+  <b>ค่าการจัดตัวอักษร</b>
+  <button id="btn-ours" aria-pressed="true">ค่าที่เราใช้อยู่ตอนนี้</button>
+  <button id="btn-fixed" aria-pressed="false">ค่าที่แก้ให้เหมาะกับไทย</button>
+  <small id="switch-note">ระยะห่างตัวอักษร -0.05em · ความสูงบรรทัด 1.06 เท่า</small>
+</div>
+
+<section>
+  <h2>ข้อค้นพบที่ต้องรู้ก่อน — เราใช้ฟอนต์ตัวเดียวกับช่างคิด</h2>
+  <p class="lede">อ่านค่าจากเบราว์เซอร์จริงทั้งสองเว็บ ช่างคิดประกาศฟอนต์ว่า <code>Prompt, Sarabun</code> เราประกาศว่า <code>Prompt, Noto Sans Thai</code> — ตัวหลักคือ Prompt เหมือนกัน ทั้งคู่เป็นของโรงหล่อไทย คัดสรร ดีมาก และเป็นลิขสิทธิ์เปิด OFL ใช้เชิงพาณิชย์ได้ฟรี</p>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>ค่าที่วัดได้</th><th>นายช่างหมู</th><th>ช่างคิด</th></tr></thead>
+      <tbody>
+        <tr><td>ฟอนต์ตัวหลัก</td><td>Prompt</td><td>Prompt</td></tr>
+        <tr><td>ขนาดพาดหัว</td><td>72 px</td><td>32 px</td></tr>
+        <tr><td>น้ำหนักพาดหัว</td><td>600</td><td>700</td></tr>
+        <tr><td>ระยะห่างตัวอักษร</td><td>-0.05em (บีบเข้าหากัน)</td><td>ปกติ</td></tr>
+        <tr><td>ความสูงบรรทัดพาดหัว</td><td>1.06 เท่า</td><td>1.55 เท่า</td></tr>
+        <tr><td>ขนาดตัวเนื้อความ</td><td>17.9 px</td><td>13 px</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note note--warn">
+    <h4>อาการไม่สมูทมาจากการตั้งค่า ไม่ใช่จากตัวฟอนต์</h4>
+    <p>ภาษาไทยมีสระบน สระล่าง และวรรณยุกต์ที่ต้องมีที่ว่างเหนือและใต้ตัวอักษร การบีบระยะห่างติดลบ 0.05em พร้อมกับบีบความสูงบรรทัดเหลือ 1.06 เท่า ที่ขนาดใหญ่ 72px ทำให้หัวตัวอักษรกับวรรณยุกต์ของบรรทัดบนเบียดกัน</p>
+    <p>และ <code>.h1-line</code> ของเราตั้ง <code>overflow: hidden</code> ไว้เพื่อทำอนิเมชันตัวอักษรเลื่อนขึ้น เมื่อรวมกับความสูงบรรทัด 1.06 เท่า มีโอกาสตัดวรรณยุกต์ของบรรทัดแรกทิ้ง</p>
+  </div>
+</section>
+
+<section>
+  <h2>ฟอนต์ที่เราใช้อยู่</h2>
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-prompt">Prompt</span>
+      <span class="tag tag--now">ใช้อยู่ตอนนี้</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">คัดสรร ดีมาก · เรขาคณิต ไม่มีหัว · ช่างคิดก็ใช้ตัวนี้</span>
+    </div>
+    <div class="spec__body f-prompt">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+  <div class="note note--plain">
+    <h4>ข้อจำกัดของ Prompt ที่เราเจอมาก่อนแล้ว</h4>
+    <p>Prompt ไม่มีฟีเจอร์ <code>tnum</code> และเลข 0-9 กว้างไม่เท่ากันถึง 30.9% ตัวเลขในตารางจึงเรียงหลักไม่ตรง เราแก้ไปแล้วด้วยการให้เฉพาะช่องตัวเลขใช้ IBM Plex Sans Thai และมีเทสต์เฝ้าไว้ที่ <code>src/numeric-font-fence.test.ts</code> — สังเกตแถวตัวเลขในแต่ละช่องข้างล่างว่าหลักตรงหรือไม่</p>
+  </div>
+</section>
+
+<section>
+  <h2>ตัวเลือกฟรี ลิขสิทธิ์เปิด ใช้เชิงพาณิชย์ได้</h2>
+  <p class="lede">ทุกตัวในส่วนนี้เป็น SIL Open Font License หรือสาธารณะ ใช้กับเว็บที่เก็บเงินได้ ไม่ต้องจ่ายและไม่ต้องขออนุญาต</p>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-anuphan">Anuphan · อนุพันธ์</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">คัดสรร ดีมาก · ไม่มีหัว · ทำมาคู่กับ IBM Plex โดยเฉพาะ 7 น้ำหนัก</span>
+    </div>
+    <div class="spec__body f-anuphan">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-lineseed">LINE Seed Sans TH</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">LINE · ไม่มีหัว · ฟอนต์ที่แอปไทยสมัยใหม่ใช้กันมาก</span>
+    </div>
+    <div class="spec__body f-lineseed">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-plex">IBM Plex Sans Thai</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">IBM · ไม่มีหัว · เราใช้ตัวนี้กับช่องตัวเลขอยู่แล้ว เลขเรียงหลักตรง</span>
+    </div>
+    <div class="spec__body f-plex">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-plexloop">IBM Plex Sans Thai Looped</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">IBM · มีหัว · หัวกลมช่วยให้อ่านย่อหน้ายาวสบายตากว่า</span>
+    </div>
+    <div class="spec__body f-plexloop">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-noto">Noto Sans Thai</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">Google · ไม่มีหัว · กลาง ๆ ปลอดภัย ไม่มีบุคลิกเด่น</span>
+    </div>
+    <div class="spec__body f-noto">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-sarabun">Sarabun · สารบรรณ</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">คัดสรร ดีมาก · มีหัว · ตระกูลเดียวกับฟอนต์หนังสือราชการที่ผู้ใช้เราคุ้นที่สุด</span>
+    </div>
+    <div class="spec__body f-sarabun">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-jamjuree">Bai Jamjuree · ใบจามจุรี</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">คัดสรร ดีมาก · ไม่มีหัว ทรงแคบ · เหมาะกับพาดหัวที่ต้องยาว</span>
+    </div>
+    <div class="spec__body f-jamjuree">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+
+  <div class="spec">
+    <div class="spec__head">
+      <span class="spec__name f-notoserif">Noto Serif Thai</span>
+      <span class="tag tag--free">ฟรี OFL</span>
+      <span class="spec__meta">Google · มีเชิง · ใช้เฉพาะพาดหัวเพื่อให้ต่างจากคู่แข่งที่เป็นซานส์ทั้งวงการ</span>
+    </div>
+    <div class="spec__body f-notoserif">
+      <p class="demo-eyebrow">นายช่างหมู · แอปงานโยธา</p>
+      <h3 class="demo-h1" style="border:0;padding:0;margin-top:0">เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+      <p class="demo-sub">ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+      <p class="demo-body">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้ ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก</p>
+      <div class="demo-row"><button class="demo-btn">เข้าสู่ระบบด้วย Google</button><span>ทดลองใช้ฟรี 7 วัน</span></div>
+      <div class="demo-nums"><span>1,861 คน</span><span>11,000 บาท</span><span>12.50 ลบ.ม.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>ถ้าจะซื้อ ซื้อจากใครได้บ้าง</h2>
+  <p class="lede">ฟอนต์ไทยที่ขายจริงส่วนใหญ่มาจากโรงหล่อไทยสองสามเจ้า ราคาไม่ประกาศบนหน้าเว็บ ต้องติดต่อขอใบเสนอราคา</p>
+  <h3>ทางที่หนึ่ง — สมัคร Adobe Fonts ได้ฟอนต์ไทยระดับโลกมาทั้งชุด</h3>
+  <p>มากับ Creative Cloud ที่จ่ายรายเดือนอยู่แล้ว ใช้เชิงพาณิชย์ได้ ไม่จำกัดยอดผู้เข้าชม</p>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>ฟอนต์</th><th>ผู้ออกแบบ</th><th>จำนวนสไตล์</th><th>ลักษณะ</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://fonts.adobe.com/fonts/aktiv-grotesk-thai">Aktiv Grotesk Thai</a></td><td>Dalton Maag</td><td>18</td><td>ซานส์สมัยใหม่ ทำไทยกับละตินให้เข้าชุดกันจริง ๆ</td></tr>
+        <tr><td><a href="https://fonts.adobe.com/fonts/forma-djr-thai">Forma DJR Thai</a></td><td>DJR · David Jonathan Ross ร่วมกับ Knaz Uiyamathiti</td><td>25</td><td>ซานส์ที่มีน้ำหนักและความกว้างให้เลือกเยอะที่สุดในรายการนี้</td></tr>
+        <tr><td><a href="https://fonts.adobe.com/fonts/bilo-thai">Bilo Thai</a></td><td>—</td><td>9</td><td>ซานส์</td></tr>
+        <tr><td><a href="https://fonts.adobe.com/fonts/arlette-thai">Arlette Thai</a></td><td>—</td><td>6</td><td>ซานส์</td></tr>
+        <tr><td><a href="https://fonts.adobe.com/fonts/adobe-thai">Adobe Thai</a></td><td>Adobe</td><td>4</td><td>มีเชิง เหมาะกับพาดหัวที่อยากได้ความเป็นทางการ</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note note--warn">
+    <h4>ข้อแลกเปลี่ยนที่ต้องรู้ก่อนเลือกทางนี้</h4>
+    <p>Adobe <strong>ไม่อนุญาตให้เก็บไฟล์ฟอนต์ไว้ที่เซิร์ฟเวอร์เราเอง</strong> ต้องโหลดผ่านโค้ดฝังของ Adobe เท่านั้น แปลว่าใช้ <code>next/font</code> ที่เราใช้อยู่ไม่ได้ ต้องพึ่ง CDN ของ Adobe</p>
+    <p>และ <strong>ถ้าหยุดจ่ายค่าสมาชิก ฟอนต์บนเว็บจะหยุดทำงาน</strong> หน้าเว็บจะตกไปใช้ฟอนต์สำรอง นี่คือความเสี่ยงที่ต้องยอมรับสำหรับเว็บที่ขายของจริง</p>
+  </div>
+
+  <h3>ทางที่สอง — ซื้อขาด เก็บไฟล์ไว้เอง</h3>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>โรงหล่อ</th><th>ฟอนต์</th><th>ราคาที่ประกาศไว้</th><th>ติดต่อ</th></tr></thead>
+      <tbody>
+        <tr><td><a href="https://www.katatrad.com/">Katatrad</a><br><span style="font-weight:400;color:var(--muted)">บริษัทลูกของคัดสรร ดีมาก</span></td><td>Ekkarach ซานส์แนวมนุษยนิยม 6 สไตล์<br>Prayoat มีหัว 14 สไตล์<br>Thanasarn · Mittraphap · Panich · Nitayasan</td><td>Ekkarach 11,800 บาทต่อน้ำหนัก · ทั้งชุด 35,000 บาท<br>Prayoat 11,800 บาทต่อน้ำหนัก · ทั้งชุด 65,000 บาท<br><strong>ราคาเว็บฟอนต์ต้องถามแยก</strong> · ยังไม่รวม VAT</td><td>sale@katatrad.com<br>092-490-5544</td></tr>
+        <tr><td><a href="https://www.daltonmaag.com/">Dalton Maag</a></td><td>Aktiv Grotesk Thai ตัวเดียวกับที่อยู่ใน Adobe Fonts</td><td>เริ่มที่ราว 42 ดอลลาร์ต่อน้ำหนัก สำหรับสิทธิ์ถาวรหนึ่งผู้ใช้ · ชุดตัวแปรสามแกนเริ่มที่ราว 370 ปอนด์ · มีแบบสมัครรายเดือนชื่อ FontPass</td><td>daltonmaag.com</td></tr>
+        <tr><td><a href="https://www.f0nt.com/tag/db/">DB Fonts</a><br><span style="font-weight:400;color:var(--muted)">โรงหล่อดิจิทัลเจ้าแรกของไทย</span></td><td>ตระกูล DB Heavent และอื่น ๆ</td><td>ราว 5,000 บาทต่อชุด ใช้ได้ 5 เครื่องในบริษัทเดียวกัน · ใช้บนเว็บราว 5,000 บาทขึ้นไปต่อโดเมน</td><td>ผ่านตัวแทนจำหน่าย</td></tr>
+        <tr><td><a href="https://aksonhub.com/">AksonHub</a><br><span style="font-weight:400;color:var(--muted)">ตลาดกลาง 165 ตระกูล</span></td><td>ส่วนใหญ่เป็นฟอนต์พาดหัวและลายมือจากนักออกแบบรายย่อย มี 1-3 สไตล์ต่อตัว</td><td>159-300 บาท</td><td>ซื้อออนไลน์ได้ทันที</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <p><strong>ทำไม AksonHub ถึงไม่เหมาะกับเรา</strong> ราคาถูกจริง แต่เกือบทั้งหมดมีแค่ 1-3 น้ำหนัก และเป็นฟอนต์แนวตกแต่ง เว็บของเราต้องใช้อย่างน้อยสี่น้ำหนัก (ปกติ กลาง หนา หนามาก) และต้องอ่านย่อหน้ายาวได้ · เหมาะกับงานโปสเตอร์มากกว่างานหน้าจอ</p>
+  </div>
+  <div class="note note--plain">
+    <h4>ความเห็นเรื่องซื้อ</h4>
+    <p>Prompt · Anuphan · Sarabun · Bai Jamjuree ที่อยู่ในหน้านี้ทั้งหมด เป็นของโรงหล่อคัดสรร ดีมาก ซึ่งเป็นโรงหล่อไทยระดับบนอยู่แล้ว และเขาปล่อยเป็น OFL เอง <strong>การจ่ายเงินจึงไม่ได้ทำให้ได้ฟอนต์ที่ฝีมือดีกว่านี้อัตโนมัติ</strong></p>
+    <p>เหตุผลที่ควรจ่ายมีอย่างเดียวคือ <strong>ต้องการหน้าตาที่คู่แข่งใช้ไม่ได้</strong> เพราะช่างคิดใช้ Prompt อยู่ ถ้าเราอยากดูไม่เหมือนเขาแบบชัดเจน การซื้อฟอนต์จาก Katatrad หรือสั่งทำเฉพาะแบรนด์คือทางที่ได้ผลจริง</p>
+  </div>
+</section>
+
+<section>
+  <h2>ข้อเสนอ</h2>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>ทำอะไร</th><th>ทำไม</th><th>ต้นทุน</th></tr></thead>
+      <tbody>
+        <tr><td>แก้ค่าจัดตัวอักษรก่อน</td><td>ระยะห่างติดลบและบรรทัดชิดคือต้นเหตุของอาการไม่สมูท แก้แล้วเห็นผลทันทีโดยไม่ต้องเปลี่ยนฟอนต์</td><td>ฟรี แตะ globals.css</td></tr>
+        <tr><td>เปลี่ยนตัวเนื้อความเป็นฟอนต์ที่ทำมาเพื่ออ่าน</td><td>Prompt เป็นทรงเรขาคณิตสำหรับพาดหัว อ่านย่อหน้ายาวล้าตา ส่วน Anuphan หรือ IBM Plex Sans Thai ทำมาเพื่อการอ่าน และเลขเรียงหลักตรงด้วย</td><td>ฟรี OFL</td></tr>
+        <tr><td>เลือกฟอนต์พาดหัวที่ไม่ใช่ Prompt</td><td>เพื่อไม่ให้หน้าตาซ้ำกับช่างคิด</td><td>ฟรี หรือซื้อถ้าต้องการเอกลักษณ์จริงจัง</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note note--warn">
+    <h4>ข้อจำกัดที่ต้องเคาะก่อน</h4>
+    <p>ในโค้ดมีบันทึกว่าเจ้าของงานสั่งไว้เมื่อ 2026-08-28 ว่า <strong>ห้ามเปลี่ยนฟอนต์ทั้งระบบ</strong> คง Prompt ไว้ตามเดิม การเปลี่ยนฟอนต์รอบนี้จึงต้องให้คุณยกเลิกคำสั่งเดิมก่อน ผมจะไม่แตะจนกว่าคุณจะเคาะ</p>
+  </div>
+</section>
+
+<footer>
+  <p>หน้านี้เป็นกระดาษทดลอง ไม่ได้แตะเว็บจริง · ไฟล์อยู่ที่ .design/typography/font-bakeoff-2026-09-01.html · ฟอนต์โหลดจาก Google Fonts และ jsDelivr (คลัง thai-web-fonts ของ lazywasabi)</p>
+</footer>
+
+</div>
+<script>
+  var root = document.documentElement;
+  var bOurs = document.getElementById('btn-ours');
+  var bFixed = document.getElementById('btn-fixed');
+  var note = document.getElementById('switch-note');
+  function setMode(mode) {
+    root.setAttribute('data-mode', mode);
+    var isOurs = mode === 'ours';
+    bOurs.setAttribute('aria-pressed', String(isOurs));
+    bFixed.setAttribute('aria-pressed', String(!isOurs));
+    note.textContent = isOurs
+      ? 'ระยะห่างตัวอักษร -0.05em · ความสูงบรรทัด 1.06 เท่า'
+      : 'ระยะห่างตัวอักษร -0.005em · ความสูงบรรทัด 1.28 เท่า';
+  }
+  bOurs.addEventListener('click', function () { setMode('ours'); });
+  bFixed.addEventListener('click', function () { setMode('fixed'); });
+</script>
+</body>
+</html>
