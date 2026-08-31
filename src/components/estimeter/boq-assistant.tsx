@@ -259,23 +259,23 @@ export function BoqAssistant({
             ? { label: "มีข้อเสนอรอตัดสิน", tone: "attention" }
             : revisionId
               ? { label: "พร้อมจับคู่", tone: "ready" }
-              : { label: "ต้องออกฉบับคำนวณก่อน", tone: "attention" }
+              : { label: "ต้องออกประมาณราคาก่อน", tone: "attention" }
       }
     >
       <div className="boq-assistant">
         <p className="boq-assistant__lead">
-          ผู้ช่วยดูรายการปริมาณที่ยืนยันแล้ว แล้วบอกว่าแต่ละรายการตรงกับบรรทัดไหนในชุดราคา
+          ผู้ช่วยดูรายการปริมาณที่ยืนยันแล้ว แล้วบอกว่าแต่ละรายการตรงกับบรรทัดไหนในบัญชีราคา
           <strong> คู่ที่เสนอยังไม่ถูกใช้จนกว่าจะติ๊กรับทีละคู่</strong>
         </p>
 
         {revisionId ? (
-          <p className="boq-assistant__target">รับเข้าฉบับ {revisionLabel}</p>
+          <p className="boq-assistant__target">รับเข้าประมาณราคา {revisionLabel}</p>
         ) : (
-          <p className="boq-assistant__target">ยังไม่มีฉบับคำนวณให้รับเข้า ออกฉบับที่แผงชุดราคาก่อน</p>
+          <p className="boq-assistant__target">ยังไม่มีประมาณราคาให้รับเข้า ออกได้ที่แผงบัญชีราคาก่อน</p>
         )}
 
         <button className="button button--orange micro-button" type="button" disabled={!canAsk} onClick={ask}>
-          {busy ? "กำลังจับคู่..." : "ให้ผู้ช่วยจับคู่ปริมาณกับชุดราคา"}
+          {busy ? "กำลังจับคู่..." : "ให้ผู้ช่วยจับคู่ปริมาณกับบัญชีราคา"}
         </button>
 
         {message ? (

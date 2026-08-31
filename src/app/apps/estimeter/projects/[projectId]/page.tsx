@@ -75,11 +75,11 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
     {
       id: 4,
       label: "ประมาณราคาและสรุป BOQ",
-      note: "ชุดราคาที่รับมา และเอกสาร",
+      note: "บัญชีราคาที่รับมา และเอกสาร",
       status:
         priceSets.length > 0
-          ? `รับชุดราคาแล้ว ${priceSets.length} ชุด · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด · ${revisions.length > 0 ? `ออกฉบับคำนวณแล้ว ${revisions.length} ฉบับ` : "ยังไม่ได้ออกฉบับคำนวณ"}`
-          : "ยังไม่มีชุดราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้"
+          ? `รับบัญชีราคาแล้ว ${priceSets.length} บัญชี · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด · ${revisions.length > 0 ? `ออกประมาณราคาแล้ว ${revisions.length} ครั้ง` : "ยังไม่ได้ออกประมาณราคา"}`
+          : "ยังไม่มีบัญชีราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้"
     }
   ];
 
@@ -184,7 +184,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           projectId={project.id}
           projectName={project.name}
           canEdit={canEdit}
-          lockReason={canEdit ? null : "สิทธิ์ปัจจุบันเปิดดูโครงการนี้ได้ แต่ออกฉบับคำนวณไม่ได้"}
+          lockReason={canEdit ? null : "สิทธิ์ปัจจุบันเปิดดูโครงการนี้ได้ แต่ออกประมาณราคาไม่ได้"}
         />
 
         <RevisionPanel revisions={revisions} />
@@ -193,7 +193,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           lines={boqLines}
           revisionLabel={
             newestRevision
-              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ฉบับที่ ${newestRevision.revisionNumber}`
+              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ครั้งที่ ${newestRevision.revisionNumber}`
               : null
           }
         />
@@ -203,7 +203,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           revisionId={newestRevision?.id ?? null}
           revisionLabel={
             newestRevision
-              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ฉบับที่ ${newestRevision.revisionNumber}`
+              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ครั้งที่ ${newestRevision.revisionNumber}`
               : null
           }
           canEdit={canEdit}

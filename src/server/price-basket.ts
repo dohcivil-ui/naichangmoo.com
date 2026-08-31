@@ -324,7 +324,7 @@ export async function sendBasketToProject(
     await tx.insert(priceSets).values({
       id: priceSetId,
       projectId,
-      name: options.name?.trim() || `ชุดราคาจาก PRICEMETR ${view.lines.length} บรรทัด`,
+      name: options.name?.trim() || `บัญชีราคาจาก PRICEMETR ${view.lines.length} บรรทัด`,
       provinceCode: province,
       effectiveMonth: month,
       status: "draft",

@@ -52,13 +52,13 @@ export function PriceSetPanel({
         <div className="workspace-panel__title">
           <div>
             <p className="eyebrow">PRICE SET</p>
-            <h2>ชุดราคาของโครงการนี้</h2>
+            <h2>บัญชีราคาของโครงการนี้</h2>
           </div>
-          <span className="status-chip status-chip--attention">ยังไม่มีชุดราคา</span>
+          <span className="status-chip status-chip--attention">ยังไม่มีบัญชีราคา</span>
         </div>
         <div className="prelim-boq-note">
           <div>
-            <strong>ยังไม่มีชุดราคาที่ส่งเข้ามาในโครงการนี้</strong>
+            <strong>ยังไม่มีบัญชีราคาที่ส่งเข้ามาในโครงการนี้</strong>
             <p>
               หยิบราคาที่แอปราคาวัสดุและค่าแรง แล้วกดส่งเข้าโครงการนี้ ทุกบรรทัดจะพาแหล่ง
               เดือนประกาศ และเลขหน้าเอกสารมาด้วย จึงตรวจย้อนได้ว่าตัวเลขมาจากประกาศฉบับไหน
@@ -77,14 +77,14 @@ export function PriceSetPanel({
       <div className="workspace-panel__title">
         <div>
           <p className="eyebrow">PRICE SET</p>
-          <h2>ชุดราคาของโครงการนี้</h2>
+          <h2>บัญชีราคาของโครงการนี้</h2>
         </div>
-        <span className="status-chip status-chip--ready">รับมาแล้ว {priceSets.length} ชุด</span>
+        <span className="status-chip status-chip--ready">รับมาแล้ว {priceSets.length} บัญชี</span>
       </div>
 
       <p className="workspace-notice">
-        ชุดราคาที่รับมาแล้ว<strong>แก้ที่นี่ไม่ได้</strong> เพราะเอกสารที่อ้างอิงชุดนี้ต้องตรวจย้อนกลับได้เสมอ
-        ถ้าราคาเปลี่ยน ให้แก้ที่รายการซึ่งหยิบไว้แล้วส่งเข้ามาเป็นชุดถัดไป
+        บัญชีราคาที่รับมาแล้ว<strong>แก้ที่นี่ไม่ได้</strong> เพราะเอกสารที่อ้างอิงบัญชีนี้ต้องตรวจย้อนกลับได้เสมอ
+        ถ้าราคาเปลี่ยน ให้แก้ที่รายการซึ่งหยิบไว้แล้วส่งเข้ามาเป็นบัญชีถัดไป
       </p>
 
       {priceSets.map((set) => (
@@ -98,7 +98,7 @@ export function PriceSetPanel({
               </p>
             </div>
             <div className="price-set__total">
-              <span>ค่างานต้นทุนรวม</span>
+              <span>รวมค่างานต้นทุน</span>
               <strong>{formatPrice(set.totalSatang)}</strong>
               <small>&nbsp;บาท</small>
             </div>
@@ -136,7 +136,7 @@ export function PriceSetPanel({
           </div>
 
           <p className="form-note">
-            ลายนิ้วมือของชุดนี้ <code>{set.payloadHash.slice(0, 16)}</code> · คิดจากบรรทัดที่คัดลอกมาจริง
+            รหัสตรวจสอบของบัญชีนี้ <code>{set.payloadHash.slice(0, 16)}</code> · คิดจากบรรทัดที่คัดลอกมาจริง
             ณ วินาทีที่รับเข้า ไม่ใช่จากรายการต้นทางในวันนั้น
           </p>
 

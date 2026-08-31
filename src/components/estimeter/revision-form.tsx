@@ -18,7 +18,7 @@ function Submit({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
     <button className="button button--orange micro-button" type="submit" disabled={pending || disabled}>
-      {pending ? "กำลังออกฉบับ..." : "ออกฉบับคำนวณจากชุดนี้"}
+      {pending ? "กำลังออกประมาณราคา..." : "ออกประมาณราคาจากบัญชีนี้"}
     </button>
   );
 }
@@ -60,7 +60,7 @@ export function RevisionForm({
       <input name="priceSetId" type="hidden" value={priceSetId} />
 
       <label>
-        วิธีคิดราคาของฉบับนี้
+        วิธีคิดราคาของครั้งนี้
         <select
           name="costingMethod"
           value={method}
@@ -81,8 +81,8 @@ export function RevisionForm({
 
       <p className="revision-issue__note">
         {canEdit
-          ? (denial ?? "เลขฉบับนับแยกตามวิธีคิด ฉบับที่ออกแล้วแก้ไม่ได้ ต้องการตัวเลขชุดใหม่ให้ออกฉบับถัดไป")
-          : (lockReason ?? "สิทธิ์ปัจจุบันเปิดดูโครงการนี้ได้ แต่ออกฉบับคำนวณไม่ได้")}
+          ? (denial ?? "เลขครั้งนับแยกตามวิธีคิด ประมาณราคาที่ออกแล้วแก้ไม่ได้ ต้องการตัวเลขชุดใหม่ให้ออกครั้งถัดไป")
+          : (lockReason ?? "สิทธิ์ปัจจุบันเปิดดูโครงการนี้ได้ แต่ออกประมาณราคาไม่ได้")}
       </p>
 
       {state.message ? (

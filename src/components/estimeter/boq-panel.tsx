@@ -52,7 +52,7 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
       <div className="workspace-panel__title">
         <div>
           <p className="eyebrow">BOQ</p>
-          <h2>รายการ BOQ ของฉบับล่าสุด</h2>
+          <h2>รายการ BOQ ของประมาณราคาครั้งล่าสุด</h2>
         </div>
         <span className={lines.length > 0 ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>
           {lines.length > 0 ? `รับแล้ว ${lines.length} บรรทัด` : "ยังไม่มีบรรทัด"}
@@ -61,14 +61,14 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
 
       {lines.length === 0 ? (
         <p className="workspace-notice">
-          ยังไม่มีบรรทัดที่รับเข้า{revisionLabel ? ` ${revisionLabel}` : "ฉบับคำนวณ"} ·
-          เปิดผู้ช่วยจัดทำ BOQ ที่แผงผู้ช่วย แล้วให้มันจับคู่ปริมาณที่ยืนยันแล้วกับชุดราคาที่รับมา
+          ยังไม่มีบรรทัดที่รับเข้า{revisionLabel ? ` ${revisionLabel}` : "ประมาณราคา"} ·
+          เปิดผู้ช่วยจัดทำ BOQ ที่แผงผู้ช่วย แล้วให้มันจับคู่ปริมาณที่ยืนยันแล้วกับบัญชีราคาที่รับมา
           จากนั้นติ๊กรับทีละคู่
         </p>
       ) : (
         <>
           <p className="workspace-notice">
-            บรรทัดของ <strong>{revisionLabel}</strong> · แยกตามหมวดงานเหมือนที่ใบ ปร.4 แยก ·
+            บรรทัดของ <strong>{revisionLabel}</strong> · แยกตามกลุ่มงานเหมือนที่ใบ ปร.4 แยก ·
             ปริมาณเป็นสำเนา ณ วินาทีที่รับคู่ แก้รายการถอดปริมาณทีหลังแล้วบรรทัดนี้ไม่ขยับตาม
           </p>
 
@@ -135,7 +135,7 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
           </div>
           <div className="workspace-callout">
             <div>
-              <strong>ค่างานต้นทุนรวมของฉบับนี้</strong>
+              <strong>รวมค่างานต้นทุนของประมาณราคาครั้งนี้</strong>
               <p>ยังไม่ได้คูณตัวคูณของวิธีคิด การคูณ Factor F และการขึ้นแบบ ปร.4 เป็นขั้นถัดไป</p>
             </div>
             <div className="price-set__total">

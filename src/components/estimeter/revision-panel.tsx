@@ -26,16 +26,16 @@ export function RevisionPanel({ revisions }: { revisions: EstimateRevisionView[]
       <div className="workspace-panel__title">
         <div>
           <p className="eyebrow">ESTIMATE REVISION</p>
-          <h2>ฉบับคำนวณของโครงการนี้</h2>
+          <h2>ประมาณราคาของโครงการนี้</h2>
         </div>
         <span className={revisions.length > 0 ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>
-          {revisions.length > 0 ? `ออกแล้ว ${revisions.length} ฉบับ` : "ยังไม่มีฉบับคำนวณ"}
+          {revisions.length > 0 ? `ออกแล้ว ${revisions.length} ครั้ง` : "ยังไม่มีประมาณราคา"}
         </span>
       </div>
 
       <p className="workspace-notice">
-        <strong>เลขฉบับนับแยกตามวิธีคิดราคา</strong> โครงการเดียวจึงมีฉบับทั้งสองแบบบนปริมาณชุดเดียวกันได้
-        และเลขฉบับของคนละวิธีเทียบกันไม่ได้ · ฉบับเกิดจากชุดราคาที่รับมาแล้วเสมอ ออกได้ที่แผงชุดราคาด้านบน
+        <strong>เลขครั้งนับแยกตามวิธีคิดราคา</strong> โครงการเดียวจึงมีประมาณราคาทั้งสองแบบบนปริมาณชุดเดียวกันได้
+        และเลขครั้งของคนละวิธีเทียบกันไม่ได้ · ประมาณราคาเกิดจากบัญชีราคาที่รับมาแล้วเสมอ ออกได้ที่แผงบัญชีราคาด้านบน
       </p>
 
       <div className="revision-columns">
@@ -45,21 +45,21 @@ export function RevisionPanel({ revisions }: { revisions: EstimateRevisionView[]
             <section key={method} className="revision-column">
               <header>
                 <h3>{COSTING_METHOD_LABEL[method]}</h3>
-                <span>{rows.length > 0 ? `ล่าสุดคือฉบับที่ ${rows[0].revisionNumber}` : "ยังไม่มีฉบับของวิธีนี้"}</span>
+                <span>{rows.length > 0 ? `ล่าสุดคือครั้งที่ ${rows[0].revisionNumber}` : "ยังไม่มีประมาณราคาของวิธีนี้"}</span>
               </header>
 
               {rows.length === 0 ? (
                 <p className="form-note">
                   {method === "factor_f"
-                    ? "ออกได้เมื่อมีชุดราคาที่ทุกบรรทัดมาจากบัญชีที่หน่วยงานรัฐประกาศ"
-                    : "ออกได้จากชุดราคาที่รับมาแล้วทุกชุด"}
+                    ? "ออกได้เมื่อทุกบรรทัดในบัญชีราคามาจากที่หน่วยงานรัฐประกาศ"
+                    : "ออกได้จากบัญชีราคาที่รับมาแล้วทุกบัญชี"}
                 </p>
               ) : (
                 <ol className="revision-list">
                   {rows.map((revision) => (
                     <li key={revision.id}>
                       <div className="revision-list__head">
-                        <strong>ฉบับที่ {revision.revisionNumber}</strong>
+                        <strong>ครั้งที่ {revision.revisionNumber}</strong>
                         <span>{formatPrice(revision.totalSatang)} บาท</span>
                       </div>
                       <small>
@@ -77,7 +77,7 @@ export function RevisionPanel({ revisions }: { revisions: EstimateRevisionView[]
       </div>
 
       <p className="form-note">
-        ยอดที่แสดงคือค่างานต้นทุนรวมของชุดราคาที่ฉบับนั้นอ้าง <strong>ยังไม่ได้คูณตัวคูณของวิธีคิด</strong>
+        ยอดที่แสดงคือรวมค่างานต้นทุนของบัญชีราคาที่ประมาณราคาครั้งนั้นอ้าง <strong>ยังไม่ได้คูณตัวคูณของวิธีคิด</strong>
         {" "}การคูณ Factor F และการขึ้นแบบ ปร.4 ถึง ปร.6 เป็นงานขั้นถัดไปที่ยังไม่เปิด
       </p>
     </div>
