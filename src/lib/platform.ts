@@ -75,7 +75,7 @@ export const platformApps: PlatformApp[] = [
     programName: "แอปประมาณราคางานอาคาร",
     purpose: "สำหรับถอดแบบ ถอดปริมาณ และประมาณราคางานอาคาร ตั้งแต่ตั้งโครงการจนได้ BOQ",
     iconSrc: visualAssetUrl("estimeter"),
-    iconAlt: "สัญลักษณ์ ESTIMETR สำหรับงานประมาณราคา",
+    iconAlt: "หุ่นจำลองโครงอาคารคอนกรีตเสริมเหล็ก คลิปบอร์ดหนีบใบถอดปริมาณ แบบก่อสร้างที่ม้วนไว้ สเกลสามเหลี่ยมสีส้ม และเครื่องคิดเลข",
     seededAccess: "paid_trial",
     href: "/apps/estimeter",
     categoryId: "building-cost",
@@ -96,10 +96,8 @@ export const platformApps: PlatformApp[] = [
     description: "ราคาวัสดุก่อสร้างรายจังหวัดและค่าแรงตามบัญชีราชการ",
     programName: "แอปราคาวัสดุและค่าแรงงานก่อสร้าง",
     purpose: "สำหรับค้นราคาวัสดุรายจังหวัดและค่าแรงถอดแบบจากแหล่งราชการ แล้วหยิบรายการไปใช้ประมาณราคา",
-    // PLACEHOLDER: borrows the platform mark until IP-166 delivers this app's own badge, the same
-    // stand-in convention escalation-k uses below. Replace before the app is announced.
-    iconSrc: visualAssetUrl("brand_mark"),
-    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปราคาวัสดุและค่าแรง",
+    iconSrc: visualAssetUrl("pricemetr"),
+    iconAlt: "กองทราย เหล็กเส้นข้ออ้อย ถุงปูน แท่งคอนกรีตตัวอย่าง และใบราคาที่มีแว่นขยายวางทับ",
     seededAccess: "paid_trial",
     href: "/prototype/price-check",
     categoryId: "building-cost",
@@ -118,7 +116,7 @@ export const platformApps: PlatformApp[] = [
     programName: "แอปออกแบบกำแพงกันดินแบบ cantilever",
     purpose: "สำหรับคำนวณและตรวจทานกำแพงกันดินแบบ cantilever",
     iconSrc: visualAssetUrl("retaining_wall"),
-    iconAlt: "Retaining Wall Cantilever optimization icon",
+    iconAlt: "หุ่นจำลองกำแพงกันดินแบบยื่นที่ผ่าให้เห็นฐานราก ดินถมด้านหลัง ตัวอย่างเหล็กเสริมที่ผูกเป็นกรง และแบบโครงสร้างที่พับไว้กับสเกลสีส้ม",
     seededAccess: "member_free",
     href: "/apps/rcopt",
     categoryId: "civil-design",
@@ -137,7 +135,7 @@ export const platformApps: PlatformApp[] = [
     programName: "แอปคำนวณวัสดุป้ายจราจร",
     purpose: "สำหรับจัดทำรายการวัสดุป้ายจราจรจนถึง BOQ",
     iconSrc: visualAssetUrl("traffic_sign"),
-    iconAlt: "สัญลักษณ์คำนวณวัสดุป้ายจราจร",
+    iconAlt: "แผ่นป้ายจราจรอะลูมิเนียมสะท้อนแสงที่ยังไม่มีสัญลักษณ์ ติดบนเสาเหล็กชุบสังกะสี ม้วนแผ่นสะท้อนแสง ชุดแป้นยึดกับสลัก และตลับเมตรสีส้ม",
     seededAccess: "member_free",
     href: "/apps/traffic-sign",
     categoryId: "safety-equipment",
@@ -156,7 +154,7 @@ export const platformApps: PlatformApp[] = [
     programName: "แอปงานจัดกรรมสิทธิ์ที่ดิน",
     purpose: "สำหรับงานจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง ตามสิทธิ์ที่ได้รับ",
     iconSrc: visualAssetUrl("land_acquisition"),
-    iconAlt: "สัญลักษณ์งานจัดกรรมสิทธิ์ที่ดิน",
+    iconAlt: "แผนที่แปลงที่ดินที่คลี่ออก กล้องสำรวจบนขาตั้ง หมุดหลักเขตคอนกรีตวางนอน แฟ้มเอกสารคาดแถบสีส้ม และเอกสารที่ดินวางซ้อนกัน",
     seededAccess: "doh_staff_only",
     href: "/apps/land-acquisition",
     categoryId: "land-acquisition",
@@ -175,11 +173,8 @@ export const platformApps: PlatformApp[] = [
     programName: "แอปคำนวณค่า K งานก่อสร้าง",
     purpose:
       "สำหรับคำนวณเงินชดเชยค่างานก่อสร้างตามสัญญาแบบปรับราคาได้ (Escalation Factor) ตามมติคณะรัฐมนตรี ว 109",
-    // PLACEHOLDER: this app has no badge of its own yet, so it borrows the platform mark. Replace
-    // it with a real asset before the app is announced — a card wearing the platform logo where
-    // every other card wears its own reads as a mistake, not as a stand-in.
-    iconSrc: visualAssetUrl("brand_mark"),
-    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปคำนวณค่า K",
+    iconSrc: visualAssetUrl("escalation_k"),
+    iconAlt: "แฟ้มสัญญาสันส้ม กราฟที่ไต่ขึ้น เครื่องคิดเลข และตัวอย่างวัสดุที่เป็นตัวแทนดัชนีราคา",
     seededAccess: "paid_trial",
     href: "/apps/escalation-k",
     categoryId: "building-cost",
@@ -197,10 +192,8 @@ export const platformApps: PlatformApp[] = [
     description: "สร้างแผนงานก่อสร้างและเอกสารแนบสัญญาจากข้อมูลโครงการ",
     programName: "แอปผู้ช่วยสร้างแผนงานก่อสร้าง",
     purpose: "สำหรับสร้างแผนงาน งวดงาน แผนกำลังคน และกราฟ Gantt กับ S-Curve จากข้อมูลโครงการ",
-    // PLACEHOLDER: borrows the platform mark until the app gets a badge of its own. Replace
-    // before the app is announced.
-    iconSrc: visualAssetUrl("brand_mark"),
-    iconAlt: "สัญลักษณ์ชั่วคราวสำหรับแอปผู้ช่วยสร้างแผนงาน",
+    iconSrc: visualAssetUrl("work_plan"),
+    iconAlt: "แผนงานแบบแท่งที่คลี่ออกพร้อมเส้นโค้งความคืบหน้า ปฏิทินตั้งโต๊ะ ดินสอ และหมวกนิรภัยสีส้ม",
     seededAccess: "paid_trial",
     href: "/prototype/work-plan",
     categoryId: "construction-management",

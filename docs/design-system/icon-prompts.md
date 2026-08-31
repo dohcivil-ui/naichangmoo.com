@@ -262,5 +262,5 @@ materials — one cement sack, a short bundle of reinforcing bars, and a stack
 of two masonry blocks
 ```
 
-ปลายทาง `public/brand/naichangmoo-pricemetr-badge.png` แล้วเพิ่มคีย์ `pricemetr`
+ปลายทาง `public/brand/naichangmoo-pricemetr-badge.webp` แล้วเพิ่มคีย์ `pricemetr`
 ใน `src/lib/visual-assets.ts`
