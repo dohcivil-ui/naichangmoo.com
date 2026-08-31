@@ -350,7 +350,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .h1-line__text--outline{color:transparent;-webkit-text-stroke:2.5px rgba(255,255,255,.72)}
 .h1-dot{color:var(--orange)}
 @keyframes h1-rise{to{transform:none}}
-/* the marquee sits at the hero's foot; introductions only, and it pauses under the pointer */
+/* IP-226: แถบข้อความวิ่งถูกเอาออกจากหน้าแรกแล้ว เนื้อหาย้ายไปอยู่ที่ .principle-list ข้างล่าง
+   สไตล์ชุดนี้เก็บไว้ตั้งใจ ไม่ใช่ของตกค้าง เพราะ landing-blocks.ts ยังนับ principle_marquee
+   เป็นบล็อกที่ผู้ดูแลเปิดปิดได้ วิธีเอากลับมาอยู่ที่ .design/landing-blocks/principle-marquee-guide.md
+   the marquee sits at the hero's foot; introductions only, and it pauses under the pointer */
 .principle-marquee{overflow:hidden;border-top:1px solid rgba(255,255,255,.16);margin-top:34px;padding:14px 0 2px;user-select:none}
 .principle-marquee__track{display:flex;width:max-content;animation:principle-mq 38s linear infinite}
 .principle-marquee:hover .principle-marquee__track{animation-play-state:paused}
@@ -358,6 +361,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .principle-marquee__half span{display:flex;align-items:center;gap:26px;padding-right:26px;font-size:.94rem;font-weight:600;letter-spacing:.02em;color:rgba(215,232,233,.65);white-space:nowrap}
 .principle-marquee__half span i{width:6px;height:6px;background:var(--orange);opacity:.85;flex:none}
 @keyframes principle-mq{to{transform:translateX(-50%)}}
+/* IP-226: ที่อยู่ใหม่ของห้าประโยคหลักการ เป็นรายการจริงที่โปรแกรมอ่านหน้าจออ่านได้
+   ใช้เส้นกริดชุดเดียวกับแถบตัวเลขข้างล่าง เพื่อให้สองส่วนที่ติดกันดูเป็นของชุดเดียวกัน */
+.principle-list__items{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.principle-list__items li{background:var(--paper);padding:22px 20px;display:flex;gap:12px;align-items:flex-start}
+.principle-list__mark{flex:none;width:9px;height:9px;margin-top:8px;background:var(--teal)}
+.principle-list__items p{margin:0;color:var(--ink);font-weight:600;font-size:.98rem;line-height:1.65}
 .stat-band{padding-top:40px;padding-bottom:40px;border-bottom:1px solid var(--line)}
 .stat-band__eyebrow{margin-bottom:18px}
 .stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}

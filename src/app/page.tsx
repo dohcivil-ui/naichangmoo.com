@@ -89,25 +89,35 @@ export default async function LandingPage() {
             ))}
           </aside>
         </div>
-        {/* IP-192: a slow marquee of the platform's standing principles. Introductions, not
-            claims - no price, no readiness, nothing the registry owns. Pauses on hover; the
-            global reduced-motion rule freezes it entirely. */}
-        <div className="principle-marquee" aria-hidden="true">
-          <div className="principle-marquee__track">
-            {[0, 1].map((half) => (
-              <div className="principle-marquee__half" key={half}>
-                {[
-                  "ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้",
-                  "AI ร่าง — คุณตัดสิน — ระบบคำนวณ",
-                  "เงินเป็นสตางค์จำนวนเต็มเสมอ",
-                  "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่บันทึก",
-                  "ทุกคำแถลงมีผู้ดูแลเป็นเจ้าของ"
-                ].map((line) => (
-                  <span key={line}>{line}<i /></span>
-                ))}
-              </div>
-            ))}
+      </section>
+
+      {/* IP-226 ชั้นที่ 1: ห้าประโยคหลักการเคยวิ่งอยู่ในแถบข้อความวิ่งที่ตั้ง aria-hidden ไว้
+          แปลว่าโปรแกรมอ่านหน้าจอกับเครื่องมือค้นหาอ่านไม่เห็นเลย ย้ายมาเป็นส่วนจริงที่อ่านได้
+          แถบวิ่งถูกเอาออกจากหน้าแล้ว แต่สไตล์ของมันยังอยู่ใน globals.css
+          วิธีเอากลับมาอยู่ที่ .design/landing-blocks/principle-marquee-guide.md */}
+      <section className="section section--white principle-list" aria-labelledby="principle-list-heading">
+        <div className="container">
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
+            <div>
+              <div className="eyebrow" style={{ color: "var(--teal)" }}>หลักการที่ระบบนี้ยึด</div>
+              <h2 id="principle-list-heading">ตัวเลขที่ได้มาจากการคำนวณที่เชื่อถือได้</h2>
+            </div>
+            <p>ถามผู้ช่วย AI ให้บอกที่มาของทุกตัวเลขได้ ชัวร์ ไม่มั่วนิ่ม</p>
           </div>
+          <ul className="principle-list__items">
+            {[
+              "ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้",
+              "ผู้ช่วย AI ร่างให้ คุณเป็นคนตัดสิน ระบบเป็นคนคำนวณ",
+              "เงินเป็นสตางค์จำนวนเต็มเสมอ ไม่ปัดทิ้งระหว่างทาง",
+              "ค่าเผื่อที่ไม่ระบุที่มา ถูกปฏิเสธตั้งแต่ตอนบันทึก",
+              "ทุกคำแถลงมีผู้ดูแลเป็นเจ้าของ"
+            ].map((line, index) => (
+              <li key={line} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
+                <span className="principle-list__mark" aria-hidden="true" />
+                <p>{line}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -123,7 +133,9 @@ export default async function LandingPage() {
           <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
               <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
-              <h2>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</h2>
+              {/* IP-226: ประโยคเดิมเป็นรูปคติพจน์ที่ docs/rules/copy-th.md หมวดสี่ยกเป็นตัวอย่างข้อห้ามข้อแรก
+                  เปลี่ยนเป็นการบอกสิ่งที่ระบบทำ ด้วยคำของสามการ์ดที่อยู่ใต้หัวข้อนี้ */}
+              <h2>ปริมาณ ค่าเผื่อ และตัวคูณ ต้องชี้เอกสารต้นทางได้ทุกตัว</h2>
             </div>
             <p>ตัวเลขในตัวอย่างของส่วนนี้เป็นตัวอย่างประกอบเพื่อสาธิต</p>
           </div>

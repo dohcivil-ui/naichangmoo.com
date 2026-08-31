@@ -70,11 +70,17 @@ export const landingBlocks: readonly LandingBlock[] = [
     renderedBy: "src/app/page.tsx"
   },
   {
+    /**
+     * IP-226 · 2026-08-31 — ตอนนี้ **ไม่ได้อยู่บนหน้าจอ** เจ้าของงานให้เอาออกก่อน
+     * ห้าประโยคที่เคยวิ่งอยู่ในนี้ย้ายไปเป็นส่วนจริงที่อ่านได้แล้ว สไตล์ของแถบยังอยู่ครบ
+     * ใน `globals.css` ชื่อนี้จึงยังคาไว้เพื่อรอสวิตช์เปิดปิดของผู้ดูแล
+     * เหตุผลและวิธีเอากลับมาอยู่ที่ `.design/landing-blocks/principle-marquee-guide.md`
+     */
     key: "principle_marquee",
     name: "แถบข้อความวิ่ง",
-    where: "แถบบาง ๆ ที่ข้อความเลื่อนจากขวาไปซ้ายไม่หยุด อยู่ใต้แถบเริ่มใช้งาน",
+    where: "เคยเป็นแถบบาง ๆ ที่ข้อความเลื่อนจากขวาไปซ้ายไม่หยุด ใต้แถบเริ่มใช้งาน ตอนนี้เอาออกจากหน้าแล้ว",
     lockedReason: null,
-    renderedBy: "src/app/page.tsx"
+    renderedBy: "ยังไม่มีไฟล์ไหนวาด — สไตล์รออยู่ที่ src/app/globals.css"
   },
   {
     key: "stat_band",
