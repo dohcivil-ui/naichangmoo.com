@@ -1,0 +1,853 @@
+<title>ห้องเครื่องมือหน้าตา</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   ห้องเครื่องมือหน้าตา — ส่วนประกอบ 20 ตัว ถอดจาก Velora UI
+   ใช้กระปุกสีชุดเดียวกับ src/app/globals.css ของโปรเจกต์จริง
+   ทุกตัวเป็น CSS กับ JavaScript ล้วน ไม่มีไลบรารีภายนอก
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --ink: #073047;
+  --ink-deep: #051f2f;
+  --ink-body: #3f545f;
+  --teal: #0d8282;
+  --teal-text: #0c7878;
+  --orange: #f47721;
+  --orange-text: #a34f14;
+  --canvas: #f4f7f7;
+  --paper: #ffffff;
+  --mist: #d8e4e4;
+  --line: #c9d8d9;
+  --muted: #5f7178;
+  --success: #32765d;
+
+  --ground: var(--canvas);
+  --surface: var(--paper);
+  --surface-2: #eaf1f1;
+  --text: var(--ink-body);
+  --text-strong: var(--ink);
+  --text-dim: var(--muted);
+  --rule: var(--line);
+  --accent: var(--teal-text);
+  --accent-warm: var(--orange-text);
+  --chip: #e7f2f2;
+  --chip-warm: #fdeee2;
+  --shadow: 0 10px 28px rgba(7, 48, 71, .09);
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #04161f; --surface: #0a2634; --surface-2: #0e3243;
+    --text: #b9cdd4; --text-strong: #eaf4f5; --text-dim: #7f9aa4;
+    --rule: #16404f; --accent: #4fc4c0; --accent-warm: #f79553;
+    --chip: #0f3a44; --chip-warm: #3a2415;
+    --shadow: 0 10px 28px rgba(0, 0, 0, .45);
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #04161f; --surface: #0a2634; --surface-2: #0e3243;
+  --text: #b9cdd4; --text-strong: #eaf4f5; --text-dim: #7f9aa4;
+  --rule: #16404f; --accent: #4fc4c0; --accent-warm: #f79553;
+  --chip: #0f3a44; --chip-warm: #3a2415;
+  --shadow: 0 10px 28px rgba(0, 0, 0, .45);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--ground); color: var(--text);
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased;
+}
+
+/* ── แถบความคืบหน้าการเลื่อน (ตัวที่ 19 — ทำงานจริงบนหน้านี้) ── */
+#scrollbar {
+  position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+  background: linear-gradient(90deg, var(--teal), var(--orange));
+  z-index: 999; transition: width 60ms linear;
+}
+
+.shell { max-width: 1080px; margin: 0 auto; padding: 46px 22px 100px; }
+
+.masthead { border-bottom: 2px solid var(--text-strong); padding-bottom: 24px; margin-bottom: 34px; }
+.masthead__kicker {
+  font-family: "IBM Plex Sans Thai", sans-serif; font-size: .69rem; font-weight: 600;
+  letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px;
+}
+.masthead h1 {
+  margin: 0 0 14px; color: var(--text-strong); font-weight: 600;
+  font-size: clamp(1.9rem, 5.5vw, 2.9rem); line-height: 1.15; letter-spacing: -.045em; text-wrap: balance;
+}
+.masthead p { margin: 0; max-width: 66ch; font-size: 1rem; }
+.masthead strong { color: var(--text-strong); font-weight: 500; }
+
+/* ── สารบัญ ── */
+.toc { display: grid; grid-template-columns: repeat(auto-fit, minmax(154px, 1fr)); gap: 8px; margin-bottom: 42px; }
+.toc a {
+  display: block; padding: 10px 13px; border: 1px solid var(--rule); border-radius: 11px;
+  background: var(--surface); color: var(--text-strong); text-decoration: none;
+  font-size: .85rem; font-weight: 500;
+  transition: border-color 160ms var(--ease-out), transform 160ms var(--ease-out);
+}
+.toc a:hover, .toc a:focus-visible { border-color: var(--accent); transform: translateY(-2px); outline: none; }
+.toc a span { display: block; font-family: "IBM Plex Sans Thai", monospace; font-size: .68rem; color: var(--text-dim); }
+
+/* ── หมวด ── */
+.group { margin-bottom: 16px; padding-top: 34px; }
+.group__head { display: flex; align-items: baseline; gap: 13px; margin-bottom: 4px; }
+.group__head h2 { margin: 0; color: var(--text-strong); font-size: 1.5rem; font-weight: 600; letter-spacing: -.035em; }
+.group__head em {
+  font-style: normal; font-family: "IBM Plex Sans Thai", monospace;
+  font-size: .74rem; color: var(--accent); letter-spacing: .06em;
+}
+.group__note { margin: 0 0 22px; max-width: 66ch; font-size: .93rem; color: var(--text-dim); }
+
+/* ── การ์ดส่วนประกอบ ── */
+.part {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 18px;
+  padding: 22px; margin-bottom: 16px;
+}
+.part__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 13px; margin-bottom: 5px; }
+.part__head h3 { margin: 0; color: var(--text-strong); font-size: 1.06rem; font-weight: 600; letter-spacing: -.02em; }
+.part__term {
+  font-family: "IBM Plex Sans Thai", monospace; font-size: .7rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 999px; background: var(--chip); color: var(--accent); white-space: nowrap;
+}
+.part__use { margin: 0 0 16px; font-size: .89rem; max-width: 68ch; }
+.part__use b { color: var(--accent-warm); font-weight: 600; }
+.part__stage { border-radius: 14px; overflow: hidden; border: 1px solid var(--rule); }
+.part__stage--pad { padding: 24px; background: var(--ground); }
+.part__how {
+  margin: 14px 0 0; padding: 12px 15px; background: var(--surface-2); border-radius: 11px;
+  font-size: .83rem; color: var(--text-dim);
+}
+.part__how code {
+  font-family: "IBM Plex Sans Thai", ui-monospace, Consolas, monospace;
+  font-size: .88em; color: var(--text-strong); background: var(--surface); padding: 1px 5px; border-radius: 4px;
+}
+
+/* ═══ หมวด 1 · พื้นหลัง ═══ */
+.stage-dark { position: relative; height: 210px; overflow: hidden; background: var(--ink-deep); display: grid; place-items: center; }
+.stage-dark__label { position: relative; z-index: 2; color: rgba(255,255,255,.9); font-size: .92rem; font-weight: 500; text-align: center; padding: 0 20px; }
+
+/* 1 ฝ้าสีลอย */
+.aur { position: absolute; width: 58%; aspect-ratio: 1; border-radius: 50%; filter: blur(66px); }
+.aur--a { background: var(--teal); left: -6%; top: -20%; opacity: .55; animation: aur-a 14s ease-in-out infinite alternate; }
+.aur--b { background: var(--orange); right: -10%; top: 0; opacity: .34; animation: aur-b 18s ease-in-out infinite alternate; }
+.aur--c { background: #0aa0a0; left: 30%; bottom: -34%; opacity: .44; animation: aur-c 22s ease-in-out infinite alternate; }
+@keyframes aur-a { 0% { transform: translate(-10%,-12%) scale(1); } 50% { transform: translate(12%,8%) scale(1.25); } 100% { transform: translate(-6%,14%) scale(.95); } }
+@keyframes aur-b { 0% { transform: translate(12%,10%) scale(1.1); } 100% { transform: translate(-14%,-6%) scale(.9); } }
+@keyframes aur-c { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-16%,-12%) scale(1.2); } }
+
+/* 2 ลายตารางและลายจุด */
+.pat { position: absolute; inset: 0; }
+.pat--grid {
+  background-image: linear-gradient(rgba(255,255,255,.11) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.11) 1px, transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%);
+}
+.pat--dot {
+  background-image: radial-gradient(rgba(255,255,255,.22) 1.4px, transparent 1.4px);
+  background-size: 18px 18px;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%);
+  mask-image: radial-gradient(circle at 50% 50%, #000, transparent 72%);
+}
+.pat-split { display: grid; grid-template-columns: 1fr 1fr; }
+.pat-split > div { position: relative; height: 210px; overflow: hidden; background: var(--ink-deep); display: grid; place-items: center; }
+.pat-split > div + div { border-left: 1px solid rgba(255,255,255,.12); }
+
+/* 3 ดาวตก */
+.meteor {
+  position: absolute; top: 0; width: 2px; height: 2px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 6px 1px rgba(255,255,255,.5);
+  animation: meteor 5s linear infinite;
+}
+.meteor::before {
+  content: ""; position: absolute; top: 50%; left: 2px; width: 74px; height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, rgba(255,255,255,.62), transparent);
+}
+@keyframes meteor {
+  0% { transform: rotate(215deg) translateX(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: rotate(215deg) translateX(-520px); opacity: 0; }
+}
+
+/* 4 กริดวิ่งเข้าหาขอบฟ้า */
+.retro { position: absolute; inset: 0; overflow: hidden; perspective: 200px; }
+.retro__plane {
+  position: absolute; inset: 0; top: 42%;
+  transform: rotateX(58deg);
+  background-image: linear-gradient(rgba(13,130,130,.55) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(13,130,130,.55) 1px, transparent 1px);
+  background-size: 44px 44px;
+  animation: retro 18s linear infinite;
+}
+@keyframes retro { from { transform: rotateX(58deg) translateY(-50%); } to { transform: rotateX(58deg) translateY(0); } }
+
+/* ═══ หมวด 2 · ตัวหนังสือ ═══ */
+.ticker-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+.ticker { text-align: center; }
+.ticker__num {
+  display: block; font-family: "IBM Plex Sans Thai", sans-serif; font-variant-numeric: tabular-nums;
+  font-size: clamp(1.9rem, 5vw, 2.6rem); font-weight: 600; color: var(--text-strong); letter-spacing: -.03em;
+}
+.ticker__label { font-size: .82rem; color: var(--text-dim); }
+
+.typer { font-size: 1.14rem; color: var(--text-strong); font-weight: 500; min-height: 2.4em; }
+.typer__caret { display: inline-block; width: 2px; height: 1.05em; vertical-align: -.14em; background: var(--orange); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+
+.flip { font-size: clamp(1.15rem, 3.4vw, 1.6rem); color: var(--text-strong); font-weight: 600; letter-spacing: -.025em; }
+.flip__slot { display: inline-grid; vertical-align: bottom; overflow: hidden; height: 1.5em; }
+.flip__word { grid-area: 1 / 1; color: var(--accent); transition: transform 420ms var(--ease-out), opacity 420ms var(--ease-out); }
+.flip__word[data-state="out"] { transform: translateY(-100%); opacity: 0; }
+.flip__word[data-state="in"] { transform: translateY(0); opacity: 1; }
+.flip__word[data-state="next"] { transform: translateY(100%); opacity: 0; }
+
+.tshimmer {
+  font-size: clamp(1.2rem, 3.6vw, 1.75rem); font-weight: 600; letter-spacing: -.03em;
+  background-image: linear-gradient(90deg, var(--text-dim) 0%, var(--text-dim) 42%, var(--orange) 50%, var(--text-dim) 58%, var(--text-dim) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: sweep 3.4s linear infinite;
+}
+@keyframes sweep { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* ═══ หมวด 3 · ปุ่ม ═══ */
+.btnrow { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.b {
+  font: inherit; font-size: .93rem; font-weight: 500; border: 0; cursor: pointer;
+  padding: 13px 26px; border-radius: 999px; position: relative; overflow: hidden; isolation: isolate;
+  transition: transform 160ms var(--ease-out);
+}
+.b:hover { transform: translateY(-2px); }
+.b:focus-visible { outline: 3px solid var(--accent-warm); outline-offset: 3px; }
+.b--shimmer { background: var(--ink); color: #fff; }
+.b--shimmer::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.26) 50%, transparent 70%);
+  background-size: 250% 100%; animation: sweep 2.8s linear infinite;
+}
+.b--beam { background: var(--orange); color: #fff; }
+.b--beam::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+  background: conic-gradient(from var(--ang, 0deg), transparent 0deg, transparent 268deg, #fff 316deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: spin 3.2s linear infinite;
+}
+@property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes spin { to { --ang: 360deg; } }
+
+/* ═══ หมวด 4 · การ์ดและผัง ═══ */
+.spot {
+  position: relative; padding: 26px; border-radius: 16px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--rule);
+}
+.spot::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  transition: opacity 240ms var(--ease-out);
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%),
+    color-mix(in srgb, var(--teal) 17%, transparent), transparent 72%);
+}
+.spot:hover::before { opacity: 1; }
+.spot h4, .tilt h4 { margin: 0 0 6px; color: var(--text-strong); font-size: 1rem; font-weight: 600; }
+.spot p, .tilt p { margin: 0; font-size: .87rem; color: var(--text-dim); }
+
+.tilt-wrap { perspective: 800px; }
+.tilt {
+  padding: 26px; border-radius: 16px; background: var(--surface); border: 1px solid var(--rule);
+  transform-style: preserve-3d; transition: transform 220ms var(--ease-out);
+}
+
+.bento { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; }
+.bento div {
+  padding: 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--rule);
+  display: grid; align-content: center; gap: 3px;
+  transition: border-color 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.bento div:hover { border-color: var(--accent); transform: translateY(-3px); }
+.bento b { color: var(--text-strong); font-size: .9rem; font-weight: 600; }
+.bento span { font-size: .76rem; color: var(--text-dim); }
+.bento .w2 { grid-column: span 2; }
+.bento .h2 { grid-row: span 2; }
+@media (max-width: 640px) { .bento { grid-template-columns: repeat(2, 1fr); } .bento .h2 { grid-row: auto; } }
+
+.mq { --gap: 32px; display: flex; gap: var(--gap); overflow: hidden; padding: 15px 0; background: var(--ink);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); }
+.mq__track { display: flex; gap: var(--gap); flex: 0 0 auto; min-width: 100%; animation: mq 30s linear infinite; }
+.mq:hover .mq__track { animation-play-state: paused; }
+@keyframes mq { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
+.mq span { color: rgba(255,255,255,.86); font-size: .89rem; white-space: nowrap; display: flex; align-items: center; gap: var(--gap); }
+.mq span::after { content: ""; width: 5px; height: 5px; border-radius: 2px; background: var(--orange); flex: 0 0 5px; }
+
+.orbit { position: relative; height: 260px; display: grid; place-items: center; background: radial-gradient(circle at 50% 50%, #0b4761, var(--ink-deep)); }
+.orbit__ring { position: absolute; border: 1px dashed rgba(255,255,255,.16); border-radius: 50%; }
+.orbit__core { width: 66px; height: 66px; border-radius: 20px; display: grid; place-items: center; background: var(--paper); color: var(--ink); font-weight: 700; font-size: 1.16rem; letter-spacing: -.04em; box-shadow: 0 8px 24px rgba(0,0,0,.34); }
+.orbit__item { position: absolute; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.94); color: var(--ink); font-size: .58rem; font-weight: 700; animation: orbit calc(var(--d) * 1s) linear infinite; }
+@keyframes orbit {
+  from { transform: rotate(calc(var(--a) * 1deg)) translateY(calc(var(--r) * -1px)) rotate(calc(var(--a) * -1deg)); }
+  to   { transform: rotate(calc(var(--a) * 1deg + 360deg)) translateY(calc(var(--r) * -1px)) rotate(calc((var(--a) * 1deg + 360deg) * -1)); }
+}
+
+/* ═══ หมวด 5 · เอฟเฟกต์ ═══ */
+.beamcard { position: relative; padding: 24px; border-radius: 18px; background: var(--surface); overflow: hidden; isolation: isolate; }
+.beamcard::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+  background: conic-gradient(from var(--ang, 0deg), transparent 0deg, transparent 252deg,
+    var(--bc, var(--teal)) 302deg, color-mix(in srgb, var(--bc, var(--teal)) 18%, transparent) 332deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: spin var(--bd, 5s) linear infinite;
+}
+.beamcard::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 1px solid var(--rule); pointer-events: none; }
+.beamcard h4 { margin: 0 0 6px; color: var(--text-strong); font-size: 1rem; }
+.beamcard p { margin: 0 0 12px; font-size: .86rem; color: var(--text-dim); }
+.beamcard .tag { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: .74rem; font-weight: 600; background: var(--chip); color: var(--accent); }
+
+.fade { opacity: 0; transform: translateY(22px); filter: blur(7px); transition: opacity 620ms var(--ease-out), transform 620ms var(--ease-out), filter 620ms var(--ease-out); }
+.fade.shown { opacity: 1; transform: none; filter: none; }
+.fade-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.fade-grid > div { padding: 18px; border-radius: 13px; background: var(--surface); border: 1px solid var(--rule); font-size: .86rem; color: var(--text-strong); }
+
+.tipwrap { display: flex; flex-wrap: wrap; gap: 12px; }
+.tip { position: relative; }
+.tip__btn { padding: 9px 17px; border-radius: 11px; border: 1px solid var(--rule); background: var(--surface); color: var(--text-strong); font: inherit; font-size: .86rem; cursor: help; }
+.tip__bubble {
+  position: absolute; bottom: calc(100% + 9px); left: 50%; z-index: 5;
+  transform: translate(-50%, 6px); opacity: 0; pointer-events: none;
+  padding: 8px 13px; border-radius: 10px; background: var(--ink); color: #fff;
+  font-size: .78rem; line-height: 1.5; white-space: nowrap;
+  transition: opacity 190ms var(--ease-out), transform 190ms var(--ease-out);
+}
+.tip:hover .tip__bubble, .tip:focus-within .tip__bubble { opacity: 1; transform: translate(-50%, 0); }
+
+/* ═══ หมวด 6 · ของจำลอง ═══ */
+.browser { border-radius: 14px; overflow: hidden; border: 1px solid var(--rule); background: var(--surface); }
+.browser__bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: var(--surface-2); border-bottom: 1px solid var(--rule); }
+.browser__dots { display: flex; gap: 6px; }
+.browser__dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--rule); display: block; }
+.browser__url { flex: 1; padding: 4px 12px; border-radius: 999px; background: var(--ground); color: var(--text-dim); font-size: .74rem; font-family: "IBM Plex Sans Thai", monospace; }
+.browser__body { padding: 22px; display: grid; gap: 9px; }
+.browser__body .bar { height: 11px; border-radius: 6px; background: var(--surface-2); }
+.browser__body .bar--w60 { width: 60%; } .browser__body .bar--w85 { width: 85%; } .browser__body .bar--w40 { width: 40%; }
+
+.closing { margin-top: 46px; padding: 26px; border: 1px dashed var(--rule); border-radius: 16px; }
+.closing h2 { margin: 0 0 8px; color: var(--text-strong); font-size: 1.1rem; font-weight: 600; }
+.closing p { margin: 0 0 12px; font-size: .92rem; max-width: 68ch; }
+.closing ul { margin: 0; padding-left: 20px; font-size: .9rem; }
+.closing li { margin-bottom: 6px; }
+.closing b { color: var(--text-strong); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .fade { opacity: 1; transform: none; filter: none; }
+}
+</style>
+
+<div id="scrollbar"></div>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="masthead__kicker">ห้องทดลอง · กดได้ทุกจุด</p>
+    <h1>ห้องเครื่องมือหน้าตา</h1>
+    <p>ส่วนประกอบ 20 ตัว ถอดมาจาก Velora UI แล้วเปลี่ยนมาใช้สีของเรา จัดหมวดตามที่เขาจัด
+      คุณจะได้เทียบกับต้นทางได้ <strong>ทุกตัวในหน้านี้ทำงานจริง</strong> เอาเมาส์วาง กดดู เลื่อนดู
+      แล้วอ่านว่าแต่ละตัวชื่ออะไร ใช้ที่ไหนในเว็บเรา และทำด้วยอะไร</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#bg">พื้นหลัง<span>Backgrounds · 4</span></a>
+    <a href="#text">ตัวหนังสือ<span>Text · 4</span></a>
+    <a href="#btn">ปุ่ม<span>Buttons · 2</span></a>
+    <a href="#card">การ์ดและผัง<span>Cards &amp; Layout · 5</span></a>
+    <a href="#fx">เอฟเฟกต์<span>Effects · 4</span></a>
+    <a href="#mock">ของจำลอง<span>Mockups · 1</span></a>
+  </nav>
+
+  <!-- ═══════ หมวด 1 ═══════ -->
+  <section class="group" id="bg">
+    <div class="group__head"><h2>พื้นหลัง</h2><em>Backgrounds</em></div>
+    <p class="group__note">ของที่อยู่ข้างหลังเนื้อหา หน้าที่คือทำให้พื้นไม่แข็งทื่อ โดยไม่แย่งความสนใจไปจากตัวหนังสือ
+      กฎเดียวของหมวดนี้คือ ถ้าอ่านตัวหนังสือข้างบนยากขึ้น แปลว่าแรงเกินไป</p>
+
+    <article class="part">
+      <div class="part__head"><h3>ฝ้าสีลอย</h3><span class="part__term">Aurora Background</span></div>
+      <p class="part__use">ก้อนสีเบลอลอยคนละจังหวะ 14 18 และ 22 วินาที จึงไม่ซ้ำรอบให้จับได้
+        <b>ใช้ที่ไหน</b> พื้นหลังส่วนหัวหน้าแรก แทนไล่สีนิ่ง ๆ ที่ใช้อยู่</p>
+      <div class="part__stage">
+        <div class="stage-dark">
+          <span class="aur aur--a"></span><span class="aur aur--b"></span><span class="aur aur--c"></span>
+          <span class="stage-dark__label">เสริมพลังให้แอป ด้วยผู้ช่วย AI</span>
+        </div>
+      </div>
+      <p class="part__how">วงกลมสามวง <code>filter: blur(66px)</code> ขยับด้วย <code>transform</code> อย่างเดียว
+        การ์ดจอทำงานส่วนนี้เอง ไม่กินแรงเครื่อง คุมความแรงที่ <code>opacity</code> ตัวเดียว</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ลายตารางและลายจุด</h3><span class="part__term">Grid &amp; Dot Pattern</span></div>
+      <p class="part__use">ลายพื้นบาง ๆ ที่จางหายไปทางขอบ ทำให้พื้นมีเนื้อโดยไม่กวน
+        <b>ใช้ที่ไหน</b> เราใช้ลายตารางบนกรอบไอคอนแอปอยู่แล้ว ขยายมาใช้กับพื้นส่วนหัวได้</p>
+      <div class="part__stage">
+        <div class="pat-split">
+          <div><span class="pat pat--grid"></span><span class="stage-dark__label">ลายตาราง</span></div>
+          <div><span class="pat pat--dot"></span><span class="stage-dark__label">ลายจุด</span></div>
+        </div>
+      </div>
+      <p class="part__how">ลายมาจาก <code>linear-gradient</code> ที่ทำซ้ำเป็นเส้น ส่วนที่ทำให้ดูดีคือ
+        <code>mask-image</code> แบบวงกลม ซึ่งค่อย ๆ ลบลายให้จางหายทางขอบ แทนที่จะตัดจบดื้อ ๆ</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ดาวตก</h3><span class="part__term">Meteors</span></div>
+      <p class="part__use">เส้นแสงเฉียงพาดผ่านเป็นระยะ ไม่พร้อมกัน
+        <b>ใช้ที่ไหน</b> เหมาะกับพื้นเข้มมากเท่านั้น ใส่น้อย ๆ ไม่งั้นจะดูเป็นเว็บเกม</p>
+      <div class="part__stage">
+        <div class="stage-dark" id="meteor-stage">
+          <span class="stage-dark__label">พื้นเข้มที่ยังมีชีวิต</span>
+        </div>
+      </div>
+      <p class="part__how">จุดเล็ก ๆ ที่มีหางเป็น <code>::before</code> ไล่สีจากขาวไปโปร่ง แล้วหมุนทั้งชุด 215 องศา
+        <strong>หัวใจคือหน่วงเวลาเริ่มไม่เท่ากัน</strong> ถ้าเริ่มพร้อมกันจะดูเป็นฝนไม่ใช่ดาวตก</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>กริดวิ่งเข้าหาขอบฟ้า</h3><span class="part__term">Retro Grid</span></div>
+      <p class="part__use">ตารางเส้นที่เอียงเป็นระนาบแล้ววิ่งเข้าหาเส้นขอบฟ้า
+        <b>ใช้ที่ไหน</b> ไม่แนะนำสำหรับเรา เพราะซ้ำกับลายตารางบนกรอบไอคอนที่ใช้อยู่ ใส่ไว้ให้ดูว่าหน้าตาเป็นแบบนี้</p>
+      <div class="part__stage">
+        <div class="stage-dark">
+          <span class="retro"><span class="retro__plane"></span></span>
+          <span class="stage-dark__label">ระนาบเอียงที่เลื่อนไม่หยุด</span>
+        </div>
+      </div>
+      <p class="part__how">ใช้ <code>perspective</code> กับ <code>rotateX(58deg)</code> ทำให้ตารางแบน ๆ กลายเป็นพื้นที่ทอดออกไป
+        แล้วเลื่อนขึ้นครึ่งหนึ่งของลายซ้ำ ตาจึงไม่เห็นรอยต่อ</p>
+    </article>
+  </section>
+
+  <!-- ═══════ หมวด 2 ═══════ -->
+  <section class="group" id="text">
+    <div class="group__head"><h2>ตัวหนังสือ</h2><em>Text</em></div>
+    <p class="group__note">ลูกเล่นกับตัวหนังสือมีประโยชน์จริงข้อเดียว คือดึงตาไปยังคำที่สำคัญที่สุด
+      ถ้าใส่กับทุกบรรทัด จะไม่เหลือคำไหนสำคัญเลย</p>
+
+    <article class="part">
+      <div class="part__head"><h3>เลขนับขึ้น</h3><span class="part__term">Number Ticker</span></div>
+      <p class="part__use">ตัวเลขไต่จากศูนย์ขึ้นไปหาค่าจริงตอนเลื่อนมาถึง
+        <b>ใช้ที่ไหน</b> แถบตัวเลขบนหน้าแรกของเราโดยตรง ตัวเลขที่ไต่ขึ้นทำให้คนหยุดอ่าน ตัวเลขนิ่ง ๆ คนเลื่อนผ่าน</p>
+      <div class="part__stage part__stage--pad">
+        <div class="ticker-row">
+          <div class="ticker"><span class="ticker__num" data-count="134" data-suffix="">0</span><span class="ticker__label">รายการในแผนงาน</span></div>
+          <div class="ticker"><span class="ticker__num" data-count="874" data-suffix="">0</span><span class="ticker__label">เทสต์ที่ผ่าน</span></div>
+          <div class="ticker"><span class="ticker__num" data-count="22" data-suffix="">0</span><span class="ticker__label">บันทึกการตัดสินใจ</span></div>
+          <div class="ticker"><span class="ticker__num" data-count="8" data-suffix="">0</span><span class="ticker__label">แอปในแพลตฟอร์ม</span></div>
+        </div>
+      </div>
+      <p class="part__how">JavaScript ไล่ค่าทีละเฟรมด้วย <code>requestAnimationFrame</code> และเริ่มนับ
+        <strong>ตอนที่เลื่อนมาเห็นเท่านั้น</strong> ด้วย <code>IntersectionObserver</code>
+        ถ้านับตั้งแต่โหลดหน้า คนที่เลื่อนมาทีหลังจะเห็นแค่เลขนิ่ง ตัวเลขใช้ฟอนต์ <code>--font-numeric</code> เพื่อให้หลักตรงกัน</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>พิมพ์ทีละตัว</h3><span class="part__term">Typewriter</span></div>
+      <p class="part__use">ข้อความค่อย ๆ ถูกพิมพ์ออกมาแล้วลบ วนใหม่
+        <b>ใช้ที่ไหน</b> ใช้ได้กับตัวอย่างคำถามที่ถามผู้ช่วย AI ได้ แต่อย่าใช้กับพาดหัวหลัก เพราะคนอ่านไม่ทันตอนเข้าหน้าแรก</p>
+      <div class="part__stage part__stage--pad">
+        <p class="typer">ลองถามผู้ช่วยว่า &ldquo;<span id="typer-text"></span><span class="typer__caret"></span>&rdquo;</p>
+      </div>
+      <p class="part__how">ตัดสตริงทีละตัวอักษรด้วย <code>slice</code> แล้วตั้งเวลาใหม่
+        เคอร์เซอร์กะพริบทำด้วย <code>animation: steps(1)</code> ซึ่งกระโดดทันทีแทนที่จะค่อย ๆ จาง</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>คำสลับ</h3><span class="part__term">Flip Words</span></div>
+      <p class="part__use">พาดหัวคงเดิม แต่คำท้ายสลับไปเรื่อย ๆ
+        <b>ใช้ที่ไหน</b> เหมาะกับหน้าแรกมาก เพราะเราขายหลายแอปให้หลายกลุ่ม พูดได้ทีเดียวว่าครอบคลุมใครบ้าง</p>
+      <div class="part__stage part__stage--pad">
+        <p class="flip">ผู้ช่วยงานก่อสร้างสำหรับ<span class="flip__slot" id="flip"></span></p>
+      </div>
+      <p class="part__how">คำทั้งชุดวางซ้อนกันในช่องเดียวด้วย <code>grid-area: 1 / 1</code>
+        แล้วเลื่อนขึ้นทีละคำ ช่องครอบตั้ง <code>overflow: hidden</code> คำที่ยังไม่ถึงคิวจึงถูกซ่อนอยู่ใต้ขอบ</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ตัวหนังสือมีแสงกวาด</h3><span class="part__term">Text Shimmer</span></div>
+      <p class="part__use">แสงกวาดผ่านตัวอักษรเอง ไม่ใช่กวาดผ่านพื้นหลัง
+        <b>ใช้ที่ไหน</b> ข้อความสถานะที่กำลังทำงานอยู่ เช่น กำลังคำนวณราคา</p>
+      <div class="part__stage part__stage--pad">
+        <p class="tshimmer">กำลังคำนวณราคากลางด้วย Factor F</p>
+      </div>
+      <p class="part__how">ไล่สีลงบนพื้นหลังของตัวอักษร แล้วใช้ <code>background-clip: text</code> กับ
+        <code>color: transparent</code> ทำให้เห็นพื้นหลังทะลุผ่านรูปทรงตัวอักษร</p>
+    </article>
+  </section>
+
+  <!-- ═══════ หมวด 3 ═══════ -->
+  <section class="group" id="btn">
+    <div class="group__head"><h2>ปุ่ม</h2><em>Buttons</em></div>
+    <p class="group__note">ปุ่มที่มีลูกเล่นควรมีปุ่มเดียวต่อหนึ่งหน้าจอ คือปุ่มที่อยากให้คนกดมากที่สุด
+      ถ้าทุกปุ่มเรืองแสง จะไม่มีปุ่มไหนเด่น</p>
+
+    <article class="part">
+      <div class="part__head"><h3>ปุ่มแสงกวาด และปุ่มแสงวิ่งรอบขอบ</h3><span class="part__term">Shimmer &amp; Border Beam Button</span></div>
+      <p class="part__use">สองวิธีทำให้ปุ่มเดียวเด่นกว่าปุ่มอื่น โดยไม่ต้องขยายขนาดหรือเพิ่มสี
+        <b>ใช้ที่ไหน</b> ปุ่มดูแอปทั้งหมด บนส่วนหัวหน้าแรก · ลองกด Tab ดูจะเห็นกรอบโฟกัส</p>
+      <div class="part__stage part__stage--pad">
+        <div class="btnrow">
+          <button class="b b--shimmer" type="button">เข้าสู่ระบบด้วย Google</button>
+          <button class="b b--beam" type="button">ดูแอปทั้งหมด</button>
+        </div>
+      </div>
+      <p class="part__how">แบบแรกเลื่อนแถบแสงเฉียงผ่านหน้าปุ่ม แบบที่สองหมุน <code>conic-gradient</code> ไว้ข้างหลัง
+        แล้ว <code>mask</code> ให้เห็นเฉพาะกรอบ · มุมหมุนประกาศเป็น <code>@property</code> เบราว์เซอร์จึงไล่ค่าให้ลื่นแทนที่จะกระตุก</p>
+    </article>
+  </section>
+
+  <!-- ═══════ หมวด 4 ═══════ -->
+  <section class="group" id="card">
+    <div class="group__head"><h2>การ์ดและผัง</h2><em>Cards &amp; Layout</em></div>
+    <p class="group__note">หมวดนี้คือของที่เราใช้เยอะที่สุด เพราะเว็บเราเป็นแคตตาล็อกแอป
+      สองตัวแรกตอบเรื่องเดียวกันคือ ทำยังไงให้การ์ดรู้ตัวว่ามีคนสนใจอยู่</p>
+
+    <article class="part">
+      <div class="part__head"><h3>การ์ดมีไฟตามเมาส์</h3><span class="part__term">Spotlight Card</span></div>
+      <p class="part__use">วงแสงนุ่ม ๆ ตามเมาส์ไปทั่วการ์ด
+        <b>ใช้ที่ไหน</b> การ์ดแอปทุกใบ — ระบบออกแบบของเราเขียนไว้แล้วว่าการ์ดต้องมี pointer spotlight แต่ยังไม่ได้ทำ</p>
+      <div class="part__stage part__stage--pad">
+        <div class="spot" data-spot>
+          <h4>ESTIMETR</h4>
+          <p>เอาเมาส์วาดวนบนการ์ดใบนี้ดู แสงจะตามไปทุกตำแหน่ง</p>
+        </div>
+      </div>
+      <p class="part__how">JavaScript อ่านตำแหน่งเมาส์แล้วเขียนลงตัวแปร CSS <code>--mx</code> กับ <code>--my</code>
+        ส่วน CSS เอาไปวาด <code>radial-gradient</code> ที่จุดนั้น <strong>งานหนักอยู่ฝั่ง CSS ไม่ใช่ JavaScript</strong> จึงลื่น</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>การ์ดเอียงตามเมาส์</h3><span class="part__term">Tilt Card</span></div>
+      <p class="part__use">การ์ดเอียงเล็กน้อยเหมือนวัตถุจริงที่ถูกกด
+        <b>ใช้ที่ไหน</b> ใช้ได้กับการ์ดแอปเช่นกัน แต่เลือกอย่างใดอย่างหนึ่งกับตัวบน อย่าใส่พร้อมกันสองอย่าง</p>
+      <div class="part__stage part__stage--pad">
+        <div class="tilt-wrap"><div class="tilt" data-tilt>
+          <h4>PRICEMETR</h4>
+          <p>ขยับเมาส์ช้า ๆ บนการ์ดใบนี้ แล้วดูมุมที่มันเอียงตาม</p>
+        </div></div>
+      </div>
+      <p class="part__how">คำนวณว่าเมาส์อยู่ห่างจากกลางการ์ดแค่ไหน แล้วแปลงเป็น <code>rotateX</code> กับ <code>rotateY</code>
+        ตัวครอบต้องมี <code>perspective</code> ไม่งั้นจะเป็นการบิดแบน ๆ ไม่ใช่การเอียงในพื้นที่สามมิติ · จำกัดมุมไว้ 8 องศา เกินกว่านี้จะดูเล่นเกิน</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ผังกล่องไม่เท่ากัน</h3><span class="part__term">Bento Grid</span></div>
+      <p class="part__use">ผังแบบกล่องข้าวญี่ปุ่น กล่องใหญ่เล็กไม่เท่ากันตามความสำคัญ
+        <b>ใช้ที่ไหน</b> ส่วนปัญหาที่เครื่องมือนี้แก้ ซึ่งตอนนี้เป็นการ์ดสามใบเท่ากันหมด ทั้งที่ข้อแรกสำคัญกว่า</p>
+      <div class="part__stage part__stage--pad">
+        <div class="bento">
+          <div class="w2 h2"><b>ปริมาณที่ตรวจย้อนกลับได้</b><span>กล่องใหญ่สุด เพราะเป็นเหตุผลหลักที่คนซื้อ</span></div>
+          <div class="w2"><b>ค่าเผื่อที่ระบุที่มา</b><span>กล่องกลาง</span></div>
+          <div><b>Factor F</b><span>กล่องเล็ก</span></div>
+          <div><b>ค่า K</b><span>กล่องเล็ก</span></div>
+        </div>
+      </div>
+      <p class="part__how">ใช้ <code>grid</code> สี่คอลัมน์ แล้วให้บางกล่องกิน <code>span 2</code> ทั้งแนวนอนและแนวตั้ง
+        <strong>ขนาดกล่องคือการบอกลำดับความสำคัญ</strong> ไม่ใช่การจัดให้ดูไม่น่าเบื่อ</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>แถบเลื่อนไม่รู้จบ</h3><span class="part__term">Marquee</span></div>
+      <p class="part__use">ข้อความเลื่อนไม่หยุด ขอบสองข้างจางหาย และหยุดเมื่อเอาเมาส์วาง
+        <b>ใช้ที่ไหน</b> แถบข้อความวิ่งบนหน้าแรกที่มีอยู่แล้ว เพิ่มขอบจางกับหยุดตอนชี้เข้าไป</p>
+      <div class="part__stage">
+        <div class="mq">
+          <div class="mq__track">
+            <span>ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้</span>
+            <span>คิดเงินละเอียดถึงสตางค์ ไม่ปัดทิ้งระหว่างทาง</span>
+            <span>ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้</span>
+          </div>
+          <div class="mq__track" aria-hidden="true">
+            <span>ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้</span>
+            <span>คิดเงินละเอียดถึงสตางค์ ไม่ปัดทิ้งระหว่างทาง</span>
+            <span>ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้</span>
+          </div>
+        </div>
+      </div>
+      <p class="part__how">วางเนื้อหาสองชุดต่อกัน เลื่อนชุดแรกไป <code>-100% - gap</code> แล้ววนใหม่ ตาจึงไม่เห็นรอยต่อ
+        ขอบจางมาจาก <code>mask-image</code> จึงใช้ได้กับพื้นหลังทุกสี ไม่ต้องวางแถบสีทับ</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ไอคอนโคจร</h3><span class="part__term">Orbiting Circles</span></div>
+      <p class="part__use">แอปทั้งแปดโคจรรอบตรานายช่างหมู สองวงคนละความเร็ว
+        <b>ใช้ที่ไหน</b> ภาพประกอบหน้าแรก บอกได้ในภาพเดียวว่ามีหลายแอปหมุนรอบแกนเดียวกัน</p>
+      <div class="part__stage">
+        <div class="orbit">
+          <span class="orbit__ring" style="width:168px;height:168px"></span>
+          <span class="orbit__ring" style="width:246px;height:246px"></span>
+          <span class="orbit__core">นม</span>
+          <span class="orbit__item" style="--a:0;--r:84;--d:26">ปม</span>
+          <span class="orbit__item" style="--a:90;--r:84;--d:26">ราคา</span>
+          <span class="orbit__item" style="--a:180;--r:84;--d:26">ค่า K</span>
+          <span class="orbit__item" style="--a:270;--r:84;--d:26">แผน</span>
+          <span class="orbit__item" style="--a:45;--r:123;--d:38">กันดิน</span>
+          <span class="orbit__item" style="--a:135;--r:123;--d:38">ป้าย</span>
+          <span class="orbit__item" style="--a:225;--r:123;--d:38">ที่ดิน</span>
+          <span class="orbit__item" style="--a:315;--r:123;--d:38">Hermes</span>
+        </div>
+      </div>
+      <p class="part__how">แต่ละไอคอนหมุนรอบจุดกลางตามรัศมีของตัวเอง แล้ว<strong>หมุนตัวเองกลับด้วยมุมเท่ากัน</strong>
+        ไอคอนจึงตั้งตรงตลอดทาง ไม่ตีลังกา · มุมเริ่ม รัศมี ความเร็ว เป็นตัวแปรรายชิ้น เพิ่มแอปที่เก้าได้โดยไม่แตะ CSS</p>
+    </article>
+  </section>
+
+  <!-- ═══════ หมวด 5 ═══════ -->
+  <section class="group" id="fx">
+    <div class="group__head"><h2>เอฟเฟกต์</h2><em>Effects</em></div>
+    <p class="group__note">หมวดนี้ไม่ได้สร้างของใหม่บนหน้า แต่ไปเกาะกับของที่มีอยู่แล้ว
+      จึงเป็นหมวดที่เอามาใช้กับเว็บเดิมได้ง่ายที่สุด ไม่ต้องรื้อโครง</p>
+
+    <article class="part">
+      <div class="part__head"><h3>แสงวิ่งรอบขอบ</h3><span class="part__term">Border Beam</span></div>
+      <p class="part__use">เส้นแสงวิ่งรอบกรอบหนึ่งรอบแล้ววนใหม่
+        <b>ใช้ที่ไหน</b> การ์ดแอปที่พร้อมใช้แล้ว เพื่อแยกจากการ์ดที่ยังเตรียมระบบ โดยไม่ต้องเพิ่มข้อความ</p>
+      <div class="part__stage part__stage--pad">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px">
+          <div class="beamcard"><h4>ESTIMETR</h4><p>ถอดแบบ ถอดปริมาณ ประมาณราคา</p><span class="tag">เริ่มใช้ได้</span></div>
+          <div class="beamcard" style="--bc:var(--orange);--bd:6.5s"><h4>PRICEMETR</h4><p>ราคาวัสดุรายจังหวัดและค่าแรง</p><span class="tag" style="background:var(--chip-warm);color:var(--accent-warm)">ทดลองใช้ฟรี 7 วัน</span></div>
+        </div>
+      </div>
+      <p class="part__how">เหมือนปุ่มแสงวิ่งรอบขอบ แต่ช้ากว่าและจางกว่า เพราะการ์ดอยู่บนหน้าพร้อมกันหลายใบ
+        ถ้าวิ่งเร็วเท่าปุ่มจะกลายเป็นไฟกะพริบทั้งหน้า</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>ค่อยชัดตอนเลื่อนถึง</h3><span class="part__term">Blur Fade</span></div>
+      <p class="part__use">เนื้อหาเบลอและอยู่ต่ำกว่าที่จริงเล็กน้อย แล้วค่อยชัดและเลื่อนเข้าที่ตอนเลื่อนมาถึง
+        <b>ใช้ที่ไหน</b> หน้าแรกเราใช้อยู่แล้ว 28 จุด แต่เป็นแบบจางเข้าเฉย ๆ เพิ่มความเบลอจะได้ความรู้สึกของระยะ</p>
+      <div class="part__stage part__stage--pad">
+        <div class="fade-grid">
+          <div class="fade">กล่องที่หนึ่ง</div>
+          <div class="fade">กล่องที่สอง</div>
+          <div class="fade">กล่องที่สาม</div>
+          <div class="fade">กล่องที่สี่</div>
+        </div>
+      </div>
+      <p class="part__how">ใช้ <code>IntersectionObserver</code> คอยดูว่าของเลื่อนเข้ามาในจอหรือยัง แล้วเติมคลาสให้
+        <strong>ข้อบังคับคือห้ามซ่อนเนื้อหาจริง</strong> ถ้า JavaScript ไม่ทำงาน เนื้อหาต้องยังอ่านได้ และเมื่อผู้ใช้ตั้งลดการเคลื่อนไหว ต้องเห็นทันที</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>แถบความคืบหน้าการเลื่อน</h3><span class="part__term">Scroll Progress</span></div>
+      <p class="part__use">แถบบาง ๆ บนสุดของจอ บอกว่าอ่านมาถึงไหนของหน้าแล้ว
+        <b>ใช้ที่ไหน</b> หน้ายาว ๆ อย่างหน้าแรกและหน้ารายละเอียดแอป · <b>ตัวนี้ทำงานอยู่จริงบนหน้านี้แล้ว</b> เลื่อนขึ้นลงแล้วมองบนสุด</p>
+      <div class="part__stage part__stage--pad">
+        <p style="margin:0;font-size:.9rem;color:var(--text-dim)">มองที่ขอบบนสุดของหน้าจอขณะเลื่อน แถบไล่สีเขียวไปส้มคือตัวมัน</p>
+      </div>
+      <p class="part__how">คำนวณจากระยะที่เลื่อนไปแล้วหารด้วยความสูงทั้งหมดลบความสูงจอ แล้วเอาไปกำหนดความกว้าง
+        ราคาถูกมากในแง่ประสิทธิภาพ แต่ช่วยให้คนรู้ว่าเหลืออีกไกลแค่ไหน จึงไม่ปิดหน้ากลางคัน</p>
+    </article>
+
+    <article class="part">
+      <div class="part__head"><h3>คำอธิบายลอย</h3><span class="part__term">Animated Tooltip</span></div>
+      <p class="part__use">กล่องคำอธิบายเล็ก ๆ โผล่ขึ้นตอนชี้หรือตอนโฟกัสด้วยแป้นพิมพ์
+        <b>ใช้ที่ไหน</b> ศัพท์เทคนิคในแอป เช่น Factor F หรือ ค่า K ที่ผู้ใช้ใหม่ยังไม่รู้จัก</p>
+      <div class="part__stage part__stage--pad">
+        <div class="tipwrap">
+          <span class="tip"><button class="tip__btn" type="button">Factor F</button><span class="tip__bubble" role="tooltip">ตัวคูณที่รวมกำไร ภาษี และดอกเบี้ย เข้ากับค่างานต้นทุน</span></span>
+          <span class="tip"><button class="tip__btn" type="button">ค่า K</button><span class="tip__bubble" role="tooltip">ตัวคูณชดเชยค่างานเมื่อราคาวัสดุเปลี่ยนระหว่างสัญญา</span></span>
+          <span class="tip"><button class="tip__btn" type="button">ปร.4</button><span class="tip__bubble" role="tooltip">แบบแสดงรายการ ปริมาณงาน และราคา</span></span>
+        </div>
+      </div>
+      <p class="part__how">ใช้ <code>:hover</code> คู่กับ <code>:focus-within</code> เสมอ
+        <strong>ถ้ามีแค่ hover คนที่ใช้แป้นพิมพ์จะไม่มีวันเห็นคำอธิบายนี้เลย</strong> ซึ่งเป็นข้อผิดพลาดที่พบบ่อยที่สุดของคอมโพเนนต์ตัวนี้</p>
+    </article>
+  </section>
+
+  <!-- ═══════ หมวด 6 ═══════ -->
+  <section class="group" id="mock">
+    <div class="group__head"><h2>ของจำลอง</h2><em>Mockups</em></div>
+    <p class="group__note">กรอบที่ทำให้ภาพหน้าจอดูเหมือนของจริง ใช้ตอนอยากโชว์ว่าโปรแกรมหน้าตาเป็นยังไง</p>
+
+    <article class="part">
+      <div class="part__head"><h3>กรอบหน้าต่างเบราว์เซอร์</h3><span class="part__term">Browser Mockup</span></div>
+      <p class="part__use">กรอบหน้าต่างพร้อมแถบที่อยู่เว็บ ทำให้ภาพข้างในอ่านได้ทันทีว่าเป็นหน้าจอโปรแกรม
+        <b>ใช้ที่ไหน</b> หน้าต่างสาธิตบนส่วนหัวหน้าแรกของเราใช้แนวคิดนี้อยู่แล้ว</p>
+      <div class="part__stage">
+        <div class="browser">
+          <div class="browser__bar">
+            <span class="browser__dots"><i></i><i></i><i></i></span>
+            <span class="browser__url">naichangmoo.com/apps/estimeter</span>
+          </div>
+          <div class="browser__body">
+            <span class="bar bar--w40"></span>
+            <span class="bar bar--w85"></span>
+            <span class="bar bar--w60"></span>
+          </div>
+        </div>
+      </div>
+      <p class="part__how">จุดสามจุดกับแถบที่อยู่เว็บคือทั้งหมดที่ต้องมี สมองคนเติมส่วนที่เหลือให้เอง
+        <strong>อย่าวาดให้เหมือนเบราว์เซอร์ยี่ห้อใดยี่ห้อหนึ่ง</strong> เพราะจะดูเก่าทันทีที่เบราว์เซอร์นั้นเปลี่ยนหน้าตา</p>
+    </article>
+  </section>
+
+  <aside class="closing">
+    <h2>เอาไปใช้ต่อยังไง</h2>
+    <p>หน้านี้เป็นห้องทดลอง ยังไม่ได้แตะเว็บจริงสักบรรทัด เวลาจะเอาตัวไหนไปใช้ ให้บอกชื่อไทยหรือชื่ออังกฤษก็ได้
+      เช่น &ldquo;เอาเลขนับขึ้นไปใส่แถบตัวเลข&rdquo; หรือ &ldquo;ใส่ spotlight ให้การ์ดแอป&rdquo;</p>
+    <ul>
+      <li><b>คุ้มที่สุดสามตัวแรก</b> เลขนับขึ้นสำหรับแถบตัวเลข · การ์ดมีไฟตามเมาส์สำหรับการ์ดแอป · ขอบจางกับหยุดตอนชี้สำหรับแถบข้อความวิ่งที่มีอยู่แล้ว</li>
+      <li><b>ทั้งหมดเป็น CSS กับ JavaScript ล้วน</b> ไม่ต้องลงไลบรารีเพิ่ม จึงไม่ทำให้เว็บโหลดช้าลง</li>
+      <li><b>ทุกตัวหยุดเองเมื่อผู้ใช้ตั้งเครื่องให้ลดการเคลื่อนไหว</b> ซึ่งเป็นกฎที่เว็บเรามีอยู่แล้ว 11 จุด</li>
+      <li><b>อย่าใส่พร้อมกันหมด</b> เลือกสามถึงสี่ตัวที่ตอบโจทย์จริง ที่เหลือเก็บไว้ก่อน</li>
+    </ul>
+  </aside>
+
+</div>
+
+<script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ── แถบความคืบหน้าการเลื่อน ── */
+  var bar = document.getElementById("scrollbar");
+  function onScroll() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    var pct = max > 0 ? (window.scrollY / max) * 100 : 0;
+    bar.style.width = pct + "%";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* ── ดาวตก: หน่วงเวลาเริ่มไม่เท่ากัน ไม่งั้นจะดูเป็นฝน ── */
+  var stage = document.getElementById("meteor-stage");
+  if (stage && !reduce) {
+    for (var i = 0; i < 9; i++) {
+      var m = document.createElement("span");
+      m.className = "meteor";
+      m.style.left = (8 + Math.random() * 88) + "%";
+      m.style.animationDelay = (Math.random() * 5).toFixed(2) + "s";
+      m.style.animationDuration = (3.6 + Math.random() * 3.4).toFixed(2) + "s";
+      stage.appendChild(m);
+    }
+  }
+
+  /* ── เลขนับขึ้น: เริ่มตอนเลื่อนมาเห็นเท่านั้น ── */
+  var counters = document.querySelectorAll("[data-count]");
+  function runCount(el) {
+    var target = parseInt(el.getAttribute("data-count"), 10);
+    if (reduce) { el.textContent = String(target); return; }
+    var start = performance.now(), dur = 1500;
+    function step(now) {
+      var t = Math.min((now - start) / dur, 1);
+      var eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = String(Math.round(target * eased));
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var countObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { runCount(e.target); countObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.4 });
+  counters.forEach(function (el) { countObs.observe(el); });
+
+  /* ── ค่อยชัดตอนเลื่อนถึง ── */
+  var fades = document.querySelectorAll(".fade");
+  var fadeObs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e, i) {
+      if (!e.isIntersecting) return;
+      var el = e.target;
+      setTimeout(function () { el.classList.add("shown"); }, i * 90);
+      fadeObs.unobserve(el);
+    });
+  }, { threshold: 0.25 });
+  fades.forEach(function (el) { fadeObs.observe(el); });
+
+  /* ── พิมพ์ทีละตัว ── */
+  var typerEl = document.getElementById("typer-text");
+  if (typerEl) {
+    var lines = [
+      "ถอดปริมาณคอนกรีตฐานรากให้หน่อย",
+      "ค่าเผื่อเศษเหล็กเส้นใช้เกณฑ์ข้อไหน",
+      "ขอ BOQ งานอาคารเรียนสี่ชั้น"
+    ];
+    if (reduce) {
+      typerEl.textContent = lines[0];
+    } else {
+      var li = 0, ci = 0, deleting = false;
+      (function tick() {
+        var full = lines[li];
+        ci += deleting ? -1 : 1;
+        typerEl.textContent = full.slice(0, ci);
+        var wait = deleting ? 34 : 62;
+        if (!deleting && ci === full.length) { deleting = true; wait = 1500; }
+        else if (deleting && ci === 0) { deleting = false; li = (li + 1) % lines.length; wait = 320; }
+        setTimeout(tick, wait);
+      })();
+    }
+  }
+
+  /* ── คำสลับ ── */
+  var flipEl = document.getElementById("flip");
+  if (flipEl) {
+    var words = ["ผู้รับเหมา", "วิศวกร", "ห้างร้าน", "หน่วยงานรัฐ"];
+    var nodes = words.map(function (w, i) {
+      var s = document.createElement("span");
+      s.className = "flip__word";
+      s.textContent = w;
+      s.setAttribute("data-state", i === 0 ? "in" : "next");
+      flipEl.appendChild(s);
+      return s;
+    });
+    if (!reduce) {
+      var cur = 0;
+      setInterval(function () {
+        var next = (cur + 1) % nodes.length;
+        nodes[cur].setAttribute("data-state", "out");
+        nodes[next].setAttribute("data-state", "in");
+        nodes.forEach(function (n, i) {
+          if (i !== cur && i !== next) n.setAttribute("data-state", "next");
+        });
+        cur = next;
+      }, 2200);
+    }
+  }
+
+  /* ── การ์ดมีไฟตามเมาส์ ── */
+  document.querySelectorAll("[data-spot]").forEach(function (card) {
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--my", (e.clientY - r.top) + "px");
+    });
+  });
+
+  /* ── การ์ดเอียงตามเมาส์: จำกัดมุมไว้ 8 องศา ── */
+  document.querySelectorAll("[data-tilt]").forEach(function (card) {
+    if (reduce) return;
+    var MAX = 8;
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = "rotateY(" + (px * MAX * 2) + "deg) rotateX(" + (-py * MAX * 2) + "deg)";
+    });
+    card.addEventListener("pointerleave", function () { card.style.transform = ""; });
+  });
+})();
+</script>

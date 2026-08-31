@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ลูกเล่นเคลื่อนไหวสำหรับหน้าแรก — 5 ตัวอย่าง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* กระปุกสีชุดเดียวกับ globals.css ของโปรเจกต์ — ไม่ได้หยิบโทนของ Velora มาใช้เลย */
+:root {
+  --ink: #073047;
+  --ink-deep: #051f2f;
+  --ink-body: #3f545f;
+  --teal: #0d8282;
+  --teal-text: #0c7878;
+  --orange: #f47721;
+  --orange-text: #a34f14;
+  --canvas: #f4f7f7;
+  --paper: #ffffff;
+  --mist: #d8e4e4;
+  --muted: #5f7178;
+  --line: #c9d8d9;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-reveal: cubic-bezier(.25, .1, .25, 1);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-body);
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+
+.page-head { margin-bottom: 40px; }
+.page-head .eyebrow { color: var(--teal-text); font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 8px; }
+.page-head h1 { margin: 0 0 12px; color: var(--ink); font-size: clamp(1.7rem, 4vw, 2.5rem); letter-spacing: -.035em; line-height: 1.25; }
+.page-head p { margin: 0; max-width: 680px; }
+
+.demo { background: var(--paper); border: 1px solid var(--line); border-radius: 22px; padding: 26px; margin-bottom: 22px; }
+.demo__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; margin-bottom: 6px; }
+.demo__num { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 50%; background: #e7f2f2; color: var(--teal-text); font-size: .78rem; font-weight: 700; }
+.demo__head h2 { margin: 0; color: var(--ink); font-size: 1.22rem; letter-spacing: -.02em; }
+.demo__head .en { color: var(--muted); font-size: .82rem; }
+.demo__why { margin: 0 0 20px; padding-left: 40px; color: var(--muted); font-size: .92rem; }
+.demo__why strong { color: var(--orange-text); font-weight: 600; }
+.demo__stage { border-radius: 18px; overflow: hidden; }
+.demo__how { margin: 18px 0 0; padding: 14px 16px; background: var(--canvas); border-radius: 14px; font-size: .86rem; color: var(--muted); }
+.demo__how code { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .84em; color: var(--ink); background: #e7f2f2; padding: 1px 5px; border-radius: 5px; }
+
+/* ---------- 1. แสงวิ่งรอบขอบ ---------- */
+.beam-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.beam {
+  position: relative;
+  padding: 22px;
+  border-radius: 20px;
+  background: var(--paper);
+  overflow: hidden;
+  isolation: isolate;
+}
+/* วงกลมสีที่หมุนอยู่ข้างหลัง แล้วถูก mask ให้เห็นเฉพาะกรอบหนา 1.5px จึงดูเหมือนแสงวิ่งรอบขอบ */
+.beam::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--beam-angle, 0deg),
+    transparent 0deg, transparent 250deg,
+    var(--beam-colour, var(--teal)) 300deg,
+    color-mix(in srgb, var(--beam-colour, var(--teal)) 20%, transparent) 330deg,
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: beam-spin var(--beam-duration, 5s) linear infinite;
+}
+.beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--line);
+  pointer-events: none;
+}
+@property --beam-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+@keyframes beam-spin { to { --beam-angle: 360deg; } }
+.beam h3 { margin: 0 0 6px; color: var(--ink); font-size: 1.02rem; }
+.beam p { margin: 0 0 14px; color: var(--muted); font-size: .86rem; }
+.beam .chip { display: inline-block; padding: 4px 11px; border-radius: 999px; font-size: .74rem; font-weight: 600; background: #e7f2f2; color: var(--teal-text); }
+.beam--orange { --beam-colour: var(--orange); --beam-duration: 6.5s; }
+.beam--orange .chip { background: #fdeee2; color: var(--orange-text); }
+
+.beam-cta {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 16px; padding: 13px 26px; border-radius: 999px;
+  background: var(--orange); color: #fff; font-weight: 600; font-size: .95rem;
+  border: 0; cursor: pointer; overflow: hidden; isolation: isolate;
+}
+.beam-cta::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 2px;
+  background: conic-gradient(from var(--beam-angle, 0deg), transparent 0deg, transparent 265deg, #fff 315deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  animation: beam-spin 3.4s linear infinite;
+}
+
+/* ---------- 2. แถบเลื่อนไม่รู้จบ ---------- */
+.marquee {
+  --gap: 34px;
+  display: flex; gap: var(--gap); overflow: hidden;
+  padding: 16px 0;
+  background: var(--ink);
+  /* หัวใจของลูกเล่นนี้คือขอบสองข้างที่จางหายไป ไม่ใช่ตัวการเลื่อน */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.marquee__track { display: flex; gap: var(--gap); flex: 0 0 auto; min-width: 100%; animation: marquee var(--duration, 34s) linear infinite; }
+.marquee:hover .marquee__track { animation-play-state: paused; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(calc(-100% - var(--gap))); } }
+.marquee__item { display: flex; align-items: center; gap: var(--gap); color: rgba(255,255,255,.86); font-size: .92rem; white-space: nowrap; }
+.marquee__item::after { content: ""; width: 6px; height: 6px; border-radius: 2px; background: var(--orange); flex: 0 0 6px; }
+
+/* ---------- 3. ไอคอนโคจร ---------- */
+.orbit-stage {
+  position: relative; height: 320px; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 50%, #0b4761, var(--ink-deep));
+}
+.orbit-ring { position: absolute; border: 1px dashed rgba(255,255,255,.16); border-radius: 50%; }
+.orbit-ring--in { width: 176px; height: 176px; }
+.orbit-ring--out { width: 268px; height: 268px; }
+.orbit-core {
+  width: 78px; height: 78px; border-radius: 24px; display: grid; place-items: center;
+  background: var(--paper); color: var(--ink); font-weight: 700; font-size: 1.35rem; letter-spacing: -.04em;
+  box-shadow: 0 10px 30px rgba(0,0,0,.34);
+}
+.orbit-item {
+  position: absolute; width: 42px; height: 42px; border-radius: 13px;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,.94); color: var(--ink);
+  font-size: .62rem; font-weight: 700; letter-spacing: -.01em;
+  animation: orbit calc(var(--duration) * 1s) linear infinite;
+}
+/* หมุนออกไปตามรัศมี แล้วหมุนตัวเองกลับ ไอคอนจึงตั้งตรงตลอดทางแทนที่จะตีลังกา */
+@keyframes orbit {
+  from { transform: rotate(calc(var(--angle) * 1deg)) translateY(calc(var(--radius) * -1px)) rotate(calc(var(--angle) * -1deg)); }
+  to   { transform: rotate(calc(var(--angle) * 1deg + 360deg)) translateY(calc(var(--radius) * -1px)) rotate(calc((var(--angle) * 1deg + 360deg) * -1)); }
+}
+
+/* ---------- 4. ฝ้าสีลอย ---------- */
+.aurora {
+  position: relative; height: 300px; overflow: hidden;
+  background: var(--ink-deep); display: grid; place-items: center; text-align: center;
+}
+.aurora__blob { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 50%; filter: blur(72px); opacity: .5; }
+.aurora__blob--a { background: var(--teal); left: -8%; top: -18%; animation: aurora-a 14s ease-in-out infinite alternate; }
+.aurora__blob--b { background: var(--orange); right: -12%; top: 4%; opacity: .34; animation: aurora-b 18s ease-in-out infinite alternate; }
+.aurora__blob--c { background: #0aa0a0; left: 26%; bottom: -30%; opacity: .42; animation: aurora-c 22s ease-in-out infinite alternate; }
+@keyframes aurora-a { 0% { transform: translate(-10%,-12%) scale(1); } 50% { transform: translate(12%,8%) scale(1.25); } 100% { transform: translate(-6%,14%) scale(.95); } }
+@keyframes aurora-b { 0% { transform: translate(12%,10%) scale(1.1); } 100% { transform: translate(-14%,-6%) scale(.9); } }
+@keyframes aurora-c { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-16%,-12%) scale(1.2); } }
+.aurora__inner { position: relative; z-index: 1; padding: 0 28px; }
+.aurora__inner .eyebrow { color: #8ce5dc; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 10px; }
+.aurora__inner h3 { margin: 0 0 10px; color: #fff; font-size: clamp(1.5rem, 3.4vw, 2.15rem); letter-spacing: -.04em; line-height: 1.3; }
+.aurora__inner p { margin: 0; color: rgba(255,255,255,.78); font-size: .92rem; }
+
+/* ---------- 5. แสงกวาด ---------- */
+.shimmer-row { display: grid; gap: 14px; }
+.shimmer-chip {
+  display: inline-flex; align-items: center; gap: 8px; align-self: start;
+  padding: 7px 16px; border-radius: 999px; font-size: .82rem; font-weight: 600;
+  color: var(--orange-text);
+  background-image: linear-gradient(90deg, #fdeee2 0%, #fdeee2 40%, #fff6ee 50%, #fdeee2 60%, #fdeee2 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.6s linear infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.skeleton { height: 13px; border-radius: 7px; background-image: linear-gradient(90deg, var(--mist) 0%, var(--mist) 40%, #eef4f4 50%, var(--mist) 60%, var(--mist) 100%); background-size: 200% 100%; animation: shimmer 2.2s linear infinite; }
+.skeleton--w70 { width: 70%; } .skeleton--w45 { width: 45%; } .skeleton--w88 { width: 88%; }
+.shimmer-note { display: grid; gap: 9px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; }
+
+/* ---------- ของที่เห็นแต่ยังไม่ได้ทำเดโม ---------- */
+.extra { background: var(--paper); border: 1px dashed var(--line); border-radius: 18px; padding: 22px 26px; }
+.extra h2 { margin: 0 0 10px; color: var(--ink); font-size: 1.05rem; }
+.extra ul { margin: 0; padding-left: 20px; }
+.extra li { margin-bottom: 7px; font-size: .9rem; color: var(--muted); }
+.extra li strong { color: var(--ink-body); font-weight: 600; }
+
+/* เคารพผู้ที่ตั้งเครื่องให้ลดการเคลื่อนไหว เหมือนที่ globals.css ทำอยู่แล้ว 11 จุด */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <p class="eyebrow">Landing motion study</p>
+    <h1>ลูกเล่นเคลื่อนไหว 5 ตัว แกะจาก Velora UI มาใส่สีของเรา</h1>
+    <p>ทุกตัวใช้กระปุกสีชุดเดียวกับ <code>globals.css</code> คือหมึก เขียวหัวเป็ด และส้ม ไม่ได้หยิบโทนของเขามาเลย
+       ทุกตัวเป็น CSS ล้วน ไม่ต้องลงไลบรารีเพิ่ม และหยุดเองเมื่อผู้ใช้ตั้งเครื่องให้ลดการเคลื่อนไหว</p>
+  </header>
+
+  <!-- 1 -->
+  <section class="demo">
+    <div class="demo__head">
+      <span class="demo__num">1</span>
+      <h2>แสงวิ่งรอบขอบ</h2>
+      <span class="en">Border Beam</span>
+    </div>
+    <p class="demo__why">เส้นแสงวิ่งรอบกรอบการ์ดหนึ่งรอบแล้ววนใหม่
+      <strong>ใช้ที่ไหน</strong> การ์ดแอปที่พร้อมใช้แล้ว เพื่อแยกจากการ์ดที่ยังเตรียมระบบ และปุ่มหลักบนหน้าแรก</p>
+    <div class="demo__stage" style="padding:18px;background:var(--canvas)">
+      <div class="beam-row">
+        <article class="beam">
+          <h3>ESTIMETR</h3>
+          <p>ถอดแบบ ถอดปริมาณ และประมาณราคางานอาคาร</p>
+          <span class="chip">เริ่มใช้ได้</span>
+        </article>
+        <article class="beam beam--orange">
+          <h3>PRICEMETR</h3>
+          <p>ราคาวัสดุรายจังหวัดและค่าแรงตามบัญชีราชการ</p>
+          <span class="chip">ทดลองใช้ฟรี 7 วัน</span>
+        </article>
+      </div>
+      <button class="beam-cta">ดูแอปทั้งหมด</button>
+    </div>
+    <p class="demo__how">ทำด้วย <code>conic-gradient</code> ที่หมุนอยู่ข้างหลัง แล้ว <code>mask</code> ให้เห็นเฉพาะกรอบหนา 1.5 จุด
+      มุมหมุนประกาศเป็น <code>@property</code> เบราว์เซอร์จึงไล่ค่าให้ลื่นแทนที่จะกระตุก</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="demo">
+    <div class="demo__head">
+      <span class="demo__num">2</span>
+      <h2>แถบเลื่อนไม่รู้จบ ขอบจางสองข้าง</h2>
+      <span class="en">Marquee with edge mask</span>
+    </div>
+    <p class="demo__why">แถบข้อความวิ่งที่หน้าแรกเรามีอยู่แล้ว แต่ยังตัดขอบดื้อ ๆ
+      <strong>สิ่งที่เพิ่ม</strong> ขอบจางหายสองข้าง และหยุดเมื่อเอาเมาส์ไปวาง ให้คนอ่านทัน</p>
+    <div class="demo__stage">
+      <div class="marquee">
+        <div class="marquee__track">
+          <span class="marquee__item">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้</span>
+          <span class="marquee__item">คิดเงินละเอียดถึงสตางค์ ไม่ปัดทิ้งระหว่างทาง</span>
+          <span class="marquee__item">ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้</span>
+          <span class="marquee__item">ราคาวัสดุและค่าแรงอ้างบัญชีที่ทางราชการประกาศ</span>
+        </div>
+        <div class="marquee__track" aria-hidden="true">
+          <span class="marquee__item">ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้</span>
+          <span class="marquee__item">คิดเงินละเอียดถึงสตางค์ ไม่ปัดทิ้งระหว่างทาง</span>
+          <span class="marquee__item">ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้</span>
+          <span class="marquee__item">ราคาวัสดุและค่าแรงอ้างบัญชีที่ทางราชการประกาศ</span>
+        </div>
+      </div>
+    </div>
+    <p class="demo__how">วางเนื้อหาสองชุดต่อกัน เลื่อนชุดแรกไป <code>-100% - gap</code> แล้ววนใหม่ ตาจึงไม่เห็นรอยต่อ
+      ขอบจางมาจาก <code>mask-image</code> ไม่ใช่การวางแถบสีทับ จึงใช้ได้กับพื้นหลังทุกสี</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="demo">
+    <div class="demo__head">
+      <span class="demo__num">3</span>
+      <h2>ไอคอนโคจรรอบตรา</h2>
+      <span class="en">Orbiting icons</span>
+    </div>
+    <p class="demo__why">แอปทั้งแปดโคจรรอบตรานายช่างหมู สองวงคนละความเร็ว
+      <strong>ใช้ที่ไหน</strong> ภาพประกอบหน้าแรก แทนภาพนิ่ง บอกได้ในภาพเดียวว่าแพลตฟอร์มมีหลายแอปที่หมุนรอบแกนเดียวกัน</p>
+    <div class="demo__stage">
+      <div class="orbit-stage">
+        <div class="orbit-ring orbit-ring--in"></div>
+        <div class="orbit-ring orbit-ring--out"></div>
+        <div class="orbit-core">นม</div>
+        <span class="orbit-item" style="--angle:0;--radius:88;--duration:26">ปม</span>
+        <span class="orbit-item" style="--angle:90;--radius:88;--duration:26">ราคา</span>
+        <span class="orbit-item" style="--angle:180;--radius:88;--duration:26">ค่า K</span>
+        <span class="orbit-item" style="--angle:270;--radius:88;--duration:26">แผน</span>
+        <span class="orbit-item" style="--angle:45;--radius:134;--duration:38">กันดิน</span>
+        <span class="orbit-item" style="--angle:135;--radius:134;--duration:38">ป้าย</span>
+        <span class="orbit-item" style="--angle:225;--radius:134;--duration:38">ที่ดิน</span>
+        <span class="orbit-item" style="--angle:315;--radius:134;--duration:38">Hermes</span>
+      </div>
+    </div>
+    <p class="demo__how">แต่ละไอคอนหมุนรอบจุดกลางตามรัศมีของตัวเอง แล้ว<em>หมุนตัวเองกลับด้วยมุมเท่ากัน</em>
+      ไอคอนจึงตั้งตรงตลอดทาง ไม่ตีลังกา มุมเริ่ม รัศมี และความเร็ว เป็นตัวแปรรายชิ้น เพิ่มแอปที่เก้าได้โดยไม่แตะ CSS</p>
+  </section>
+
+  <!-- 4 -->
+  <section class="demo">
+    <div class="demo__head">
+      <span class="demo__num">4</span>
+      <h2>ฝ้าสีลอยช้า</h2>
+      <span class="en">Aurora background</span>
+    </div>
+    <p class="demo__why">ก้อนสีเบลอสามก้อนลอยคนละจังหวะ 14 18 และ 22 วินาที ทำให้พื้นหลังไม่นิ่งสนิทแต่ก็ไม่กวนสายตา
+      <strong>ใช้ที่ไหน</strong> พื้นหลังส่วนหัวหน้าแรก แทนไล่สีนิ่ง ๆ ที่ใช้อยู่</p>
+    <div class="demo__stage">
+      <div class="aurora">
+        <span class="aurora__blob aurora__blob--a"></span>
+        <span class="aurora__blob aurora__blob--b"></span>
+        <span class="aurora__blob aurora__blob--c"></span>
+        <div class="aurora__inner">
+          <p class="eyebrow">นายช่างหมู · แอปงานโยธา</p>
+          <h3>เสริมพลังให้แอป ด้วยผู้ช่วย AI</h3>
+          <p>ไม่ใช่แค่ทำงานเร็วขึ้น แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
+        </div>
+      </div>
+    </div>
+    <p class="demo__how">แต่ละก้อนคือวงกลมที่ <code>filter: blur(72px)</code> แล้วขยับด้วย <code>transform</code> อย่างเดียว
+      การ์ดจอทำงานส่วนนี้ได้เอง จึงไม่กินแรงเครื่อง คุมความแรงด้วยค่า <code>opacity</code> ตัวเดียว</p>
+  </section>
+
+  <!-- 5 -->
+  <section class="demo">
+    <div class="demo__head">
+      <span class="demo__num">5</span>
+      <h2>แสงกวาดผ่าน</h2>
+      <span class="en">Shimmer sweep</span>
+    </div>
+    <p class="demo__why">แถบแสงจาง ๆ กวาดผ่านซ้ำ ๆ บอกว่า “ยังไม่นิ่ง กำลังทำอยู่”
+      <strong>ใช้ที่ไหน</strong> ป้ายกำลังเตรียมระบบบนการ์ดแอป และช่องว่างระหว่างรอข้อมูลโหลด แทนคำว่ากำลังโหลด</p>
+    <div class="demo__stage" style="padding:22px;background:var(--canvas);display:grid;gap:16px">
+      <div class="shimmer-row">
+        <span class="shimmer-chip">กำลังเตรียมระบบ</span>
+      </div>
+      <div class="shimmer-note">
+        <div class="skeleton skeleton--w45"></div>
+        <div class="skeleton skeleton--w88"></div>
+        <div class="skeleton skeleton--w70"></div>
+      </div>
+    </div>
+    <p class="demo__how">ไล่สีกว้างสองเท่าของกล่อง แล้วเลื่อน <code>background-position</code> จาก 200% ไป -200%
+      ไม่มี element เพิ่ม ไม่มี JavaScript ใส่กับป้ายเดิมได้เลยโดยไม่แตะโครงสร้าง</p>
+  </section>
+
+  <section class="extra">
+    <h2>อีกสองตัวที่เจอในเว็บนั้น แต่ยังไม่ทำเดโม</h2>
+    <ul>
+      <li><strong>ดาวตก</strong> เส้นแสงเฉียงพาดผ่านเป็นระยะ เหมาะกับพื้นเข้มมาก ๆ อย่างส่วนหัว แต่เสี่ยงดูเป็นเว็บเกมถ้าใส่เยอะ</li>
+      <li><strong>กริดเพอร์สเปกทีฟเลื่อนขึ้น</strong> ตารางเส้นวิ่งเข้าหาขอบฟ้า เราใช้ลายตารางบนกรอบไอคอนอยู่แล้ว ถ้าใส่อีกจะซ้ำกันเอง</li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

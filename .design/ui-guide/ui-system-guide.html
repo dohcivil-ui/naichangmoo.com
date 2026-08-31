@@ -1,0 +1,1338 @@
+<title>ระบบหน้าตานายช่างหมู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap">
+
+<style>
+/* ── กระปุกสี ────────────────────────────────────────────────────────
+   ค่าทั้งหมดยกมาจาก src/app/globals.css บล็อก :root ของโปรเจกต์จริง
+   หน้านี้จึงไม่ได้ "ออกแบบใหม่" แต่ใช้ระบบเดียวกับที่เว็บใช้อยู่ */
+:root {
+  --ink: #073047;
+  --ink-deep: #051f2f;
+  --ink-body: #3f545f;
+  --teal: #0d8282;
+  --teal-text: #0c7878;
+  --orange: #f47721;
+  --orange-text: #a34f14;
+  --canvas: #f4f7f7;
+  --paper: #ffffff;
+  --mist: #d8e4e4;
+  --line: #c9d8d9;
+  --muted: #5f7178;
+  --success: #32765d;
+
+  --ground: var(--canvas);
+  --surface: var(--paper);
+  --surface-2: #eaf1f1;
+  --text: var(--ink-body);
+  --text-strong: var(--ink);
+  --text-dim: var(--muted);
+  --rule: var(--line);
+  --accent: var(--teal-text);
+  --accent-warm: var(--orange-text);
+  --chip-cool: #e7f2f2;
+  --chip-warm: #fdeee2;
+  --shadow: 0 10px 30px rgba(7, 48, 71, .08);
+
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #04161f;
+    --surface: #0a2634;
+    --surface-2: #0e3243;
+    --text: #b9cdd4;
+    --text-strong: #eaf4f5;
+    --text-dim: #7f9aa4;
+    --rule: #16404f;
+    --accent: #4fc4c0;
+    --accent-warm: #f79553;
+    --chip-cool: #0f3a44;
+    --chip-warm: #3a2415;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #04161f;
+  --surface: #0a2634;
+  --surface-2: #0e3243;
+  --text: #b9cdd4;
+  --text-strong: #eaf4f5;
+  --text-dim: #7f9aa4;
+  --rule: #16404f;
+  --accent: #4fc4c0;
+  --accent-warm: #f79553;
+  --chip-cool: #0f3a44;
+  --chip-warm: #3a2415;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: "Prompt", "Noto Sans Thai", system-ui, sans-serif;
+  font-size: 15.5px;
+  line-height: 1.78;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell { max-width: 940px; margin: 0 auto; padding: 56px 22px 96px; }
+
+/* ── หัวเรื่องหน้า ────────────────────────────────────────────── */
+.masthead { border-bottom: 2px solid var(--text-strong); padding-bottom: 26px; margin-bottom: 12px; }
+.masthead__kicker {
+  font-family: "IBM Plex Sans Thai", "Prompt", sans-serif;
+  font-size: .7rem; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--accent); margin: 0 0 14px;
+}
+.masthead h1 {
+  margin: 0 0 16px; color: var(--text-strong);
+  font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 600; line-height: 1.14;
+  letter-spacing: -.045em; text-wrap: balance;
+}
+.masthead p { margin: 0; max-width: var(--measure); font-size: 1.02rem; }
+.masthead strong { color: var(--text-strong); font-weight: 500; }
+
+/* ── บทเรียน ─────────────────────────────────────────────────── */
+.chapter { padding: 54px 0; border-bottom: 1px solid var(--rule); }
+.chapter:last-of-type { border-bottom: 0; }
+.chapter__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 16px; margin-bottom: 8px; }
+.chapter__head h2 {
+  margin: 0; color: var(--text-strong);
+  font-size: clamp(1.4rem, 3.4vw, 1.95rem); font-weight: 600; letter-spacing: -.035em;
+}
+.term {
+  font-family: "IBM Plex Sans Thai", monospace;
+  font-size: .7rem; font-weight: 600; letter-spacing: .08em;
+  padding: 4px 11px; border-radius: 999px;
+  background: var(--chip-cool); color: var(--accent);
+  white-space: nowrap;
+}
+.chapter__lede { max-width: var(--measure); margin: 0 0 30px; font-size: 1rem; }
+.chapter__lede strong { color: var(--text-strong); font-weight: 500; }
+
+h3 {
+  margin: 34px 0 12px; color: var(--text-strong);
+  font-size: 1.02rem; font-weight: 600; letter-spacing: -.015em;
+}
+p { max-width: var(--measure); }
+code {
+  font-family: "IBM Plex Sans Thai", ui-monospace, Consolas, monospace;
+  font-size: .86em; padding: 1px 6px; border-radius: 5px;
+  background: var(--surface-2); color: var(--text-strong);
+}
+
+/* ── กล่องกฎของเรา ───────────────────────────────────────────── */
+.rule {
+  margin: 26px 0 0; padding: 18px 20px;
+  border-left: 3px solid var(--accent-warm);
+  background: var(--surface); border-radius: 0 12px 12px 0;
+  box-shadow: var(--shadow);
+}
+.rule__label {
+  font-family: "IBM Plex Sans Thai", sans-serif;
+  font-size: .68rem; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--accent-warm); margin: 0 0 7px;
+}
+.rule p { margin: 0; font-size: .93rem; }
+.rule p + p { margin-top: 9px; }
+.rule cite { display: block; margin-top: 10px; font-size: .8rem; font-style: normal; color: var(--text-dim); }
+
+/* ── สาธิตทั่วไป ─────────────────────────────────────────────── */
+.demo {
+  margin: 22px 0 0; padding: 24px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 16px;
+}
+.demo__cap {
+  font-family: "IBM Plex Sans Thai", sans-serif;
+  font-size: .74rem; color: var(--text-dim); margin: 16px 0 0;
+}
+
+/* ── บทที่ 1 · สี ────────────────────────────────────────────── */
+.swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 12px; }
+.sw { border: 1px solid var(--rule); border-radius: 13px; overflow: hidden; }
+.sw__chip { height: 60px; display: grid; place-items: center; font-size: .78rem; font-weight: 600; }
+.sw__body { padding: 11px 13px; background: var(--surface); }
+.sw__name { display: block; font-size: .82rem; font-weight: 600; color: var(--text-strong); }
+.sw__hex {
+  display: block; font-family: "IBM Plex Sans Thai", monospace;
+  font-size: .74rem; color: var(--text-dim); font-variant-numeric: tabular-nums;
+}
+.sw__job { display: block; margin-top: 5px; font-size: .78rem; line-height: 1.5; }
+
+.ratios { width: 100%; border-collapse: collapse; font-size: .88rem; margin-top: 6px; }
+.ratios th, .ratios td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--rule); }
+.ratios th {
+  font-family: "IBM Plex Sans Thai", sans-serif;
+  font-size: .72rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim);
+}
+.ratios td:nth-child(2), .ratios td:nth-child(3) { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.verdict { font-weight: 600; font-size: .82rem; }
+.verdict--pass { color: var(--success); }
+.verdict--edge { color: var(--accent-warm); }
+.verdict--fail { color: #b4341f; }
+:root[data-theme="dark"] .verdict--fail, :root:not([data-theme="light"]) .verdict--fail { color: #f0836d; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .verdict--fail { color: #b4341f; } }
+.tablewrap { overflow-x: auto; }
+
+/* ── บทที่ 2 · ส่วนประกอบ ────────────────────────────────────── */
+.parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 18px; }
+.part { display: grid; gap: 10px; align-content: start; }
+.part__label { font-size: .8rem; color: var(--text-dim); }
+.part__label b { display: block; color: var(--text-strong); font-size: .89rem; font-weight: 600; }
+.part__label i {
+  font-style: normal; font-family: "IBM Plex Sans Thai", monospace;
+  font-size: .72rem; color: var(--accent);
+}
+
+.btn {
+  font: inherit; font-size: .9rem; font-weight: 500;
+  padding: 11px 22px; border-radius: 999px; border: 1px solid transparent;
+  cursor: pointer; transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), background 160ms var(--ease-out);
+  justify-self: start;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:focus-visible { outline: 3px solid var(--accent-warm); outline-offset: 2px; }
+.btn--primary { background: var(--orange); color: #fff; }
+.btn--primary:hover { box-shadow: 0 8px 18px rgba(244, 119, 33, .32); }
+.btn--quiet { background: transparent; border-color: var(--rule); color: var(--text-strong); }
+.btn--quiet:hover { border-color: var(--accent); color: var(--accent); }
+
+.pill {
+  justify-self: start; padding: 6px 14px; border-radius: 999px;
+  font-size: .78rem; font-weight: 600;
+}
+.pill--ready { background: var(--chip-cool); color: var(--accent); }
+.pill--wait { background: var(--chip-warm); color: var(--accent-warm); }
+
+.field { display: grid; gap: 6px; }
+.field label { font-size: .78rem; color: var(--text-dim); }
+.field input {
+  font: inherit; font-size: .9rem; padding: 10px 13px;
+  border: 1px solid var(--rule); border-radius: 11px;
+  background: var(--ground); color: var(--text-strong);
+  transition: border-color 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+}
+.field input:focus-visible {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.slider { width: 100%; accent-color: var(--teal); }
+.readout {
+  font-family: "IBM Plex Sans Thai", monospace; font-variant-numeric: tabular-nums;
+  font-size: .84rem; color: var(--text-strong);
+}
+
+.minicard { padding: 15px; border: 1px solid var(--rule); border-radius: 14px; background: var(--ground); }
+.minicard b { display: block; color: var(--text-strong); font-size: .89rem; }
+.minicard span { font-size: .78rem; color: var(--text-dim); }
+
+/* ── บทที่ 3 · การเคลื่อนไหว ─────────────────────────────────── */
+.speeds { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+.speed { display: grid; gap: 9px; justify-items: start; }
+.speed__box {
+  width: 100%; height: 58px; border-radius: 12px;
+  background: linear-gradient(120deg, var(--teal), #0aa0a0);
+  display: grid; place-items: center; color: #fff; font-size: .8rem; font-weight: 600;
+}
+.speed--fast .speed__box { transition: transform 140ms var(--ease-out); }
+.speed--right .speed__box { transition: transform 200ms var(--ease-out); }
+.speed--slow .speed__box { transition: transform 900ms var(--ease-out); }
+.speed:hover .speed__box { transform: translateY(-8px) scale(1.03); }
+.speed__note { font-size: .78rem; color: var(--text-dim); }
+
+.kinds { display: grid; gap: 12px; }
+.kind {
+  display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 6px 20px;
+  padding: 14px 0; border-top: 1px solid var(--rule); align-items: baseline;
+}
+.kind:first-child { border-top: 0; }
+.kind__name { color: var(--text-strong); font-size: .9rem; font-weight: 600; }
+.kind__name i { display: block; font-style: normal; font-size: .72rem; font-weight: 400; color: var(--accent); font-family: "IBM Plex Sans Thai", monospace; }
+.kind__desc { font-size: .89rem; margin: 0; }
+
+/* ── บทที่ 4 · SaaS ──────────────────────────────────────────── */
+.anatomy { display: grid; gap: 3px; }
+.floor {
+  display: grid; grid-template-columns: minmax(0, 168px) minmax(0, 1fr); gap: 4px 18px;
+  padding: 13px 16px; background: var(--surface); align-items: baseline;
+  border-left: 3px solid var(--rule);
+}
+.floor--key { border-left-color: var(--accent-warm); }
+.floor__name { color: var(--text-strong); font-size: .89rem; font-weight: 600; }
+.floor__name i { display: block; font-style: normal; font-size: .72rem; font-weight: 400; color: var(--text-dim); }
+.floor__job { margin: 0; font-size: .87rem; }
+
+.checklist { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.checklist li {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px;
+  font-size: .92rem; align-items: start;
+}
+.checklist li::before {
+  content: ""; width: 9px; height: 9px; margin-top: 9px; margin-left: 6px;
+  border-radius: 2px; background: var(--accent-warm);
+}
+.checklist b { color: var(--text-strong); font-weight: 600; }
+
+/* ── ปิดท้าย ────────────────────────────────────────────────── */
+.where { margin-top: 54px; padding: 26px; border: 1px dashed var(--rule); border-radius: 16px; }
+.where h2 { margin: 0 0 6px; font-size: 1.1rem; color: var(--text-strong); font-weight: 600; }
+.where p { margin: 0 0 16px; font-size: .93rem; }
+.where dl { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 9px 20px; margin: 0; font-size: .88rem; }
+.where dt { color: var(--text-strong); font-weight: 500; }
+.where dd { margin: 0; color: var(--text-dim); }
+
+@media (max-width: 640px) {
+  .kind, .floor, .where dl { grid-template-columns: minmax(0, 1fr); }
+  .where dd { margin-bottom: 8px; }
+}
+
+/* ซ่อนจากสายตา แต่โปรแกรมอ่านหน้าจอยังอ่านเจอ — แบบแผนมาตรฐานชื่อ sr-only
+   ใช้กับป้ายกำกับช่องกรอกที่ดีไซน์ไม่ต้องการให้เห็น แต่ตัดออกไม่ได้เพราะช่องกรอกต้องมีป้ายเสมอ */
+.sr-hide {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ═══ บทที่ 5 · ส่วนประกอบมาตรฐาน ═══ */
+.cat { margin: 34px 0 0; }
+.cat__head { display: flex; align-items: baseline; gap: 11px; margin-bottom: 4px; padding-bottom: 7px; border-bottom: 1px solid var(--rule); }
+.cat__head h4 { margin: 0; color: var(--text-strong); font-size: 1.02rem; font-weight: 600; }
+.cat__head em { font-style: normal; font-family: "IBM Plex Sans Thai", monospace; font-size: .72rem; color: var(--accent); }
+.cat__note { margin: 0 0 16px; font-size: .87rem; color: var(--text-dim); max-width: var(--measure); }
+
+.specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 16px; }
+.spec {
+  display: grid; gap: 10px; align-content: start;
+  padding: 17px; border: 1px solid var(--rule); border-radius: 14px; background: var(--surface);
+}
+.spec__name { font-size: .88rem; color: var(--text-strong); font-weight: 600; line-height: 1.4; }
+.spec__name i { display: block; font-style: normal; font-family: "IBM Plex Sans Thai", monospace; font-size: .71rem; font-weight: 500; color: var(--accent); }
+.spec__desc { margin: 0; font-size: .81rem; line-height: 1.6; color: var(--text-dim); }
+.spec__live { display: grid; gap: 9px; padding: 14px; border-radius: 11px; background: var(--ground); }
+
+/* ฟอร์ม */
+.ctl { display: flex; align-items: center; gap: 9px; font-size: .85rem; color: var(--text-strong); cursor: pointer; }
+.ctl input { accent-color: var(--teal); width: 17px; height: 17px; }
+.sw-box { position: relative; display: inline-flex; align-items: center; gap: 10px; font-size: .85rem; color: var(--text-strong); cursor: pointer; }
+.sw-box input { position: absolute; opacity: 0; width: 0; height: 0; }
+.sw-track {
+  width: 42px; height: 24px; border-radius: 999px; background: var(--mist);
+  transition: background 180ms var(--ease-out); flex: 0 0 42px; position: relative;
+}
+.sw-track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.28);
+  transition: transform 180ms var(--ease-out);
+}
+.sw-box input:checked + .sw-track { background: var(--teal); }
+.sw-box input:checked + .sw-track::after { transform: translateX(18px); }
+.sw-box input:focus-visible + .sw-track { outline: 3px solid var(--accent-warm); outline-offset: 2px; }
+
+.sel, .ta {
+  font: inherit; font-size: .85rem; padding: 9px 12px; width: 100%;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); color: var(--text-strong);
+}
+.ta { resize: vertical; min-height: 62px; }
+.otp { display: flex; gap: 7px; }
+.otp input {
+  width: 38px; height: 44px; text-align: center; font: inherit; font-size: 1.05rem; font-weight: 600;
+  border: 1px solid var(--rule); border-radius: 10px; background: var(--surface); color: var(--text-strong);
+  font-family: "IBM Plex Sans Thai", monospace;
+}
+.tgroup { display: inline-flex; padding: 3px; border-radius: 11px; background: var(--surface-2); gap: 3px; }
+.tgroup button {
+  font: inherit; font-size: .8rem; padding: 7px 15px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--text-dim); cursor: pointer;
+  transition: background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+.tgroup button[aria-pressed="true"] { background: var(--surface); color: var(--text-strong); box-shadow: 0 1px 3px rgba(7,48,71,.12); font-weight: 600; }
+
+.fieldset { display: grid; gap: 5px; }
+.fieldset label { font-size: .78rem; color: var(--text-dim); }
+.fieldset input { font: inherit; font-size: .85rem; padding: 9px 12px; border: 1px solid #c96a52; border-radius: 10px; background: var(--surface); color: var(--text-strong); }
+.fieldset .err { font-size: .76rem; color: #b4341f; }
+:root[data-theme="dark"] .fieldset .err, :root:not([data-theme="light"]) .fieldset .err { color: #f0836d; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .fieldset .err { color: #b4341f; } }
+
+/* นำทาง */
+.tabs__list { display: flex; gap: 3px; border-bottom: 1px solid var(--rule); }
+.tabs__list button {
+  font: inherit; font-size: .82rem; padding: 9px 15px; border: 0; background: transparent;
+  color: var(--text-dim); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 160ms var(--ease-out), border-color 160ms var(--ease-out);
+}
+.tabs__list button[aria-selected="true"] { color: var(--text-strong); border-bottom-color: var(--orange); font-weight: 600; }
+.tabs__panel { padding: 13px 2px 0; font-size: .83rem; color: var(--text-dim); }
+
+.pager { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
+.pager button {
+  font: inherit; font-size: .8rem; min-width: 32px; height: 32px; padding: 0 9px;
+  border: 1px solid var(--rule); border-radius: 8px; background: var(--surface);
+  color: var(--text-strong); cursor: pointer;
+}
+.pager button[aria-current="page"] { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 600; }
+.pager span { color: var(--text-dim); font-size: .8rem; padding: 0 3px; }
+
+.rail { display: grid; gap: 3px; padding: 9px; border-radius: 11px; background: var(--surface); border: 1px solid var(--rule); }
+.rail a {
+  display: flex; align-items: center; gap: 9px; padding: 8px 11px; border-radius: 8px;
+  text-decoration: none; color: var(--text-dim); font-size: .83rem;
+}
+.rail a[aria-current="page"] { background: var(--chip); color: var(--accent); font-weight: 600; }
+.rail a::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: currentColor; flex: 0 0 6px; }
+
+.steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+.steps__dot {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font-size: .74rem; font-weight: 700; background: var(--surface-2); color: var(--text-dim); flex: 0 0 26px;
+  font-family: "IBM Plex Sans Thai", monospace;
+}
+.steps__dot--done { background: var(--success); color: #fff; }
+.steps__dot--now { background: var(--orange); color: #fff; }
+.steps__bar { height: 2px; flex: 1 1 18px; min-width: 18px; background: var(--rule); }
+.steps__bar--done { background: var(--success); }
+
+/* เปิดเผยและซ้อนทับ */
+.acc { border: 1px solid var(--rule); border-radius: 11px; overflow: hidden; background: var(--surface); }
+.acc details + details { border-top: 1px solid var(--rule); }
+.acc summary { padding: 11px 14px; cursor: pointer; font-size: .84rem; color: var(--text-strong); font-weight: 500; list-style: none; display: flex; justify-content: space-between; gap: 10px; }
+.acc summary::-webkit-details-marker { display: none; }
+.acc summary::after { content: "+"; color: var(--accent); font-weight: 700; }
+.acc details[open] summary::after { content: "\2212"; }
+.acc p { margin: 0; padding: 0 14px 13px; font-size: .81rem; color: var(--text-dim); }
+
+.overlay { position: fixed; inset: 0; z-index: 200; display: none; }
+.overlay[data-open="true"] { display: block; }
+.overlay__scrim { position: absolute; inset: 0; background: rgba(5, 31, 47, .58); }
+.modal {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(400px, calc(100vw - 40px)); padding: 24px; border-radius: 18px;
+  background: var(--surface); box-shadow: 0 24px 60px rgba(0,0,0,.34);
+}
+.sheet {
+  position: absolute; top: 0; right: 0; bottom: 0; width: min(330px, 86vw);
+  padding: 24px; background: var(--surface); box-shadow: -14px 0 40px rgba(0,0,0,.28);
+}
+.overlay h5 { margin: 0 0 8px; color: var(--text-strong); font-size: 1rem; font-weight: 600; }
+.overlay p { margin: 0 0 18px; font-size: .85rem; color: var(--text-dim); }
+.overlay .row { display: flex; gap: 9px; flex-wrap: wrap; }
+
+.pop { position: relative; display: inline-block; }
+.pop__panel {
+  position: absolute; bottom: calc(100% + 9px); left: 0; z-index: 6; width: 216px;
+  padding: 13px; border-radius: 12px; background: var(--surface); border: 1px solid var(--rule);
+  box-shadow: var(--shadow); font-size: .8rem; color: var(--text-dim);
+  opacity: 0; transform: translateY(6px); pointer-events: none;
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.pop__panel b { display: block; color: var(--text-strong); font-size: .85rem; margin-bottom: 4px; }
+.pop[data-open="true"] .pop__panel { opacity: 1; transform: none; pointer-events: auto; }
+.pop--hover:hover .pop__panel, .pop--hover:focus-within .pop__panel { opacity: 1; transform: none; pointer-events: auto; }
+
+/* ผลตอบกลับ */
+.alert { display: grid; grid-template-columns: 4px minmax(0, 1fr); gap: 0 12px; border-radius: 11px; overflow: hidden; background: var(--surface); border: 1px solid var(--rule); }
+.alert__stripe { background: var(--accent-warm); }
+.alert--danger .alert__stripe { background: #b4341f; }
+.alert--ok .alert__stripe { background: var(--success); }
+.alert__body { padding: 12px 14px 12px 0; }
+.alert b { display: block; color: var(--text-strong); font-size: .85rem; }
+.alert span { font-size: .79rem; color: var(--text-dim); }
+
+.toast {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px;
+  background: var(--ink); color: #fff; font-size: .84rem; box-shadow: var(--shadow);
+  transform: translateY(10px); opacity: 0; transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out);
+}
+.toast[data-show="true"] { opacity: 1; transform: none; }
+.toast button { margin-left: auto; background: transparent; border: 0; color: #8ce5dc; font: inherit; font-size: .8rem; cursor: pointer; }
+
+.bar { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: inherit; background: var(--teal); transition: width 400ms var(--ease-out); }
+
+.spin { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--surface-2); border-top-color: var(--teal); animation: spin360 800ms linear infinite; }
+@keyframes spin360 { to { transform: rotate(360deg); } }
+
+.skel { height: 12px; border-radius: 6px; background-image: linear-gradient(90deg, var(--surface-2) 0%, var(--surface-2) 40%, var(--ground) 50%, var(--surface-2) 60%, var(--surface-2) 100%); background-size: 200% 100%; animation: shimmer 2.2s linear infinite; }
+
+.empty { display: grid; gap: 7px; justify-items: center; text-align: center; padding: 18px 12px; }
+.empty__mark { width: 38px; height: 38px; border-radius: 11px; border: 2px dashed var(--rule); }
+.empty b { color: var(--text-strong); font-size: .86rem; }
+.empty span { font-size: .78rem; color: var(--text-dim); }
+
+/* แสดงข้อมูล */
+.dtable { width: 100%; border-collapse: collapse; font-size: .8rem; }
+.dtable th, .dtable td { padding: 7px 9px; border-bottom: 1px solid var(--rule); text-align: left; }
+.dtable th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-dim); font-weight: 600; }
+.dtable td:last-child, .dtable th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+.avatars { display: flex; }
+.avatars span {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  font-size: .72rem; font-weight: 700; color: #fff; background: var(--teal);
+  border: 2px solid var(--surface); margin-left: -9px;
+}
+.avatars span:first-child { margin-left: 0; }
+.avatars span:nth-child(2) { background: var(--orange); }
+.avatars span:nth-child(3) { background: var(--ink); }
+.avatars span.more { background: var(--surface-2); color: var(--text-dim); }
+
+kbd {
+  font-family: "IBM Plex Sans Thai", monospace; font-size: .74rem; padding: 3px 7px;
+  border: 1px solid var(--rule); border-bottom-width: 2px; border-radius: 6px;
+  background: var(--surface); color: var(--text-strong);
+}
+
+.cmd { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.cmd__bar { display: flex; align-items: center; gap: 9px; padding: 10px 13px; border-bottom: 1px solid var(--rule); font-size: .83rem; color: var(--text-dim); }
+.cmd__list { display: grid; }
+.cmd__list div { padding: 8px 13px; font-size: .81rem; color: var(--text-strong); display: flex; justify-content: space-between; gap: 10px; }
+.cmd__list div:first-child { background: var(--chip); }
+
+.carousel { position: relative; overflow: hidden; border-radius: 12px; }
+.carousel__track { display: flex; transition: transform 420ms var(--ease-out); }
+.carousel__slide { flex: 0 0 100%; padding: 26px 18px; text-align: center; background: var(--surface-2); color: var(--text-strong); font-size: .86rem; }
+.carousel__dots { display: flex; gap: 6px; justify-content: center; padding-top: 10px; }
+.carousel__dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: var(--rule); cursor: pointer; }
+.carousel__dots button[aria-current="true"] { background: var(--accent); width: 18px; border-radius: 999px; }
+
+.sep { height: 1px; background: var(--rule); }
+
+/* ตารางเทียบชื่อ */
+.names { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.names th, .names td { padding: 9px 10px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+.names th { font-family: "IBM Plex Sans Thai", sans-serif; font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; color: var(--text-dim); font-weight: 600; }
+.names td:first-child { color: var(--text-strong); font-weight: 500; white-space: nowrap; }
+
+/* ═══ บทที่ 6 · ศัพท์ UX ═══ */
+.gloss { display: grid; gap: 0; }
+.gloss__row {
+  display: grid; grid-template-columns: minmax(0, 232px) minmax(0, 1fr); gap: 4px 22px;
+  padding: 13px 0; border-top: 1px solid var(--rule); align-items: baseline;
+}
+.gloss__row:first-child { border-top: 0; }
+.gloss__term { color: var(--text-strong); font-size: .88rem; font-weight: 600; line-height: 1.45; }
+.gloss__term i { display: block; font-style: normal; font-family: "IBM Plex Sans Thai", monospace; font-size: .71rem; font-weight: 500; color: var(--accent); }
+.gloss__def { margin: 0; font-size: .87rem; }
+.gloss__def b { color: var(--accent-warm); font-weight: 600; }
+
+.heur { counter-reset: h; display: grid; gap: 0; }
+.heur__row { display: grid; grid-template-columns: 30px minmax(0, 250px) minmax(0, 1fr); gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--rule); align-items: baseline; }
+.heur__row:first-child { border-top: 0; }
+.heur__n { font-family: "IBM Plex Sans Thai", monospace; font-size: .78rem; font-weight: 700; color: var(--accent); }
+.heur__name { color: var(--text-strong); font-size: .87rem; font-weight: 600; line-height: 1.45; }
+.heur__name i { display: block; font-style: normal; font-size: .71rem; font-weight: 400; color: var(--text-dim); font-family: "IBM Plex Sans Thai", monospace; }
+.heur__us { margin: 0; font-size: .85rem; }
+
+@media (max-width: 700px) {
+  .gloss__row, .heur__row { grid-template-columns: minmax(0, 1fr); }
+  .heur__n { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="shell">
+
+  <header class="masthead">
+    <p class="masthead__kicker">คู่มือเจ้าของงาน</p>
+    <h1>ระบบหน้าตานายช่างหมู</h1>
+    <p>สี่เรื่องที่คุณถาม อธิบายด้วยของจริงในโปรเจกต์ตัวเอง ไม่ใช่ตัวอย่างจากที่อื่น
+      ทุกสี ทุกตัวเลข ทุกกฎในหน้านี้<strong>ยกมาจากไฟล์ที่ใช้งานอยู่จริง</strong>
+      จบหน้านี้แล้วคุณจะเรียกของทุกชิ้นได้ถูกชื่อ และรู้ว่าเวลาสั่งแก้ ต้องสั่งที่ไหน</p>
+  </header>
+
+  <!-- ══ บทที่ 1 · สี ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>สี</h2>
+      <span class="term">Colour · Contrast Ratio</span>
+    </div>
+    <p class="chapter__lede">เรื่องสีไม่ใช่เรื่องชอบไม่ชอบ ส่วนใหญ่<strong>วัดเป็นตัวเลขได้</strong>
+      หลักที่ใช้จริงคือ สีแต่ละตัวมีหน้าที่ ไม่ใช่มีไว้สวย และสีที่เอาไปเป็นตัวหนังสือ
+      ต้องต่างจากพื้นหลังมากพอให้คนสายตาไม่ดีอ่านออก</p>
+
+    <h3>สีของเรามีหน้าที่ประจำตัว</h3>
+    <div class="demo">
+      <div class="swatches">
+        <div class="sw">
+          <div class="sw__chip" style="background:#073047;color:#fff">--ink</div>
+          <div class="sw__body">
+            <span class="sw__name">หมึก</span>
+            <span class="sw__hex">#073047</span>
+            <span class="sw__job">หัวข้อ เส้นขอบ พื้นเข้ม ไม่ใช้กับเนื้อความยาว</span>
+          </div>
+        </div>
+        <div class="sw">
+          <div class="sw__chip" style="background:#0d8282;color:#fff">--teal</div>
+          <div class="sw__body">
+            <span class="sw__name">เขียวหัวเป็ด</span>
+            <span class="sw__hex">#0d8282</span>
+            <span class="sw__job">สีประจำแบรนด์ ใช้กับพื้น ป้าย และเส้นเน้น</span>
+          </div>
+        </div>
+        <div class="sw">
+          <div class="sw__chip" style="background:#f47721;color:#fff">--orange</div>
+          <div class="sw__body">
+            <span class="sw__name">ส้ม</span>
+            <span class="sw__hex">#f47721</span>
+            <span class="sw__job">ปุ่มหลักและจุดเน้น หนึ่งจุดต่อหนึ่งหน้าจอ</span>
+          </div>
+        </div>
+        <div class="sw">
+          <div class="sw__chip" style="background:#f4f7f7;color:#073047;border-bottom:1px solid #c9d8d9">--canvas</div>
+          <div class="sw__body">
+            <span class="sw__name">พื้นหน้ากระดาษ</span>
+            <span class="sw__hex">#f4f7f7</span>
+            <span class="sw__job">พื้นหลังหลัก เทาที่เอียงไปทางเขียว ไม่ใช่เทากลาง</span>
+          </div>
+        </div>
+      </div>
+      <p class="demo__cap">สังเกตว่าพื้นหลังของเราไม่ใช่เทากลาง แต่เป็นเทาที่เอียงไปทางเขียวนิดหนึ่ง
+        เทากลางแท้ ๆ จะดูเหมือนไม่ได้เลือก ส่วนเทาที่เอียงไปทางสีแบรนด์จะดูเหมือนตั้งใจ</p>
+    </div>
+
+    <h3>ตัวเลขที่ทำให้เถียงกันจบ</h3>
+    <p>ค่าที่เรียกว่า <strong>อัตราส่วนความต่าง (Contrast Ratio)</strong> วัดว่าตัวหนังสือกับพื้นหลังต่างกันแค่ไหน
+      มาตรฐานสากลกำหนดว่าตัวหนังสือขนาดปกติต้องได้อย่างน้อย <code>4.5</code> ตัวเลขข้างล่างนี้
+      ทีมเราวัดไว้แล้วและเขียนกำกับไว้ในไฟล์สีจริง</p>
+    <div class="demo">
+      <div class="tablewrap">
+        <table class="ratios">
+          <thead>
+            <tr><th>สีตัวหนังสือ</th><th>บนพื้น</th><th>ได้เท่าไร</th><th>ผลตัดสิน</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>--ink-body</code> #3f545f</td><td>พื้นหน้ากระดาษ</td><td>7.37</td>
+              <td><span class="verdict verdict--pass">ผ่านสบาย</span></td>
+            </tr>
+            <tr>
+              <td><code>--teal</code> #0d8282</td><td>ขาว</td><td>4.63</td>
+              <td><span class="verdict verdict--edge">ผ่านเฉียดฉิว</span></td>
+            </tr>
+            <tr>
+              <td><code>--teal</code> #0d8282</td><td>เขียวจาง #e7f1f1</td><td>4.03</td>
+              <td><span class="verdict verdict--fail">ตก</span></td>
+            </tr>
+            <tr>
+              <td><code>--teal-text</code> #0c7878</td><td>เขียวจาง #e7f1f1</td><td>4.62</td>
+              <td><span class="verdict verdict--pass">ผ่าน</span></td>
+            </tr>
+            <tr>
+              <td><code>--orange</code> #f47721</td><td>ขาว</td><td>2.80</td>
+              <td><span class="verdict verdict--fail">ตก ไม่มีทางผ่าน</span></td>
+            </tr>
+            <tr>
+              <td><code>--orange-text</code> #a34f14</td><td>ขาว</td><td>5.70</td>
+              <td><span class="verdict verdict--pass">ผ่าน</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="demo__cap">นี่คือเหตุผลที่เรามีสีส้มสองตัวและเขียวสองตัว ไม่ใช่เพราะลังเล
+        แต่เพราะ<strong>สีสำหรับพื้นกับสีสำหรับตัวหนังสือเป็นคนละงาน</strong>
+        ส้มสดสวยบนปุ่ม แต่พอเอามาเป็นตัวหนังสือบนพื้นขาวได้แค่ 2.80 ซึ่งอ่านไม่ออกสำหรับหลายคน</p>
+    </div>
+
+    <div class="rule">
+      <p class="rule__label">กฎของเรา</p>
+      <p>ค่าสีจริงประกาศได้ที่ <code>src/app/globals.css</code> บล็อก <code>:root</code> ที่เดียวเท่านั้น
+        ไฟล์อื่นทั้งโปรเจกต์ห้ามฝังเลขสีดิบ ต้องตักจากกระปุก <code>var(--...)</code> เสมอ</p>
+      <p>มีเทสต์ชื่อ <code>palette-fence.test.ts</code> เดินอ่านทุกไฟล์จริง ถ้าใครแอบฝังเลขสี เทสต์แดงทันที
+        แปลว่ากฎข้อนี้ไม่ได้อยู่แค่ในเอกสาร แต่มีคนเฝ้าอยู่</p>
+      <cite>ADR 0021 · docs/design-system/platform-ui-system.md ข้อ 8</cite>
+    </div>
+  </section>
+
+  <!-- ══ บทที่ 2 · ส่วนประกอบ ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>ของตกแต่งที่คุณไม่รู้ว่าเรียกอะไร</h2>
+      <span class="term">UI Component</span>
+    </div>
+    <p class="chapter__lede">ปุ่ม แถบเลื่อน ช่องกรอก ป้ายสถานะ ของพวกนี้เรียกรวมกันว่า
+      <strong>ส่วนประกอบหน้าจอ (UI Component)</strong> และเมื่อเอาทั้งชุดมารวมกับกฎว่าใช้เมื่อไร
+      จะเรียกว่า <strong>ระบบออกแบบ (Design System)</strong> ซึ่งโปรเจกต์คุณมีอยู่แล้ว</p>
+
+    <h3>ชื่อเรียกที่ต้องรู้ พร้อมของจริง</h3>
+    <div class="demo">
+      <div class="parts">
+        <div class="part">
+          <button class="btn btn--primary" type="button">ดูแอปทั้งหมด</button>
+          <span class="part__label"><b>ปุ่มหลัก</b><i>Primary Button</i>
+            งานที่อยากให้คนกดมากที่สุด มีได้หน้าละหนึ่งอย่าง</span>
+        </div>
+        <div class="part">
+          <button class="btn btn--quiet" type="button">ดูรายละเอียด</button>
+          <span class="part__label"><b>ปุ่มรอง</b><i>Secondary Button</i>
+            ทางเลือกที่มีอยู่แต่ไม่ได้เชียร์</span>
+        </div>
+        <div class="part">
+          <span class="pill pill--ready">เริ่มใช้ได้</span>
+          <span class="part__label"><b>ป้ายสถานะ</b><i>Status Pill · Badge</i>
+            บอกสถานะปัจจุบัน กดไม่ได้ ห้ามทำให้ดูเหมือนปุ่ม</span>
+        </div>
+        <div class="part">
+          <span class="pill pill--wait">กำลังเตรียมระบบ</span>
+          <span class="part__label"><b>ป้ายรอ</b><i>Pending Badge</i>
+            สีอุ่นบอกว่ายังไม่พร้อม แต่ไม่ใช่ความผิดพลาด</span>
+        </div>
+        <div class="part">
+          <div class="field">
+            <label for="d-in">ชื่อโครงการ</label>
+            <input id="d-in" type="text" value="อาคารเรียน 4 ชั้น" />
+          </div>
+          <span class="part__label"><b>ช่องกรอก</b><i>Input Field</i>
+            มีป้ายกำกับเสมอ ห้ามใช้ข้อความจาง ๆ ในช่องแทนป้าย</span>
+        </div>
+        <div class="part">
+          <div style="width:100%">
+            <label class="sr-hide" for="d-slider">ค่าเผื่อเศษ</label>
+            <input class="slider" id="d-slider" type="range" min="0" max="100" value="62" />
+            <span class="readout" id="d-out">62%</span>
+          </div>
+          <span class="part__label"><b>แถบเลื่อน</b><i>Slider · Range</i>
+            ใช้เมื่อค่าประมาณก็พอ ถ้าต้องการเลขเป๊ะ ให้ใช้ช่องกรอก</span>
+        </div>
+        <div class="part">
+          <div class="minicard">
+            <b>ESTIMETR</b>
+            <span>ถอดแบบ ถอดปริมาณ ประมาณราคางานอาคาร</span>
+          </div>
+          <span class="part__label"><b>การ์ด</b><i>Card</i>
+            กล่องที่รวมของเรื่องเดียวกันไว้ด้วยกัน</span>
+        </div>
+        <div class="part">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="pill pill--ready" style="background:transparent;border:1px solid var(--rule);color:var(--text-dim)">หน้าแรก</span>
+            <span style="color:var(--text-dim)">/</span>
+            <span class="pill pill--ready" style="background:transparent;border:1px solid var(--rule);color:var(--text-dim)">แอปทั้งหมด</span>
+            <span style="color:var(--text-dim)">/</span>
+            <span class="pill pill--ready">ESTIMETR</span>
+          </div>
+          <span class="part__label"><b>เส้นทางย้อนกลับ</b><i>Breadcrumb</i>
+            บอกว่าตอนนี้อยู่ลึกแค่ไหน และย้อนขึ้นได้ทางไหน</span>
+        </div>
+      </div>
+      <p class="demo__cap">ลองกดปุ่มด้วยแป้น Tab ดู จะเห็นกรอบสีส้มล้อมรอบ นั่นคือ <strong>สถานะโฟกัส (Focus State)</strong>
+        คนที่ใช้เมาส์ไม่ได้อาศัยสิ่งนี้ในการรู้ว่าตอนนี้อยู่ที่ปุ่มไหน</p>
+    </div>
+
+    <div class="rule">
+      <p class="rule__label">กฎของเรา</p>
+      <p>ห้ามสร้างคลังส่วนประกอบล่วงหน้า สร้างของกลางเมื่อ<strong>พบรูปแบบซ้ำจริงและพฤติกรรมเหมือนกันจริง</strong>
+        เท่านั้น กล่องซ้อน ข้อความลอย ป้าย ค่อยสร้างเมื่อมีการใช้ซ้ำจริง</p>
+      <p>เขตกดบนจอสัมผัสต้องไม่ต่ำกว่า 48 จุด หน้าตาปุ่มเล็กได้ แต่ให้ขยายเขตกดที่มองไม่เห็นออกไป</p>
+      <cite>docs/design-system/platform-ui-system.md ข้อ 5 และท้ายไฟล์</cite>
+    </div>
+  </section>
+
+  <!-- ══ บทที่ 3 · การเคลื่อนไหว ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>การเคลื่อนไหว</h2>
+      <span class="term">Motion · Micro-interaction</span>
+    </div>
+    <p class="chapter__lede">การเคลื่อนไหวที่ดี<strong>ตอบว่าเกิดอะไรขึ้น</strong> ไม่ใช่ทำให้ดูเท่
+      ถ้าเอาออกแล้วผู้ใช้ยังเข้าใจเท่าเดิม แปลว่ามันเป็นของประดับ ซึ่งไม่ผิด แต่ต้องรู้ตัวว่ากำลังใส่ของประดับ</p>
+
+    <h3>ความเร็วสำคัญกว่าที่คิด</h3>
+    <p>เอาเมาส์ไปวางบนสามกล่องนี้ทีละอัน แล้วสังเกตความรู้สึกที่ต่างกัน</p>
+    <div class="demo">
+      <div class="speeds">
+        <div class="speed speed--fast">
+          <div class="speed__box">140 มิลลิวินาที</div>
+          <span class="speed__note">เร็ว รู้สึกว่องไว เหมาะกับปุ่มและป้าย</span>
+        </div>
+        <div class="speed speed--right">
+          <div class="speed__box">200 มิลลิวินาที</div>
+          <span class="speed__note">กำลังดี เหมาะกับการ์ดและแผง</span>
+        </div>
+        <div class="speed speed--slow">
+          <div class="speed__box">900 มิลลิวินาที</div>
+          <span class="speed__note">ช้าเกิน รู้สึกว่าเว็บหน่วง ทั้งที่ไม่ได้หน่วง</span>
+        </div>
+      </div>
+      <p class="demo__cap">คนไม่ได้รู้สึกว่า "แอนิเมชันช้า" แต่จะรู้สึกว่า <strong>"เว็บนี้ช้า"</strong>
+        นี่คือเหตุผลที่ระบบเราตั้งกรอบไว้ที่ 140 ถึง 220 มิลลิวินาที</p>
+    </div>
+
+    <h3>ห้าแบบที่ควรแยกออกจากกัน</h3>
+    <div class="demo">
+      <div class="kinds">
+        <div class="kind">
+          <div class="kind__name">ตอบสนองตอนชี้<i>Micro-interaction</i></div>
+          <p class="kind__desc">การ์ดยกตัวขึ้นเล็กน้อยตอนเอาเมาส์วาง บอกว่า "อันนี้กดได้" มีประโยชน์จริง ควรมี</p>
+        </div>
+        <div class="kind">
+          <div class="kind__name">เปลี่ยนสถานะ<i>Transition</i></div>
+          <p class="kind__desc">ปุ่มเปลี่ยนจาก ส่งข้อมูล เป็น กำลังส่ง แล้วเป็น ส่งแล้ว ค่อย ๆ เปลี่ยนดีกว่ากระตุกเปลี่ยนทันที</p>
+        </div>
+        <div class="kind">
+          <div class="kind__name">ค่อยปรากฏตอนเลื่อนถึง<i>Scroll Reveal</i></div>
+          <p class="kind__desc">หน้าแรกเราใช้อยู่ 28 จุด ทำให้หน้ายาวไม่โถมใส่ตาทีเดียว แต่ห้ามใช้ซ่อนเนื้อหาจริง</p>
+        </div>
+        <div class="kind">
+          <div class="kind__name">บรรยากาศพื้นหลัง<i>Ambient</i></div>
+          <p class="kind__desc">ฝ้าสีลอยช้า ๆ หรือแถบข้อความวิ่ง ไม่ได้บอกอะไร แต่ทำให้หน้าไม่แข็งทื่อ ใส่ได้ที่ละน้อย</p>
+        </div>
+        <div class="kind">
+          <div class="kind__name">บอกว่ากำลังทำงาน<i>Loading</i></div>
+          <p class="kind__desc">แสงกวาดผ่านช่องว่างระหว่างรอข้อมูล บอกว่าระบบยังไม่ค้าง จำเป็นเมื่อรอเกินครึ่งวินาที</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rule">
+      <p class="rule__label">กฎของเรา</p>
+      <p>ใช้เวลา 140 ถึง 220 มิลลิวินาที ขยับด้วย <code>transform</code> กับ <code>opacity</code> เท่านั้น
+        เพราะสองอย่างนี้การ์ดจอทำเองได้ ไม่ต้องคำนวณผังหน้าใหม่ จึงไม่ทำให้เครื่องอืด</p>
+      <p>โฟกัสจากแป้นพิมพ์ต้องเปลี่ยนทันที ไม่ต้องมีหน่วง และเมื่อผู้ใช้ตั้งเครื่องให้
+        <strong>ลดการเคลื่อนไหว</strong> ทุกอย่างต้องหยุด ของเราทำไว้แล้ว 11 จุด</p>
+      <cite>docs/design-system/platform-ui-system.md แถว Motion และ Interaction rules</cite>
+    </div>
+  </section>
+
+  <!-- ══ บทที่ 4 · SaaS ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>หน้าเว็บแบบ SaaS</h2>
+      <span class="term">Software as a Service</span>
+    </div>
+    <p class="chapter__lede">SaaS คือการขายซอฟต์แวร์แบบให้ใช้ผ่านเว็บและจ่ายเป็นรอบ ไม่ใช่ขายขาด
+      หน้าขายของ SaaS จึงมีงานเดียว คือ<strong>ทำให้คนที่ยังไม่รู้จัก เข้าใจภายในหนึ่งจอ
+      ว่าเราแก้ปัญหาอะไรให้เขา</strong> แล้วพาไปทดลองใช้</p>
+
+    <h3>ผังมาตรฐาน กับของเราตอนนี้</h3>
+    <div class="demo">
+      <div class="anatomy">
+        <div class="floor floor--key">
+          <div class="floor__name">ส่วนหัว<i>Hero</i></div>
+          <p class="floor__job">จอแรกที่เห็นก่อนเลื่อน ต้องตอบว่าขายอะไรให้ใคร และมีปุ่มหลักหนึ่งปุ่ม</p>
+        </div>
+        <div class="floor">
+          <div class="floor__name">ขั้นตอนการเริ่ม<i>How it works</i></div>
+          <p class="floor__job">ของเราคือแถบ 01 ถึง 04 ลดความกลัวว่าจะใช้ยาก</p>
+        </div>
+        <div class="floor">
+          <div class="floor__name">หลักฐานว่าเชื่อได้<i>Social proof</i></div>
+          <p class="floor__job">ของเราคือแถบตัวเลข ที่นับจากชุดข้อมูลจริง ไม่ใช่ตัวเลขที่พิมพ์ลงไป</p>
+        </div>
+        <div class="floor floor--key">
+          <div class="floor__name">ปัญหาที่แก้<i>Problem · Solution</i></div>
+          <p class="floor__job">ส่วนที่ทำงานหนักที่สุด บอกความเจ็บปวดที่ลูกค้ามีจริง แล้วค่อยบอกว่าเราทำอะไร</p>
+        </div>
+        <div class="floor">
+          <div class="floor__name">รายการสินค้า<i>Product catalogue</i></div>
+          <p class="floor__job">ของเราคือการ์ดแอปแยกตามหมวดงาน พร้อมป้ายว่าพร้อมใช้หรือยัง</p>
+        </div>
+        <div class="floor">
+          <div class="floor__name">ชวนติดต่อ<i>Call to action</i></div>
+          <p class="floor__job">ของเราคือแผง Hermes ที่ให้ส่งรายละเอียดงานเข้ามา</p>
+        </div>
+      </div>
+      <p class="demo__cap">หน้าแรกของคุณมีครบทุกชั้นแล้ว ไม่ได้ขาด สิ่งที่ยังขาดคือ<strong>ปุ่มเปิดปิดแต่ละชั้นจากหลังบ้าน</strong>
+        ซึ่งเป็นงานที่วางแผนไว้แล้ว</p>
+    </div>
+
+    <h3>หกข้อที่ทำให้หน้า SaaS ต่างจากเว็บบริษัททั่วไป</h3>
+    <ul class="checklist">
+      <li><b>หนึ่งจอ หนึ่งงาน</b> แต่ละส่วนมีปุ่มหลักได้หนึ่งปุ่ม ถ้ามีปุ่มเด่นสามปุ่มแข่งกัน คนจะไม่กดสักปุ่ม</li>
+      <li><b>ให้ลองก่อนจ่าย</b> ทดลองใช้ฟรีมีน้ำหนักกว่าคำโฆษณาทุกประโยค ของเราคือ ทดลองใช้ฟรี 7 วัน</li>
+      <li><b>ราคาต้องหาเจอ</b> ซ่อนราคาแล้วคนไม่ติดต่อ แต่จะปิดแท็บ ของเราแยกไปหน้า <code>/pricing</code> ที่เดียว</li>
+      <li><b>พูดภาษาลูกค้า ไม่ใช่ภาษาระบบ</b> ผู้รับเหมาพูดว่า ถอดแบบ ไม่ได้พูดว่า quantity extraction module</li>
+      <li><b>อย่าสัญญาสิ่งที่ยังทำไม่ได้</b> ป้ายว่าพร้อมใช้ต้องมาจากทะเบียนที่มีคนรับผิดชอบ ไม่ใช่พิมพ์เอง</li>
+      <li><b>เร็วคือฟีเจอร์</b> หน้าที่โหลดช้าคือหน้าที่คนกดปิดก่อนอ่าน ภาพใหญ่เกินจำเป็นคือสาเหตุอันดับหนึ่ง</li>
+    </ul>
+
+    <div class="rule">
+      <p class="rule__label">กฎของเรา</p>
+      <p>คำแถลงเรื่องสิทธิ์ ราคา ความพร้อม และวันที่ ต้องมาจากทะเบียนแอปเท่านั้น
+        ไม่มีคำประกาศแปลว่า<strong>เงียบ ไม่ใช่หาย</strong> การ์ดยังขึ้นได้ แต่จะไม่พูดเรื่องที่ยังไม่มีใครรับรอง</p>
+      <p>ห้ามใส่ตัวเลขให้คำว่าเร็ว เช่น เร็วขึ้นสิบเท่า จนกว่าจะวัดกับงานจริงหลายโครงการ
+        มีเทสต์ห้ามไว้ที่ <code>method-claims.test.ts</code></p>
+      <cite>ADR 0015 · ADR 0011 · docs/rules/copy-th.md</cite>
+    </div>
+  </section>
+
+  <!-- ══ บทที่ 5 · ส่วนประกอบมาตรฐาน ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>ส่วนประกอบมาตรฐานที่ยังไม่ได้พูดถึง</h2>
+      <span class="term">shadcn/ui · Radix · Material</span>
+    </div>
+    <p class="chapter__lede">ห้องเครื่องมือที่ทำไว้เป็นของ<strong>สวย</strong> ส่วนบทนี้เป็นของ<strong>ใช้งาน</strong>
+      ชื่อทั้งหมดยกมาจาก shadcn/ui ซึ่งเป็นคลังที่นักพัฒนาใช้กันแพร่หลายที่สุดตอนนี้ 66 ตัว
+      ไม่ใช่คำที่ผมตั้งเอง เรียกชื่อพวกนี้แล้ว dev คนไหนก็เข้าใจ
+      แต่ละใบบอกด้วยว่า<strong>เว็บเรามีแล้วหรือยัง</strong> ซึ่งผมไล่ตรวจจากไฟล์จริง ไม่ได้เดา</p>
+
+    <!-- ฟอร์ม -->
+    <div class="cat">
+      <div class="cat__head"><h4>ฟอร์มและการรับข้อมูล</h4><em>Form</em></div>
+      <p class="cat__note">หมวดที่ผิดแล้วเจ็บที่สุด เพราะเป็นจุดที่ผู้ใช้ป้อนของจริงเข้าระบบ
+        กฎเดียวที่ห้ามพลาดคือ <strong>ทุกช่องต้องมีป้ายกำกับที่มองเห็น</strong> ไม่ใช่ข้อความจาง ๆ ในช่อง</p>
+      <div class="specs">
+        <div class="spec">
+          <div class="spec__name">Checkbox<i>ช่องติ๊ก · เลือกได้หลายข้อ</i></div>
+          <div class="spec__live">
+            <label class="ctl"><input type="checkbox" checked> รวมค่าเผื่อเศษ</label>
+            <label class="ctl"><input type="checkbox"> รวมค่าขนส่ง</label>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ใช้อยู่ 3 ไฟล์ · ใช้เมื่อตัวเลือกไม่ขัดกัน เลือกกี่ข้อก็ได้</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Radio Group<i>ปุ่มตัวเลือก · เลือกได้ข้อเดียว</i></div>
+          <div class="spec__live">
+            <label class="ctl"><input type="radio" name="m" checked> ราคากลาง Factor F</label>
+            <label class="ctl"><input type="radio" name="m"> ต้นทุนผู้รับเหมา</label>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ใช้ในฟอร์มออกประมาณราคา · เลือกได้ข้อเดียว ถ้ามีเกิน 5 ข้อให้เปลี่ยนไปใช้ Select</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Switch<i>สวิตช์เปิดปิด</i></div>
+          <div class="spec__live">
+            <label class="sw-box"><input type="checkbox" checked><span class="sw-track"></span> แสดงบล็อกนี้บนหน้าแรก</label>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> หน้า admin สำหรับเปิดปิดบล็อกหน้าแรก · ต่างจาก Checkbox ตรงที่ Switch มีผลทันที ไม่ต้องกดบันทึก</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Select<i>ช่องเลือกจากรายการ</i></div>
+          <div class="spec__live">
+            <label class="sr-hide" for="g-sel">จังหวัด</label>
+            <select class="sel" id="g-sel"><option>ขอนแก่น</option><option>นครราชสีมา</option><option>อุดรธานี</option></select>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ใช้อยู่ 9 ไฟล์ · ถ้ารายการยาวเกิน 10 บรรทัด ให้เปลี่ยนไปใช้ Combobox ที่พิมพ์ค้นได้</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Textarea<i>ช่องกรอกหลายบรรทัด</i></div>
+          <div class="spec__live">
+            <label class="sr-hide" for="g-ta">หมายเหตุ</label>
+            <textarea class="ta" id="g-ta">หมายเหตุของรายการนี้</textarea>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · ให้ผู้ใช้ลากขยายได้เสมอ อย่าล็อกความสูงตายตัว</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Field + Error<i>ช่องกรอกที่บอกว่าผิดตรงไหน</i></div>
+          <div class="spec__live">
+            <div class="fieldset">
+              <label for="g-err">ค่าเผื่อเศษ (%)</label>
+              <input id="g-err" value="7" aria-invalid="true" aria-describedby="g-errmsg">
+              <span class="err" id="g-errmsg">ต้องระบุเกณฑ์ที่อ้างอิง จึงจะบันทึกได้</span>
+            </div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · ข้อความผิดพลาดต้องบอกว่า<strong>แก้ยังไง</strong> ไม่ใช่บอกแค่ว่าผิด</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Input OTP<i>ช่องกรอกรหัสทีละหลัก</i></div>
+          <div class="spec__live">
+            <div class="otp">
+              <label class="sr-hide" for="o1">หลักที่ 1</label><input id="o1" maxlength="1" value="4" inputmode="numeric">
+              <label class="sr-hide" for="o2">หลักที่ 2</label><input id="o2" maxlength="1" value="8" inputmode="numeric">
+              <label class="sr-hide" for="o3">หลักที่ 3</label><input id="o3" maxlength="1" value="1" inputmode="numeric">
+              <label class="sr-hide" for="o4">หลักที่ 4</label><input id="o4" maxlength="1" inputmode="numeric">
+            </div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · จะใช้ตอนทำระบบยืนยันตัวตนสองชั้น ถ้าวันหนึ่งเปิดใช้</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Toggle Group<i>ปุ่มสลับกลุ่ม · Segmented Control</i></div>
+          <div class="spec__live">
+            <div class="tgroup" role="group" aria-label="มุมมอง">
+              <button type="button" aria-pressed="true">ตาราง</button>
+              <button type="button" aria-pressed="false">การ์ด</button>
+              <button type="button" aria-pressed="false">กราฟ</button>
+            </div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> สลับมุมมองรายการ BOQ · ฝั่ง iOS เรียก Segmented Control คำเดียวกัน</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- นำทาง -->
+    <div class="cat">
+      <div class="cat__head"><h4>การนำทาง</h4><em>Navigation</em></div>
+      <p class="cat__note">หน้าที่คือตอบสามคำถามตลอดเวลา ตอนนี้อยู่ไหน ไปไหนได้บ้าง กลับยังไง</p>
+      <div class="specs">
+        <div class="spec">
+          <div class="spec__name">Tabs<i>แท็บสลับเนื้อหา</i></div>
+          <div class="spec__live">
+            <div class="tabs" data-tabs>
+              <div class="tabs__list" role="tablist">
+                <button type="button" role="tab" aria-selected="true">ปริมาณ</button>
+                <button type="button" role="tab" aria-selected="false">ราคา</button>
+                <button type="button" role="tab" aria-selected="false">เอกสาร</button>
+              </div>
+              <div class="tabs__panel">รายการถอดแบบทั้งหมดของโครงการนี้</div>
+            </div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> หน้าโครงการ ESTIMETR ที่ตอนนี้เรียงแผงลงมายาวมาก · ใช้เมื่อเนื้อหาเป็นพี่น้องกัน ไม่ใช่ลำดับขั้น</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Pagination<i>แบ่งหน้า</i></div>
+          <div class="spec__live">
+            <div class="pager">
+              <button type="button">ก่อนหน้า</button>
+              <button type="button" aria-current="page">1</button>
+              <button type="button">2</button>
+              <button type="button">3</button>
+              <span>…</span>
+              <button type="button">ถัดไป</button>
+            </div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> รายการ BOQ ที่ยาวเป็นร้อยบรรทัด · ดีกว่า Infinite Scroll ตรงที่ผู้ใช้จำได้ว่าของอยู่หน้าไหน</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Sidebar<i>แถบเมนูข้าง</i></div>
+          <div class="spec__live">
+            <nav class="rail" aria-label="ตัวอย่างเมนู">
+              <a href="#bg" aria-current="page">ทะเบียนแอป</a>
+              <a href="#bg">ช่องทางติดต่อ</a>
+              <a href="#bg">สิทธิ์การใช้งาน</a>
+            </nav>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ในหน้า admin · ตัวที่กำลังเปิดอยู่ต้องต่างจากตัวอื่นชัดเจน ด้วย <code>aria-current="page"</code></p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Stepper<i>ลำดับขั้นตอน</i></div>
+          <div class="spec__live">
+            <div class="steps">
+              <span class="steps__dot steps__dot--done">1</span><span class="steps__bar steps__bar--done"></span>
+              <span class="steps__dot steps__dot--done">2</span><span class="steps__bar steps__bar--done"></span>
+              <span class="steps__dot steps__dot--now">3</span><span class="steps__bar"></span>
+              <span class="steps__dot">4</span>
+            </div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้วครึ่งเดียว</b> แถบเริ่มใช้งาน 01-04 บนหน้าแรกและลำดับงานในหน้าโครงการ แต่ยังไม่ได้แสดงว่าทำถึงขั้นไหนแล้วด้วยสี</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- เปิดเผยและซ้อนทับ -->
+    <div class="cat">
+      <div class="cat__head"><h4>การเปิดเผยและของที่ซ้อนทับ</h4><em>Disclosure &amp; Overlay</em></div>
+      <p class="cat__note">ของที่ซ่อนไว้ก่อนแล้วค่อยเปิด หลักการที่อยู่เบื้องหลังทั้งหมวดเรียกว่า
+        <strong>Progressive Disclosure</strong> คือแสดงเท่าที่จำเป็นก่อน ที่เหลือให้ขอดูเอง</p>
+      <div class="specs">
+        <div class="spec">
+          <div class="spec__name">Accordion<i>แผงพับเก็บ</i></div>
+          <div class="spec__live">
+            <div class="acc">
+              <details open><summary>Factor F คืออะไร</summary><p>ตัวคูณที่รวมกำไร ภาษี และดอกเบี้ย เข้ากับค่างานต้นทุน</p></details>
+              <details><summary>ค่า K คืออะไร</summary><p>ตัวคูณชดเชยค่างานเมื่อราคาวัสดุเปลี่ยนระหว่างสัญญา</p></details>
+            </div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ใช้แท็ก <code>details</code> อยู่ 2 ไฟล์ · ต่างจาก Tabs ตรงที่เปิดพร้อมกันได้หลายอัน</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Dialog<i>กล่องซ้อนกลางจอ · Modal</i></div>
+          <div class="spec__live">
+            <button class="btn btn--quiet" type="button" data-open="dlg">เปิดดูตัวอย่าง</button>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> 2 ไฟล์ · ใช้เมื่อต้องการคำตอบก่อนไปต่อเท่านั้น · <strong>ต้องกด Esc ปิดได้ และโฟกัสต้องติดอยู่ในกล่อง</strong> เรียกว่า Focus Trap</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Sheet<i>แผงเลื่อนจากขอบ · Drawer</i></div>
+          <div class="spec__live">
+            <button class="btn btn--quiet" type="button" data-open="sht">เปิดดูตัวอย่าง</button>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> แผงกรองรายการบนมือถือ · Material เรียก Drawer shadcn มีทั้งสองชื่อ Sheet มาจากขอบ Drawer มาจากล่าง</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Popover<i>แผงลอยที่กดเปิด</i></div>
+          <div class="spec__live">
+            <span class="pop" data-pop>
+              <button class="btn btn--quiet" type="button">ตัวกรอง</button>
+              <span class="pop__panel"><b>กรองรายการ</b>เลือกหมวดงานและช่วงราคา แล้วกดใช้</span>
+            </span>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · ต่างจาก Tooltip ตรงที่ <strong>Popover กดเปิดและมีของให้กดข้างใน</strong> ส่วน Tooltip แค่ชี้แล้วโผล่ อ่านอย่างเดียว</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Hover Card<i>การ์ดพรีวิวตอนชี้</i></div>
+          <div class="spec__live">
+            <span class="pop pop--hover">
+              <button class="btn btn--quiet" type="button">ESTIMETR</button>
+              <span class="pop__panel"><b>ESTIMETR</b>ถอดแบบ ถอดปริมาณ ประมาณราคางานอาคาร · เริ่มใช้ได้</span>
+            </span>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> พรีวิวแอปตอนชี้ชื่อแอปในเนื้อความ · ห้ามใส่ของสำคัญไว้ในนี้ เพราะมือถือไม่มีการชี้</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Collapsible<i>ซ่อนเนื้อหาส่วนเกิน</i></div>
+          <div class="spec__live">
+            <div class="acc"><details><summary>ดูอีก 12 รายการ</summary><p>รายการที่เหลือของกลุ่มงานนี้</p></details></div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · ใช้ <code>aria-expanded</code> อยู่ 6 ไฟล์ · ต่างจาก Accordion ตรงที่ Collapsible มีอันเดียว ไม่ได้เป็นชุด</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ผลตอบกลับ -->
+    <div class="cat">
+      <div class="cat__head"><h4>การบอกผลและสถานะ</h4><em>Feedback</em></div>
+      <p class="cat__note">ข้อแรกของ Nielsen คือ <strong>Visibility of System Status</strong> ระบบต้องบอกตลอดว่ากำลังเกิดอะไรขึ้น
+        หมวดนี้คือเครื่องมือที่ใช้ทำเรื่องนั้น</p>
+      <div class="specs">
+        <div class="spec">
+          <div class="spec__name">Alert<i>แถบแจ้งเตือนอยู่กับที่</i></div>
+          <div class="spec__live">
+            <div class="alert alert--danger"><span class="alert__stripe"></span><div class="alert__body"><b>บันทึกไม่ได้</b><span>ค่าเผื่อเศษต้องระบุเกณฑ์ที่อ้างอิง</span></div></div>
+            <div class="alert alert--ok"><span class="alert__stripe"></span><div class="alert__body"><b>ออกประมาณราคาแล้ว</b><span>ครั้งที่ 3 · ราคากลางด้วย Factor F</span></div></div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · อยู่กับที่บนหน้า ไม่หายไปเอง ใช้กับเรื่องที่ต้องแก้ก่อนไปต่อ</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Toast<i>ข้อความลอยแล้วหาย · Snackbar</i></div>
+          <div class="spec__live">
+            <button class="btn btn--quiet" type="button" id="toast-btn">ลองกดดู</button>
+            <div class="toast" id="toast-el">บันทึกแล้ว<button type="button">เลิกทำ</button></div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มีเลย</b> ตรวจแล้วไม่พบในโค้ด · Material เรียก Snackbar · <strong>ห้ามใส่ของสำคัญไว้ใน Toast</strong> เพราะมันหายไปเอง คนที่อ่านช้าจะพลาด</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Progress<i>แถบความคืบหน้า</i></div>
+          <div class="spec__live">
+            <div class="bar"><i style="width:64%"></i></div>
+            <span class="spec__desc" style="margin:0">ถอดปริมาณแล้ว 64%</span>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> 8 ไฟล์ · ใช้เมื่อรู้ว่าเหลืออีกเท่าไร ถ้าไม่รู้ให้ใช้ Spinner แทน</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Spinner<i>วงหมุนรอ · Loader</i></div>
+          <div class="spec__live"><span class="spin"></span></div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · ใช้เมื่อไม่รู้ว่าจะเสร็จเมื่อไร · ถ้ารอเกิน 1 วินาที ควรเปลี่ยนไปใช้ Skeleton จะรู้สึกเร็วกว่า</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Skeleton<i>โครงร่างระหว่างรอ</i></div>
+          <div class="spec__live">
+            <span class="skel" style="width:45%"></span>
+            <span class="skel" style="width:88%"></span>
+            <span class="skel" style="width:66%"></span>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว 1 ไฟล์</b> · ดีกว่า Spinner เพราะบอกล่วงหน้าว่าของที่กำลังมาหน้าตาเป็นยังไง หน้าจึงไม่กระโดดตอนโหลดเสร็จ</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Empty State<i>หน้าจอตอนยังไม่มีข้อมูล</i></div>
+          <div class="spec__live">
+            <div class="empty"><span class="empty__mark"></span><b>ยังไม่มีบัญชีราคาในโครงการนี้</b><span>หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามา</span></div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · <strong>อย่าปล่อยว่าง</strong> หน้าว่างคือโอกาสสอนว่าต้องทำอะไรต่อ ต้องมีปุ่มพาไปทำสิ่งนั้นด้วย</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- แสดงข้อมูล -->
+    <div class="cat">
+      <div class="cat__head"><h4>การแสดงข้อมูล</h4><em>Data Display</em></div>
+      <p class="cat__note">หมวดที่สำคัญที่สุดสำหรับเรา เพราะแอปเราเป็นแอปตัวเลขเกือบทั้งหมด</p>
+      <div class="specs">
+        <div class="spec">
+          <div class="spec__name">Data Table<i>ตารางข้อมูล</i></div>
+          <div class="spec__live">
+            <div class="tablewrap"><table class="dtable">
+              <thead><tr><th>รายการ</th><th>หน่วย</th><th>จำนวนเงิน</th></tr></thead>
+              <tbody>
+                <tr><td>คอนกรีตหยาบ</td><td>ลบ.ม.</td><td>12,450.00</td></tr>
+                <tr><td>เหล็กเส้นข้ออ้อย</td><td>กก.</td><td>184,200.00</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · <strong>ตัวเลขต้องชิดขวาและใช้ฟอนต์ที่หลักตรงกัน</strong> ซึ่งเราแก้ไปแล้วด้วย <code>--font-numeric</code></p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Avatar<i>รูปประจำตัว</i></div>
+          <div class="spec__live">
+            <div class="avatars"><span>สภ</span><span>กร</span><span>นม</span><span class="more">+5</span></div>
+          </div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> ที่มุมบัญชีผู้ใช้ · ถ้าไม่มีรูป ให้ใช้อักษรย่อ อย่าใช้รูปคนสุ่ม</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Kbd<i>ป้ายปุ่มคีย์บอร์ด</i></div>
+          <div class="spec__live"><div><kbd>Ctrl</kbd> <kbd>K</kbd> เปิดช่องค้นหา</div></div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · เล็กแต่บอกผู้ใช้ว่ามีทางลัด ซึ่งเป็นข้อ 7 ของ Nielsen เรื่องความยืดหยุ่นสำหรับคนใช้คล่อง</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Command<i>ช่องสั่งงานด่วน · Command Palette</i></div>
+          <div class="spec__live">
+            <div class="cmd">
+              <div class="cmd__bar">พิมพ์เพื่อค้นหา…</div>
+              <div class="cmd__list">
+                <div>ไปที่โครงการ<kbd>Enter</kbd></div>
+                <div>ออกประมาณราคา</div>
+                <div>เปิดบัญชีราคา</div>
+              </div>
+            </div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <b>จะใช้ที่ไหน</b> ทางลัดข้ามไปโครงการหรือแอปไหนก็ได้ด้วย <kbd>Ctrl</kbd>+<kbd>K</kbd> · เหมาะกับคนที่ใช้ทุกวัน</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Carousel<i>สไลด์เลื่อนดู</i></div>
+          <div class="spec__live">
+            <div class="carousel" data-carousel>
+              <div class="carousel__track">
+                <div class="carousel__slide">ตัวอย่างงานอาคารเรียน</div>
+                <div class="carousel__slide">ตัวอย่างงานถนน</div>
+                <div class="carousel__slide">ตัวอย่างงานกำแพงกันดิน</div>
+              </div>
+            </div>
+            <div class="carousel__dots"></div>
+          </div>
+          <p class="spec__desc"><b>ยังไม่มี</b> · <strong>ใช้อย่างระวัง</strong> งานวิจัยพบว่าคนแทบไม่เลื่อนดูสไลด์ที่สอง ของสำคัญห้ามอยู่หลังสไลด์แรก</p>
+        </div>
+        <div class="spec">
+          <div class="spec__name">Separator<i>เส้นคั่น</i></div>
+          <div class="spec__live"><div>บัญชีราคา</div><div class="sep"></div><div>ประมาณราคา</div></div>
+          <p class="spec__desc"><b>เรามีแล้ว</b> · เส้นคั่นควรใช้เมื่อระยะห่างอย่างเดียวสื่อไม่พอ ไม่ใช่ใส่ทุกที่</p>
+        </div>
+      </div>
+    </div>
+
+    <h3>ชื่อเดียวกันแต่คนละคลังเรียกไม่เหมือนกัน</h3>
+    <p>เรื่องนี้ทำให้คุยกันสับสนบ่อยที่สุด เวลาอ่านเจอชื่อแปลก ๆ ให้เทียบตารางนี้</p>
+    <div class="demo">
+      <div class="tablewrap">
+        <table class="names">
+          <thead><tr><th>สิ่งเดียวกัน</th><th>shadcn/ui</th><th>Material Design</th><th>Bootstrap</th></tr></thead>
+          <tbody>
+            <tr><td>กล่องซ้อนกลางจอ</td><td>Dialog</td><td>Dialog</td><td>Modal</td></tr>
+            <tr><td>ข้อความลอยแล้วหาย</td><td>Toast</td><td>Snackbar</td><td>Toast</td></tr>
+            <tr><td>แผงเลื่อนจากขอบ</td><td>Sheet / Drawer</td><td>Navigation Drawer</td><td>Offcanvas</td></tr>
+            <tr><td>สวิตช์เปิดปิด</td><td>Switch</td><td>Switch</td><td>Form Switch</td></tr>
+            <tr><td>แผงลอยที่กดเปิด</td><td>Popover</td><td>Menu</td><td>Popover</td></tr>
+            <tr><td>ป้ายสถานะเล็ก</td><td>Badge</td><td>Chip</td><td>Badge</td></tr>
+            <tr><td>ปุ่มลอยมุมจอ</td><td>ไม่มี</td><td>FAB</td><td>ไม่มี</td></tr>
+            <tr><td>ช่องเลือกที่พิมพ์ค้นได้</td><td>Combobox</td><td>Autocomplete</td><td>Datalist</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="demo__cap">เราใช้คำของ shadcn/ui เป็นหลัก เพราะเป็นคลังที่คนใช้กันมากที่สุดในโปรเจกต์ Next.js แบบเดียวกับเรา</p>
+    </div>
+  </section>
+
+  <!-- ══ บทที่ 6 · UX ══ -->
+  <section class="chapter">
+    <div class="chapter__head">
+      <h2>UX — ธรรมเนียม กับ บริบท</h2>
+      <span class="term">Nielsen Norman Group</span>
+    </div>
+    <p class="chapter__lede">มีคนพูดว่า UI ให้ AI ทำได้ แต่ UX ต้องมาจากประสบการณ์ตัวเอง
+      <strong>คำนั้นถูกครึ่งเดียว</strong> เส้นแบ่งจริงไม่ได้อยู่ที่ UI กับ UX แต่อยู่ที่ธรรมเนียมกับบริบท
+      บทนี้แยกสองอย่างนั้นให้ชัด เพราะมันบอกว่าเรื่องไหนสั่ง AI ทำได้ และเรื่องไหนต้องมาจากคุณเท่านั้น</p>
+
+    <h3>สิบข้อของ Nielsen — นี่คือธรรมเนียม</h3>
+    <p>เขียนไว้ตั้งแต่ปี 1994 และยังเป็นมาตรฐานที่ทั้งวงการใช้ตรวจงานกันอยู่ <strong>เป็นความรู้ที่ท่องได้
+      ไม่ต้องมีประสบการณ์ก็เรียนได้</strong> ช่องขวาคือสภาพของเราเทียบกับแต่ละข้อ ซึ่งผมตรวจจากโค้ดจริง</p>
+    <div class="demo">
+      <div class="heur">
+        <div class="heur__row"><span class="heur__n">01</span><div class="heur__name">บอกสถานะระบบตลอดเวลา<i>Visibility of System Status</i></div>
+          <p class="heur__us"><b>ยังขาด</b> ไม่มี Toast เลยสักตัว งานที่สำเร็จแล้วไม่มีอะไรยืนยันให้เห็น</p></div>
+        <div class="heur__row"><span class="heur__n">02</span><div class="heur__name">พูดภาษาเดียวกับโลกจริงของผู้ใช้<i>Match Between System and the Real World</i></div>
+          <p class="heur__us"><b>แข็งแรงที่สุดของเรา</b> copy-th.md บังคับให้หยิบคำจากฟอร์ม ปร.4 จริง ไม่ใช่แปลจากชื่อคอลัมน์</p></div>
+        <div class="heur__row"><span class="heur__n">03</span><div class="heur__name">ให้ผู้ใช้ควบคุมและถอยกลับได้<i>User Control and Freedom</i></div>
+          <p class="heur__us"><b>ยังขาด</b> ไม่มีเลิกทำ ประมาณราคาที่ออกแล้วแก้ไม่ได้ ต้องออกครั้งใหม่</p></div>
+        <div class="heur__row"><span class="heur__n">04</span><div class="heur__name">สม่ำเสมอและทำตามมาตรฐาน<i>Consistency and Standards</i></div>
+          <p class="heur__us"><b>ดี</b> ทุกแอปใช้โครงหน้าร่วมเดียวกัน และมีรั้วเทสต์คุมสีกับไอคอน</p></div>
+        <div class="heur__row"><span class="heur__n">05</span><div class="heur__name">กันพลาดตั้งแต่ต้น<i>Error Prevention</i></div>
+          <p class="heur__us"><b>แข็งแรงมาก</b> ค่าเผื่อที่ไม่ระบุที่มาถูกปฏิเสธตั้งแต่ตอนบันทึก ไม่ใช่แค่เตือนแล้วกดข้ามได้</p></div>
+        <div class="heur__row"><span class="heur__n">06</span><div class="heur__name">ให้จำได้ ดีกว่าให้นึกเอง<i>Recognition Rather than Recall</i></div>
+          <p class="heur__us"><b>พอใช้</b> มีเส้นทางย้อนกลับแล้ว แต่ยังไม่มีคำอธิบายลอยสำหรับศัพท์อย่าง Factor F</p></div>
+        <div class="heur__row"><span class="heur__n">07</span><div class="heur__name">ยืดหยุ่นและเร็วสำหรับคนใช้คล่อง<i>Flexibility and Efficiency of Use</i></div>
+          <p class="heur__us"><b>ยังขาด</b> ไม่มีทางลัดคีย์บอร์ด ไม่มี Command Palette คนที่ใช้ทุกวันยังต้องคลิกเท่าคนใช้ครั้งแรก</p></div>
+        <div class="heur__row"><span class="heur__n">08</span><div class="heur__name">สวยและเรียบ ไม่ใส่ของเกิน<i>Aesthetic and Minimalist Design</i></div>
+          <p class="heur__us"><b>ดี</b> แต่ต้องระวังตอนเอาลูกเล่นจากห้องเครื่องมือไปใส่ ใส่หมดทุกตัวคือละเมิดข้อนี้</p></div>
+        <div class="heur__row"><span class="heur__n">09</span><div class="heur__name">ช่วยให้เข้าใจและแก้ข้อผิดพลาดได้<i>Help Users Recognize, Diagnose, Recover</i></div>
+          <p class="heur__us"><b>ดี</b> ข้อความผิดพลาดของเราบอกว่าแก้ยังไง ตามที่ copy-th.md กำหนด</p></div>
+        <div class="heur__row"><span class="heur__n">10</span><div class="heur__name">มีคำอธิบายและคู่มือ<i>Help and Documentation</i></div>
+          <p class="heur__us"><b>เพิ่งเริ่ม</b> หน้านี้กับห้องเครื่องมือคือก้าวแรก แต่ในตัวแอปยังไม่มีความช่วยเหลือในจอ</p></div>
+      </div>
+    </div>
+
+    <h3>ศัพท์ UX ที่ dev พูดกันจริง</h3>
+    <p>ทั้งหมดนี้เป็น<strong>ธรรมเนียม</strong> เรียนได้ ท่องได้ และสั่งผมทำตามได้</p>
+    <div class="demo">
+      <div class="gloss">
+        <div class="gloss__row"><div class="gloss__term">เปิดเผยทีละขั้น<i>Progressive Disclosure</i></div><p class="gloss__def">แสดงเท่าที่จำเป็นก่อน ที่เหลือให้กดขอดู ลดความรู้สึกว่าหน้าจอรก</p></div>
+        <div class="gloss__row"><div class="gloss__term">สิ่งที่บอกว่ากดได้<i>Affordance · Signifier</i></div><p class="gloss__def">รูปทรงที่บอกโดยไม่ต้องอธิบาย ปุ่มดูเหมือนกดได้ ช่องกรอกดูเหมือนพิมพ์ได้ <b>ป้ายสถานะห้ามดูเหมือนปุ่ม</b></p></div>
+        <div class="gloss__row"><div class="gloss__term">อัปเดตก่อนเซิร์ฟเวอร์ตอบ<i>Optimistic UI</i></div><p class="gloss__def">ติ๊กแล้วเปลี่ยนทันที ไม่รอเซิร์ฟเวอร์ ถ้าพลาดค่อยย้อนกลับ ทำให้รู้สึกเร็วมาก</p></div>
+        <div class="gloss__row"><div class="gloss__term">เหนือเส้นพับ<i>Above the Fold</i></div><p class="gloss__def">ส่วนที่เห็นก่อนเลื่อน มาจากหนังสือพิมพ์ที่พับครึ่ง ของสำคัญต้องอยู่เหนือเส้นนี้</p></div>
+        <div class="gloss__row"><div class="gloss__term">สามสถานะที่ต้องออกแบบเสมอ<i>Empty · Loading · Error State</i></div><p class="gloss__def">ทุกหน้าจอที่ดึงข้อมูลต้องมีครบสามแบบ <b>คนมักออกแบบแต่ตอนข้อมูลมาครบ</b> ซึ่งเป็นกรณีที่เจอน้อยที่สุด</p></div>
+        <div class="gloss__row"><div class="gloss__term">กับดักโฟกัส<i>Focus Trap</i></div><p class="gloss__def">เมื่อกล่องซ้อนเปิด การกด Tab ต้องวนอยู่แต่ในกล่อง ไม่หลุดไปข้างหลัง</p></div>
+        <div class="gloss__row"><div class="gloss__term">เขตกดขั้นต่ำ<i>Touch Target</i></div><p class="gloss__def">พื้นที่กดบนจอสัมผัสต้องไม่เล็กกว่า 48 จุด ระบบเราเคาะไว้แล้ว</p></div>
+        <div class="gloss__row"><div class="gloss__term">มือถือก่อน<i>Mobile First</i></div><p class="gloss__def">ออกแบบจอเล็กก่อนแล้วค่อยขยาย บังคับให้ตัดของไม่จำเป็นออกตั้งแต่ต้น</p></div>
+        <div class="gloss__row"><div class="gloss__term">กฎของฟิตส์<i>Fitts's Law</i></div><p class="gloss__def">ของยิ่งใหญ่และยิ่งใกล้ ยิ่งกดง่าย ปุ่มสำคัญจึงควรใหญ่กว่าและอยู่ใกล้มือ</p></div>
+        <div class="gloss__row"><div class="gloss__term">กฎของฮิก<i>Hick's Law</i></div><p class="gloss__def">ตัวเลือกยิ่งเยอะ ยิ่งตัดสินใจช้า เมนู 20 ข้อแย่กว่าเมนู 5 ข้อที่จัดกลุ่มดี</p></div>
+        <div class="gloss__row"><div class="gloss__term">กฎของเจคอบ<i>Jakob's Law</i></div><p class="gloss__def">คนใช้เว็บอื่นมากกว่าเว็บเรา <b>เขาจึงคาดหวังให้เว็บเราทำงานเหมือนเว็บอื่น</b> ความแปลกใหม่ในเรื่องพื้นฐานคือความเสี่ยง</p></div>
+        <div class="gloss__row"><div class="gloss__term">ภาระทางความคิด<i>Cognitive Load</i></div><p class="gloss__def">จำนวนสิ่งที่ผู้ใช้ต้องคิดพร้อมกัน ลดได้ด้วยค่าตั้งต้นที่ดีและการจัดกลุ่ม</p></div>
+        <div class="gloss__row"><div class="gloss__term">ค่าตั้งต้นที่ดี<i>Sensible Defaults</i></div><p class="gloss__def">เดาให้ถูกตั้งแต่แรก ผู้ใช้ส่วนใหญ่จะไม่ต้องแตะเลย</p></div>
+        <div class="gloss__row"><div class="gloss__term">เลิกทำ ดีกว่าถามยืนยัน<i>Undo over Confirm</i></div><p class="gloss__def">กล่องถามว่าแน่ใจไหม คนกดผ่านโดยไม่อ่าน ให้ทำเลยแล้วมีปุ่มเลิกทำดีกว่า</p></div>
+        <div class="gloss__row"><div class="gloss__term">ทางลัดสายตา<i>F-Pattern · Z-Pattern</i></div><p class="gloss__def">คนกวาดสายตาเป็นรูปตัว F บนหน้าที่มีข้อความเยอะ และตัว Z บนหน้าที่มีของน้อย</p></div>
+        <div class="gloss__row"><div class="gloss__term">ข้อความเล็กที่สำคัญ<i>Microcopy</i></div><p class="gloss__def">คำบนปุ่ม ข้อความใต้ช่องกรอก ข้อความผิดพลาด <b>ส่งผลต่อการใช้งานมากกว่าภาพสวย</b></p></div>
+        <div class="gloss__row"><div class="gloss__term">ลวดลายมืด<i>Dark Pattern</i></div><p class="gloss__def">การออกแบบที่หลอกให้กดสิ่งที่ไม่ตั้งใจ เช่นปุ่มยกเลิกที่จางจนหาไม่เจอ <b>ห้ามทำ</b></p></div>
+        <div class="gloss__row"><div class="gloss__term">กระปุกค่าออกแบบ<i>Design Token</i></div><p class="gloss__def">ค่าสี ระยะ ขนาด ที่ประกาศไว้ที่เดียวแล้วทุกที่ตักไปใช้ ของเราอยู่ที่ globals.css</p></div>
+        <div class="gloss__row"><div class="gloss__term">มาตรฐานการเข้าถึง<i>WCAG · ARIA</i></div><p class="gloss__def">WCAG คือเกณฑ์ เช่นคอนทราสต์ 4.5 · ARIA คือป้ายบอกโปรแกรมอ่านหน้าจอว่าของชิ้นนี้คืออะไร</p></div>
+        <div class="gloss__row"><div class="gloss__term">ตัวชี้วัดความเร็วของเว็บ<i>Core Web Vitals</i></div><p class="gloss__def">LCP เนื้อหาหลักขึ้นเมื่อไร · CLS หน้ากระโดดแค่ไหน · INP กดแล้วตอบสนองเร็วไหม Google ใช้จัดอันดับด้วย</p></div>
+      </div>
+    </div>
+
+    <h3>ส่วนที่ AI ทำแทนไม่ได้ — นี่คือบริบท</h3>
+    <p>ทั้งหมดข้างบนผมเรียนมาได้ แต่สี่ข้อข้างล่างนี้<strong>ไม่มีทางรู้เอง</strong>
+      มันมาจากการที่คุณเคยยืนอยู่ในห้องประชุมตอนตัวเลขถูกซัก</p>
+    <div class="demo">
+      <div class="gloss">
+        <div class="gloss__row"><div class="gloss__term">ตัวเลขต้องชี้ต้นทางได้<i>ADR 0015 · กฎค่าเผื่อ</i></div>
+          <p class="gloss__def">ไม่มีตำรา UX เล่มไหนเขียนว่า &ldquo;ค่าเผื่อที่ไม่ระบุที่มาต้องถูกปฏิเสธตั้งแต่ตอนบันทึก&rdquo;
+            <b>คุณรู้ข้อนี้เพราะเคยถูกถามว่าเลข 7% มาจากไหน แล้วตอบไม่ได้</b></p></div>
+        <div class="gloss__row"><div class="gloss__term">ใช้คำของฟอร์ม ไม่ใช่คำของฐานข้อมูล<i>copy-th.md</i></div>
+          <p class="gloss__def">AI จะแปล <code>price_set</code> ว่าชุดราคาซึ่งฟังดูสมเหตุสมผล
+            <b>แต่คุณรู้ว่า ว809 เรียกของตัวเองว่าบัญชี</b> และคำว่าชุดไม่เคยปรากฏในเอกสารราชการเลย</p></div>
+        <div class="gloss__row"><div class="gloss__term">รู้ว่าใครจะถูกซักและซักเรื่องอะไร<i>ลำดับความสำคัญของหน้าจอ</i></div>
+          <p class="gloss__def">AI จัดหน้าจอตามความสวย <b>คุณจัดตามลำดับที่ผู้ตรวจจะไล่ถาม</b> สองอย่างนี้ไม่เหมือนกัน</p></div>
+        <div class="gloss__row"><div class="gloss__term">รู้ว่าอะไรผิดแล้วเสียเงินจริง<i>ความเสี่ยงที่ไม่สมมาตร</i></div>
+          <p class="gloss__def">พิมพ์ 1.25 แทน 12.5 หน้าตาเหมือนกันในตาราง <b>แต่ผลต่างคือประมูลได้กับประมูลพลาด</b>
+            AI ไม่รู้ว่าช่องไหนพลาดแล้วเจ็บกว่ากัน จึงป้องกันให้เท่ากันหมด ซึ่งผิด</p></div>
+      </div>
+      <p class="demo__cap">ข้อสรุปที่ใช้ได้จริง — <strong>สั่งผมทำเรื่องธรรมเนียมให้หมด แล้วเก็บแรงคุณไว้ตัดสินเรื่องบริบท</strong>
+        ถ้าสลับกัน จะได้เว็บที่ถูกตำราแต่ผิดงาน</p>
+    </div>
+  </section>
+
+  <aside class="where">
+    <h2>เวลาจะสั่งแก้ ให้สั่งที่ไหน</h2>
+    <p>สี่เรื่องข้างบนอยู่กันคนละที่ในโปรเจกต์ ตารางนี้ช่วยให้คุณบอกได้ว่าอยากแก้อะไร</p>
+    <dl>
+      <dt>ค่าสีทุกสี</dt>
+      <dd>src/app/globals.css บล็อก :root</dd>
+      <dt>กฎว่าใช้สีไหนเมื่อไร</dt>
+      <dd>docs/design-system/platform-ui-system.md</dd>
+      <dt>หน้าตาปุ่ม การ์ด ป้าย</dt>
+      <dd>src/app/globals.css และ src/components/</dd>
+      <dt>ชื่อของแต่ละตำแหน่งบนหน้าแรก</dt>
+      <dd>src/lib/landing-blocks.ts</dd>
+      <dt>ถ้อยคำที่ผู้ใช้อ่าน</dt>
+      <dd>docs/rules/copy-th.md</dd>
+      <dt>คำแถลงเรื่องสิทธิ์และความพร้อม</dt>
+      <dd>หน้า /admin/apps ไม่ใช่ในโค้ด</dd>
+    </dl>
+  </aside>
+
+</div>
+
+<script>
+  // แถบเลื่อนตัวอย่าง — แสดงค่าที่เลือกให้เห็นทันที เพราะแถบเลื่อนที่ไม่บอกค่าคือแถบเลื่อนที่เดาไม่ถูก
+  (function () {
+    var slider = document.getElementById("d-slider");
+    var out = document.getElementById("d-out");
+    if (!slider || !out) return;
+    slider.addEventListener("input", function () { out.textContent = slider.value + "%"; });
+  })();
+</script>
