@@ -132,6 +132,29 @@
   .teach-btn[aria-pressed="true"]{background:var(--orange);color:#fff}
   .teach-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
+  /* ---------- จอเล็ก มือถือและไอแพดแนวตั้ง ---------- */
+  .scroller{overflow-x:auto}
+  @media (max-width: 720px){
+    body{font-size:15px}
+    .wrap{width:min(100% - 20px, 980px)}
+    header.top{padding:28px 0 18px}
+    nav.toc{gap:5px;padding:9px 0}
+    nav.toc a{font-size:.74rem;padding:4px 10px}
+    .teach-btn{margin-left:0;width:100%;margin-top:6px}
+    section{padding-top:34px}
+    .demo{padding:13px}
+    .mini{--rail:66px;--insp:84px;height:210px;font-size:.6rem}
+    .mw{grid-template-columns:70px 1fr 70px;font-size:.64rem}
+    .stage{height:210px}
+    .cur{height:56px;font-size:.72rem;min-width:44%}
+    .sp{height:96px}
+    table{font-size:.8rem}
+    td:first-child{white-space:normal}
+    pre{font-size:.72rem;padding:11px 12px}
+    .teach{max-width:calc(100vw - 24px)}
+    .clock{font-size:1rem}
+  }
+
   .clock{font-variant-numeric:tabular-nums;font-size:1.1rem;font-weight:600}
   footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
     color:var(--muted);font-size:.86rem}
@@ -143,7 +166,7 @@
 <header class="top">
   <p class="kick">เล่มคู่มือ · 1 กันยายน 2569</p>
   <h1>คำศัพท์และคำสั่ง UI UX ที่ใช้จริงกับงานของเรา</h1>
-  <p class="lede">รวมทุกเรื่องที่คุยกันในเซสชันนี้ ทุกหัวข้อมีของจริงให้กดเล่น และ<b>เอาเมาส์ชี้ตรงไหนก็มีคำอธิบายของตรงนั้นขึ้นมา</b> พร้อมกรอบไฮไลต์บอกว่ากำลังพูดถึงชิ้นไหน · เจอกับดักไหนแล้วบ้าง และประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</p>
+  <p class="lede">รวมทุกเรื่องที่คุยกันในเซสชันนี้ ทุกหัวข้อมีของจริงให้กดเล่น และ<b>เอาเมาส์ชี้ตรงไหนก็มีคำอธิบายของตรงนั้นขึ้นมา</b> พร้อมกรอบไฮไลต์บอกว่ากำลังพูดถึงชิ้นไหน · บนมือถือหรือไอแพดให้<b>แตะที่ชิ้นนั้น</b>แทนการชี้ · เจอกับดักไหนแล้วบ้าง และประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</p>
 </header>
 
 <nav class="toc">
@@ -178,7 +201,7 @@
       <div class="bar">status bar · เครื่องมือ สเกล ระดับซูม</div>
     </div>
   </div>
-  <table>
+  <div class="scroller"><table>
     <thead><tr><th>ที่เราเรียก</th><th>ศัพท์ dev</th><th>ชื่ออื่นที่เจอบ่อย</th></tr></thead>
     <tbody>
       <tr><td>แถบบนสุด</td><td>app bar</td><td>menu bar · title bar</td></tr>
@@ -189,7 +212,7 @@
       <tr><td>แถบล่าง</td><td>status bar</td><td>—</td></tr>
       <tr><td>เส้นแบ่งลากได้</td><td>splitter</td><td>resize handle · gutter</td></tr>
     </tbody>
-  </table>
+  </table></div>
 </section>
 
 <!-- ๒ -->
@@ -272,13 +295,13 @@ view.x = px - wx * view.scale;           <span class="c">// เลื่อน�
       <span style="font-size:.8rem;color:var(--muted)">ปุ่มที่เห็น 32 · พื้นที่กดจริง 48</span>
     </div>
   </div>
-  <table>
+  <div class="scroller"><table>
     <thead><tr><th>ใช้กับ</th><th>ศัพท์</th><th>ขนาดต่ำสุด</th></tr></thead>
     <tbody>
       <tr><td>นิ้วบนจอสัมผัส</td><td>touch target</td><td>44 พิกเซล</td></tr>
       <tr><td>เมาส์บนคอม</td><td>pointer target</td><td>32 พิกเซล พอ</td></tr>
     </tbody>
-  </table>
+  </table></div>
 <pre>.tool::before{ content:""; position:absolute; inset:-8px; }
 <span class="c">/* ขยายพื้นที่กดโดยไม่ขยายปุ่มที่ตาเห็น เรียก hit area expansion */</span></pre>
 </section>
@@ -330,13 +353,13 @@ view.x = px - wx * view.scale;           <span class="c">// เลื่อน�
     </div>
     <p style="font-size:.8rem;color:var(--muted);margin:10px 0 0" id="rg-state"></p>
   </div>
-  <table>
+  <div class="scroller"><table>
     <thead><tr><th>แบบ</th><th>ใช้กับ</th><th>เขียนว่า</th></tr></thead>
     <tbody>
       <tr><td>เลือกทีละอัน</td><td>เครื่องมือวัด</td><td><code>role="radiogroup"</code> + <code>aria-checked</code></td></tr>
       <tr><td>สวิตช์เปิดปิด</td><td>ดูดจุด บังคับแนว</td><td><code>aria-pressed</code></td></tr>
     </tbody>
-  </table>
+  </table></div>
 </section>
 
 <!-- ๘ -->
@@ -625,7 +648,13 @@ document.addEventListener("focusin", e => {
   const el = e.target.closest?.("[data-teach]");
   el ? showTeach(el) : hideTeach();
 });
-document.addEventListener("pointerdown", hideTeach);
+/* บนจอสัมผัสไม่มีการชี้ค้าง การแตะจึงต้องเปิดคำอธิบายค้างไว้
+   ปิดเมื่อแตะที่ว่าง ส่วนเมาส์ยังปิดทันทีที่กดเหมือนเดิม */
+document.addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "mouse"){ hideTeach(); return; }
+  const el = e.target.closest?.("[data-teach]");
+  el ? showTeach(el) : hideTeach();
+});
 addEventListener("scroll", hideTeach, { passive:true });
 
 document.body.classList.add("teach-on");
