@@ -93,47 +93,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* IP-226 ชั้นที่ 1: ห้าประโยคหลักการเคยวิ่งอยู่ในแถบข้อความวิ่งที่ตั้ง aria-hidden ไว้
-          แปลว่าโปรแกรมอ่านหน้าจอกับเครื่องมือค้นหาอ่านไม่เห็นเลย ย้ายมาเป็นส่วนจริงที่อ่านได้
-          แถบวิ่งถูกเอาออกจากหน้าแล้ว แต่สไตล์ของมันยังอยู่ใน globals.css
-          วิธีเอากลับมาอยู่ที่ .design/landing-blocks/principle-marquee-guide.md */}
-      <section className="section section--white principle-list" aria-labelledby="principle-list-heading">
-        <div className="container">
-          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
-            <div>
-              {/* คำนำหน้าส่วนเดิมคือ หลักการที่ระบบนี้ยึด ซึ่งไม่มีเว็บไทยเจ้าไหนใช้รูปแบบนี้
-                  เปลี่ยนเป็นคำที่ผู้รับเหมาจริงใช้เป็นหัวข้อ ตามที่เก็บมาจาก theeraphong และ proboq */}
-              <div className="eyebrow" style={{ color: "var(--teal)" }}>โปร่งใส ตรวจสอบได้ ทุกขั้นตอน</div>
-              <h2 id="principle-list-heading">ตัวเลขที่ได้มาจากการคำนวณที่เชื่อถือได้</h2>
-            </div>
-            <p>ถามผู้ช่วย AI ให้บอกที่มาของทุกตัวเลขได้ ชัวร์ ไม่มั่วนิ่ม</p>
-          </div>
-          <ul className="principle-list__items">
-            {/* IP-226 รอบสอง: รอบแรกเขียนจากมุมของระบบว่าระบบทำอะไร ซึ่งอ่านแล้วเป็นใบตรวจสอบ
-                รอบนี้เรียงใหม่จากความเจ็บของผู้รับเหมาก่อน แล้วค่อยบอกว่าเราเปลี่ยนอะไร
-                ความเจ็บยกมาจากที่ผู้รับเหมาเขียนถึงกันเอง — selectcon.com ขึ้นสาเหตุทิ้งงาน
-                ข้อแรกว่า "ราคาต่ำเกินไป ผู้รับเหมาที่เสนอราคาต่ำกว่าความเป็นจริง มักประสบปัญหาขาดทุน"
-                คลังถ้อยคำเต็มอยู่ที่ docs/research/thai-construction-copy-corpus-2026-08-31.md
-                ห้ามใส่การออกแบบ ปร.4 หรือการคูณ Factor F เพราะยังทำไม่ได้จริง
-                บรรทัดสุดท้ายเรื่องราคา ห้ามใช้คำว่าเรียลไทม์ ปัจจุบัน หรือราคาตลาด — CONTEXT.md ห้ามไว้
-                และ docs/research/tpso-cmip-api-2026-08-26.md วัดแล้วว่าต้นทางของ สนค. ขยับเดือนละครั้ง
-                ดูคอมเมนต์ที่ src/components/estimeter/boq-panel.tsx */}
-            {[
-              { lead: "จุดเริ่มของการขาดทุน คือราคาที่ต่ำกว่าความเป็นจริง", detail: "ที่นี่คุณเห็นครบทุกบรรทัดก่อนเสนอราคา" },
-              { lead: "ตัวเลขที่คุณสงสัย AI Assistant ตอบได้ทันที", detail: "ปริมาณวัสดุจากแบบ ราคาที่ใช้คำนวณ" },
-              { lead: "ผู้ช่วย AI จับคู่ราคาให้ทั้งใบ แล้วให้คุณตรวจสอบ", detail: "ผู้ช่วยไม่มั่วเรื่องตัวเลข เพราะมีข้อมูลจริงที่อ้างอิงได้" },
-              { lead: "ยอดรวมตรงถึงสตางค์", detail: "ไม่มีเศษหายระหว่างทาง" },
-              { lead: "ราคาบอกเดือนของมันเสมอ ไม่ใช่บอกแค่ว่าอัปเดตวันนี้", detail: "สนค. ประกาศเมื่อไร เครื่องเราอ่านมาเมื่อไร แยกให้เห็นคนละอัน" }
-            ].map((line, index) => (
-              <li key={line.lead} data-reveal style={{ "--reveal-delay": index } as CSSProperties}>
-                <span className="principle-list__mark" aria-hidden="true" />
-                <p><b>{line.lead}</b><small>{line.detail}</small></p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
       <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
         <div className="container">
           <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — นับจากชุดข้อมูลจริงในระบบ</div>
