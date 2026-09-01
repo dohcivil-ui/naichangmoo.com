@@ -115,6 +115,23 @@
   .sp .p:last-child{background:var(--teal-soft);color:var(--teal)}
   .sp .h{background:var(--line);cursor:col-resize}
 
+  /* ---------- โหมดสอน ชี้ตรงไหนอธิบายตรงนั้น ---------- */
+  .teach{position:fixed;z-index:200;max-width:320px;background:var(--ink-deep);color:#fff;
+    border-radius:8px;padding:10px 13px;pointer-events:none;opacity:0;transition:opacity .12s;
+    box-shadow:0 14px 34px -12px rgba(0,0,0,.65)}
+  .teach.is-on{opacity:1}
+  .teach b{display:block;font-size:.8rem;margin-bottom:3px}
+  .teach code{background:rgba(255,255,255,.14);color:#8fe3d8;padding:1px 5px;border-radius:3px;
+    font-size:.76rem}
+  .teach small{display:block;font-size:.76rem;color:#b9d3d8;line-height:1.6;margin-top:4px}
+  body.teach-on [data-teach]{cursor:help}
+  body.teach-on [data-teach]:hover,body.teach-on [data-teach]:focus-visible{
+    outline:2px dashed var(--orange);outline-offset:2px}
+  .teach-btn{margin-left:auto;font:inherit;font-size:.78rem;padding:5px 14px;border-radius:999px;
+    border:1px solid var(--orange);background:#fff;color:var(--bad);cursor:pointer;white-space:nowrap}
+  .teach-btn[aria-pressed="true"]{background:var(--orange);color:#fff}
+  .teach-btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
   .clock{font-variant-numeric:tabular-nums;font-size:1.1rem;font-weight:600}
   footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
     color:var(--muted);font-size:.86rem}
@@ -126,7 +143,7 @@
 <header class="top">
   <p class="kick">เล่มคู่มือ · 1 กันยายน 2569</p>
   <h1>คำศัพท์และคำสั่ง UI UX ที่ใช้จริงกับงานของเรา</h1>
-  <p class="lede">รวมทุกเรื่องที่คุยกันในเซสชันนี้ ทุกหัวข้อมีของจริงให้กดเล่น เพราะเรื่องพวกนี้อ่านอย่างเดียวไม่เห็นภาพ · เจอกับดักไหนแล้วบ้าง และประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</p>
+  <p class="lede">รวมทุกเรื่องที่คุยกันในเซสชันนี้ ทุกหัวข้อมีของจริงให้กดเล่น และ<b>เอาเมาส์ชี้ตรงไหนก็มีคำอธิบายของตรงนั้นขึ้นมา</b> พร้อมกรอบไฮไลต์บอกว่ากำลังพูดถึงชิ้นไหน · เจอกับดักไหนแล้วบ้าง และประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</p>
 </header>
 
 <nav class="toc">
@@ -134,7 +151,10 @@
   <a href="#l4">๔ ขนาดปุ่ม</a><a href="#l5">๕ ป้ายลอย</a><a href="#l6">๖ บอกโหมด</a>
   <a href="#l7">๗ สถานะปุ่ม</a><a href="#l8">๘ เส้นแบ่ง</a><a href="#l9">๙ นาฬิกา</a>
   <a href="#l10">๑๐ กับดักรวม</a><a href="#l11">๑๑ ประโยคสั่งงาน</a>
+  <button type="button" class="teach-btn" id="teach-btn" aria-pressed="true">โหมดสอน เปิดอยู่</button>
 </nav>
+
+<div class="teach" id="teach" role="status" aria-live="polite"></div>
 
 <!-- ๑ -->
 <section id="l1">
@@ -527,6 +547,94 @@ sph.addEventListener("keydown", e => {
   const cur = parseFloat(getComputedStyle(sp).getPropertyValue("--a"));
   if (e.key === "ArrowLeft"){ setW(cur-12); e.preventDefault(); }
   if (e.key === "ArrowRight"){ setW(cur+12); e.preventDefault(); }
+});
+
+/* ---------- โหมดสอน ----------
+   ติดคำอธิบายให้ทีหลังด้วย JavaScript แทนการเขียน data-teach ลง HTML ทุกจุด
+   จะได้แก้คำอธิบายที่เดียว ไม่ต้องไล่แก้ทั้งไฟล์ */
+const TEACH = [
+  ["#mini > .bar:nth-child(1)", "app bar", "แถบบนสุดของโปรแกรม เก็บชื่อไฟล์ ปุ่มย้อนกลับทำซ้ำ และสถานะบัญชี · บางที่เรียก title bar หรือ menu bar"],
+  ["#mini > .bar:nth-child(2)", "tool palette", "แถบเครื่องมือ เก็บปุ่มเลือกโหมดทำงาน เช่นวัดระยะ วัดพื้นที่ · เรียก toolbar หรือ toolbox ก็ได้"],
+  ["#mini .rail", "thumbnail rail", "รางภาพย่อของหน้าแบบ ให้กระโดดข้ามหน้าได้เร็ว · ชื่ออื่นคือ page navigator หรือ filmstrip · กำหนดความกว้างตายตัว ห้ามให้ยืด"],
+  ["#mini .cv", "canvas", "พื้นที่แสดงแบบ ต้องได้ <code>1fr</code> คือที่เหลือทั้งหมดเสมอ เพราะเป็นส่วนที่ถ้าโดนบีบแล้วประมาณราคาผิดได้จริง"],
+  ["#mini .insp", "inspector", "แผงขวา แสดงรายการที่วัดแล้ว ยอดรวม และข้อเสนอของผู้ช่วย · ชื่ออื่นคือ properties panel หรือ side panel"],
+  ["#mini > .bar:nth-child(4)", "status bar", "แถบล่างสุด บอกสถานะปัจจุบัน เช่นเครื่องมือที่เลือก สเกล และระดับซูม · อ่านอย่างเดียว ไม่ใช่ที่ไว้กดปุ่ม"],
+  ["#b-rail", "collapsible panel", "ปุ่มพับแผง กดแล้วพื้นที่แบบขยายทันที · ต้องเรียก fit ใหม่หลังพับ ไม่งั้นแบบจะค้างขนาดเดิม"],
+  ["#b-insp", "collapsible panel", "เหมือนกัน แต่พับแผงขวา · สังเกตตัวเลขพื้นที่แบบข้าง ๆ ว่าเปลี่ยนไปเท่าไร"],
+  ["#cw", "live readout", "ตัวเลขที่อัปเดตตามจริง ใช้พิสูจน์ว่าการพับแผงคืนพื้นที่ให้แบบจริง ไม่ใช่แค่รู้สึก"],
+
+  ["#mw .cell", "ช่องที่ล้น", "ช่องนี้มีเนื้อในยาวกว่าที่ว่าง · ค่าเริ่มต้น <code>min-width:auto</code> แปลว่าห้ามเล็กกว่าเนื้อใน มันจึงดันตัวเองจนเบียดแผงข้าง"],
+  ["#b-mw", "min-width:0", "กดแล้วช่องกลางยอมเล็กลง แผงข้างได้ความกว้างที่ขอไว้ครบ · หนึ่งบรรทัดนี้แก้อาการผังพังได้บ่อยที่สุด"],
+
+  ["#stage", "viewport", "กรอบที่มองเห็น · ทุกอย่างวัดจากกรอบนี้ · ตั้ง <code>overflow:hidden</code> กับ <code>touch-action:none</code> เพื่อไม่ให้เบราว์เซอร์แย่งการควบคุมไป"],
+  ["#sheet", "content layer", "ชั้นที่เก็บแบบไว้ · ขยับด้วย <code>transform</code> อย่างเดียว ไม่ขยับด้วย top left เพราะ transform ทำงานที่การ์ดจอ ไม่บังคับให้คำนวณผังใหม่"],
+  ["#z", "scale", "อัตราขยาย 100% คือขนาดจริง · ต้อง clamp ไว้ไม่ให้ซูมหลุดโลก"],
+  ["#o", "offset", "ตำแหน่งมุมซ้ายบนของแบบเทียบกับกรอบ · สองค่านี้กับ scale คือสถานะทั้งหมดของกล้อง มีแค่สามตัวเลข"],
+  ["#b-fit", "fit to view", "คำนวณอัตราขยายที่ทำให้แบบพอดีกรอบ ใช้ <code>Math.min</code> ของสองด้าน แล้วจัดกึ่งกลาง"],
+
+  ["#hitbtn", "icon button", "ปุ่มไอคอนขนาด 32 พิกเซล · เล็กพอที่จะไม่กินพื้นที่ แต่ยังกดง่ายเพราะพื้นที่กดจริงใหญ่กว่า"],
+  ["#b-hit", "hit area expansion", "กดเพื่อดูพื้นที่กดจริง · ขยายด้วย <code>::before</code> ที่ <code>inset:-8px</code> ปุ่มที่ตาเห็นไม่โต แต่กดง่ายขึ้น"],
+
+  ["#l5 .tipbtn:nth-of-type(1)", "tooltip ที่ถูก", "ป้ายลอยมาจากที่เดียว บอกชื่อและทางลัด · ควรบอกหน้าที่ด้วยถ้าปุ่มนั้นเดาไม่ออก"],
+  ["#l5 .tipbtn:nth-of-type(2)", "tooltip ที่ผิด", "ปุ่มนี้มีทั้ง <code>title</code> ของเบราว์เซอร์และป้ายที่เขียนเอง ชี้ค้างสองวินาทีจะเห็นสองอันซ้อนกัน · นี่คือบั๊กจริงที่เจอในระบบเดิมของเรา"],
+
+  ["#l6 .cur:nth-of-type(1)", "cursor: default", "โหมดเลือก ตัวชี้เป็นลูกศรปกติ"],
+  ["#l6 .cur:nth-of-type(2)", "cursor: grab", "โหมดเลื่อน มือเปิดรอจับ · ตอนลากเปลี่ยนเป็น grabbing มือกำ"],
+  ["#l6 .cur:nth-of-type(3)", "cursor: crosshair", "โหมดวัด กากบาทช่วยเล็งจุดได้แม่นกว่าลูกศร"],
+  ["#l6 .cur:nth-of-type(4)", "cursor: col-resize", "อยู่บนเส้นแบ่ง บอกว่าลากซ้ายขวาได้"],
+
+  ["#rg", "radiogroup", "กลุ่มที่เลือกได้ทีละอัน · ใช้ <code>role=radiogroup</code> กับ <code>aria-checked</code> ไม่ใช่ปุ่มธรรมดา เพื่อให้โปรแกรมอ่านหน้าจอรู้ว่าเลือกได้ทีละอัน"],
+  ["#tg", "toggle button", "สวิตช์เปิดปิด ไม่ใช่โหมด · ใช้ <code>aria-pressed</code> และต้องแยกกลุ่มด้วยเส้นคั่น เพราะทำงานคนละแบบกับกลุ่มซ้าย"],
+
+  ["#sp-h", "splitter", "ที่จับลากปรับความกว้าง · ใช้ <code>setPointerCapture</code> เพื่อให้ลากออกนอกกรอบแล้วยังคุมได้ · ใส่ tabindex ให้คีย์บอร์ดกดลูกศรปรับได้ด้วย"],
+  ["#sp-w", "CSS custom property", "ความกว้างเก็บใน <code>--a</code> เปลี่ยนค่าจาก JavaScript บรรทัดเดียว ไม่ต้องแตะโครงสร้าง"],
+
+  ["#c-good", "วิธีที่ถูก", "ลบเวลาหมดอายุด้วยเวลาปัจจุบันใหม่ทุกครั้ง · สลับแท็บไปกลับกี่รอบก็ยังตรง"],
+  ["#c-bad", "วิธีที่ผิด", "ลบทีละหนึ่งวินาที · เบราว์เซอร์หน่วงตัวจับเวลาของแท็บที่ไม่ได้อยู่หน้าจอ เลขจะช้าลงเรื่อย ๆ และไม่มีวันกลับมาตรง"]
+];
+
+const teach = document.getElementById("teach");
+const teachBtn = document.getElementById("teach-btn");
+
+TEACH.forEach(([sel, title, desc]) => {
+  document.querySelectorAll(sel).forEach(el => {
+    el.dataset.teach = title;
+    el.dataset.teachDesc = desc;
+    if (!el.hasAttribute("tabindex") && !/^(BUTTON|A|INPUT)$/.test(el.tagName)) el.tabIndex = 0;
+  });
+});
+
+function showTeach(el){
+  if (!document.body.classList.contains("teach-on")) return;
+  teach.innerHTML = `<b>${el.dataset.teach}</b><small>${el.dataset.teachDesc}</small>`;
+  teach.classList.add("is-on");
+  const r = el.getBoundingClientRect();
+  const w = teach.offsetWidth, h = teach.offsetHeight;
+  let top = r.bottom + 10;
+  if (top + h > innerHeight - 8) top = Math.max(8, r.top - h - 10);   /* ล้นล่างก็ขึ้นไปอยู่บน */
+  teach.style.top = top + "px";
+  teach.style.left = Math.min(innerWidth - w - 8, Math.max(8, r.left + r.width/2 - w/2)) + "px";
+}
+const hideTeach = () => teach.classList.remove("is-on");
+
+document.addEventListener("pointerover", e => {
+  const el = e.target.closest?.("[data-teach]");
+  el ? showTeach(el) : hideTeach();
+});
+document.addEventListener("focusin", e => {
+  const el = e.target.closest?.("[data-teach]");
+  el ? showTeach(el) : hideTeach();
+});
+document.addEventListener("pointerdown", hideTeach);
+addEventListener("scroll", hideTeach, { passive:true });
+
+document.body.classList.add("teach-on");
+teachBtn.addEventListener("click", () => {
+  const on = teachBtn.getAttribute("aria-pressed") !== "true";
+  teachBtn.setAttribute("aria-pressed", String(on));
+  teachBtn.textContent = on ? "โหมดสอน เปิดอยู่" : "โหมดสอน ปิดอยู่";
+  document.body.classList.toggle("teach-on", on);
+  if (!on) hideTeach();
 });
 
 /* ๙ นาฬิกา ถูกกับผิด */
