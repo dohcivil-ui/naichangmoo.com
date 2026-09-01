@@ -2489,3 +2489,70 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .quote-form::after, .market-detail__card::after { display: none; }
   .work-plan__tab:hover { transform: none; }
 }
+
+/* IP-227 หน้าจอมาร์กอัปและวัดปริมาณบนแบบ PDF
+   ผังสามคอลัมน์ รายการหน้าซ้าย ผืนแบบกลาง ตารางรายการวัดขวา
+   ทุกสีมาจาก token ข้างบน ไม่มีเลขสีในไฟล์คอมโพเนนต์ ตาม ADR 0021
+   เขตกดของทุกปุ่มไม่ต่ำกว่า 48px ตามข้อบังคับหน้าตาแอปข้อ 5 */
+.markup { display: flex; flex-direction: column; min-height: 70vh; border: 1px solid var(--line); background: var(--paper); }
+.markup__bar,
+.markup__tools,
+.markup__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.markup__status { border-bottom: 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+.markup__bar button,
+.markup__tools button,
+.markup__status button { min-height: 48px; padding: 0 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
+.markup__bar button:disabled,
+.markup__tools button:disabled { color: var(--muted); cursor: not-allowed; }
+.markup__tools button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--paper); }
+.markup__open { display: inline-flex; align-items: center; min-height: 48px; padding: 0 14px; border: 1px solid var(--teal); color: var(--teal); cursor: pointer; }
+.markup__open input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.markup__file { color: var(--muted); }
+.markup__scale-state { margin-inline-start: auto; color: var(--ink); font-weight: 600; }
+
+.markup__body { display: grid; grid-template-columns: 200px minmax(0, 1fr) 380px; min-height: 0; }
+.markup__pages { border-inline-end: 1px solid var(--line); overflow: auto; max-height: 70vh; }
+.markup__pages h2 { margin: 0; padding: 10px 12px; font-size: .9rem; color: var(--muted); }
+.markup__pages ol { list-style: none; margin: 0; padding: 0; }
+.markup__pages button { display: block; width: 100%; min-height: 48px; padding: 8px 12px; border: 0; border-block-end: 1px solid var(--line); background: var(--paper); color: var(--ink); text-align: start; cursor: pointer; }
+.markup__pages button[aria-current="page"] { background: var(--canvas); border-inline-start: 3px solid var(--teal); }
+.markup__pages small { display: block; color: var(--muted); }
+
+.markup__stage { position: relative; overflow: auto; background: var(--canvas); max-height: 70vh; }
+.markup__canvas-wrap { position: relative; display: inline-block; }
+.markup__overlay { position: absolute; inset-block-start: 0; inset-inline-start: 0; pointer-events: none; }
+.markup__drop { padding: 48px 24px; text-align: center; color: var(--muted); }
+
+.markup__panel { border-inline-start: 1px solid var(--line); overflow: auto; max-height: 70vh; padding: 0 12px 16px; }
+.markup__panel h2 { font-size: .95rem; color: var(--muted); }
+.markup-register__empty,
+.markup-register__warning { color: var(--muted); font-size: .9rem; }
+.markup-register__warning { border-inline-start: 3px solid var(--orange); padding-inline-start: 10px; color: var(--ink); }
+.markup-register__page h3 { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .9rem; }
+.markup-register__page h3 button { min-height: 48px; border: 0; background: none; color: var(--teal); cursor: pointer; }
+.markup-register table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.markup-register th,
+.markup-register td { padding: 6px 4px; border-block-end: 1px solid var(--line); text-align: center; }
+.markup-register td:first-child,
+.markup-register th:first-child { text-align: start; }
+.markup-register tr[aria-selected="true"] { background: var(--canvas); }
+.markup-register input { width: 100%; min-height: 32px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 6px; }
+.markup-register__swatch { display: inline-block; width: 10px; height: 10px; margin-inline-end: 6px; }
+.markup-register tfoot th,
+.markup-register tfoot td { font-weight: 700; }
+.markup-register__total { margin-block-start: 16px; }
+
+.markup__dialog { position: fixed; inset-block-start: 12vh; inset-inline: 0; margin-inline: auto; inline-size: min(440px, 92vw); background: var(--paper); border: 1px solid var(--line); padding: 20px; z-index: 40; }
+.markup__dialog label { display: block; margin-block: 10px; }
+.markup__dialog input,
+.markup__dialog select { width: 100%; min-height: 48px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 10px; }
+.markup__dialog button { min-height: 48px; padding: 0 16px; margin-inline-end: 8px; border: 1px solid var(--teal); background: var(--teal); color: var(--paper); cursor: pointer; }
+.markup__dialog button + button { background: var(--paper); color: var(--ink); border-color: var(--line); }
+
+@media (max-width: 1024px) {
+  .markup__body { grid-template-columns: minmax(0, 1fr); }
+  .markup__pages,
+  .markup__panel { max-height: none; border: 0; border-block-start: 1px solid var(--line); }
+  .markup__pages ol { display: flex; overflow-x: auto; }
+  .markup__pages button { border-block-end: 0; border-inline-end: 1px solid var(--line); white-space: nowrap; }
+}

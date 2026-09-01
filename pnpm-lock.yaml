@@ -41,6 +41,9 @@ importers:
       openai:
         specifier: ^7.5.0
         version: 7.5.0(@aws-sdk/credential-provider-node@3.972.80)(@smithy/signature-v4@5.7.3)(zod@4.4.3)
+      pdfjs-dist:
+        specifier: ^4.10.38
+        version: 4.10.38
       pg:
         specifier: ^8.16.3
         version: 8.23.0
@@ -84,9 +87,6 @@ importers:
       eslint-config-next:
         specifier: 16.3.2
         version: 16.3.2(@typescript-eslint/parser@8.67.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
-      pdfjs-dist:
-        specifier: ^4.10.38
-        version: 4.10.38
       tailwindcss:
         specifier: ^4.3.3
         version: 4.3.3
