@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เล่มคู่มือ UI UX นายช่างหมู</title>
+<!--
+  รวมทุกอย่างที่คุยกันเรื่อง UI/UX ในเซสชัน 2026-09-01 ไว้ที่เดียว
+  ทุกหัวข้อมีของจริงให้กดเล่น ไม่ใช่แค่อ่าน — เพราะเรื่องพวกนี้อธิบายด้วยตัวหนังสือไม่เห็นภาพ
+-->
+<style>
+  :root{
+    --ink:#073047; --ink-deep:#051f2f; --teal:#0d8282; --teal-soft:#e7f2f2;
+    --orange:#f47721; --orange-soft:#fdeee2; --paper:#fff; --canvas:#f4f7f7;
+    --line:#c9d8d9; --muted:#5f7178; --bad:#b8500f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--canvas);color:var(--ink);line-height:1.75;
+    font-family:"Prompt","IBM Plex Sans Thai",system-ui,sans-serif}
+  .wrap{width:min(100% - 32px, 980px);margin:0 auto;padding:0 0 100px}
+
+  header.top{padding:48px 0 26px;border-bottom:2px solid var(--ink)}
+  .kick{font-size:.72rem;letter-spacing:.14em;color:var(--teal);margin:0 0 12px;font-weight:600}
+  h1{font-size:clamp(1.9rem,4.4vw,2.6rem);line-height:1.3;margin:0 0 12px;letter-spacing:-.005em}
+  .lede{margin:0;color:var(--muted);max-width:64ch}
+
+  nav.toc{position:sticky;top:0;z-index:20;background:var(--canvas);padding:12px 0;
+    border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px}
+  nav.toc a{font-size:.78rem;text-decoration:none;color:var(--ink);background:var(--paper);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  nav.toc a:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+  nav.toc a:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+  section{padding-top:44px}
+  h2{font-size:clamp(1.25rem,3vw,1.65rem);margin:0 0 4px;line-height:1.4;letter-spacing:-.005em}
+  .sub{color:var(--muted);margin:0 0 16px;max-width:66ch}
+  h3{font-size:.96rem;margin:26px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+
+  .demo{background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:18px;margin:14px 0}
+  .demo__label{font-size:.68rem;letter-spacing:.12em;color:var(--teal);font-weight:700;
+    margin:0 0 12px}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button.b{font:inherit;font-size:.82rem;padding:7px 14px;border-radius:7px;cursor:pointer;
+    border:1px solid var(--teal);background:#fff;color:var(--teal)}
+  button.b:hover{background:var(--teal);color:#fff}
+  button.b:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  button.b[aria-pressed="true"]{background:var(--teal);color:#fff}
+
+  table{border-collapse:collapse;width:100%;font-size:.88rem;margin:12px 0}
+  th,td{text-align:left;padding:9px 12px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.7rem;letter-spacing:.08em;color:var(--muted);border-bottom-color:var(--ink)}
+  td:first-child{font-weight:600;white-space:nowrap;padding-right:18px}
+  code{background:var(--teal-soft);color:var(--teal);padding:1px 6px;border-radius:4px;
+    font-family:ui-monospace,monospace;font-size:.86em}
+  pre{background:var(--ink-deep);color:#dbe9ec;padding:14px 16px;border-radius:8px;
+    overflow-x:auto;font-size:.8rem;line-height:1.7}
+  pre .c{color:#7fd4c8}
+  .note{border:1px solid var(--line);background:var(--teal-soft);padding:14px 16px;
+    border-radius:8px;margin:14px 0}
+  .note--warn{background:var(--orange-soft);border-color:var(--orange)}
+  .note b{display:block;font-size:.74rem;letter-spacing:.1em;color:var(--teal);margin-bottom:5px}
+  .note--warn b{color:var(--bad)}
+  .note p{margin:0;font-size:.88rem}
+
+  /* ---- ๑ ผังหน้าจอ ---- */
+  .mini{--rail:110px;--insp:150px;height:230px;display:grid;grid-template-rows:auto auto 1fr auto;
+    border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.68rem}
+  .mini .bar{background:#eef4f4;padding:5px 8px;border-bottom:1px solid var(--line);color:var(--muted)}
+  .mini .mid{display:grid;grid-template-columns:var(--rail) 1fr var(--insp);min-height:0}
+  .mini.rail-off .mid{grid-template-columns:0 1fr var(--insp)}
+  .mini.insp-off .mid{grid-template-columns:var(--rail) 1fr 0}
+  .mini .rail{background:#f7fafa;border-right:1px solid var(--line);padding:6px;color:var(--muted);overflow:hidden}
+  .mini .cv{background:var(--teal-soft);display:grid;place-items:center;color:var(--teal);
+    font-weight:600;min-width:0;overflow:hidden}
+  .mini .insp{background:#f7fafa;border-left:1px solid var(--line);padding:6px;color:var(--muted);overflow:hidden}
+
+  /* ---- ๒ min-width ---- */
+  .mw{display:grid;grid-template-columns:120px 1fr 120px;border:1px solid var(--line);
+    border-radius:8px;overflow:hidden;font-size:.7rem}
+  .mw > div{padding:8px}
+  .mw .side{background:#f7fafa;color:var(--muted)}
+  .mw .cell{background:var(--teal-soft);color:var(--teal);white-space:nowrap;overflow:hidden}
+  .mw.fixed .cell{min-width:0;text-overflow:ellipsis}
+
+  /* ---- ๓ ตัวดูแบบย่อ ---- */
+  .stage{position:relative;height:250px;overflow:hidden;border:1px solid var(--line);
+    border-radius:8px;cursor:grab;touch-action:none;background:
+      linear-gradient(0deg,rgba(7,48,71,.05) 1px,transparent 1px) 0 0/20px 20px,
+      linear-gradient(90deg,rgba(7,48,71,.05) 1px,transparent 1px) 0 0/20px 20px,#fff}
+  .stage.is-dragging{cursor:grabbing}
+  .sheet{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+
+  /* ---- ๔ hit area ---- */
+  .hit{position:relative;width:32px;height:32px;display:grid;place-items:center;border:0;
+    background:var(--teal-soft);color:var(--teal);border-radius:6px;cursor:pointer}
+  .hit::before{content:"";position:absolute;inset:-8px;border-radius:10px}
+  .hit.show::before{background:rgba(244,119,33,.22);outline:1px dashed var(--orange)}
+
+  /* ---- ๕ tooltip ---- */
+  .tipbtn{position:relative}
+  .tipbtn[data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);
+    left:50%;transform:translateX(-50%);background:var(--ink-deep);color:#fff;font-size:.72rem;
+    white-space:nowrap;padding:5px 9px;border-radius:5px;opacity:0;pointer-events:none;transition:opacity .12s}
+  .tipbtn[data-tip]:hover::after,.tipbtn[data-tip]:focus-visible::after{opacity:1}
+
+  /* ---- ๖ cursor ---- */
+  .cur{height:70px;border:1px solid var(--line);border-radius:8px;display:grid;place-items:center;
+    background:#fff;color:var(--muted);font-size:.82rem}
+
+  /* ---- ๘ splitter ---- */
+  .sp{--a:180px;display:grid;grid-template-columns:var(--a) 6px 1fr;height:110px;
+    border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.72rem}
+  .sp .p{background:#f7fafa;padding:8px;color:var(--muted);min-width:0}
+  .sp .p:last-child{background:var(--teal-soft);color:var(--teal)}
+  .sp .h{background:var(--line);cursor:col-resize}
+
+  .clock{font-variant-numeric:tabular-nums;font-size:1.1rem;font-weight:600}
+  footer{margin-top:60px;padding-top:22px;border-top:1px solid var(--line);
+    color:var(--muted);font-size:.86rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="kick">เล่มคู่มือ · 1 กันยายน 2569</p>
+  <h1>คำศัพท์และคำสั่ง UI UX ที่ใช้จริงกับงานของเรา</h1>
+  <p class="lede">รวมทุกเรื่องที่คุยกันในเซสชันนี้ ทุกหัวข้อมีของจริงให้กดเล่น เพราะเรื่องพวกนี้อ่านอย่างเดียวไม่เห็นภาพ · เจอกับดักไหนแล้วบ้าง และประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</p>
+</header>
+
+<nav class="toc">
+  <a href="#l1">๑ ผังหน้าจอ</a><a href="#l2">๒ ทำไมแบบโดนบีบ</a><a href="#l3">๓ ซูมและแพน</a>
+  <a href="#l4">๔ ขนาดปุ่ม</a><a href="#l5">๕ ป้ายลอย</a><a href="#l6">๖ บอกโหมด</a>
+  <a href="#l7">๗ สถานะปุ่ม</a><a href="#l8">๘ เส้นแบ่ง</a><a href="#l9">๙ นาฬิกา</a>
+  <a href="#l10">๑๐ กับดักรวม</a><a href="#l11">๑๑ ประโยคสั่งงาน</a>
+</nav>
+
+<!-- ๑ -->
+<section id="l1">
+  <h2>๑ ผังหน้าจอ · workspace layout</h2>
+  <p class="sub">ชื่อของแต่ละส่วน กดปุ่มเพื่อพับแผงดูว่าพื้นที่แบบเปลี่ยนไปเท่าไร</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง กดได้</p>
+    <div class="row" style="margin-bottom:12px">
+      <button class="b" id="b-rail" aria-pressed="true">รางภาพย่อ</button>
+      <button class="b" id="b-insp" aria-pressed="true">แผงผลลัพธ์</button>
+      <span style="font-size:.8rem;color:var(--muted)">พื้นที่แบบ <b id="cw">—</b></span>
+    </div>
+    <div class="mini" id="mini">
+      <div class="bar">app bar · ชื่อไฟล์ ย้อนกลับ ทำซ้ำ สถานะสมาชิก</div>
+      <div class="bar">tool palette · ไอคอนเครื่องมือ</div>
+      <div class="mid">
+        <div class="rail">thumbnail rail<br>ภาพย่อหน้าแบบ</div>
+        <div class="cv" id="cv">canvas · พื้นที่แสดงแบบ</div>
+        <div class="insp">inspector<br>รายการที่วัด<br>ผู้ช่วย AI</div>
+      </div>
+      <div class="bar">status bar · เครื่องมือ สเกล ระดับซูม</div>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>ที่เราเรียก</th><th>ศัพท์ dev</th><th>ชื่ออื่นที่เจอบ่อย</th></tr></thead>
+    <tbody>
+      <tr><td>แถบบนสุด</td><td>app bar</td><td>menu bar · title bar</td></tr>
+      <tr><td>แถบเครื่องมือ</td><td>tool palette</td><td>toolbar · toolbox · ribbon</td></tr>
+      <tr><td>รางภาพย่อ</td><td>thumbnail rail</td><td>page navigator · filmstrip</td></tr>
+      <tr><td>พื้นที่แสดงแบบ</td><td>canvas</td><td>viewport · stage · work area</td></tr>
+      <tr><td>แผงผลลัพธ์</td><td>inspector</td><td>properties panel · side panel</td></tr>
+      <tr><td>แถบล่าง</td><td>status bar</td><td>—</td></tr>
+      <tr><td>เส้นแบ่งลากได้</td><td>splitter</td><td>resize handle · gutter</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ๒ -->
+<section id="l2">
+  <h2>๒ ทำไมพื้นที่แสดงแบบถึงโดนบีบ</h2>
+  <p class="sub">สาเหตุจริงมีสองข้อ และข้อที่สองคือกับดักที่คนเขียน CSS พลาดมากที่สุดในโลก</p>
+  <h3>ข้อแรก canvas ต้องได้ 1fr แผงข้างต้องได้ค่าตายตัว</h3>
+<pre><span class="c">/* ถูก */</span>
+grid-template-columns: 150px minmax(0,1fr) 330px;
+                       └ราง┘  └──แบบ──┘  └แผงขวา┘</pre>
+  <h3>ข้อสอง min-width:0 กดปุ่มดูความต่าง</h3>
+  <div class="demo">
+    <p class="demo__label">ของจริง กดสลับดู</p>
+    <div class="row" style="margin-bottom:10px">
+      <button class="b" id="b-mw" aria-pressed="false">ใส่ min-width:0</button>
+      <span style="font-size:.8rem;color:var(--muted)" id="mw-state">ตอนนี้ไม่ได้ใส่ ช่องกลางถูกเนื้อในดันจนล้น</span>
+    </div>
+    <div class="mw" id="mw">
+      <div class="side">แผงซ้าย 120px</div>
+      <div class="cell" id="mwc">เนื้อในยาวมาก ยาวมาก ยาวมาก ยาวมาก ยาวมาก ยาวมาก ยาวมาก ยาวมาก ยาวมาก</div>
+      <div class="side">แผงขวา 120px</div>
+    </div>
+  </div>
+  <div class="note note--warn">
+    <b>ทำไมถึงพลาดกันทุกคน</b>
+    <p>ช่องใน grid และ flex มีค่าเริ่มต้น <code>min-width:auto</code> ซึ่งแปลว่า ห้ามเล็กกว่าเนื้อข้างใน · พอเนื้อในเป็นแบบกว้าง 2400 พิกเซล ช่องนั้นจะดันตัวเองจนเบียดแผงอื่น · <code>min-width:0</code> คือการบอกว่า เล็กได้ เนื้อในจงหาทางเอง</p>
+  </div>
+</section>
+
+<!-- ๓ -->
+<section id="l3">
+  <h2>๓ ซูมและแพน · viewport controls</h2>
+  <p class="sub">ล้อเมาส์ซูม คลิกซ้ายแช่ลาก ดับเบิลคลิกซูมเข้า — ไม่มีปุ่มสักปุ่ม</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง เล่นได้</p>
+    <div class="stage" id="stage" tabindex="0">
+      <div class="sheet" id="sheet">
+        <svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+          <rect width="900" height="600" fill="#fff" stroke="#073047" stroke-width="3"/>
+          <g stroke="#9db4bd" stroke-width="1" stroke-dasharray="10 5">
+            <line x1="180" y1="60" x2="180" y2="540"/><line x1="360" y1="60" x2="360" y2="540"/>
+            <line x1="540" y1="60" x2="540" y2="540"/><line x1="720" y1="60" x2="720" y2="540"/>
+            <line x1="90" y1="180" x2="810" y2="180"/><line x1="90" y1="360" x2="810" y2="360"/>
+          </g>
+          <g fill="#e7f2f2" stroke="#0d8282" stroke-width="3">
+            <rect x="155" y="155" width="50" height="50"/><rect x="335" y="155" width="50" height="50"/>
+            <rect x="515" y="155" width="50" height="50"/><rect x="695" y="155" width="50" height="50"/>
+            <rect x="155" y="335" width="50" height="50"/><rect x="515" y="335" width="50" height="50"/>
+          </g>
+          <text x="450" y="560" text-anchor="middle" font-size="26" fill="#5f7178">แปลนตัวอย่าง 900 × 600</text>
+        </svg>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;font-size:.8rem;color:var(--muted)">
+      <span>ซูม <b id="z">—</b></span><span>offset <b id="o">—</b></span>
+      <button class="b" id="b-fit">พอดีกรอบ · F</button>
+    </div>
+  </div>
+<pre><span class="c">/* หัวใจของการซูมให้รู้สึกถูกต้อง คือตรึงจุดใต้เมาส์ไว้ */</span>
+const wx = (px - view.x) / view.scale;   <span class="c">// ใต้เมาส์คือจุดไหนของแบบ</span>
+view.scale = clamp(view.scale * factor);
+view.x = px - wx * view.scale;           <span class="c">// เลื่อนกล้องกลับให้จุดเดิมอยู่ที่เดิม</span></pre>
+  <div class="note">
+    <b>ศัพท์ที่ต้องรู้</b>
+    <p><code>fit to view</code> พอดีกรอบ · <code>zoom to cursor</code> ซูมตรงจุดที่ชี้ · <code>pan</code> ลากเลื่อน · <code>clamp</code> จำกัดช่วง · <code>screen space</code> กับ <code>world space</code> คือพิกัดจอกับพิกัดแบบ</p>
+  </div>
+</section>
+
+<!-- ๔ -->
+<section id="l4">
+  <h2>๔ ขนาดปุ่ม · hit area</h2>
+  <p class="sub">ปุ่มที่ตาเห็นกับพื้นที่ที่กดได้ ไม่จำเป็นต้องเท่ากัน</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง กดเพื่อดูพื้นที่กด</p>
+    <div class="row">
+      <button class="hit" id="hitbtn" aria-label="ตัวอย่างปุ่ม">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button class="b" id="b-hit" aria-pressed="false">แสดงพื้นที่กด</button>
+      <span style="font-size:.8rem;color:var(--muted)">ปุ่มที่เห็น 32 · พื้นที่กดจริง 48</span>
+    </div>
+  </div>
+  <table>
+    <thead><tr><th>ใช้กับ</th><th>ศัพท์</th><th>ขนาดต่ำสุด</th></tr></thead>
+    <tbody>
+      <tr><td>นิ้วบนจอสัมผัส</td><td>touch target</td><td>44 พิกเซล</td></tr>
+      <tr><td>เมาส์บนคอม</td><td>pointer target</td><td>32 พิกเซล พอ</td></tr>
+    </tbody>
+  </table>
+<pre>.tool::before{ content:""; position:absolute; inset:-8px; }
+<span class="c">/* ขยายพื้นที่กดโดยไม่ขยายปุ่มที่ตาเห็น เรียก hit area expansion */</span></pre>
+</section>
+
+<!-- ๕ -->
+<section id="l5">
+  <h2>๕ ป้ายลอย · tooltip</h2>
+  <p class="sub">ชี้ที่ปุ่มแล้วขึ้นชื่อ ทางลัด และหน้าที่ · ห้ามมีสองแหล่ง</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง ชี้ที่ปุ่ม</p>
+    <div class="row">
+      <button class="b tipbtn" data-tip="วัดระยะสองจุด  ( L )">ป้ายที่ถูก</button>
+      <button class="b tipbtn" data-tip="วัดระยะสองจุด  ( L )" title="วัดระยะสองจุด (L)">ป้ายที่ผิด ขึ้นสองอัน</button>
+    </div>
+  </div>
+  <div class="note note--warn">
+    <b>บั๊กที่เจอในระบบเดิมของเรา</b>
+    <p>ใส่ทั้ง <code>title</code> ของเบราว์เซอร์และ tooltip ที่เขียนเอง มันจะขึ้นสองอันทับกันจนอ่านไม่ออก · ชี้ปุ่มขวาค้างสองวินาทีดู แล้วเทียบกับปุ่มซ้าย</p>
+  </div>
+</section>
+
+<!-- ๖ -->
+<section id="l6">
+  <h2>๖ บอกโหมดโดยไม่กินพื้นที่ · cursor affordance</h2>
+  <p class="sub">เปลี่ยนรูปตัวชี้ตามเครื่องมือ ไม่ต้องมีข้อความบอก</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง เอาเมาส์ไปวางดู</p>
+    <div class="row">
+      <div class="cur" style="cursor:default;flex:1">เลือก · default</div>
+      <div class="cur" style="cursor:grab;flex:1">เลื่อน · grab</div>
+      <div class="cur" style="cursor:crosshair;flex:1">วัด · crosshair</div>
+      <div class="cur" style="cursor:col-resize;flex:1">ปรับความกว้าง · col-resize</div>
+    </div>
+  </div>
+</section>
+
+<!-- ๗ -->
+<section id="l7">
+  <h2>๗ สถานะปุ่ม · เลือกทีละอัน กับ สวิตช์เปิดปิด</h2>
+  <p class="sub">ของที่ทำงานคนละแบบ ต้องดูไม่เหมือนกัน และเขียนโค้ดคนละแบบ</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง กดได้</p>
+    <div class="row" role="radiogroup" aria-label="เครื่องมือ" id="rg">
+      <button class="b" role="radio" aria-checked="true">เลือก</button>
+      <button class="b" role="radio" aria-checked="false">วัดระยะ</button>
+      <button class="b" role="radio" aria-checked="false">วัดพื้นที่</button>
+      <span style="width:1px;height:24px;background:var(--line)"></span>
+      <button class="b" id="tg" aria-pressed="true">ดูดจุด</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin:10px 0 0" id="rg-state"></p>
+  </div>
+  <table>
+    <thead><tr><th>แบบ</th><th>ใช้กับ</th><th>เขียนว่า</th></tr></thead>
+    <tbody>
+      <tr><td>เลือกทีละอัน</td><td>เครื่องมือวัด</td><td><code>role="radiogroup"</code> + <code>aria-checked</code></td></tr>
+      <tr><td>สวิตช์เปิดปิด</td><td>ดูดจุด บังคับแนว</td><td><code>aria-pressed</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ๘ -->
+<section id="l8">
+  <h2>๘ เส้นแบ่งลากได้ · splitter</h2>
+  <p class="sub">ลากเส้นตรงกลางเพื่อปรับความกว้าง</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง ลากได้</p>
+    <div class="sp" id="sp">
+      <div class="p">แผงซ้าย <b id="sp-w">180px</b></div>
+      <div class="h" id="sp-h" role="separator" aria-orientation="vertical" aria-label="ปรับความกว้าง" aria-valuenow="180" aria-valuemin="80" aria-valuemax="400" tabindex="0"></div>
+      <div class="p">พื้นที่ทำงาน · ได้ที่เหลือทั้งหมด</div>
+    </div>
+  </div>
+  <div class="note">
+    <b>เทคนิค</b>
+    <p>เก็บความกว้างเป็น <code>CSS custom property</code> เช่น <code>--rail</code> แล้วเปลี่ยนค่าจาก JavaScript บรรทัดเดียว ไม่ต้องแตะโครงสร้าง · ใช้ <code>setPointerCapture</code> เพื่อให้ลากออกนอกกรอบแล้วยังคุมได้ · ใส่ <code>tabindex</code> กับปุ่มลูกศรให้คีย์บอร์ดปรับได้ด้วย</p>
+  </div>
+</section>
+
+<!-- ๙ -->
+<section id="l9">
+  <h2>๙ นาฬิกาที่เดินจริง · live countdown</h2>
+  <p class="sub">อายุสมาชิกคือตัวเลขที่ผูกกับเงิน ผิดไม่ได้</p>
+  <div class="demo">
+    <p class="demo__label">ของจริง เดินอยู่</p>
+    <div class="row">
+      <div>
+        <div style="font-size:.7rem;color:var(--muted)">คำนวณจากเวลาหมดอายุทุกครั้ง · ถูก</div>
+        <div class="clock" id="c-good">—</div>
+      </div>
+      <div style="margin-left:24px">
+        <div style="font-size:.7rem;color:var(--bad)">ลบทีละวินาที · ผิด</div>
+        <div class="clock" id="c-bad" style="color:var(--bad)">—</div>
+      </div>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin:12px 0 0">สลับไปแท็บอื่นสักครู่แล้วกลับมา จะเห็นว่าสองตัวนี้เริ่มไม่ตรงกัน</p>
+  </div>
+  <div class="note note--warn">
+    <b>timer throttling</b>
+    <p>เบราว์เซอร์หน่วงตัวจับเวลาของแท็บที่ไม่ได้อยู่หน้าจอ เหลือนาทีละครั้ง · ถ้าลบทีละหนึ่งวินาที เลขจะเพี้ยนสะสมไปเรื่อย ๆ · วิธีที่ถูกคือเก็บ <code>เวลาหมดอายุ</code> ไว้ แล้วลบด้วยเวลาปัจจุบันใหม่ทุกครั้ง</p>
+  </div>
+</section>
+
+<!-- ๑๐ -->
+<section id="l10">
+  <h2>๑๐ กับดักรวม ที่เจอมาแล้วจริงในงานนี้</h2>
+  <div class="scroller">
+    <table>
+      <thead><tr><th>กับดัก</th><th>อาการ</th><th>ทางแก้</th></tr></thead>
+      <tbody>
+        <tr><td>ลืม <code>min-width:0</code></td><td>ผังพัง แบบโดนบีบ</td><td>ใส่ที่ทุกช่องของ grid และ flex</td></tr>
+        <tr><td>ลืม <code>{passive:false}</code></td><td>ล้อเมาส์ซูมไม่ได้ หน้าเลื่อนแทน</td><td>Chrome ตั้ง wheel เป็น passive ให้เอง <code>preventDefault</code> จะถูกเมิน</td></tr>
+        <tr><td>ลืม <code>transform-origin:0 0</code></td><td>ซูมแล้วภาพกระโดด</td><td>ค่าเริ่มต้นคือกึ่งกลาง ทำให้สูตรผิดทั้งชุด</td></tr>
+        <tr><td>ปุ่มอยู่ในกรอบที่รับการลาก</td><td>กดปุ่มแล้วภาพเลื่อน เหมือนปุ่มเสีย</td><td>เช็ค <code>e.target.closest()</code> ก่อนเริ่มลาก</td></tr>
+        <tr><td>ใส่ tooltip สองแหล่ง</td><td>ป้ายซ้อนกันอ่านไม่ออก</td><td>เลือกอย่างใดอย่างหนึ่ง</td></tr>
+        <tr><td>นับถอยหลังทีละวินาที</td><td>เวลาเพี้ยนเมื่อสลับแท็บ</td><td>คำนวณจากเวลาหมดอายุเสมอ</td></tr>
+        <tr><td>ตัด <code>focus-visible</code> ทิ้งเพราะไม่สวย</td><td>คนใช้คีย์บอร์ดใช้งานไม่ได้เลย</td><td>ห้ามตัด ให้ออกแบบให้สวยแทน</td></tr>
+        <tr><td>ไม่ clamp scale</td><td>ซูมออกจนภาพหาย</td><td><code>Math.min(max, Math.max(min, s))</code></td></tr>
+        <tr><td>ลืม <code>deltaMode</code></td><td>Firefox ซูมเร็วผิดปกติ</td><td>Firefox ส่งหน่วยเป็นบรรทัด ไม่ใช่พิกเซล</td></tr>
+        <tr><td>ลืมว่าแทร็กแพดก็ส่ง wheel</td><td>จีบนิ้วแล้วเพี้ยน</td><td>การจีบนิ้วมาเป็น wheel ที่มี <code>ctrlKey</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ๑๑ -->
+<section id="l11">
+  <h2>๑๑ ประโยคที่พูดกับคนเขียนโค้ดแล้วได้ของตรงใจ</h2>
+  <p class="sub">ก๊อปไปใช้ได้เลย</p>
+<pre>ทำ workspace layout สี่ส่วน
+  app bar + tool palette ด้านบน · thumbnail rail ซ้าย 150px
+  canvas ตรงกลาง 1fr · inspector ขวา 330px · status bar ล่าง
+  ใส่ splitter ลากปรับได้ ทุกแผงพับได้
+  ทุกช่องใส่ min-width:0 หน้าทั้งหน้าห้ามเลื่อน
+
+ตัด viewport controls ทิ้ง ให้เมาส์คุมทั้งหมด
+  fit to view ตอนโหลด · zoom to cursor ด้วยล้อ · pan ด้วยคลิกซ้ายแช่
+  clamp scale 0.05 ถึง 8 · ใส่ทางลัด + − 0 F ไว้ให้คีย์บอร์ด
+
+tool palette แบบ icon-only ปุ่ม 32px ไอคอน 18px
+  ขยาย hit area ด้วย ::before ไม่ขยายปุ่ม
+  tooltip มีที่เดียว บอกชื่อ ทางลัด และหน้าที่
+  ใช้ radiogroup semantics กับเครื่องมือ ใช้ aria-pressed กับสวิตช์
+  เปลี่ยน cursor ตามเครื่องมือ
+
+ทำ live countdown จาก expiry timestamp อย่านับถอยหลังเอง
+  เปลี่ยนเป็น warning state เมื่อเหลือน้อยกว่าสามวัน</pre>
+</section>
+
+<footer>
+  <p>เล่มนี้เป็นของอ่านประกอบ ไม่ใช่โค้ดที่จะเอาไปใช้จริง · ไฟล์อยู่ที่ <code>.design/ui-guide/ui-ux-handbook.html</code> · ต้นแบบตัวดูแบบที่เคาะหน้าตาแล้วอยู่ที่ <code>.design/estimeter-viewer/viewer-controls-prototype.html</code></p>
+</footer>
+
+</div>
+<script>
+/* ๑ พับแผง */
+const mini = document.getElementById("mini"), cv = document.getElementById("cv");
+function miniW(){ document.getElementById("cw").textContent = Math.round(cv.getBoundingClientRect().width) + " px"; }
+function tg(btn, cls){
+  const on = btn.getAttribute("aria-pressed") !== "true";
+  btn.setAttribute("aria-pressed", String(on));
+  mini.classList.toggle(cls, !on);
+  requestAnimationFrame(miniW);
+}
+document.getElementById("b-rail").addEventListener("click", e => tg(e.currentTarget, "rail-off"));
+document.getElementById("b-insp").addEventListener("click", e => tg(e.currentTarget, "insp-off"));
+miniW(); addEventListener("resize", miniW);
+
+/* ๒ min-width */
+const mw = document.getElementById("mw"), bmw = document.getElementById("b-mw");
+bmw.addEventListener("click", () => {
+  const on = bmw.getAttribute("aria-pressed") !== "true";
+  bmw.setAttribute("aria-pressed", String(on));
+  mw.classList.toggle("fixed", on);
+  document.getElementById("mw-state").textContent = on
+    ? "ใส่แล้ว ช่องกลางยอมเล็กลง แผงข้างได้ความกว้างที่ขอไว้ครบ"
+    : "ตอนนี้ไม่ได้ใส่ ช่องกลางถูกเนื้อในดันจนล้น";
+});
+
+/* ๓ ตัวดูแบบ */
+const stage = document.getElementById("stage"), sheet = document.getElementById("sheet");
+const C = { w:900, h:600 }, MIN = .1, MAX = 6;
+const v = { scale:1, x:0, y:0 };
+const clamp = s => Math.min(MAX, Math.max(MIN, s));
+function draw(){
+  sheet.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.scale})`;
+  document.getElementById("z").textContent = Math.round(v.scale*100) + "%";
+  document.getElementById("o").textContent = Math.round(v.x) + " , " + Math.round(v.y);
+}
+function fit(){
+  const w = stage.clientWidth, h = stage.clientHeight;
+  v.scale = clamp(Math.min((w-24)/C.w, (h-24)/C.h));
+  v.x = (w - C.w*v.scale)/2; v.y = (h - C.h*v.scale)/2; draw();
+}
+function zoomAt(px, py, f){
+  const wx = (px - v.x)/v.scale, wy = (py - v.y)/v.scale;
+  v.scale = clamp(v.scale*f); v.x = px - wx*v.scale; v.y = py - wy*v.scale; draw();
+}
+const loc = e => { const r = stage.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+stage.addEventListener("wheel", e => {
+  e.preventDefault();
+  let dy = e.deltaY; if (e.deltaMode === 1) dy *= 16;
+  zoomAt(...loc(e), Math.exp(-dy * (e.ctrlKey ? .01 : .0015)));
+}, { passive:false });
+let dr = null;
+stage.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  stage.setPointerCapture(e.pointerId);
+  dr = { px:e.clientX, py:e.clientY, x:v.x, y:v.y };
+  stage.classList.add("is-dragging");
+});
+stage.addEventListener("pointermove", e => {
+  if (!dr) return; v.x = dr.x + (e.clientX-dr.px); v.y = dr.y + (e.clientY-dr.py); draw();
+});
+["pointerup","pointercancel"].forEach(t => stage.addEventListener(t, e => {
+  if (!dr) return; dr = null; stage.classList.remove("is-dragging");
+  if (stage.hasPointerCapture?.(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+}));
+stage.addEventListener("dblclick", e => { e.preventDefault(); zoomAt(...loc(e), e.shiftKey ? 1/1.4 : 1.4); });
+document.getElementById("b-fit").addEventListener("click", fit);
+addEventListener("keydown", e => { if (e.key.toLowerCase() === "f" && document.activeElement === stage) { fit(); e.preventDefault(); } });
+fit(); addEventListener("resize", fit);
+
+/* ๔ hit area */
+const bh = document.getElementById("b-hit");
+bh.addEventListener("click", () => {
+  const on = bh.getAttribute("aria-pressed") !== "true";
+  bh.setAttribute("aria-pressed", String(on));
+  document.getElementById("hitbtn").classList.toggle("show", on);
+});
+
+/* ๗ radiogroup กับ toggle */
+const rg = document.getElementById("rg");
+function rgState(){
+  const cur = rg.querySelector('[aria-checked="true"]')?.textContent ?? "—";
+  const snap = document.getElementById("tg").getAttribute("aria-pressed") === "true";
+  document.getElementById("rg-state").textContent = `เครื่องมือที่เลือก ${cur} · ดูดจุด ${snap ? "เปิด" : "ปิด"}`;
+}
+rg.addEventListener("click", e => {
+  const b = e.target.closest('[role="radio"]');
+  if (b){ rg.querySelectorAll('[role="radio"]').forEach(x => x.setAttribute("aria-checked", String(x === b))); }
+  rgState();
+});
+document.getElementById("tg").addEventListener("click", e => {
+  const b = e.currentTarget;
+  b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true");
+  rgState();
+});
+rgState();
+
+/* ๘ splitter */
+const sp = document.getElementById("sp"), sph = document.getElementById("sp-h");
+let sd = null;
+function setW(px){
+  const w = Math.min(400, Math.max(80, px));
+  sp.style.setProperty("--a", w + "px");
+  sph.setAttribute("aria-valuenow", String(Math.round(w)));
+  document.getElementById("sp-w").textContent = Math.round(w) + "px";
+}
+sph.addEventListener("pointerdown", e => { sph.setPointerCapture(e.pointerId);
+  sd = { x:e.clientX, w:parseFloat(getComputedStyle(sp).getPropertyValue("--a")) }; });
+sph.addEventListener("pointermove", e => { if (sd) setW(sd.w + (e.clientX - sd.x)); });
+["pointerup","pointercancel"].forEach(t => sph.addEventListener(t, e => {
+  if (!sd) return; sd = null;
+  if (sph.hasPointerCapture?.(e.pointerId)) sph.releasePointerCapture(e.pointerId); }));
+sph.addEventListener("keydown", e => {
+  const cur = parseFloat(getComputedStyle(sp).getPropertyValue("--a"));
+  if (e.key === "ArrowLeft"){ setW(cur-12); e.preventDefault(); }
+  if (e.key === "ArrowRight"){ setW(cur+12); e.preventDefault(); }
+});
+
+/* ๙ นาฬิกา ถูกกับผิด */
+const END = Date.now() + 3*24*3600*1000;
+let fake = Math.floor((END - Date.now())/1000);
+const fmt = ms => {
+  if (ms < 0) ms = 0;
+  const d = Math.floor(ms/86400000), h = Math.floor(ms%86400000/3600000),
+        m = Math.floor(ms%3600000/60000), s = Math.floor(ms%60000/1000);
+  const t = n => String(n).padStart(2,"0");
+  return `${d} วัน ${t(h)}:${t(m)}:${t(s)}`;
+};
+setInterval(() => {
+  document.getElementById("c-good").textContent = fmt(END - Date.now());   /* ถูก */
+  fake -= 1;                                                              /* ผิด */
+  document.getElementById("c-bad").textContent = fmt(fake*1000);
+}, 1000);
+</script>
+</body>
+</html>
