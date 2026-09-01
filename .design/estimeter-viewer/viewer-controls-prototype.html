@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ต้นแบบตัวดูแบบ ESTIMETR</title>
+<!--
+  ต้นแบบใช้แล้วทิ้ง — ไม่ใช่โค้ดที่จะเอาไปใช้จริง
+
+  ผังสี่ส่วนตามที่เจ้าของงานวาดมา 2026-09-01
+    app bar        แถบบนสุด ชื่อไฟล์ ย้อนกลับ ทำซ้ำ
+    tool palette   แถบเครื่องมือวัด ไอคอนล้วน
+    thumbnail rail รางภาพย่อของหน้าแบบ ด้านซ้าย
+    canvas         พื้นที่แสดงแบบ กินที่เหลือทั้งหมด
+    inspector      แผงขวา รายการที่วัดแล้ว ยอดรวม และผลจากผู้ช่วย
+    status bar     แถบล่าง บอกเครื่องมือ สเกล และระดับซูม
+
+  กติกาที่ทำให้แบบไม่โดนบีบ
+    แผงข้างกำหนดความกว้างตายตัว  canvas ได้ 1fr คือที่เหลือทั้งหมด
+    ทุกช่องในกริดต้องมี min-width:0 กับ min-height:0 ไม่งั้นเนื้อในดันกริดจนล้น
+    หน้าทั้งหน้าไม่เลื่อน แต่ละแผงเลื่อนในตัวเอง
+-->
+<style>
+  :root{
+    --ink:#073047; --ink-deep:#051f2f; --teal:#0d8282; --teal-soft:#e7f2f2;
+    --orange:#f47721; --paper:#fff; --canvas:#f4f7f7; --line:#c9d8d9; --muted:#5f7178;
+    --rail:150px;        /* ความกว้างรางภาพย่อ ลากเปลี่ยนได้ */
+    --inspector:330px;   /* ความกว้างแผงขวา ลากเปลี่ยนได้ */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-size:13.5px;
+    font-family:"Prompt","IBM Plex Sans Thai",system-ui,sans-serif;overflow:hidden}
+
+  /* ---------- โครงหลัก สี่แถว ---------- */
+  .shell{height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto}
+
+  .appbar{display:flex;align-items:center;gap:8px;padding:6px 10px;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .appbar .name{font-size:.8rem;color:var(--muted);overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;max-width:40ch}
+  .appbar .flag{margin-left:auto;font-size:.66rem;letter-spacing:.09em;
+    background:var(--orange);color:#fff;padding:3px 9px;border-radius:2px}
+
+  .palette{display:flex;align-items:center;gap:2px;padding:4px 10px;
+    background:var(--paper);border-bottom:1px solid var(--line)}
+  .palette .sep{width:1px;height:20px;background:var(--line);margin:0 6px}
+
+  /* ---------- แถวกลาง ห้าคอลัมน์ ราง · ที่จับ · แบบ · ที่จับ · แผงขวา ---------- */
+  .body{display:grid;grid-template-columns:var(--rail) 5px minmax(0,1fr) 5px var(--inspector);
+    min-height:0}                       /* min-height:0 คือกุญแจ ไม่งั้นแถวนี้ดันสูงเกินจอ */
+  body.rail-off .body{grid-template-columns:0 0 minmax(0,1fr) 5px var(--inspector)}
+  body.insp-off .body{grid-template-columns:var(--rail) 5px minmax(0,1fr) 0 0}
+  body.rail-off.insp-off .body{grid-template-columns:0 0 minmax(0,1fr) 0 0}
+
+  .rail{background:var(--paper);border-right:1px solid var(--line);overflow-y:auto;
+    padding:8px;display:grid;gap:8px;align-content:start;min-width:0}
+  body.rail-off .rail,body.insp-off .inspector{display:none}
+  .thumb{border:1px solid var(--line);border-radius:6px;background:#fff;padding:5px;
+    cursor:pointer;display:grid;gap:4px;justify-items:center;font-size:.68rem;color:var(--muted)}
+  .thumb[aria-current="true"]{border-color:var(--teal);box-shadow:0 0 0 2px var(--teal-soft)}
+  .thumb svg{width:100%;height:auto;display:block;background:#fff;border:1px solid #eef2f3}
+  .thumb b{font-weight:600;color:var(--ink);font-size:.72rem}
+
+  /* ที่จับลากปรับความกว้าง */
+  .splitter{background:transparent;cursor:col-resize;position:relative}
+  .splitter::after{content:"";position:absolute;inset:0 2px;background:var(--line);opacity:0}
+  .splitter:hover::after,.splitter.is-active::after{opacity:1}
+
+  .stage{position:relative;overflow:hidden;touch-action:none;min-width:0;min-height:0;background:
+    linear-gradient(0deg,rgba(7,48,71,.05) 1px,transparent 1px) 0 0/24px 24px,
+    linear-gradient(90deg,rgba(7,48,71,.05) 1px,transparent 1px) 0 0/24px 24px,
+    var(--canvas)}
+  .stage:focus-visible{outline:3px solid var(--teal);outline-offset:-3px}
+  .stage[data-tool="select"]{cursor:default}
+  .stage[data-tool="pan"]{cursor:grab}
+  .stage[data-tool="scale"],.stage[data-tool="dist"],.stage[data-tool="chain"],
+  .stage[data-tool="rect"],.stage[data-tool="poly"],.stage[data-tool="room"],
+  .stage[data-tool="count"]{cursor:crosshair}
+  .stage.is-dragging{cursor:grabbing !important}
+  .sheet{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform;
+    background:var(--paper);box-shadow:0 18px 50px -20px rgba(0,0,0,.45)}
+
+  .inspector{background:var(--paper);border-left:1px solid var(--line);
+    overflow-y:auto;min-width:0;display:grid;gap:0;align-content:start}
+  .insp-head{position:sticky;top:0;background:var(--paper);border-bottom:1px solid var(--line);
+    padding:8px 12px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:.82rem}
+  .insp-head .count{margin-left:auto;color:var(--muted);font-weight:400;font-size:.75rem}
+  .row{display:grid;grid-template-columns:10px 1fr auto;gap:8px;align-items:center;
+    padding:7px 12px;border-bottom:1px solid #eef2f3;font-size:.78rem}
+  .row i{width:10px;height:10px;border-radius:2px;display:block}
+  .row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+  .row small{display:block;color:var(--muted);font-size:.7rem}
+  .totals{padding:10px 12px;border-top:2px solid var(--line);font-size:.78rem}
+  .totals div{display:flex;justify-content:space-between;padding:3px 0}
+  .totals b{font-variant-numeric:tabular-nums}
+  .ai{margin:10px 12px;padding:10px;border:1px solid var(--teal);border-radius:8px;
+    background:var(--teal-soft);font-size:.76rem;line-height:1.65}
+  .ai b{display:block;color:var(--teal);font-size:.72rem;letter-spacing:.06em;margin-bottom:4px}
+
+  .statusbar{display:flex;align-items:center;gap:16px;padding:5px 12px;background:var(--paper);
+    border-top:1px solid var(--line);font-size:.74rem;color:var(--muted)}
+  .statusbar b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .statusbar .right{margin-left:auto;display:flex;gap:14px}
+
+  /* ---------- ปุ่มไอคอน ใช้ร่วมทุกที่ ---------- */
+  .tool{position:relative;width:32px;height:32px;display:grid;place-items:center;border:0;
+    background:transparent;color:var(--ink);border-radius:6px;cursor:pointer;padding:0}
+  .tool::before{content:"";position:absolute;inset:-3px}
+  .tool svg{width:18px;height:18px;pointer-events:none}
+  .tool:hover{background:rgba(7,48,71,.07)}
+  .tool:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+  .tool[aria-checked="true"]{background:var(--teal);color:#fff}
+  .tool[aria-pressed="true"]{background:var(--teal-soft);color:var(--teal)}
+  .tool[disabled]{opacity:.35;cursor:not-allowed}
+
+  .tip{position:fixed;z-index:80;background:var(--ink-deep);color:#fff;border-radius:6px;
+    padding:7px 10px;pointer-events:none;opacity:0;transition:opacity .12s;max-width:260px;
+    box-shadow:0 8px 20px -8px rgba(0,0,0,.6)}
+  .tip.is-on{opacity:1}
+  .tip b{display:block;font-size:.78rem}
+  .tip small{display:block;font-size:.7rem;color:#9fc3c9;margin-top:2px;line-height:1.5}
+  .tip kbd{margin-left:6px;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.16);
+    font-family:monospace;font-size:.68rem}
+
+  /* ---------- มุมขวาบน สถานะสมาชิกและบัญชี ---------- */
+  .account{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;
+    padding:4px 10px;border-radius:999px;background:var(--teal-soft);color:var(--teal);white-space:nowrap}
+  .chip i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block}
+  .chip--warn{background:#fdeee2;color:#a34f14}
+  .life{display:flex;flex-direction:column;line-height:1.25;text-align:right}
+  .life span{font-size:.64rem;color:var(--muted)}
+  .life b{font-size:.78rem;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+  .who{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;
+    padding:3px 10px 3px 3px;background:#fff;cursor:pointer;font:inherit;color:inherit}
+  .who:hover{background:var(--canvas)}
+  .who:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+  .who .avatar{width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;
+    display:grid;place-items:center;font-size:.68rem;font-weight:700}
+  .who .nm{font-size:.76rem;max-width:16ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ---------- ช่องผู้ช่วย AI ขยายใหญ่ ---------- */
+  .ai-panel{border-top:2px solid var(--teal);background:var(--teal-soft);display:grid;align-content:start}
+  .ai-head{display:flex;align-items:center;gap:8px;padding:9px 12px;
+    border-bottom:1px solid rgba(13,130,130,.25);font-weight:600;font-size:.8rem;color:var(--teal)}
+  .ai-head .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);
+    box-shadow:0 0 0 4px rgba(13,130,130,.18)}
+  .ai-head .n{margin-left:auto;font-weight:400;font-size:.72rem;color:var(--muted)}
+  .ai-item{padding:10px 12px;border-bottom:1px solid rgba(13,130,130,.18);font-size:.76rem;line-height:1.6}
+  .ai-item b{display:block;color:var(--ink);font-size:.78rem;margin-bottom:2px}
+  .ai-item small{display:block;color:var(--muted);font-size:.71rem;margin-top:3px}
+  .ai-item.is-blocked{background:#fdeee2;border-left:3px solid var(--orange)}
+  .ai-item.is-blocked b{color:#a34f14}
+  .ai-act{display:flex;gap:6px;margin-top:8px}
+  .ai-act button{font:inherit;font-size:.72rem;padding:4px 12px;border-radius:6px;cursor:pointer;
+    border:1px solid var(--teal);background:#fff;color:var(--teal)}
+  .ai-act button.ghost{border-color:var(--line);color:var(--muted)}
+  .ai-act button:hover{background:var(--teal);color:#fff}
+  .ai-act button.ghost:hover{background:var(--line);color:var(--ink)}
+  .ai-act button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .ai-item.is-done{opacity:.5}
+  .ai-item.is-done .ai-act{display:none}
+
+  .hint{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+    background:rgba(7,48,71,.92);color:#fff;font-size:.74rem;padding:7px 14px;
+    border-radius:999px;pointer-events:none;transition:opacity .5s;white-space:nowrap}
+  .hint.is-gone{opacity:0}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ๑ app bar -->
+  <div class="appbar">
+    <button type="button" class="tool" data-tip-title="เปิดแบบ PDF" data-tip-desc="เลือกไฟล์แบบก่อสร้างเข้ามาในโครงการ" data-tip-key="O" aria-label="เปิดแบบ PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>
+    </button>
+    <span class="name">แบบก่อสร้างอาคารฟอกไต ปุญโญภาส (ฉบับสมบูรณ์).pdf</span>
+    <div style="width:1px;height:20px;background:var(--line);margin:0 4px"></div>
+    <button type="button" class="tool" data-tip-title="ย้อนกลับ" data-tip-desc="ยกเลิกการกระทำล่าสุด" data-tip-key="Ctrl Z" aria-label="ย้อนกลับ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7.7L3 8"/></svg>
+    </button>
+    <button type="button" class="tool" data-tip-title="ทำซ้ำ" data-tip-desc="ทำสิ่งที่เพิ่งยกเลิกไปอีกครั้ง" data-tip-key="Ctrl Y" aria-label="ทำซ้ำ" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/></svg>
+    </button>
+    <div class="account">
+      <span class="flag">ต้นแบบใช้แล้วทิ้ง</span>
+      <span class="chip" id="mem-chip"><i></i><span id="mem-state">สมาชิกรายเดือน</span></span>
+      <span class="life"><span>อายุสมาชิกคงเหลือ</span><b id="mem-left">&#8212;</b></span>
+      <button type="button" class="who" aria-haspopup="menu" aria-expanded="false" aria-label="บัญชีของฉัน">
+        <span class="avatar">SP</span><span class="nm">Suriya Patchotchai</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ๒ tool palette -->
+  <div class="palette">
+    <button type="button" class="tool" id="t-rail" aria-pressed="true" data-tip-title="รางภาพย่อ" data-tip-desc="เปิดปิดแถบหน้าแบบด้านซ้าย เพื่อคืนพื้นที่ให้แบบ" data-tip-key="1" aria-label="เปิดปิดรางภาพย่อ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="6" height="16" rx="1"/><path d="M13 6h8M13 12h8M13 18h8"/></svg>
+    </button>
+    <div class="sep"></div>
+    <div id="tools" role="radiogroup" aria-label="เครื่องมือวัด" style="display:flex;gap:2px"></div>
+    <div class="sep"></div>
+    <button type="button" class="tool" id="snap" aria-pressed="true" data-tip-title="ดูดจุด" data-tip-desc="ให้ปลายเส้นวิ่งไปเกาะมุมหรือปลายเส้นในแบบเอง แม่นกว่าเล็งด้วยตา" data-tip-key="N" aria-label="ดูดจุด">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+    <div style="margin-left:auto"></div>
+    <button type="button" class="tool" id="t-insp" aria-pressed="true" data-tip-title="แผงผลลัพธ์" data-tip-desc="เปิดปิดแผงขวา ที่แสดงรายการที่วัดแล้วและยอดรวม" data-tip-key="2" aria-label="เปิดปิดแผงผลลัพธ์">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M15 4v16"/></svg>
+    </button>
+  </div>
+
+  <!-- ๓ แถวกลาง -->
+  <div class="body">
+    <aside class="rail" id="rail" aria-label="หน้าของแบบ"></aside>
+    <div class="splitter" id="split-left" role="separator" aria-orientation="vertical" aria-label="ปรับความกว้างรางภาพย่อ" aria-valuenow="150" aria-valuemin="110" aria-valuemax="320" tabindex="0"></div>
+
+    <div class="stage" id="stage" tabindex="0" data-tool="select" aria-label="พื้นที่แสดงแบบ ล้อเมาส์เพื่อซูม ลากเพื่อเลื่อน">
+      <div class="sheet" id="sheet">
+        <svg width="2400" height="1600" viewBox="0 0 2400 1600" xmlns="http://www.w3.org/2000/svg" aria-label="แปลนฐานราก">
+          <rect width="2400" height="1600" fill="#fff"/>
+          <rect x="40" y="40" width="2320" height="1520" fill="none" stroke="#073047" stroke-width="4"/>
+          <g stroke="#9db4bd" stroke-width="1.5" stroke-dasharray="18 8 4 8">
+            <line x1="300" y1="140" x2="300" y2="1240"/><line x1="640" y1="140" x2="640" y2="1240"/>
+            <line x1="980" y1="140" x2="980" y2="1240"/><line x1="1320" y1="140" x2="1320" y2="1240"/>
+            <line x1="1660" y1="140" x2="1660" y2="1240"/><line x1="2000" y1="140" x2="2000" y2="1240"/>
+            <line x1="220" y1="360" x2="2080" y2="360"/><line x1="220" y1="790" x2="2080" y2="790"/>
+            <line x1="220" y1="1140" x2="2080" y2="1140"/>
+          </g>
+          <g font-family="monospace" font-size="30" fill="#073047" text-anchor="middle" id="gridheads"></g>
+          <g id="footings" fill="#e7f2f2" stroke="#0d8282" stroke-width="4"></g>
+          <g stroke="#f47721" stroke-width="2.5" font-family="monospace" font-size="26" fill="#a34f14">
+            <line x1="300" y1="1330" x2="2000" y2="1330"/>
+            <line x1="300" y1="1310" x2="300" y2="1350"/><line x1="2000" y1="1310" x2="2000" y2="1350"/>
+            <text x="1150" y="1380" text-anchor="middle" stroke="none">5 ช่วง @ 4.00 = 20.00 ม.</text>
+          </g>
+          <g>
+            <rect x="1780" y="1380" width="540" height="140" fill="#fff" stroke="#073047" stroke-width="3"/>
+            <text x="1806" y="1428" font-size="30" font-weight="700" fill="#073047">S-02 แปลนฐานราก</text>
+            <text x="1806" y="1470" font-size="26" fill="#3f545f">มาตราส่วน 1:125</text>
+            <text x="1806" y="1506" font-size="22" fill="#5f7178">ภาพวาดขึ้นเพื่อทดสอบ ไม่ใช่แบบจริง</text>
+          </g>
+        </svg>
+      </div>
+      <div class="hint" id="hint">ล้อเมาส์เพื่อซูม · คลิกซ้ายแช่แล้วลากเพื่อเลื่อน · ลากเส้นแบ่งเพื่อปรับความกว้างแผง</div>
+    </div>
+
+    <div class="splitter" id="split-right" role="separator" aria-orientation="vertical" aria-label="ปรับความกว้างแผงผลลัพธ์" aria-valuenow="330" aria-valuemin="240" aria-valuemax="560" tabindex="0"></div>
+
+    <aside class="inspector" id="inspector" aria-label="รายการที่วัดแล้ว">
+      <div class="insp-head">รายการที่วัดแล้ว <span class="count" id="insp-count"></span></div>
+      <div id="insp-rows"></div>
+      <div class="totals" id="insp-totals"></div>
+      <div class="ai-panel">
+        <div class="ai-head"><span class="dot"></span>ผู้ช่วย AI อ่านแบบ<span class="n" id="ai-n"></span></div>
+
+        <div class="ai-item">
+          <b>สเกลของหน้านี้ อ่านได้ 1:125</b>
+          ผู้ช่วยอ่านจากป้ายชื่อแผ่นในแบบ ยังไม่ได้ตั้งให้ เพราะสเกลผิดทำให้ทุกปริมาณในหน้านี้ผิดตาม
+          <small>แบบที่พิมพ์ย่อขยายจะมีสเกลตามที่เขียนไว้ ไม่ตรงกับสเกลจริงบนไฟล์</small>
+          <div class="ai-act"><button type="button" data-ai="ok">ใช้ค่านี้</button><button type="button" class="ghost" data-ai="no">สอบเทียบเอง</button></div>
+        </div>
+
+        <div class="ai-item">
+          <b>ฐานราก F2 นับได้ 10 จุด</b>
+          ไล่ตำแหน่งตามแนวกริดได้ที่ 1A 2A 3A 4A 6A 1B 3B 4B 5B 6B
+          <small>กดรับแล้วจะแตกเป็นรายการติ๊กยืนยันทีละจุด</small>
+          <div class="ai-act"><button type="button" data-ai="ok">รับทั้งหมด</button><button type="button" class="ghost" data-ai="no">ดูทีละจุด</button></div>
+        </div>
+
+        <div class="ai-item is-blocked">
+          <b>ระดับก้นหลุมไม่ระบุในแปลน</b>
+          ผู้ช่วยประมาณไว้ที่ 1.50 ม. ค่านี้เข้าใบราคาไม่ได้จนกว่าจะมีคนรับผิดชอบยืนยัน
+          <small>ค่าประมาณที่ไม่มีใครรับรอง ต้องไม่ไหลเข้าเอกสารราคาเงียบ ๆ</small>
+          <div class="ai-act"><button type="button" data-ai="ok">ยืนยันค่านี้</button><button type="button" class="ghost" data-ai="no">ขอแบบเพิ่ม</button></div>
+        </div>
+
+        <div class="ai-item is-blocked">
+          <b>กริด 5A และ 2B ไม่มีสัญลักษณ์ฐานราก</b>
+          แนวกริดปกติควรมีฐานรากทุกจุดตัด สองจุดนี้แบบไม่ได้ระบุไว้
+          <small>บล็อกการนำเข้า BOQ ของรายการนี้ไว้ก่อน จนกว่าจะมีคนตัดสิน</small>
+          <div class="ai-act"><button type="button" data-ai="ok">ไม่มีจริง ข้ามไป</button><button type="button" class="ghost" data-ai="no">ทักผู้ออกแบบ</button></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ๔ status bar -->
+  <div class="statusbar">
+    <span>เครื่องมือ <b id="sb-tool">เลือก</b></span>
+    <span>สเกล <b>1:125.43</b></span>
+    <span>ดูดจุด <b id="sb-snap">เปิด</b></span>
+    <span class="right">
+      <span>กรอบแบบ <b id="sb-size"></b></span>
+      <span>ซูม <b id="sb-zoom"></b></span>
+    </span>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- เครื่องมือ ---------- */
+const TOOLS = [
+  { id:"select", key:"V", name:"เลือก",            desc:"คลิกเพื่อเลือกสิ่งที่วัดไว้แล้ว ลากเพื่อเลื่อนแบบ", icon:'<path d="M4 3l7 17 2-7 7-2z"/>' },
+  { id:"pan",    key:"H", name:"เลื่อน",           desc:"ลากเพื่อเลื่อนแบบอย่างเดียว", icon:'<path d="M9 11V6a1.5 1.5 0 1 1 3 0v5m0-1V5a1.5 1.5 0 1 1 3 0v6m0-2a1.5 1.5 0 1 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L5 15a1.5 1.5 0 0 1 2.5-1.7L9 15"/>' },
+  { id:"scale",  key:"S", name:"ตั้งสเกล",         desc:"ลากทับระยะที่รู้ค่าจริง แล้วพิมพ์ระยะนั้น ทุกการวัดหลังจากนี้จึงถูก", icon:'<path d="M3 17l4-4M7 13l3 3M10 16l4-4M14 12l3 3M17 15l4-4"/><path d="M2 20h20"/>' },
+  { id:"dist",   key:"L", name:"ระยะสองจุด",       desc:"คลิกจุดเริ่มและจุดจบ ได้ระยะหนึ่งค่า", icon:'<path d="M4 12h16"/><path d="M4 8v8M20 8v8"/>' },
+  { id:"chain",  key:"P", name:"ระยะต่อเนื่อง",     desc:"คลิกไปเรื่อย ๆ ได้ระยะรวมทุกช่วง ดับเบิลคลิกเพื่อจบ", icon:'<path d="M3 18l5-8 5 5 8-11"/><circle cx="3" cy="18" r="1.6"/><circle cx="8" cy="10" r="1.6"/><circle cx="13" cy="15" r="1.6"/>' },
+  { id:"rect",   key:"R", name:"พื้นที่สี่เหลี่ยม", desc:"ลากกรอบสี่เหลี่ยม ได้พื้นที่", icon:'<rect x="3" y="5" width="18" height="14" rx="1"/>' },
+  { id:"poly",   key:"G", name:"พื้นที่หลายเหลี่ยม", desc:"คลิกทีละมุมรอบรูป ดับเบิลคลิกเพื่อปิดรูป", icon:'<path d="M12 3l8 6-3 10H7L4 9z"/>' },
+  { id:"room",   key:"K", name:"เลือกพื้นที่ห้อง",  desc:"คลิกในห้องหนึ่งครั้ง ระบบไล่ขอบผนังที่ปิดรอบให้เอง", icon:'<path d="M3 21V5l9-2 9 2v16"/><path d="M3 21h18"/><path d="M14 21v-6h-4v6"/>' },
+  { id:"count",  key:"C", name:"นับจำนวน",         desc:"คลิกทีละจุด ได้ตัวนับ เหมาะกับฐานราก เสาเข็ม ดวงโคม", icon:'<circle cx="7" cy="7" r="2.4"/><circle cx="17" cy="7" r="2.4"/><circle cx="7" cy="17" r="2.4"/><circle cx="17" cy="17" r="2.4"/>' }
+];
+const toolBox = document.getElementById("tools");
+TOOLS.forEach((t,i) => {
+  const b = document.createElement("button");
+  b.className = "tool"; b.type = "button"; b.setAttribute("role","radio");
+  b.setAttribute("aria-checked", String(i === 0));
+  b.setAttribute("aria-label", t.name);
+  Object.assign(b.dataset, { tool:t.id, tipTitle:t.name, tipDesc:t.desc, tipKey:t.key });
+  b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>`;
+  toolBox.appendChild(b);
+});
+
+/* ---------- รางภาพย่อ ---------- */
+const PAGES = [
+  { n:6, t:"ผังบริเวณ", scaled:true }, { n:7, t:"แปลนฐานราก", scaled:true },
+  { n:8, t:"แปลนพื้นชั้น 1" }, { n:9, t:"แปลนพื้นชั้น 2" }, { n:10, t:"รูปด้าน" },
+  { n:11, t:"รูปตัด A" }, { n:12, t:"รูปตัด B" }, { n:13, t:"ขยายบันได" }
+];
+const rail = document.getElementById("rail");
+PAGES.forEach((p,i) => {
+  const d = document.createElement("button");
+  d.className = "thumb"; d.type = "button";
+  d.setAttribute("aria-current", String(i === 1));
+  d.innerHTML =
+    `<svg viewBox="0 0 60 42" aria-hidden="true">
+       <rect x="3" y="3" width="54" height="36" fill="none" stroke="#c9d8d9"/>
+       <g stroke="#9db4bd" stroke-width=".6">
+         <line x1="14" y1="8" x2="14" y2="34"/><line x1="26" y1="8" x2="26" y2="34"/>
+         <line x1="38" y1="8" x2="38" y2="34"/><line x1="8" y1="16" x2="52" y2="16"/>
+         <line x1="8" y1="28" x2="52" y2="28"/></g>
+       <g fill="#e7f2f2" stroke="#0d8282" stroke-width=".7">
+         <rect x="11" y="13" width="6" height="6"/><rect x="23" y="13" width="6" height="6"/>
+         <rect x="35" y="25" width="6" height="6"/></g>
+     </svg>
+     <b>หน้า ${p.n}</b>
+     <span>${p.scaled ? "1:125.43" : "ยังไม่ตั้งสเกล"}</span>`;
+  d.addEventListener("click", () => {
+    rail.querySelectorAll(".thumb").forEach(x => x.setAttribute("aria-current","false"));
+    d.setAttribute("aria-current","true");
+  });
+  rail.appendChild(d);
+});
+
+/* ---------- แผงขวา ---------- */
+const ITEMS = [
+  { c:"#0d8282", n:"ระยะสองจุด",       s:"ช่วงเสา 1–2",    a:"5.02 ม." },
+  { c:"#0d8282", n:"ระยะต่อเนื่อง",     s:"แนวผนังด้าน A",  a:"17.66 ม." },
+  { c:"#f47721", n:"นับจำนวน",         s:"ฐานราก F2",      a:"10 จุด" },
+  { c:"#073047", n:"พื้นที่หลายเหลี่ยม", s:"ห้องฟอกไต 1",   a:"209.44 ตร.ม." },
+  { c:"#0d8282", n:"พื้นที่หลายเหลี่ยม", s:"ห้องพักฟื้น",    a:"24.62 ตร.ม." },
+  { c:"#f47721", n:"พื้นที่สี่เหลี่ยม",  s:"ลานคอนกรีต",     a:"20.10 ตร.ม." }
+];
+document.getElementById("insp-rows").innerHTML = ITEMS.map(x =>
+  `<div class="row"><i style="background:${x.c}"></i>
+     <span>${x.n}<small>${x.s}</small></span>
+     <span class="val">${x.a}</span></div>`).join("");
+document.getElementById("insp-count").textContent = ITEMS.length + " รายการ";
+document.getElementById("insp-totals").innerHTML =
+  `<div><span>ระยะรวม</span><b>22.68 ม.</b></div>
+   <div><span>พื้นที่รวม</span><b>254.16 ตร.ม.</b></div>
+   <div><span>จำนวนรวม</span><b>10 จุด</b></div>`;
+
+/* ---------- ป้ายลอย มีที่เดียว ---------- */
+const tip = document.getElementById("tip");
+function showTip(el){
+  if (!el.dataset.tipTitle) return;
+  tip.innerHTML = `<b>${el.dataset.tipTitle}${el.dataset.tipKey ? `<kbd>${el.dataset.tipKey}</kbd>` : ""}</b>` +
+                  (el.dataset.tipDesc ? `<small>${el.dataset.tipDesc}</small>` : "");
+  tip.classList.add("is-on");
+  const r = el.getBoundingClientRect();
+  tip.style.top = (r.bottom + 8) + "px";
+  const w = tip.offsetWidth;
+  tip.style.left = Math.min(innerWidth - w - 8, Math.max(8, r.left + r.width/2 - w/2)) + "px";
+}
+const hideTip = () => tip.classList.remove("is-on");
+document.addEventListener("pointerover", e => { const b = e.target.closest?.(".tool"); b ? showTip(b) : hideTip(); });
+document.addEventListener("focusin", e => { const b = e.target.closest?.(".tool"); b ? showTip(b) : hideTip(); });
+document.addEventListener("pointerdown", hideTip);
+
+/* ---------- วาดแบบ ---------- */
+(function drawPlan(){
+  const xs=[300,640,980,1320,1660,2000], ys=[360,790,1140], NS="http://www.w3.org/2000/svg";
+  const add=(p,tag,a,t)=>{const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(t!=null)e.textContent=t;p.appendChild(e);return e;};
+  const heads=document.getElementById("gridheads");
+  xs.forEach((x,i)=>add(heads,"text",{x,y:118},i+1));
+  ["A","B","C"].forEach((c,i)=>add(heads,"text",{x:250,y:ys[i]+10},c));
+  const g=document.getElementById("footings");
+  xs.forEach((x,ix)=>ys.forEach((y,iy)=>{
+    if(iy===1&&(ix===1||ix===4))return;
+    const big=!(ix===0&&iy===0)&&!(ix===5&&iy===2), s=big?96:76;
+    add(g,"rect",{x:x-s/2,y:y-s/2,width:s,height:s});
+    add(g,"text",{x,y:y+s/2+34,"text-anchor":"middle","font-size":24,fill:"#0c7878",stroke:"none","font-family":"monospace"},
+      (big?"F2":"F1")+" "+(ix+1)+["A","B","C"][iy]);
+  }));
+})();
+
+/* ---------- กล้อง ---------- */
+const stage=document.getElementById("stage"), sheet=document.getElementById("sheet"), hint=document.getElementById("hint");
+const CONTENT={w:2400,h:1600}, MIN=.05, MAX=8, PAD=24, STEP=1.35;
+const view={scale:1,x:0,y:0};
+let queued=false;
+function render(){
+  if(queued)return; queued=true;
+  requestAnimationFrame(()=>{
+    queued=false;
+    sheet.style.transform=`translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+    document.getElementById("sb-zoom").textContent=Math.round(view.scale*100)+"%";
+    document.getElementById("sb-size").textContent=stage.clientWidth+" × "+stage.clientHeight;
+  });
+}
+const clamp=s=>Math.min(MAX,Math.max(MIN,s));
+function fit(){
+  const vw=stage.clientWidth, vh=stage.clientHeight;
+  view.scale=clamp(Math.min((vw-PAD*2)/CONTENT.w,(vh-PAD*2)/CONTENT.h));
+  view.x=(vw-CONTENT.w*view.scale)/2;
+  view.y=(vh-CONTENT.h*view.scale)/2;
+  render();
+}
+function zoomAt(px,py,f){
+  const wx=(px-view.x)/view.scale, wy=(py-view.y)/view.scale;
+  view.scale=clamp(view.scale*f);
+  view.x=px-wx*view.scale; view.y=py-wy*view.scale;
+  render();
+}
+const local=e=>{const r=stage.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top];};
+const centre=()=>[stage.clientWidth/2,stage.clientHeight/2];
+
+stage.addEventListener("wheel",e=>{
+  e.preventDefault();
+  let dy=e.deltaY;
+  if(e.deltaMode===1)dy*=16; if(e.deltaMode===2)dy*=stage.clientHeight;
+  zoomAt(...local(e),Math.exp(-dy*(e.ctrlKey?.010:.0015)));
+  dismissHint();
+},{passive:false});
+
+let drag=null;
+stage.addEventListener("pointerdown",e=>{
+  const panTool=stage.dataset.tool==="select"||stage.dataset.tool==="pan";
+  if(!(e.button===1||(e.button===0&&panTool)))return;
+  e.preventDefault();
+  stage.setPointerCapture(e.pointerId);
+  drag={px:e.clientX,py:e.clientY,x:view.x,y:view.y};
+  stage.classList.add("is-dragging"); dismissHint();
+});
+stage.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  view.x=drag.x+(e.clientX-drag.px); view.y=drag.y+(e.clientY-drag.py); render();
+});
+function endDrag(e){
+  if(!drag)return; drag=null; stage.classList.remove("is-dragging");
+  if(stage.hasPointerCapture?.(e.pointerId))stage.releasePointerCapture(e.pointerId);
+}
+stage.addEventListener("pointerup",endDrag);
+stage.addEventListener("pointercancel",endDrag);
+stage.addEventListener("auxclick",e=>{if(e.button===1)e.preventDefault();});
+stage.addEventListener("dblclick",e=>{e.preventDefault();zoomAt(...local(e),e.shiftKey?1/STEP:STEP);});
+
+/* ---------- เลือกเครื่องมือ ---------- */
+function pickTool(id){
+  toolBox.querySelectorAll(".tool").forEach(b=>b.setAttribute("aria-checked",String(b.dataset.tool===id)));
+  stage.dataset.tool=id;
+  document.getElementById("sb-tool").textContent=TOOLS.find(t=>t.id===id).name;
+  dismissHint();
+}
+toolBox.addEventListener("click",e=>{const b=e.target.closest(".tool"); if(b)pickTool(b.dataset.tool);});
+document.getElementById("snap").addEventListener("click",e=>{
+  const b=e.currentTarget, on=b.getAttribute("aria-pressed")!=="true";
+  b.setAttribute("aria-pressed",String(on));
+  document.getElementById("sb-snap").textContent=on?"เปิด":"ปิด";
+});
+
+/* ---------- เปิดปิดแผง ---------- */
+function togglePanel(btn,cls){
+  const on=btn.getAttribute("aria-pressed")!=="true";
+  btn.setAttribute("aria-pressed",String(on));
+  document.body.classList.toggle(cls,!on);
+  fit();                                   // คืนพื้นที่แล้วต้องพอดีกรอบใหม่
+}
+document.getElementById("t-rail").addEventListener("click",e=>togglePanel(e.currentTarget,"rail-off"));
+document.getElementById("t-insp").addEventListener("click",e=>togglePanel(e.currentTarget,"insp-off"));
+
+/* ---------- ลากเส้นแบ่งเพื่อปรับความกว้าง ---------- */
+function makeSplitter(el,varName,min,max,fromRight){
+  let s=null;
+  el.addEventListener("pointerdown",e=>{
+    el.setPointerCapture(e.pointerId); el.classList.add("is-active");
+    s={x:e.clientX,w:parseFloat(getComputedStyle(document.documentElement).getPropertyValue(varName))};
+  });
+  el.addEventListener("pointermove",e=>{
+    if(!s)return;
+    const d=(e.clientX-s.x)*(fromRight?-1:1);
+    document.documentElement.style.setProperty(varName,Math.min(max,Math.max(min,s.w+d))+"px");
+    render();
+  });
+  const stop=e=>{ if(!s)return; s=null; el.classList.remove("is-active");
+    if(el.hasPointerCapture?.(e.pointerId))el.releasePointerCapture(e.pointerId); fit(); };
+  el.addEventListener("pointerup",stop); el.addEventListener("pointercancel",stop);
+  el.addEventListener("keydown",e=>{           // คีย์บอร์ดก็ปรับได้
+    const cur=parseFloat(getComputedStyle(document.documentElement).getPropertyValue(varName));
+    if(e.key==="ArrowLeft"||e.key==="ArrowRight"){
+      const d=(e.key==="ArrowRight"?12:-12)*(fromRight?-1:1);
+      document.documentElement.style.setProperty(varName,Math.min(max,Math.max(min,cur+d))+"px");
+      fit(); e.preventDefault();
+    }
+  });
+}
+makeSplitter(document.getElementById("split-left"),"--rail",110,320,false);
+makeSplitter(document.getElementById("split-right"),"--inspector",240,560,true);
+
+/* ---------- คีย์บอร์ด ---------- */
+addEventListener("keydown",e=>{
+  if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)||e.target.isContentEditable)return;
+  if(e.target.classList?.contains("splitter"))return;
+  const k=e.key.toLowerCase();
+  const byKey=TOOLS.find(t=>t.key.toLowerCase()===k);
+  if(byKey){pickTool(byKey.id);e.preventDefault();return;}
+  if(k==="n"){document.getElementById("snap").click();e.preventDefault();return;}
+  if(e.key==="1"){document.getElementById("t-rail").click();e.preventDefault();return;}
+  if(e.key==="2"){document.getElementById("t-insp").click();e.preventDefault();return;}
+  if(e.key==="+"||e.key==="=")zoomAt(...centre(),STEP);
+  else if(e.key==="-"||e.key==="_")zoomAt(...centre(),1/STEP);
+  else if(e.key==="0")zoomAt(...centre(),1/view.scale);
+  else if(k==="f")fit();
+  else return;
+  e.preventDefault(); dismissHint();
+});
+
+/* ---------- อายุสมาชิกแบบเดินจริง ----------
+   นับจากเวลาหมดอายุที่ตายตัว ไม่ใช่ลบทีละวินาที เพราะแท็บที่ไม่ได้อยู่หน้าจอ
+   เบราว์เซอร์จะหน่วงตัวจับเวลา ถ้าลบทีละครั้งเลขจะเพี้ยนสะสมไปเรื่อย ๆ */
+const EXPIRES = Date.now() + (6*24*60*60 + 4*3600 + 12*60 + 30) * 1000;
+function tickMembership(){
+  let ms = EXPIRES - Date.now();
+  const chip = document.getElementById("mem-chip");
+  const out = document.getElementById("mem-left");
+  if (ms <= 0){
+    out.textContent = "หมดอายุแล้ว";
+    document.getElementById("mem-state").textContent = "หมดอายุ";
+    chip.classList.add("chip--warn");
+    return;
+  }
+  const d = Math.floor(ms / 86400000); ms -= d*86400000;
+  const h = Math.floor(ms / 3600000);  ms -= h*3600000;
+  const m = Math.floor(ms / 60000);    ms -= m*60000;
+  const sec = Math.floor(ms / 1000);
+  const two = (n) => String(n).padStart(2, "0");
+  out.textContent = d > 0 ? d + " วัน " + two(h) + ":" + two(m) + ":" + two(sec)
+                          : two(h) + ":" + two(m) + ":" + two(sec);
+  chip.classList.toggle("chip--warn", d < 3);
+}
+tickMembership();
+setInterval(tickMembership, 1000);
+
+/* ---------- รับหรือปฏิเสธข้อเสนอของผู้ช่วยทีละข้อ ---------- */
+function countAi(){
+  const left = document.querySelectorAll(".ai-item:not(.is-done)").length;
+  document.getElementById("ai-n").textContent = left ? left + " ข้อรอตัดสิน" : "ตัดสินครบแล้ว";
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ai]");
+  if (!b) return;
+  b.closest(".ai-item").classList.add("is-done");
+  countAi();
+});
+countAi();
+
+let hintTimer=setTimeout(dismissHint,7000);
+function dismissHint(){clearTimeout(hintTimer);hint.classList.add("is-gone");}
+addEventListener("resize",fit);
+fit(); stage.focus();
+</script>
+</body>
+</html>
