@@ -181,3 +181,83 @@ export function lockToAxis(from: PagePoint, to: PagePoint): PagePoint {
   const dy = Math.abs(to.y - from.y);
   return dx >= dy ? { x: to.x, y: from.y } : { x: from.x, y: to.y };
 }
+
+/**
+ * ล็อกแนวเส้นทีละ 15 องศา รวม 24 ทิศ
+ *
+ * เจ้าของงานเคาะ 2026-09-02 ว่า 15 องศา แอปเดิมของเขาที่ใช้งานผ่านแล้วใช้ 45 องศาซึ่งจับได้
+ * แค่แปดทิศ ลากเส้นทแยงของหลังคาหรือบันไดไม่ได้ · เครื่องมือร่างกริดยังใช้ `lockToAxis` ล้วน
+ * เพราะแนวเสาไม่เคยเอียง การเปิดให้เอียงได้มีแต่ทำให้พลาด
+ */
+export const ANGLE_LOCK_STEP_DEGREES = 15;
+
+/**
+ * ปัดมุมของเส้นเข้าทวีคูณที่ใกล้ที่สุด โดยความยาวไม่เปลี่ยน
+ *
+ * ปัดมุมไม่ใช่ปัดพิกัด เพราะถ้าปัดพิกัดความยาวจะเปลี่ยนไปด้วย แล้วตัวเลขที่ผู้ใช้เห็น
+ * จะขยับตอนกดปุ่มล็อก ซึ่งเป็นสิ่งที่ห้ามเกิดกับเครื่องมือวัด
+ */
+export function lockToAngle(
+  from: PagePoint,
+  to: PagePoint,
+  stepDegrees: number = ANGLE_LOCK_STEP_DEGREES
+): PagePoint {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.hypot(dx, dy);
+  if (!(length > 0) || !Number.isFinite(stepDegrees) || stepDegrees <= 0) return { x: to.x, y: to.y };
+  const step = (stepDegrees * Math.PI) / 180;
+  const snapped = Math.round(Math.atan2(dy, dx) / step) * step;
+  return { x: from.x + Math.cos(snapped) * length, y: from.y + Math.sin(snapped) * length };
+}
+
+/**
+ * ระยะจริงหนึ่งช่วง — ระยะที่แบบเขียนกำกับไว้ ซึ่งผู้ใช้ชี้สองจุดแล้วพิมพ์ตัวเลขที่อ่านได้
+ *
+ * เก็บเป็นเมตรเสมอ กล่องกรอกรับหน่วยเมตร เซนติเมตร มิลลิเมตร แล้วแปลงก่อนเก็บ
+ * เพื่อไม่ให้มีค่าที่ต้องถามว่าหน่วยอะไรกระจายอยู่ในระบบ
+ */
+export type StatedDimension = {
+  id: string;
+  page: number;
+  a: PagePoint;
+  b: PagePoint;
+  valueM: number;
+};
+
+/**
+ * ตั้งสเกลของหน้าจากระยะจริงหนึ่งช่วง
+ *
+ * เป็นทางที่เจ้าของงานใช้จริง คือร่างกริดก่อน ใส่ระยะที่แบบเขียนไว้ แล้วสเกลตามมาเอง
+ * ไม่ใช่ลากเส้นสอบเทียบแยกอีกเส้น · ด่านเส้นสั้นเกินไปยังคงเดิม เพราะเหตุผลไม่เปลี่ยน
+ * คือคลิกพลาดหนึ่ง point บนช่วงสั้นกลายเป็นความผิดพลาดของทุกปริมาณในหน้านั้น
+ */
+export function calibrateFromDimension(dimension: StatedDimension): CalibrationResult {
+  return calibrate({
+    measuredPoints: distancePoints(dimension.a, dimension.b),
+    realDistance: dimension.valueM,
+    unit: "m"
+  });
+}
+
+/**
+ * ความต่างระหว่างระยะที่แบบเขียน กับระยะที่ได้จากการคลิกคูณสเกลของหน้า
+ *
+ * สองค่านี้ขัดกันได้และความต่างคือผลลัพธ์ที่ต้องมองเห็น ไม่ใช่ความผิดพลาดที่ต้องซ่อน
+ * แบบที่ถูกพิมพ์ย่อขยายจะต่างเท่ากันทุกช่วง ส่วนแบบที่เขียนระยะผิดจะต่างเฉพาะช่วงเดียว
+ * สองอาการนี้แยกด้วยตาไม่ได้ แต่แยกด้วยเลขได้
+ *
+ * `differenceM` เป็นบวกเมื่อระยะที่วัดได้ยาวกว่าที่แบบเขียน
+ */
+export function dimensionDisagreement(
+  dimension: StatedDimension,
+  scale: PageScale | null
+): { statedM: number; measuredM: number; differenceM: number } | null {
+  if (!scale) return null;
+  const measuredM = lengthInMetres(distancePoints(dimension.a, dimension.b), scale);
+  return {
+    statedM: dimension.valueM,
+    measuredM,
+    differenceM: measuredM - dimension.valueM
+  };
+}

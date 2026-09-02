@@ -1,17 +1,23 @@
 import { describe, expect, it } from "vitest";
 import {
+  ANGLE_LOCK_STEP_DEGREES,
   areaInSquareMetres,
   calibrate,
+  calibrateFromDimension,
+  dimensionDisagreement,
   distancePoints,
   formatScaleRatio,
   lengthInMetres,
+  lockToAngle,
   lockToAxis,
   MIN_CALIBRATION_POINTS,
   polygonAreaPoints,
   polygonPerimeterPoints,
   polylineLengthPoints,
   POINTS_PER_METRE,
-  segmentLengthsPoints
+  segmentLengthsPoints,
+  type PagePoint,
+  type StatedDimension
 } from "@/lib/drawing-scale";
 
 const scaleOf = (input: Parameters<typeof calibrate>[0]) => {
@@ -156,5 +162,89 @@ describe("การบังคับแนว", () => {
 
   it("ลากขึ้นลงมากกว่าออกด้านข้าง ได้เส้นแนวตั้ง", () => {
     expect(lockToAxis({ x: 10, y: 10 }, { x: 18, y: 95 })).toEqual({ x: 10, y: 95 });
+  });
+});
+
+describe("ล็อกแนวเส้นทีละ 15 องศา", () => {
+  const origin = { x: 0, y: 0 };
+  const degreesOf = (point: PagePoint) => (Math.atan2(point.y, point.x) * 180) / Math.PI;
+  const pointAt = (degrees: number, length: number) => ({
+    x: Math.cos((degrees * Math.PI) / 180) * length,
+    y: Math.sin((degrees * Math.PI) / 180) * length
+  });
+
+  it("ปัดมุม 17 องศาลงมาที่ 15 และปัด 22.6 องศาขึ้นไปที่ 30", () => {
+    expect(degreesOf(lockToAngle(origin, pointAt(17, 100)))).toBeCloseTo(15, 9);
+    expect(degreesOf(lockToAngle(origin, pointAt(22.6, 100)))).toBeCloseTo(30, 9);
+  });
+
+  it("ความยาวไม่เปลี่ยนเลยไม่ว่าปัดมุมไปเท่าไหร่ เพราะตัวเลขที่ผู้ใช้เห็นห้ามขยับตอนกดล็อก", () => {
+    for (let degrees = 0; degrees < 360; degrees += 7) {
+      const target = pointAt(degrees, 137.5);
+      const locked = lockToAngle(origin, target);
+      expect(Math.hypot(locked.x, locked.y)).toBeCloseTo(137.5, 9);
+    }
+  });
+
+  it("ทุกมุมรอบวงตกลงบนทวีคูณของ 15 องศาเสมอ ครบ 24 ทิศ", () => {
+    const landed = new Set<number>();
+    for (let degrees = -180; degrees < 180; degrees += 1) {
+      const locked = lockToAngle(origin, pointAt(degrees, 50));
+      const angle = degreesOf(locked);
+      expect(Math.abs(angle / ANGLE_LOCK_STEP_DEGREES - Math.round(angle / ANGLE_LOCK_STEP_DEGREES))).toBeLessThan(1e-9);
+      // atan2 คืนค่าในช่วง (-180, 180] ทิศเดียวกันจึงโผล่เป็น -180 กับ 180 ได้ ต้องรวบก่อนนับ
+      landed.add(Math.round(((angle % 360) + 360) % 360));
+    }
+    expect(landed.size).toBe(24);
+  });
+
+  it("เคารพขั้นองศาที่ส่งเข้ามา เพราะเครื่องมือร่างกริดต้องล็อก 90 องศาล้วน", () => {
+    expect(degreesOf(lockToAngle(origin, pointAt(40, 10), 90))).toBeCloseTo(0, 9);
+    expect(degreesOf(lockToAngle(origin, pointAt(50, 10), 90))).toBeCloseTo(90, 9);
+  });
+
+  it("คืนจุดเดิมเมื่อยังไม่ได้ลากไปไหน หรือขั้นองศาไม่สมเหตุสมผล", () => {
+    expect(lockToAngle({ x: 7, y: 9 }, { x: 7, y: 9 })).toEqual({ x: 7, y: 9 });
+    expect(lockToAngle(origin, { x: 10, y: 10 }, 0)).toEqual({ x: 10, y: 10 });
+  });
+});
+
+describe("ระยะจริงที่แบบเขียนกำกับ", () => {
+  const gridSpan: StatedDimension = {
+    id: "d1",
+    page: 7,
+    a: { x: 177.84, y: 400 },
+    b: { x: 291.15, y: 400 },
+    valueM: 5
+  };
+
+  it("ตั้งสเกลจากช่วงกริดจริงบนหน้า 7 ได้ 1:125 ตรงกับที่หัวแบบระบุ", () => {
+    const result = calibrateFromDimension(gridSpan);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.scale.ratio).toBeCloseTo(125, 0);
+  });
+
+  it("ปฏิเสธช่วงที่สั้นเกินไปด้วยเหตุผลเดิม เพราะความผิดพลาดจะติดไปทั้งหน้า", () => {
+    const tiny: StatedDimension = { ...gridSpan, b: { x: 177.84 + 5, y: 400 } };
+    const result = calibrateFromDimension(tiny);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("measured_too_short");
+  });
+
+  it("ยังไม่มีสเกลก็ยังเทียบความต่างไม่ได้", () => {
+    expect(dimensionDisagreement(gridSpan, null)).toBeNull();
+  });
+
+  it("บอกความต่างพร้อมเครื่องหมาย เมื่อระยะที่วัดได้ยาวกว่าที่แบบเขียน", () => {
+    const scale = scaleOf({ measuredPoints: 113.31, realDistance: 5, unit: "m" });
+    const shortStated: StatedDimension = { ...gridSpan, valueM: 4.8 };
+    const gap = dimensionDisagreement(shortStated, scale);
+    expect(gap).not.toBeNull();
+    expect(gap!.statedM).toBe(4.8);
+    expect(gap!.measuredM).toBeCloseTo(5, 2);
+    expect(gap!.differenceM).toBeGreaterThan(0);
+    expect(gap!.differenceM).toBeCloseTo(gap!.measuredM - 4.8, 9);
   });
 });
