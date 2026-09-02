@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { DrawingMarkup } from "@/components/estimeter/markup/drawing-markup";
@@ -10,6 +9,10 @@ import { getProject } from "@/server/estimeter/project-repository";
  *
  * ด่านสิทธิ์ตรวจซ้ำที่นี่แม้ layout จะตรวจแล้ว เพราะ Next.js ยังรันหน้าที่ layout ห่อไว้เสมอ
  * การมาถึงหน้านี้ได้จึงไม่ได้แปลว่ามีสิทธิ์ ตามแบบเดียวกับหน้าถอดแบบด้วยมือ
+ *
+ * **หน้านี้ไม่มีหัวเรื่องและไม่มีเส้นทางเป็นบล็อกของตัวเอง** ชื่อโครงการกับทางกลับย้ายไปอยู่
+ * ในแถบของเครื่องมือ เพราะพื้นที่ทำงานต้องเต็มจอ — บล็อกหัวเรื่องกินความสูงที่ผืนวาดต้องใช้
+ * และดันผืนวาดลงไปจนต้องเลื่อนหน้าเว็บหา (เจ้าของงานทักเมื่อ 2026-09-02)
  *
  * **รอบนี้แบบยังไม่ถูกส่งขึ้นที่เก็บไฟล์** ผู้ใช้เปิดไฟล์จากเครื่องตัวเองแล้ววัดได้เลย
  * เพราะการวาดและการวัดเกิดในเบราว์เซอร์ทั้งหมด ที่เก็บไฟล์บนคลาวด์จำเป็นตอนที่ต้อง
@@ -29,25 +32,18 @@ export default async function DrawingMarkupPage({ params }: { params: Promise<{ 
 
   const canEdit = access.capabilities.edit && (project.state === "draft" || project.state === "active");
 
-  return (
-    <div className="container">
-      <nav aria-label="เส้นทาง">
-        <Link href={`/apps/estimeter/projects/${projectId}`}>กลับไปหน้าโครงการ</Link>
-      </nav>
-
-      <h1>วัดปริมาณบนแบบ — {project.name}</h1>
-      <p>
-        เปิดไฟล์แบบ PDF จากเครื่องของคุณ ตั้งสเกลของหน้านั้นก่อน แล้วจึงวัดได้
-        เครื่องมือที่ต้องใช้สเกลจะกดไม่ได้จนกว่าจะตั้งสเกลเสร็จ เพราะสเกลผิดทำให้ทุกปริมาณในหน้านั้นผิดตาม
+  if (!canEdit) {
+    return (
+      <p className="markup__blocked" role="status">
+        โครงการนี้อยู่ในสถานะที่แก้ไขไม่ได้ หรือสิทธิ์ของคุณเปิดให้อ่านอย่างเดียว
       </p>
+    );
+  }
 
-      {canEdit ? (
-        <DrawingMarkup />
-      ) : (
-        <p role="status">
-          โครงการนี้อยู่ในสถานะที่แก้ไขไม่ได้ หรือสิทธิ์ของคุณเปิดให้อ่านอย่างเดียว
-        </p>
-      )}
-    </div>
+  return (
+    <DrawingMarkup
+      projectName={project.name}
+      projectHref={`/apps/estimeter/projects/${projectId}`}
+    />
   );
 }

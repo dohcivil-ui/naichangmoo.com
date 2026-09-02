@@ -5,7 +5,7 @@ import { describeCardClaims } from "@/lib/catalogue-card";
 import { landingActionContract } from "@/lib/landing-interactions";
 import { AssistantDockHost } from "@/components/platform/assistant-dock";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { SiteHeader } from "@/components/platform/site-header";
+import { AccountMenuSlot, SiteHeader } from "@/components/platform/site-header";
 import { readCatalogueClaims } from "@/server/app-registry";
 
 /**
@@ -31,13 +31,23 @@ function HomeDoor() {
  * ไม่อ่านทะเบียน ไม่มีป้ายสิทธิ์ มีป้าย "ต้นแบบ" บอกตรง ๆ ว่าหน้านี้ยังไม่ใช่แอปที่ประกาศแล้ว
  * และข้ามบล็อกชื่อแอป เพราะ workspace ของต้นแบบมีหัวเรื่องใหญ่ของตัวเองอยู่แล้ว
  */
+/**
+ * โหมด workspace มีไว้ให้หน้าที่เป็นพื้นที่ทำงานเต็มจอ เช่น การวัดปริมาณบนแบบ
+ *
+ * เปลือกเหลือแถบเดียว — ทางกลับบ้าน ทางไปแอปทั้งหมด ชื่อแอป ป้ายสิทธิ์ และเมนูบัญชี —
+ * แล้วยกพื้นที่ที่เหลือทั้งจอให้เนื้องาน **ไม่มีหัวแอปและไม่มีท้ายเว็บ** เพราะคนที่กำลังวัดแบบ
+ * ต้องการผืนวาด ไม่ใช่หน้าเว็บที่ต้องเลื่อนลงไปหาผืนวาด
+ *
+ * สิ่งที่ยังเหมือนทุกโหมดและห้ามหาย — ทางออกจากแอปที่เห็นได้ตลอดเวลา (skill `app-shell`
+ * บอกว่าคนที่หาทางออกไม่เจอจะปิดแท็บทิ้ง) และแผงผู้ช่วยกลางที่ห่อเนื้อหาไว้
+ */
 export async function AppShell({
   app,
   mode = "app",
   children
 }: {
   app: PlatformApp;
-  mode?: "app" | "prototype";
+  mode?: "app" | "prototype" | "workspace";
   children: ReactNode;
 }) {
   /**
@@ -46,7 +56,26 @@ export async function AppShell({
    * named only the landing page and /market/[slug]. ADR 0015 governs it like the rest: an app the
    * registry has not spoken for shows no badge here either.
    */
-  const says = mode === "app" ? describeCardClaims((await readCatalogueClaims())[app.slug]) : null;
+  const says = mode === "prototype" ? null : describeCardClaims((await readCatalogueClaims())[app.slug]);
+
+  if (mode === "workspace") {
+    return (
+      <main className="site-shell app-shell app-shell--workspace">
+        <section className="app-shell__context">
+          <div className="app-shell__context-inner">
+            <HomeDoor />
+            <span aria-hidden="true">/</span>
+            <Link href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Link>
+            <span aria-hidden="true">/</span>
+            <strong>{app.name}</strong>
+            {says?.access ? <span className={`access access--${says.access.modifier}`}>{says.access.label}</span> : null}
+            <AccountMenuSlot />
+          </div>
+        </section>
+        <AssistantDockHost>{children}</AssistantDockHost>
+      </main>
+    );
+  }
 
   return (
     <main className="site-shell app-shell">

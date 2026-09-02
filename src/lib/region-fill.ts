@@ -36,7 +36,16 @@ export type RegionResult =
   | { ok: false; reason: RegionRejection; areaPixels: number };
 
 export const DEFAULT_LINE_THRESHOLD = 140;
-const DEFAULT_MAX_AREA_FRACTION = 0.6;
+/**
+ * เกินสัดส่วนนี้ของหน้าถือว่าสีทะลุออกนอกห้อง
+ *
+ * ค่านี้เคยเป็น 0.6 ซึ่งวัดกับแบบจริงเมื่อ 2026-09-01 แล้วพบว่าหลวมเกินไป
+ * คลิกในห้องที่มีช่องประตู สีไหลออกไปทั้งชั้นแล้วได้ 266 ตร.ม. จากห้องที่จริง ๆ ราว 20 ตร.ม.
+ * โดยระบบไม่เตือนสักคำ เพราะบริเวณที่ไหลออกไปกินเนื้อที่เพียง 14% ของหน้า
+ * เจ้าของงานเคาะเมื่อ 2026-09-01 ให้ลดเพดานลงเหลือหนึ่งในสี่ของหน้า
+ * และให้คนกดยืนยันรูปที่ได้ทุกครั้งก่อนเข้ารายการวัด เพดานนี้จึงเป็นตาข่ายชั้นล่าง ไม่ใช่ด่านเดียว
+ */
+const DEFAULT_MAX_AREA_FRACTION = 0.25;
 const MIN_AREA_PIXELS = 40;
 
 export const regionRejectionMessage: Record<RegionRejection, string> = {

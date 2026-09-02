@@ -104,6 +104,80 @@ export function isComplete(measurement: Measurement): boolean {
   return measurement.points.length >= minimumPoints(measurement.kind);
 }
 
+/**
+ * ชื่อที่ส่งมาเป็นชนิดของการวัดจริงหรือไม่
+ *
+ * หน้าจอมีเครื่องมืออย่าง เลือก เลื่อน และ ตั้งสเกล ซึ่งไม่ได้ผลลัพธ์เป็นรายการวัด
+ * ถ้าไม่มีด่านนี้ การกด Enter ตอนถือเครื่องมือเหล่านั้นจะสร้างแถวเปล่าไม่มีชนิดค้างในรายการ
+ * ซึ่งเป็นสิ่งที่เจอจริงจากการกดมือเมื่อ 2026-09-01
+ */
+export function isMeasurementKind(value: string): value is MeasurementKind {
+  return value in measurementKindLabel;
+}
+
+/**
+ * หารายการวัดที่อยู่ใต้จุดที่คลิก เพื่อให้เครื่องมือเลือกหยิบรูปบนแบบได้ตรง ๆ
+ *
+ * ไล่จากรายการที่วาดทีหลังไปหารายการแรก เพราะรูปที่วาดทีหลังอยู่บนสุดในสายตาผู้ใช้
+ * รูปปิด เช่น พื้นที่ ถือว่าโดนเมื่อคลิกในเนื้อที่หรือใกล้เส้นขอบ ส่วนเส้นและจุดนับ
+ * ถือว่าโดนเมื่อคลิกใกล้กว่าระยะผ่อนผันที่ส่งเข้ามา ซึ่งหน้าจอคำนวณจากระดับซูมให้แล้ว
+ */
+export function hitTest(
+  measurements: readonly Measurement[],
+  point: PagePoint,
+  tolerance: number
+): string | null {
+  for (let index = measurements.length - 1; index >= 0; index -= 1) {
+    const item = measurements[index];
+    const outline = outlinePoints(item);
+    if (outline.length === 0) continue;
+
+    if (item.kind === "count") {
+      const near = outline.some((corner) => Math.hypot(corner.x - point.x, corner.y - point.y) <= tolerance);
+      if (near) return item.id;
+      continue;
+    }
+
+    const closed = item.kind === "area" || item.kind === "rect";
+    if (closed && pointInPolygon(point, outline)) return item.id;
+    const path = closed ? [...outline, outline[0]] : outline;
+    if (nearPath(point, path, tolerance)) return item.id;
+  }
+  return null;
+}
+
+/** จุดอยู่ในรูปหลายเหลี่ยมหรือไม่ ด้วยวิธีนับจำนวนครั้งที่รังสีตัดขอบ */
+export function pointInPolygon(point: PagePoint, polygon: readonly PagePoint[]): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i, i += 1) {
+    const a = polygon[i];
+    const b = polygon[j];
+    const straddles = a.y > point.y !== b.y > point.y;
+    if (!straddles) continue;
+    const crossX = ((b.x - a.x) * (point.y - a.y)) / (b.y - a.y) + a.x;
+    if (point.x < crossX) inside = !inside;
+  }
+  return inside;
+}
+
+function nearPath(point: PagePoint, path: readonly PagePoint[], tolerance: number): boolean {
+  for (let index = 0; index + 1 < path.length; index += 1) {
+    if (distanceToSegment(point, path[index], path[index + 1]) <= tolerance) return true;
+  }
+  return false;
+}
+
+/** ระยะจากจุดถึงส่วนของเส้นตรง ไม่ใช่ถึงเส้นตรงที่ยาวไม่สิ้นสุด */
+export function distanceToSegment(point: PagePoint, from: PagePoint, to: PagePoint): number {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const lengthSquared = dx * dx + dy * dy;
+  if (lengthSquared === 0) return Math.hypot(point.x - from.x, point.y - from.y);
+  const along = ((point.x - from.x) * dx + (point.y - from.y) * dy) / lengthSquared;
+  const clamped = Math.min(1, Math.max(0, along));
+  return Math.hypot(point.x - (from.x + clamped * dx), point.y - (from.y + clamped * dy));
+}
+
 export function measure(measurement: Measurement, scale: PageScale | null): MeasurementValue {
   const empty: MeasurementValue = {
     lengthMetres: null,

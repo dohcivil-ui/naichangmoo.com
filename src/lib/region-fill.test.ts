@@ -56,6 +56,21 @@ describe("การเลือกพื้นที่ห้องด้วย�
     expect(result.reason).toBe("leaked");
   });
 
+  it("สีไหลออกไปเกินหนึ่งในสี่ของหน้า ถือว่าทะลุ แม้ยังไม่ถึงขอบกระดาษ", () => {
+    // ห้องใหญ่กลางหน้า กินเนื้อที่ 36% ของหน้า และไม่แตะขอบกระดาษเลย
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 20, y: 20, w: 120, h: 120 } });
+    const result = traceRegion(image, { x: 80, y: 80 });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("leaked");
+  });
+
+  it("ผ่อนเพดานให้กว้างขึ้นได้เมื่อแบบนั้นมีห้องโถงใหญ่จริง", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 20, y: 20, w: 120, h: 120 } });
+    expect(traceRegion(image, { x: 80, y: 80 }, { maxAreaFraction: 0.6 }).ok).toBe(true);
+  });
+
   it("คลิกโดนเส้นพอดี บอกให้คลิกใหม่ ไม่ใช่คืนพื้นที่ศูนย์เงียบ ๆ", () => {
     const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
     const result = traceRegion(image, { x: 40, y: 60 });

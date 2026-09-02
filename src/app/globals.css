@@ -659,6 +659,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ป้าย "เฉพาะบุคลากรกรมทางหลวง" เคยยื่นพ้นขอบขวา 21px เพราะแถวไม่ยอมหักบรรทัด */
 .app-shell__context > div { min-height: 50px; padding: 8px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; color: var(--ink-body); font-size: .82rem; }.app-shell__context a { color: var(--teal-text); font-weight: 600; }
 
+/* ---- โหมด workspace: หน้าที่เป็นพื้นที่ทำงานเต็มจอ (หน้าวัดปริมาณบนแบบ)
+   เปลือกเหลือแถบเดียวแล้วยกที่เหลือทั้งจอให้เนื้องาน ไม่มีหัวแอป ไม่มีท้ายเว็บ
+   min-height ต้องทับของ .site-shell (100vh) ไม่งั้นบนจอที่ vh กับ dvh ไม่เท่ากัน หน้าจะยาวเกินจอ
+   minmax(0, 1fr) คือกุญแจ ถ้าใช้ 1fr เฉย ๆ แถวจะดันสูงตามเนื้อหาแล้วผืนวาดจะล้นออกนอกจอ ---- */
+.app-shell--workspace { height: 100dvh; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; }
+.app-shell--workspace > .assistant-dock-push { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); }
+.app-shell__context-inner { padding-inline: 16px; }
+.app-shell__context-inner > :last-child { margin-inline-start: auto; }
+
 /* ---- IP-185: Assistant Dock (แผงผู้ช่วยกลาง) — ช่องเดียวของผู้ช่วยใน AppShell ทุกแอป
    เดสก์ท็อป: แผงตรึงริมขวาเต็มความสูงใต้แถบนำทาง (--dock-top วัดจากของจริง เพราะเมนูจอแคบ
    ห่อหลายแถว) และดันเนื้อหาหลบผ่าน .assistant-dock-push--active ไม่ใช่บัง — คำเคาะเจ้าของงาน
@@ -2494,37 +2503,97 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ผังสามคอลัมน์ รายการหน้าซ้าย ผืนแบบกลาง ตารางรายการวัดขวา
    ทุกสีมาจาก token ข้างบน ไม่มีเลขสีในไฟล์คอมโพเนนต์ ตาม ADR 0021
    เขตกดของทุกปุ่มไม่ต่ำกว่า 48px ตามข้อบังคับหน้าตาแอปข้อ 5 */
-.markup { display: flex; flex-direction: column; min-height: 70vh; border: 1px solid var(--line); background: var(--paper); }
-.markup__bar,
-.markup__tools,
-.markup__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
-.markup__status { border-bottom: 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
-.markup__bar button,
-.markup__tools button,
-.markup__status button { min-height: 48px; padding: 0 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; }
-.markup__bar button:disabled,
-.markup__tools button:disabled { color: var(--muted); cursor: not-allowed; }
-.markup__tools button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal); color: var(--paper); }
-.markup__open { display: inline-flex; align-items: center; min-height: 48px; padding: 0 14px; border: 1px solid var(--teal); color: var(--teal); cursor: pointer; }
-.markup__open input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.markup__file { color: var(--muted); }
-.markup__scale-state { margin-inline-start: auto; color: var(--ink); font-weight: 600; }
+/* ---- หน้าวัดปริมาณบนแบบ — ผังสี่แถวเต็มจอตามต้นแบบของเจ้าของงาน
+   `.design/estimeter-viewer/viewer-controls-prototype.html` (2026-09-02)
+   แถบแอป · แถบเครื่องมือ · ราง-ที่จับ-แบบ-ที่จับ-แผงขวา · แถบสถานะ
+   minmax(0, 1fr) ทุกที่ที่เป็นแถวหรือคอลัมน์ยืด เพราะ 1fr เปล่า ๆ จะดันตามเนื้อหาแล้วล้นจอ ---- */
+/* คอลัมน์ยืดหยุ่น ไม่ใช่กริดที่ล็อกจำนวนแถว เพราะแถบยืนยันพื้นที่ห้องโผล่มาเป็นแถวที่ห้าเฉพาะบางเวลา
+   กริดที่นับแถวไว้ตายตัวจะยกแถบนั้นไปทับพื้นที่ทำงานจนกดปุ่มยืนยันไม่ได้ (เจอเองตอนกดมือ 2026-09-02) */
+.mk { display: flex; flex-direction: column; min-height: 0; background: var(--canvas); color: var(--ink); font-size: .84rem; }
+.mk__body { flex: 1 1 auto; }
+.mk__bar,
+.mk__palette { display: flex; align-items: center; gap: 6px; padding: 5px 10px; background: var(--paper); border-block-end: 1px solid var(--line); flex-wrap: wrap; }
+.mk__divider { width: 1px; height: 20px; background: var(--line); margin-inline: 4px; }
+.mk__project { font-weight: 700; }
+.mk__file { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32ch; }
+.mk__back { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding-inline: 8px; color: var(--teal-text); font-weight: 700; }
+.mk__back svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
-.markup__body { display: grid; grid-template-columns: 200px minmax(0, 1fr) 380px; min-height: 0; }
-.markup__pages { border-inline-end: 1px solid var(--line); overflow: auto; max-height: 70vh; }
-.markup__pages h2 { margin: 0; padding: 10px 12px; font-size: .9rem; color: var(--muted); }
-.markup__pages ol { list-style: none; margin: 0; padding: 0; }
-.markup__pages button { display: block; width: 100%; min-height: 48px; padding: 8px 12px; border: 0; border-block-end: 1px solid var(--line); background: var(--paper); color: var(--ink); text-align: start; cursor: pointer; }
-.markup__pages button[aria-current="page"] { background: var(--canvas); border-inline-start: 3px solid var(--teal); }
-.markup__pages small { display: block; color: var(--muted); }
+/* ปุ่มไอคอนใช้ร่วมทุกแถบ เขตกดจริง 36px และมีป้ายลอยบอกชื่อ คำอธิบาย และคีย์ลัดเสมอ
+   จึงไม่ใช่ปุ่มที่ต้องเดาความหมาย ตามที่ต้นแบบทำไว้ */
+.mk__icon { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink); border-radius: 6px; cursor: pointer; padding: 0; }
+.mk__icon svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.mk__icon:hover { background: var(--canvas); }
+.mk__icon:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.mk__icon[aria-checked="true"] { background: var(--teal); color: var(--paper); }
+.mk__icon[aria-pressed="true"] { background: var(--canvas); color: var(--teal-text); box-shadow: inset 0 0 0 1px var(--teal); }
+.mk__icon:disabled { opacity: .35; cursor: not-allowed; }
+.mk__open input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.mk__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.mk__tools { display: flex; gap: 2px; }
+.mk__scale-state { margin-inline-start: auto; font-weight: 700; }
 
-.markup__stage { position: relative; overflow: auto; background: var(--canvas); max-height: 70vh; }
-.markup__canvas-wrap { position: relative; display: inline-block; }
-.markup__overlay { position: absolute; inset-block-start: 0; inset-inline-start: 0; pointer-events: none; }
-.markup__drop { padding: 48px 24px; text-align: center; color: var(--muted); }
+.mk__body { display: grid; grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 5px var(--mk-panel); min-height: 0; }
+.mk__body[data-rail="off"] { grid-template-columns: 0 0 minmax(0, 1fr) 5px var(--mk-panel); }
+.mk__body[data-panel="off"] { grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 0 0; }
+.mk__body[data-rail="off"][data-panel="off"] { grid-template-columns: 0 0 minmax(0, 1fr) 0 0; }
+.mk__body[data-rail="off"] .mk__rail,
+.mk__body[data-panel="off"] .mk__panel { display: none; }
+/* กำหนดคอลัมน์ให้ทุกชิ้นตายตัว เพราะชิ้นที่ display:none หลุดออกจากการวางกริด
+   ถ้าปล่อยให้วางอัตโนมัติ พอซ่อนรางแล้วลูกที่เหลือจะเลื่อนไปคนละคอลัมน์
+   จนพื้นที่วาดกว้างศูนย์และแผงขวาถูกบีบเหลือ 21px (เจอเองตอนตรวจที่ 761px) */
+.mk__rail { grid-column: 1; }
+.mk__splitter--rail { grid-column: 2; }
+.mk__stage { grid-column: 3; }
+.mk__splitter--panel { grid-column: 4; }
+.mk__panel { grid-column: 5; }
 
-.markup__panel { border-inline-start: 1px solid var(--line); overflow: auto; max-height: 70vh; padding: 0 12px 16px; }
-.markup__panel h2 { font-size: .95rem; color: var(--muted); }
+.mk__rail { background: var(--paper); border-inline-end: 1px solid var(--line); overflow-y: auto; padding: 8px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.mk__thumb { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 5px; cursor: pointer; display: grid; gap: 3px; justify-items: center; font-size: .68rem; color: var(--muted); }
+.mk__thumb[aria-current="page"] { border-color: var(--teal); box-shadow: 0 0 0 2px var(--canvas); }
+.mk__thumb img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+.mk__thumb-blank { display: block; width: 100%; aspect-ratio: 1.414; background: var(--canvas); border: 1px solid var(--line); }
+.mk__thumb b { font-weight: 600; color: var(--ink); font-size: .72rem; }
+
+.mk__splitter { background: transparent; cursor: col-resize; position: relative; }
+.mk__splitter::after { content: ""; position: absolute; inset: 0 2px; background: var(--line); opacity: 0; }
+.mk__splitter:hover::after,
+.mk__splitter:focus-visible::after { opacity: 1; }
+
+.mk__stage { position: relative; overflow: hidden; touch-action: none; min-width: 0; min-height: 0; background: var(--canvas); }
+.mk__stage[data-tool="pan"] { cursor: grab; }
+.mk__stage[data-tool="scale"],
+.mk__stage[data-tool="length"],
+.mk__stage[data-tool="polyline"],
+.mk__stage[data-tool="rect"],
+.mk__stage[data-tool="area"],
+.mk__stage[data-tool="room"],
+.mk__stage[data-tool="count"] { cursor: crosshair; }
+.mk__stage[data-dragging="true"] { cursor: grabbing; }
+.mk__sheet { position: absolute; inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; will-change: transform; background: var(--paper); box-shadow: 0 18px 50px -20px rgba(0, 0, 0, .45); }
+.mk__sheet canvas { display: block; }
+.mk__overlay { position: absolute; inset-block-start: 0; inset-inline-start: 0; pointer-events: none; }
+.mk__drop { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: var(--muted); }
+
+.mk__panel { background: var(--paper); border-inline-start: 1px solid var(--line); overflow-y: auto; min-width: 0; padding: 0 10px 16px; }
+.mk__panel-head { position: sticky; inset-block-start: 0; background: var(--paper); border-block-end: 1px solid var(--line); padding: 9px 2px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.mk__panel-head span { margin-inline-start: auto; color: var(--muted); font-weight: 400; font-size: .76rem; }
+
+.mk__status { display: flex; align-items: center; gap: 16px; padding: 5px 12px; background: var(--paper); border-block-start: 1px solid var(--line); font-size: .75rem; color: var(--muted); flex-wrap: wrap; }
+.mk__status b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.mk__status-right { margin-inline-start: auto; display: flex; gap: 14px; }
+
+.mk__confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border-block-end: 1px solid var(--line); border-inline-start: 3px solid var(--orange); background: var(--canvas); }
+.mk__confirm strong { flex: 1 1 240px; font-weight: 600; }
+.mk__confirm button { min-height: 44px; padding: 0 14px; border: 1px solid var(--teal); background: var(--teal); color: var(--paper); cursor: pointer; }
+.mk__confirm button + button { background: var(--paper); color: var(--ink); border-color: var(--line); }
+.mk__alert { margin: 0; padding: 8px 12px; background: var(--canvas); border-block-start: 2px solid var(--orange); color: var(--ink); }
+.mk__blocked { padding: 48px 24px; text-align: center; color: var(--muted); }
+
+.mk__tip { position: fixed; z-index: 80; transform: translateX(-50%); background: var(--ink); color: var(--paper); border-radius: 6px; padding: 7px 10px; pointer-events: none; max-width: 260px; box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .6); }
+.mk__tip b { display: block; font-size: .78rem; }
+.mk__tip kbd { margin-inline-start: 6px; padding: 1px 5px; border-radius: 3px; background: rgba(255, 255, 255, .16); font-family: monospace; font-size: .68rem; }
+.mk__tip small { display: block; font-size: .7rem; margin-block-start: 2px; line-height: 1.5; }
 .markup-register__empty,
 .markup-register__warning { color: var(--muted); font-size: .9rem; }
 .markup-register__warning { border-inline-start: 3px solid var(--orange); padding-inline-start: 10px; color: var(--ink); }
@@ -2542,17 +2611,36 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .markup-register tfoot td { font-weight: 700; }
 .markup-register__total { margin-block-start: 16px; }
 
-.markup__dialog { position: fixed; inset-block-start: 12vh; inset-inline: 0; margin-inline: auto; inline-size: min(440px, 92vw); background: var(--paper); border: 1px solid var(--line); padding: 20px; z-index: 40; }
-.markup__dialog label { display: block; margin-block: 10px; }
-.markup__dialog input,
-.markup__dialog select { width: 100%; min-height: 48px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 10px; }
-.markup__dialog button { min-height: 48px; padding: 0 16px; margin-inline-end: 8px; border: 1px solid var(--teal); background: var(--teal); color: var(--paper); cursor: pointer; }
-.markup__dialog button + button { background: var(--paper); color: var(--ink); border-color: var(--line); }
+/* กล่องตั้งสเกลลอยชิดขวาบน ไม่ใช่กลางจอ เพราะคนต้องมองเห็นเส้นที่เพิ่งลากขณะพิมพ์ระยะจริง
+   กล่องกลางจอบังแบบตรงจุดที่กำลังตัดสินใจพอดี (เจอเองตอนกดมือ 2026-09-01) */
+.mk__dialog { position: fixed; inset-block-start: 96px; inset-inline-end: 24px; inline-size: min(400px, calc(100vw - 32px)); background: var(--paper); border: 1px solid var(--line); box-shadow: 0 18px 50px -20px rgba(0, 0, 0, .45); padding: 18px; z-index: 50; }
+.mk__dialog h2 { margin: 0 0 8px; font-size: 1rem; }
+.mk__dialog p { margin: 0 0 8px; font-size: .82rem; line-height: 1.6; }
+.mk__dialog label { display: block; margin-block: 10px; font-size: .82rem; }
+.mk__dialog input,
+.mk__dialog select { width: 100%; min-height: 44px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 10px; }
+.mk__dialog button { min-height: 44px; padding: 0 16px; margin-inline-end: 8px; border: 1px solid var(--teal); background: var(--teal); color: var(--paper); cursor: pointer; }
+.mk__dialog button + button { background: var(--paper); color: var(--ink); border-color: var(--line); }
 
+/* จอแคบลง รางหน้าแบบไปก่อน เพราะมันคือของที่แทนได้ด้วยแถบสถานะที่บอกเลขหน้าอยู่แล้ว
+   ส่วนแผงรายการวัดคือผลงานของผู้ใช้ จึงย้ายลงล่างแทนที่จะหายไป */
 @media (max-width: 1024px) {
-  .markup__body { grid-template-columns: minmax(0, 1fr); }
-  .markup__pages,
-  .markup__panel { max-height: none; border: 0; border-block-start: 1px solid var(--line); }
-  .markup__pages ol { display: flex; overflow-x: auto; }
-  .markup__pages button { border-block-end: 0; border-inline-end: 1px solid var(--line); white-space: nowrap; }
+  .mk__body,
+  .mk__body[data-rail="on"] { grid-template-columns: 0 0 minmax(0, 1fr) 5px var(--mk-panel); }
+  .mk__rail { display: none; }
+}
+@media (max-width: 760px) {
+  .mk__body,
+  .mk__body[data-rail="on"],
+  .mk__body[data-rail="off"],
+  .mk__body[data-panel="on"],
+  .mk__body[data-panel="off"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .mk__splitter { display: none; }
+  /* คอลัมน์เดียว ต้องคืนค่าที่ตรึงไว้ตอนสามคอลัมน์ ไม่งั้นแผงขวาจะไปหาคอลัมน์ที่ห้าที่ไม่มีอยู่ */
+  .mk__rail,
+  .mk__stage,
+  .mk__panel { grid-column: 1; }
+  .mk__panel { border-inline-start: 0; border-block-start: 1px solid var(--line); max-block-size: 38vh; }
+  .mk__file { max-width: 18ch; }
+  .mk__dialog { inset-block-start: auto; inset-block-end: 12px; inset-inline: 12px; inline-size: auto; }
 }
