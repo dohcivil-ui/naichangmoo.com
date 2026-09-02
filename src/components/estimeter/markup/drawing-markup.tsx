@@ -18,12 +18,23 @@ import {
 } from "@/lib/drawing-measurement";
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
+import {
+  collectSnapGeometry,
+  DEFAULT_SNAP_SETTINGS,
+  findGeometrySnap,
+  findImageSnap,
+  IMAGE_LUMINANCE_CEILING,
+  snapKindLabel,
+  type SnapHit,
+  type SnapSettings
+} from "@/lib/drawing-snap";
 import { regionRejectionMessage, toGreyImage, traceRegion } from "@/lib/region-fill";
 import {
   calibrate,
   calibrationRejectionMessage,
   distancePoints,
   formatScaleRatio,
+  lockToAngle,
   lockToAxis,
   polylineLengthPoints,
   SCALE_UNITS,
@@ -148,12 +159,31 @@ const ICONS = {
   panel: "M3 4h18v16H3zM15 4v16",
   back: "M4 11 12 4l8 7M6 10v9h12v-9",
   /** ความคมชัด — วงกลมกลางพร้อมรัศมีรอบทิศ สื่อถึงภาพที่ละเอียดขึ้น */
-  sharp: "M12 5v3M12 16v3M5 12h3M16 12h3M7.8 7.8l2 2M14.2 14.2l2 2M16.2 7.8l-2 2M9.8 14.2l-2 2M12 10a2 2 0 1 0 .01 0"
+  sharp: "M12 5v3M12 16v3M5 12h3M16 12h3M7.8 7.8l2 2M14.2 14.2l2 2M16.2 7.8l-2 2M9.8 14.2l-2 2M12 10a2 2 0 1 0 .01 0",
+  /** ล็อกแนวเส้น — มุมฉากพร้อมเส้นทแยงบอกว่ามุมถูกบังคับ */
+  ortho: "M5 19V5M5 19h14M5 12h7v7",
+  caret: "M7 10l5 5 5-5"
 } as const;
 
+/**
+ * ชนิดของการดูดจุดที่ผู้ใช้เปิดปิดได้ เรียงตามแอปเดิมของเจ้าของงาน
+ *
+ * ชนิด `image` (เส้นในแบบ) อยู่ท้ายสุดเพราะมันเดาจากพิกเซล ไม่ได้คำนวณจากของที่วาดไว้
+ * จึงเป็นทางสุดท้ายเมื่อยังไม่มีอะไรให้เกาะ
+ */
+type SnapToggleField = "endpoint" | "midpoint" | "intersection" | "perpendicular" | "onEdge" | "grid" | "imageSnap";
 
-const SNAP_RADIUS_PX = 8;
-const DARK_ENOUGH = 140;
+const SNAP_KIND_TOGGLES: { field: SnapToggleField; label: string; hint: string }[] = [
+  { field: "endpoint", label: "ปลายเส้น", hint: "จุดปลายของทุกรูปที่วัดไว้แล้ว" },
+  { field: "midpoint", label: "กึ่งกลาง", hint: "จุดกลางของทุกช่วงเส้น" },
+  { field: "intersection", label: "จุดตัด", hint: "จุดที่เส้นสองเส้นตัดกันจริง" },
+  { field: "perpendicular", label: "ตั้งฉาก", hint: "จุดที่ลากฉากจากจุดล่าสุดไปแตะเส้น" },
+  { field: "onEdge", label: "บนเส้น", hint: "จุดใกล้ที่สุดบนตัวเส้น" },
+  { field: "grid", label: "กริดระยะเท่า", hint: "ตารางทุกครึ่งเมตร ใช้เมื่อไม่มีอย่างอื่นติด" },
+  { field: "imageSnap", label: "เส้นในแบบ", hint: "เกาะเส้นที่พิมพ์อยู่ในแบบ ใช้ตอนยังไม่มีรอยวัด" }
+];
+
+
 /** ระยะผ่อนผันของเครื่องมือเลือก คิดเป็นพิกเซลบนจอ แล้วหารด้วยระดับซูมให้เป็นหน่วยกระดาษ */
 const HIT_RADIUS_PX = 6;
 /** เกินระยะนี้ถือว่าลาก ไม่ใช่คลิก — กันมือสั่นตอนคลิกเลือกรูป */
@@ -208,8 +238,14 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   });
 
   const [tool, setTool] = useState<Tool>("select");
-  const [snapOn, setSnapOn] = useState(true);
+  const [snapSettings, setSnapSettings] = useState<SnapSettings>(DEFAULT_SNAP_SETTINGS);
+  const [snapPanelOpen, setSnapPanelOpen] = useState(false);
+  const [snapHit, setSnapHit] = useState<SnapHit | null>(null);
   const [axisLock, setAxisLock] = useState(false);
+  /** Shift ค้างเปิดล็อกแนวชั่วขณะ โดยไม่แตะสถานะปุ่มสลับ */
+  const [shiftHeld, setShiftHeld] = useState(false);
+  /** ตำแหน่งเมาส์ดิบก่อนถูกดูด — แถบสถานะต้องบอกที่ที่เมาส์อยู่จริง ไม่ใช่จุดที่ดูดไปแล้ว */
+  const [cursor, setCursor] = useState<PagePoint | null>(null);
   const [railOn, setRailOn] = useState(true);
   const [panelOn, setPanelOn] = useState(true);
   const [railWidth, setRailWidth] = useState(150);
@@ -411,41 +447,74 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
    * ทำให้คลิกลงตรงปลายเส้นได้แม่นกว่ากะด้วยสายตา โดยเฉพาะตอนสอบเทียบสเกล
    * ซึ่งความคลาดเคลื่อนหนึ่งครั้งจะติดไปกับทุกปริมาณในหน้านั้น
    */
-  const snap = useCallback(
-    (point: PagePoint): PagePoint => {
-      const image = analysis?.image;
-      const analysisScale = analysis?.scale ?? 0;
-      if (!snapOn || !image || analysisScale <= 0) return point;
-      const cx = Math.round(point.x * analysisScale);
-      const cy = Math.round(point.y * analysisScale);
-      const radius = Math.max(2, Math.round(SNAP_RADIUS_PX * (analysisScale / Math.max(view.scale, 0.01))));
-      let best: { x: number; y: number; value: number } | null = null;
-      for (let dy = -radius; dy <= radius; dy += 1) {
-        for (let dx = -radius; dx <= radius; dx += 1) {
-          const x = cx + dx;
-          const y = cy + dy;
-          if (x < 0 || y < 0 || x >= image.width || y >= image.height) continue;
-          const offset = (y * image.width + x) * 4;
-          const luminance = (image.data[offset] + image.data[offset + 1] + image.data[offset + 2]) / 3;
-          if (luminance > DARK_ENOUGH) continue;
-          const distance = Math.hypot(dx, dy);
-          const score = luminance + distance * 8;
-          if (!best || score < best.value) best = { x, y, value: score };
-        }
-      }
-      return best ? { x: best.x / analysisScale, y: best.y / analysisScale } : point;
-    },
-    [analysis, snapOn, view.scale]
+  /** เรขาคณิตของหน้านี้ที่การดูดจุดเอาไว้เกาะ คำนวณใหม่เมื่อรายการวัดหรือหน้าเปลี่ยน */
+  const snapGeometry = useMemo(
+    () => collectSnapGeometry(measurements, [], [], page),
+    [measurements, page]
   );
 
+  /**
+   * หาว่าเมาส์ตรงนี้ควรดูดไปจุดไหน
+   *
+   * ลองเรขาคณิตก่อนเสมอ เพราะจุดที่คำนวณจากของที่วาดไว้แล้วแม่นกว่าการเดาจากพิกเซล
+   * ส่วนการดูดเข้าเส้นในแบบเป็นทางสุดท้าย ใช้เมื่อยังไม่มีอะไรวาดไว้ให้เกาะ
+   */
+  const findSnap = useCallback(
+    (cursor: PagePoint, lastPlaced: PagePoint | null): SnapHit | null => {
+      if (!snapSettings.enabled) return null;
+      const radiusPagePoints = snapSettings.screenRadius / Math.max(view.scale, 0.01);
+      const geometryHit = findGeometrySnap({
+        cursor,
+        radiusPagePoints,
+        geometry: snapGeometry,
+        lastPlaced,
+        metresPerPoint: pageScale?.metresPerPoint ?? null,
+        settings: snapSettings
+      });
+      if (geometryHit) return geometryHit;
+
+      if (!snapSettings.imageSnap || !analysis) return null;
+      const { image, scale: analysisScale } = analysis;
+      const found = findImageSnap(
+        image,
+        { x: cursor.x * analysisScale, y: cursor.y * analysisScale },
+        radiusPagePoints * analysisScale,
+        IMAGE_LUMINANCE_CEILING[snapSettings.imageSensitivity]
+      );
+      if (!found) return null;
+      const point = { x: found.x / analysisScale, y: found.y / analysisScale };
+      return {
+        kind: "image",
+        point,
+        distance: Math.hypot(point.x - cursor.x, point.y - cursor.y)
+      };
+    },
+    [analysis, pageScale, snapGeometry, snapSettings, view.scale]
+  );
+
+  /**
+   * จุดที่จะถูกปักจริงเมื่อผู้ใช้คลิกตรงนี้
+   *
+   * **การดูดจุดชนะการล็อกแนวเสมอ** จุดที่ดูดติดคือของจริงบนแบบ มีพิกัดของมันเอง
+   * ส่วนทิศที่ล็อกเป็นการช่วยกะเมื่อไม่มีอะไรให้เกาะ ของที่วัดได้ต้องชนะของที่เดา
+   * โค้ดเดิมทำกลับด้าน ทำให้ดูดติดมุมห้องแล้วโดนดึงออกจากมุมห้องนั้น
+   *
+   * เครื่องมือร่างกริดล็อกแนวนอนแนวตั้งล้วน เพราะแนวเสาไม่เคยเอียง ส่วนเครื่องมืออื่น
+   * ล็อกทีละ 15 องศาเพื่อให้ลากเส้นทแยงของหลังคาหรือบันไดได้
+   */
   const resolvePoint = useCallback(
-    (clientX: number, clientY: number, anchor: PagePoint | null): PagePoint | null => {
+    (clientX: number, clientY: number, anchor: PagePoint | null): { point: PagePoint; hit: SnapHit | null } | null => {
       const raw = toPagePoint(clientX, clientY);
       if (!raw) return null;
-      const snapped = snap(raw);
-      return axisLock && anchor ? lockToAxis(anchor, snapped) : snapped;
+      const hit = findSnap(raw, anchor);
+      if (hit) return { point: hit.point, hit };
+      if ((axisLock || shiftHeld) && anchor) {
+        const locked = tool === "gridline" ? lockToAxis(anchor, raw) : lockToAngle(anchor, raw);
+        return { point: locked, hit: null };
+      }
+      return { point: raw, hit: null };
     },
-    [axisLock, snap, toPagePoint]
+    [axisLock, findSnap, shiftHeld, toPagePoint, tool]
   );
 
   const activeAnchor = tool === "scale" ? calibrationPoints.at(-1) ?? null : draft.at(-1) ?? null;
@@ -467,7 +536,11 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       setView({ scale: panning.view.scale, x: panning.view.x + dx, y: panning.view.y + dy });
       return;
     }
-    setHover(resolvePoint(event.clientX, event.clientY, activeAnchor));
+    const raw = toPagePoint(event.clientX, event.clientY);
+    setCursor(raw);
+    const resolved = resolvePoint(event.clientX, event.clientY, activeAnchor);
+    setHover(resolved?.point ?? null);
+    setSnapHit(resolved?.hit ?? null);
   }
 
   function handleDown(event: React.PointerEvent<HTMLDivElement>) {
@@ -497,9 +570,9 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
     if (!raw) return;
 
     if (tool === "scale") {
-      const point = resolvePoint(event.clientX, event.clientY, activeAnchor);
-      if (!point) return;
-      const next = [...calibrationPoints, point].slice(-2);
+      const resolved = resolvePoint(event.clientX, event.clientY, activeAnchor);
+      if (!resolved) return;
+      const next = [...calibrationPoints, resolved.point].slice(-2);
       setCalibrationPoints(next);
       if (next.length === 2) setCalibrationOpen(true);
       return;
@@ -519,9 +592,9 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       return;
     }
 
-    const point = resolvePoint(event.clientX, event.clientY, activeAnchor);
-    if (!point) return;
-    const next = [...draft, point];
+    const resolved = resolvePoint(event.clientX, event.clientY, activeAnchor);
+    if (!resolved) return;
+    const next = [...draft, resolved.point];
     setDraft(next);
 
     // ชนิดที่มีจำนวนจุดตายตัวจบเองทันที ชนิดที่คลิกได้เรื่อย ๆ รอคลิกขวา ดับเบิลคลิก หรือ Enter
@@ -677,7 +750,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
-      if (event.key === "Shift") setAxisLock(true);
+      if (event.key === "Shift") setShiftHeld(true);
       if (event.key === "Escape") cancelDraft();
       /**
        * Enter จบการวัดที่ค้างอยู่ และต้องกันไม่ให้ไปกดปุ่มที่โฟกัสค้างอยู่ด้วย
@@ -714,7 +787,12 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       }
       if (event.key.toLowerCase() === "n") {
         event.preventDefault();
-        setSnapOn((on) => !on);
+        setSnapSettings((current) => ({ ...current, enabled: !current.enabled }));
+        return;
+      }
+      if (event.key.toLowerCase() === "o") {
+        event.preventDefault();
+        setAxisLock((on) => !on);
         return;
       }
       if (event.key === "1") {
@@ -743,7 +821,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       }
     }
     function onKeyUp(event: KeyboardEvent) {
-      if (event.key === "Shift") setAxisLock(false);
+      if (event.key === "Shift") setShiftHeld(false);
     }
     window.addEventListener("keydown", onKey);
     window.addEventListener("keyup", onKeyUp);
@@ -901,19 +979,85 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           })}
         </div>
         <span className="mk__divider" aria-hidden="true" />
+        <span className="mk__snap-group">
+          <button
+            type="button"
+            className="mk__icon"
+            aria-pressed={snapSettings.enabled}
+            onClick={() => setSnapSettings((current) => ({ ...current, enabled: !current.enabled }))}
+            aria-label="ดูดจุด"
+            onPointerEnter={(event) =>
+              showTip(event, { label: "ดูดจุด", hint: "ให้ปลายเส้นวิ่งไปเกาะจุดที่มีอยู่จริงบนแบบ แม่นกว่าเล็งด้วยตา", key: "N" })
+            }
+            onPointerLeave={() => setTip(null)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d={ICONS.snap} />
+            </svg>
+          </button>
+          {/* ตัวเลือกชนิดอยู่ในกล่องที่เด้งจากปุ่ม ไม่กินที่ถาวรบนแถบ ตามที่เจ้าของงานเลือก */}
+          <button
+            type="button"
+            className="mk__caret"
+            aria-expanded={snapPanelOpen}
+            aria-label="เลือกชนิดของการดูดจุด"
+            onClick={() => setSnapPanelOpen((open) => !open)}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d={ICONS.caret} />
+            </svg>
+          </button>
+          {snapPanelOpen ? (
+            <div className="mk__snap-menu" role="group" aria-label="ชนิดของการดูดจุด">
+              {SNAP_KIND_TOGGLES.map((entry) => (
+                <label key={entry.field}>
+                  <input
+                    type="checkbox"
+                    checked={snapSettings[entry.field]}
+                    onChange={(event) =>
+                      setSnapSettings((current) => ({ ...current, [entry.field]: event.target.checked }))
+                    }
+                  />
+                  <span>{entry.label}</span>
+                  <small>{entry.hint}</small>
+                </label>
+              ))}
+              <label className="mk__snap-radius">
+                <span>ระยะจับ</span>
+                <input
+                  type="number"
+                  min={4}
+                  max={40}
+                  value={snapSettings.screenRadius}
+                  onChange={(event) =>
+                    setSnapSettings((current) => ({
+                      ...current,
+                      screenRadius: Math.min(40, Math.max(4, Number(event.target.value) || current.screenRadius))
+                    }))
+                  }
+                />
+                <small>พิกเซลบนจอ กว้างเท่าเดิมเสมอไม่ว่าซูมเท่าไหร่</small>
+              </label>
+            </div>
+          ) : null}
+        </span>
         <button
           type="button"
           className="mk__icon"
-          aria-pressed={snapOn}
-          onClick={() => setSnapOn((on) => !on)}
-          aria-label="ดูดจุด"
+          aria-pressed={axisLock}
+          onClick={() => setAxisLock((on) => !on)}
+          aria-label="ล็อกแนวเส้น"
           onPointerEnter={(event) =>
-            showTip(event, { label: "ดูดจุด", hint: "ให้ปลายเส้นวิ่งไปเกาะเส้นในแบบเอง แม่นกว่าเล็งด้วยตา", key: "N" })
+            showTip(event, {
+              label: "ล็อกแนวเส้น",
+              hint: "บังคับเส้นที่กำลังลากให้ตรงทีละ 15 องศา กด Shift ค้างก็ได้ · ถ้าดูดจุดติดอยู่ การดูดจุดชนะ",
+              key: "O"
+            })
           }
           onPointerLeave={() => setTip(null)}
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d={ICONS.snap} />
+            <path d={ICONS.ortho} />
           </svg>
         </button>
         <button
@@ -1155,6 +1299,21 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
                     strokeWidth={stroke(2)}
                   />
                 ) : null}
+
+                {/* จุดที่ดูดติดอยู่ตอนนี้ — ผู้ใช้ต้องเห็นก่อนกด ไม่ใช่รู้ตัวหลังจากคลิกไปแล้ว */}
+                {snapHit ? (
+                  <g>
+                    <circle
+                      cx={snapHit.point.x}
+                      cy={snapHit.point.y}
+                      r={stroke(7)}
+                      fill="none"
+                      stroke="var(--orange)"
+                      strokeWidth={stroke(2)}
+                    />
+                    <circle cx={snapHit.point.x} cy={snapHit.point.y} r={stroke(1.6)} fill="var(--orange)" />
+                  </g>
+                ) : null}
               </svg>
             ) : null}
           </div>
@@ -1200,8 +1359,9 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       <div className="mk__status">
         <span>เครื่องมือ <b>{TOOLS.find((entry) => entry.id === tool)?.label ?? "เลือก"}</b></span>
         <span>สเกล <b>{pageScale ? formatScaleRatio(pageScale) : "ยังไม่ตั้ง"}</b></span>
-        <span>ดูดจุด <b>{snapOn ? "เปิด" : "ปิด"}</b></span>
-        <span>ล็อกแนวเส้น <b>{axisLock ? "เปิด" : "ปิด (กด Shift ค้าง)"}</b></span>
+        <span>ดูดจุด <b>{snapSettings.enabled ? (snapHit ? snapKindLabel[snapHit.kind] : "เปิด") : "ปิด"}</b></span>
+        <span>ล็อกแนวเส้น <b>{axisLock || shiftHeld ? "เปิด" : "ปิด (กด Shift ค้าง)"}</b></span>
+        <span>พิกัด <b>{cursor ? `x: ${Math.round(cursor.x)}, y: ${Math.round(cursor.y)} px` : "—"}</b></span>
         <span>ความคมชัด <b>{sharpOn ? "เปิด" : "ปิด"}</b></span>
         <span className="mk__status-right">
           <span>หน้า <b>{pageCount === 0 ? "—" : `${page} จาก ${pageCount}`}</b></span>

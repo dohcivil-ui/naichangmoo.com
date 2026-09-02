@@ -2533,6 +2533,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__tools { display: flex; gap: 2px; }
 .mk__scale-state { margin-inline-start: auto; font-weight: 700; }
 
+/* ปุ่มดูดจุดกับปุ่มลูกศรเปิดกล่องตัวเลือกอยู่ติดกัน เพื่อให้เห็นว่าลูกศรขยายปุ่มไหน */
+.mk__snap-group { position: relative; display: flex; align-items: center; }
+.mk__caret { width: 16px; height: 36px; display: grid; place-items: center; border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 0; border-radius: 4px; }
+.mk__caret svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+.mk__caret:hover { background: var(--canvas); color: var(--ink); }
+.mk__caret:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.mk__snap-menu { position: absolute; inset-block-start: calc(100% + 6px); inset-inline-start: 0; z-index: 60; inline-size: 264px; max-inline-size: calc(100vw - 24px); background: var(--paper); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 18px 50px -20px rgba(0, 0, 0, .45); padding: 8px; display: grid; gap: 2px; }
+.mk__snap-menu label { display: grid; grid-template-columns: auto 1fr; gap: 0 8px; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: .86rem; }
+.mk__snap-menu label:hover { background: var(--canvas); }
+.mk__snap-menu label small { grid-column: 2; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+.mk__snap-menu input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--teal); }
+.mk__snap-radius { border-block-start: 1px solid var(--line); margin-block-start: 4px; padding-block-start: 8px; }
+.mk__snap-radius input { width: 64px; min-height: 32px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); padding: 0 6px; }
+
 .mk__body { display: grid; grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 5px var(--mk-panel); min-height: 0; }
 .mk__body[data-rail="off"] { grid-template-columns: 0 0 minmax(0, 1fr) 5px var(--mk-panel); }
 .mk__body[data-panel="off"] { grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 0 0; }
