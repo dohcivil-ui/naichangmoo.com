@@ -2590,7 +2590,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__alert { margin: 0; padding: 8px 12px; background: var(--canvas); border-block-start: 2px solid var(--orange); color: var(--ink); }
 .mk__blocked { padding: 48px 24px; text-align: center; color: var(--muted); }
 
-.mk__tip { position: fixed; z-index: 80; transform: translateX(-50%); background: var(--ink); color: var(--paper); border-radius: 6px; padding: 7px 10px; pointer-events: none; max-width: 260px; box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .6); }
+/* ตำแหน่งซ้ายมาจาก positionTip ใน drawing-markup.tsx ซึ่งวัดความกว้างจริงแล้วหนีบไว้ในจอ
+   ห้ามใส่ translateX(-50%) กลับเข้ามา เพราะจะเลื่อนป้ายที่หนีบแล้วออกนอกจออีกครึ่งความกว้าง */
+.mk__tip { position: fixed; z-index: 80; background: var(--ink); color: var(--paper); border-radius: 6px; padding: 7px 10px; pointer-events: none; max-width: 260px; box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .6); }
 .mk__tip b { display: block; font-size: .78rem; }
 .mk__tip kbd { margin-inline-start: 6px; padding: 1px 5px; border-radius: 3px; background: rgba(255, 255, 255, .16); font-family: monospace; font-size: .68rem; }
 .mk__tip small { display: block; font-size: .7rem; margin-block-start: 2px; line-height: 1.5; }

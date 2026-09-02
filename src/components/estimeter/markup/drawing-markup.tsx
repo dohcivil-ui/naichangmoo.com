@@ -188,7 +188,11 @@ const PANEL_MIN = 240;
 const PANEL_MAX = 560;
 
 type Camera = { scale: number; x: number; y: number };
-type TipState = { title: string; hint: string; key: string | null; left: number; top: number } | null;
+/** `centre` คือจุดกึ่งกลางของปุ่มที่ชี้อยู่ ไม่ใช่ตำแหน่งซ้ายของป้าย — ป้ายคำนวณตำแหน่งเองหลังวัดความกว้างจริง */
+type TipState = { title: string; hint: string; key: string | null; centre: number; top: number } | null;
+
+/** ระยะเผื่อจากขอบจอถึงป้ายลอย เท่ากับต้นแบบ viewer-controls-prototype */
+const TIP_EDGE_GAP = 8;
 
 const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 
@@ -217,6 +221,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   const [panelWidth, setPanelWidth] = useState(330);
   const [thumbs, setThumbs] = useState<Record<number, string>>({});
   const [tip, setTip] = useState<TipState>(null);
+  const [tipLeft, setTipLeft] = useState(0);
 
   const [scales, setScales] = useState<Record<number, PageScale>>({});
   const [draft, setDraft] = useState<PagePoint[]>([]);
@@ -810,8 +815,26 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
 
   function showTip(event: React.PointerEvent | React.FocusEvent, spec: { label: string; hint: string; key?: string }) {
     const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    setTip({ title: spec.label, hint: spec.hint, key: spec.key ?? null, left: box.left + box.width / 2, top: box.bottom + 8 });
+    setTip({ title: spec.label, hint: spec.hint, key: spec.key ?? null, centre: box.left + box.width / 2, top: box.bottom + 8 });
   }
+
+  /**
+   * วางป้ายลอยให้อยู่ในจอเสมอ
+   *
+   * ปุ่มซ้ายสุดของแถบเครื่องมืออยู่ห่างขอบจอไม่ถึงครึ่งความกว้างของป้าย ถ้าวางกึ่งกลางปุ่มตรง ๆ
+   * ป้ายจะล้นออกไปทางซ้ายจนอ่านไม่ครบ (เจ้าของงานเจอเอง 2026-09-02) ต้นแบบแก้ด้วยการวัดความกว้าง
+   * จริงของป้ายก่อนแล้วค่อยหนีบไว้ในจอ ที่นี่ทำแบบเดียวกัน วัดตอน ref ติด DOM ซึ่งเกิดก่อนจอวาด
+   * จึงไม่เห็นป้ายกระโดด
+   */
+  const positionTip = useCallback(
+    (element: HTMLDivElement | null) => {
+      if (!element || !tip) return;
+      const width = element.offsetWidth;
+      const rightLimit = window.innerWidth - width - TIP_EDGE_GAP;
+      setTipLeft(Math.min(rightLimit, Math.max(TIP_EDGE_GAP, tip.centre - width / 2)));
+    },
+    [tip]
+  );
 
   return (
     <div className="mk">
@@ -1189,7 +1212,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       {regionError ? <p className="mk__alert" role="alert">{regionError}</p> : null}
 
       {tip ? (
-        <div className="mk__tip" style={{ left: tip.left, top: tip.top }} role="status">
+        <div className="mk__tip" ref={positionTip} style={{ left: tipLeft, top: tip.top }} role="status">
           <b>
             {tip.title}
             {tip.key ? <kbd>{tip.key}</kbd> : null}
