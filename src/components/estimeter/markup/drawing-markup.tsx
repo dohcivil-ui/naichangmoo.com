@@ -10,13 +10,14 @@ import {
   measure,
   measurementKindLabel,
   minimumPoints,
-  needsScale,
   outlinePoints,
   summarise,
   formatMetres,
   type Measurement,
   type MeasurementKind
 } from "@/lib/drawing-measurement";
+import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
+import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
 import { regionRejectionMessage, toGreyImage, traceRegion } from "@/lib/region-fill";
 import {
   calibrate,
@@ -48,9 +49,9 @@ import {
  * โดยที่ปริมาณไม่ขยับ ถ้าเก็บเป็นพิกเซล ซูมครั้งเดียวปริมาณทั้งหน้าเพี้ยนหมด
  *
  * **กล้องกับความคมชัดเป็นคนละเรื่องกัน** `view` คือตำแหน่งและระดับซูมที่ผู้ใช้ควบคุม
- * ส่วน `renderScale` คือความละเอียดที่วาดหน้าแบบลงผืนวาดจริง ซึ่งไล่ตาม `view.scale` แบบหน่วงเวลา
- * ระหว่างที่ยังไล่ไม่ทัน ภาพถูกยืดด้วย transform ให้ขยับทันมือ แล้วค่อยคมทีหลัง
- * ถ้าวาดใหม่ทุกครั้งที่หมุนล้อ การซูมจะกระตุกจนใช้งานไม่ได้
+ * ส่วนความละเอียดที่วาดจริงอยู่ในผืนวาดสามชั้นของ `useDrawingLayers` ซึ่งชั้นฐานคงที่ต่อหน้า
+ * ชั้นคมไล่ตามซูมเมื่อผู้ใช้เปิดความคมชัด และชั้นวิเคราะห์คงที่ต่อหน้าเสมอเพื่อให้การไล่พื้นที่ห้อง
+ * ได้รูปเดิมทุกระดับซูม · ไฟล์นี้ไม่มี `renderScale` อีกแล้ว สูตรวางตำแหน่งจึงเป็นหน่วยหน้ากระดาษล้วน
  *
  * **รายการวัดผูกเลขหน้าติดตัวไปด้วยทุกรายการ** เส้นของหน้าหนึ่งจึงไม่มีทางไปโผล่อีกหน้าได้
  *
@@ -65,8 +66,6 @@ const MEASUREMENT_COLOURS = [
   "var(--ink)",
   "var(--muted)"
 ] as const;
-
-type Tool = "select" | "pan" | "scale" | "room" | MeasurementKind;
 
 type ToolSpec = { id: Tool; label: string; key: string; hint: string; icon: string };
 
@@ -147,22 +146,11 @@ const ICONS = {
   rail: "M3 4h6v16H3zM13 6h8M13 12h8M13 18h8",
   snap: "M12 2v4M12 18v4M2 12h4M18 12h4M12 9a3 3 0 1 0 .01 0",
   panel: "M3 4h18v16H3zM15 4v16",
-  back: "M4 11 12 4l8 7M6 10v9h12v-9"
+  back: "M4 11 12 4l8 7M6 10v9h12v-9",
+  /** ความคมชัด — วงกลมกลางพร้อมรัศมีรอบทิศ สื่อถึงภาพที่ละเอียดขึ้น */
+  sharp: "M12 5v3M12 16v3M5 12h3M16 12h3M7.8 7.8l2 2M14.2 14.2l2 2M16.2 7.8l-2 2M9.8 14.2l-2 2M12 10a2 2 0 1 0 .01 0"
 } as const;
 
-/** เครื่องมือที่ผลลัพธ์เป็นรายการวัด และต้องมีสเกลก่อนถึงจะให้ค่าที่มีความหมาย */
-function toolNeedsScale(tool: Tool): boolean {
-  if (tool === "select" || tool === "pan" || tool === "scale") return false;
-  if (tool === "room") return true;
-  return needsScale(tool);
-}
-
-type PdfRenderTask = { promise: Promise<void>; cancel: () => void };
-type PdfPage = {
-  render: (options: { canvasContext: CanvasRenderingContext2D; viewport: unknown; canvas: HTMLCanvasElement }) => PdfRenderTask;
-  getViewport: (options: { scale: number }) => { width: number; height: number };
-};
-type PdfDocument = { numPages: number; getPage: (page: number) => Promise<PdfPage> };
 
 const SNAP_RADIUS_PX = 8;
 const DARK_ENOUGH = 140;
@@ -175,13 +163,8 @@ const MAX_ZOOM = 8;
 const ZOOM_STEP = 1.35;
 const FIT_PADDING_PX = 24;
 /**
- * เพดานความละเอียดที่วาดหน้าแบบลงผืนวาด
- *
- * A3 ที่ 2.5 เท่ากินหน่วยความจำราว 30 MB ต่อหน้าเมื่อดึงค่าพิกเซลออกมาใช้ดูดจุดกับไล่พื้นที่ห้อง
- * สูงกว่านี้แลกความคมที่ตาแทบไม่เห็นกับเบราว์เซอร์ที่เริ่มอืด
+ * เพดานความละเอียดที่วาดหน้าแบบ ย้ายไปอยู่ที่ `src/lib/drawing-render.ts` แล้ว
  */
-const MAX_RENDER_SCALE = 2.5;
-const MIN_RENDER_SCALE = 0.25;
 const RAIL_MIN = 110;
 const RAIL_MAX = 320;
 const PANEL_MIN = 240;
@@ -197,20 +180,32 @@ const TIP_EDGE_GAP = 8;
 const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 
 export function DrawingMarkup({ projectName, projectHref }: { projectName: string; projectHref: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
-  const imageDataRef = useRef<ImageData | null>(null);
 
   const [doc, setDoc] = useState<PdfDocument | null>(null);
   const [fileName, setFileName] = useState("");
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const [loadError, setLoadError] = useState("");
   const [regionError, setRegionError] = useState("");
 
   const [view, setView] = useState<Camera>({ scale: 1, x: 0, y: 0 });
-  const [renderScale, setRenderScale] = useState(1);
+
+  /**
+   * ความคมชัดเริ่มที่ปิด
+   *
+   * เจ้าของงานสั่งไว้ว่า "อย่าบังคับให้คมตลอดเวลา" เพราะความคมสำคัญตอนตั้งสเกล ลากเส้น
+   * และดูดจุด แต่ไม่ต้องเปิดตอนเปิดดูว่าหน้านี้เป็นแบบอะไรหรือตอนเลื่อนหาตำแหน่ง
+   */
+  const [sharpOn, setSharpOn] = useState(false);
+
+  const { pageSize, baseCanvasRef, sharpCanvasRef, sharpCrop, analysis } = useDrawingLayers({
+    doc,
+    page,
+    sharpOn,
+    view,
+    stageRef
+  });
 
   const [tool, setTool] = useState<Tool>("select");
   const [snapOn, setSnapOn] = useState(true);
@@ -304,54 +299,6 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
     }
   }
 
-  // วาดหน้าแบบใหม่ทุกครั้งที่เปลี่ยนหน้าหรือเปลี่ยนความละเอียดที่วาด
-  useEffect(() => {
-    let cancelled = false;
-    let task: PdfRenderTask | null = null;
-    async function render() {
-      const canvas = canvasRef.current;
-      if (!doc || !canvas) return;
-      const pdfPage = await doc.getPage(page);
-      const base = pdfPage.getViewport({ scale: 1 });
-      const viewport = pdfPage.getViewport({ scale: renderScale });
-      if (cancelled) return;
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      // willReadFrequently เพราะเราอ่านค่าพิกเซลกลับทุกครั้งที่วาดเสร็จ ไว้ให้การดูดจุดกับไล่พื้นที่ห้องใช้
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      if (!context) return;
-      // พื้นรองหน้าแบบอ่านจาก token ของธีม ไม่ประกาศเลขสีในคอมโพเนนต์ ตาม ADR 0021
-      const paper = getComputedStyle(canvas).getPropertyValue("--paper").trim();
-      if (paper) {
-        context.fillStyle = paper;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-      }
-      task = pdfPage.render({ canvasContext: context, viewport, canvas });
-      try {
-        await task.promise;
-      } catch {
-        // ถูกยกเลิกเพราะมีคำขอวาดใหม่มาแทน ระหว่างหมุนล้อซูมเกิดขึ้นเป็นปกติ ไม่ใช่ความผิดพลาด
-        return;
-      }
-      if (cancelled) return;
-      setPageSize({ width: base.width, height: base.height });
-      imageDataRef.current = context.getImageData(0, 0, canvas.width, canvas.height);
-    }
-    void render();
-    return () => {
-      cancelled = true;
-      task?.cancel();
-    };
-  }, [doc, page, renderScale]);
-
-  // ความละเอียดที่วาดไล่ตามระดับซูมแบบหน่วงเวลา ให้การหมุนล้อลื่นแล้วค่อยคมทีหลัง
-  useEffect(() => {
-    const target = Math.min(MAX_RENDER_SCALE, Math.max(MIN_RENDER_SCALE, view.scale));
-    if (Math.abs(target - renderScale) < 0.01) return;
-    const timer = setTimeout(() => setRenderScale(target), 140);
-    return () => clearTimeout(timer);
-  }, [view.scale, renderScale]);
-
   // รูปย่อของทุกหน้า ทยอยวาดทีละหน้าเพื่อไม่ให้แย่งเครื่องกับหน้าที่ผู้ใช้กำลังดู
   useEffect(() => {
     if (!doc) return;
@@ -375,7 +322,8 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           context.fillRect(0, 0, canvas.width, canvas.height);
         }
         try {
-          await pdfPage.render({ canvasContext: context, viewport, canvas }).promise;
+          // ไม่ส่งฟิลด์ canvas เพราะ pdfjs-dist 4.10.38 ไม่มีฟิลด์นั้น มันเป็นของรุ่น 5
+          await pdfPage.render({ canvasContext: context, viewport }).promise;
         } catch {
           return;
         }
@@ -465,11 +413,12 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
    */
   const snap = useCallback(
     (point: PagePoint): PagePoint => {
-      const image = imageDataRef.current;
-      if (!snapOn || !image) return point;
-      const cx = Math.round(point.x * renderScale);
-      const cy = Math.round(point.y * renderScale);
-      const radius = Math.max(2, Math.round(SNAP_RADIUS_PX * (renderScale / Math.max(view.scale, 0.01))));
+      const image = analysis?.image;
+      const analysisScale = analysis?.scale ?? 0;
+      if (!snapOn || !image || analysisScale <= 0) return point;
+      const cx = Math.round(point.x * analysisScale);
+      const cy = Math.round(point.y * analysisScale);
+      const radius = Math.max(2, Math.round(SNAP_RADIUS_PX * (analysisScale / Math.max(view.scale, 0.01))));
       let best: { x: number; y: number; value: number } | null = null;
       for (let dy = -radius; dy <= radius; dy += 1) {
         for (let dx = -radius; dx <= radius; dx += 1) {
@@ -484,9 +433,9 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           if (!best || score < best.value) best = { x, y, value: score };
         }
       }
-      return best ? { x: best.x / renderScale, y: best.y / renderScale } : point;
+      return best ? { x: best.x / analysisScale, y: best.y / analysisScale } : point;
     },
-    [renderScale, snapOn, view.scale]
+    [analysis, snapOn, view.scale]
   );
 
   const resolvePoint = useCallback(
@@ -633,17 +582,24 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
    * เพราะการทะลุออกนอกห้องบางแบบเล็กเกินกว่าเพดานพื้นที่จะจับได้ แต่ตาคนเห็นทันที
    */
   function pickRoom(point: PagePoint) {
-    const image = imageDataRef.current;
-    if (!image) return;
+    if (!analysis) {
+      setPendingRoom(null);
+      setRegionError("กำลังเตรียมภาพวิเคราะห์ของหน้านี้ ลองอีกครั้ง");
+      return;
+    }
+    const { image, scale: analysisScale } = analysis;
     const grey = toGreyImage(image.data, image.width, image.height);
-    const result = traceRegion(grey, { x: point.x * renderScale, y: point.y * renderScale });
+    const result = traceRegion(grey, { x: point.x * analysisScale, y: point.y * analysisScale });
     if (!result.ok) {
       setPendingRoom(null);
       setRegionError(regionRejectionMessage[result.reason]);
       return;
     }
     setRegionError("");
-    const polygon = result.polygon.map((pixel) => ({ x: pixel.x / renderScale, y: pixel.y / renderScale }));
+    const polygon = result.polygon.map((pixel) => ({
+      x: pixel.x / analysisScale,
+      y: pixel.y / analysisScale
+    }));
     setPendingRoom({
       id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
       page,
@@ -749,6 +705,11 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
         if (toolNeedsScale(match.id) && !pageScale) return;
         event.preventDefault();
         pickTool(match.id);
+        return;
+      }
+      if (event.key.toLowerCase() === "q") {
+        event.preventDefault();
+        setSharpOn((on) => !on);
         return;
       }
       if (event.key.toLowerCase() === "n") {
@@ -955,6 +916,25 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
             <path d={ICONS.snap} />
           </svg>
         </button>
+        <button
+          type="button"
+          className="mk__icon"
+          aria-pressed={sharpOn}
+          onClick={() => setSharpOn((on) => !on)}
+          aria-label="ความคมชัด"
+          onPointerEnter={(event) =>
+            showTip(event, {
+              label: "ความคมชัด",
+              hint: "วาดแบบละเอียดเท่าที่จอทำได้ ชัดขึ้นตอนตั้งสเกลและลากเส้น ตัวเลขที่วัดไม่เปลี่ยน",
+              key: "Q"
+            })
+          }
+          onPointerLeave={() => setTip(null)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d={ICONS.sharp} />
+          </svg>
+        </button>
         <span className="mk__scale-state">สเกลหน้า {page}: {pageScale ? formatScaleRatio(pageScale) : "ยังไม่ตั้ง"}</span>
         <button
           type="button"
@@ -1063,18 +1043,38 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           <div
             className="mk__sheet"
             style={{
-              transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale / renderScale})`,
-              width: pageSize.width * renderScale,
-              height: pageSize.height * renderScale
+              transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+              width: pageSize.width,
+              height: pageSize.height
             }}
           >
-            <canvas ref={canvasRef} />
+            {/* ชั้นฐาน — ทั้งหน้าที่สเกลคงที่ ยืดด้วย CSS ให้เต็มแผ่นเสมอ จอจึงไม่มีวันว่าง */}
+            <canvas
+              ref={baseCanvasRef}
+              style={{ width: pageSize.width, height: pageSize.height }}
+            />
+            {/* ชั้นคม — วางทับเฉพาะกรอบที่ถ่ายไว้ล่าสุด นอกกรอบยังเห็นชั้นฐาน */}
+            <canvas
+              ref={sharpCanvasRef}
+              className="mk__sharp"
+              style={
+                sharpCrop
+                  ? {
+                      display: "block",
+                      insetInlineStart: sharpCrop.x,
+                      insetBlockStart: sharpCrop.y,
+                      width: sharpCrop.width,
+                      height: sharpCrop.height
+                    }
+                  : { display: "none" }
+              }
+            />
             {pageSize.width > 0 ? (
               <svg
                 className="mk__overlay"
                 viewBox={`0 0 ${pageSize.width} ${pageSize.height}`}
-                width={pageSize.width * renderScale}
-                height={pageSize.height * renderScale}
+                width={pageSize.width}
+                height={pageSize.height}
                 aria-hidden="true"
               >
                 {measurements
@@ -1201,7 +1201,8 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
         <span>เครื่องมือ <b>{TOOLS.find((entry) => entry.id === tool)?.label ?? "เลือก"}</b></span>
         <span>สเกล <b>{pageScale ? formatScaleRatio(pageScale) : "ยังไม่ตั้ง"}</b></span>
         <span>ดูดจุด <b>{snapOn ? "เปิด" : "ปิด"}</b></span>
-        <span>บังคับแนว <b>{axisLock ? "เปิด" : "ปิด (กด Shift ค้าง)"}</b></span>
+        <span>ล็อกแนวเส้น <b>{axisLock ? "เปิด" : "ปิด (กด Shift ค้าง)"}</b></span>
+        <span>ความคมชัด <b>{sharpOn ? "เปิด" : "ปิด"}</b></span>
         <span className="mk__status-right">
           <span>หน้า <b>{pageCount === 0 ? "—" : `${page} จาก ${pageCount}`}</b></span>
           <span>ซูม <b>{Math.round(view.scale * 100)}%</b></span>

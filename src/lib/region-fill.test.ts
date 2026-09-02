@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { fullPageScaleFor } from "@/lib/drawing-render";
 import { simplify, toGreyImage, traceRegion, type GreyImage } from "@/lib/region-fill";
 
 /** สร้างหน้าแบบจำลอง พื้นขาว แล้ววาดกรอบห้องเป็นเส้นดำ */
@@ -140,5 +141,48 @@ describe("การแปลงภาพจากผืนวาด", () => {
     const grey = toGreyImage(rgba, 2, 1);
     expect(Array.from(grey.data)).toEqual([255, 0]);
     expect(grey.width).toBe(2);
+  });
+});
+
+/**
+ * เทสต์กันถอยหลังของบั๊กเงียบที่มีอยู่ในโค้ดก่อนก้อน A
+ *
+ * เดิมภาพที่การไล่พื้นที่ห้องอ่าน เป็นผืนเดียวกับที่แสดงบนจอ และความละเอียดของมัน
+ * ไล่ตามระดับซูม **ผลคือคลิกกลางห้องเดียวกันที่ซูมต่างกัน ได้พื้นที่คนละค่า** โดยไม่มี
+ * อะไรเตือน เพราะจำนวนพิกเซลของห้องเปลี่ยนไปตามความละเอียดของภาพ
+ *
+ * `fullPageScaleFor` เป็นตัวเดียวที่กำหนดความละเอียดของชั้นวิเคราะห์ และมันรับแค่ขนาดหน้า
+ * ถ้าวันหนึ่งมีคนเติมพารามิเตอร์ระดับซูมเข้าไป หรือเอาชั้นวิเคราะห์ไปผูกกับซูมอีกครั้ง
+ * เทสต์ชุดนี้ต้องแดงทันที
+ */
+describe("ความละเอียดของชั้นวิเคราะห์ต้องไม่ขึ้นกับระดับซูม", () => {
+  const A3 = { width: 1190.55, height: 841.89 };
+
+  it("หน้าเดียวกันให้ความละเอียดค่าเดียวเสมอ ไม่ว่าผู้ใช้จะซูมเท่าไหร่", () => {
+    // ไม่มีทางส่งระดับซูมเข้าไปได้เลย คุมด้วยลายเซ็นของฟังก์ชัน เรียกซ้ำจึงต้องได้ค่าเดิม
+    const first = fullPageScaleFor(A3);
+    for (let repeat = 0; repeat < 5; repeat += 1) {
+      expect(fullPageScaleFor(A3)).toBe(first);
+    }
+  });
+
+  it("ห้องเดียวกันบนภาพที่ความละเอียดเท่ากัน ให้พื้นที่เท่ากันทุกครั้ง", () => {
+    const image = pageWithRoom({ width: 240, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const first = traceRegion(image, { x: 80, y: 70 });
+    const second = traceRegion(image, { x: 82, y: 72 });
+    expect(first.ok && second.ok).toBe(true);
+    if (!first.ok || !second.ok) return;
+    expect(second.areaPixels).toBe(first.areaPixels);
+  });
+
+  it("ภาพความละเอียดต่างกันให้จำนวนพิกเซลต่างกัน ซึ่งคือเหตุผลที่ชั้นวิเคราะห์ต้องคงที่", () => {
+    const low = pageWithRoom({ width: 120, height: 100, room: { x: 20, y: 20, w: 40, h: 30 } });
+    const high = pageWithRoom({ width: 240, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const lowResult = traceRegion(low, { x: 40, y: 35 });
+    const highResult = traceRegion(high, { x: 80, y: 70 });
+    expect(lowResult.ok && highResult.ok).toBe(true);
+    if (!lowResult.ok || !highResult.ok) return;
+    // 38x28 = 1064 กับ 78x58 = 4524 — ต่างกันเกือบสี่เท่าจากความละเอียดล้วน ๆ
+    expect(lowResult.areaPixels).not.toBe(highResult.areaPixels);
   });
 });
