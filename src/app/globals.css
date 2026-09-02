@@ -29,6 +29,11 @@
   --orange-text: #a34f14;
   --line: #c9d8d9;
   --success: #32765d;
+  /* เลขระยะที่แบบเขียนกำกับ — แยกจากห้าสีของรอยวัดโดยตั้งใจ (IP-227)
+     ระยะจริงไม่ใช่ปริมาณที่เราวัดได้ มันคือสิ่งที่ผู้ออกแบบเขียนไว้ ถ้าใช้สีชุดเดียวกับรอยวัด
+     ผู้ใช้จะแยกไม่ออกว่าเลขไหนเป็นของที่ตัวเองวัด เลขไหนเป็นของที่แบบบอก
+     ส่วนแนวเสาใช้ --muted เป็นเส้นประแบบเส้นศูนย์กลางตามธรรมเนียมแบบก่อสร้าง ไม่มี token ของตัวเอง */
+  --dimension-red: #c0392b;
   --ease-out: cubic-bezier(.23, 1, .32, 1);
   /* Gentler and longer than --ease-out: a reveal should arrive, not snap. */
   --ease-reveal: cubic-bezier(.25, .1, .25, 1);
@@ -2530,7 +2535,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__icon:disabled { opacity: .35; cursor: not-allowed; }
 .mk__open input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .mk__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.mk__tools { display: flex; gap: 2px; }
+/* กลุ่มเครื่องมือต้องขึ้นบรรทัดใหม่ได้เอง ไม่งั้นจอแคบจะดันทั้งหน้าให้เลื่อนแนวนอน
+   เจอตอนเพิ่มเครื่องมือจากเก้าเป็นสิบเอ็ดตัว แถบแม่ห่อบรรทัดอยู่แล้วแต่กลุ่มนี้ไม่ห่อ */
+.mk__tools { display: flex; gap: 2px; flex-wrap: wrap; min-width: 0; }
 .mk__scale-state { margin-inline-start: auto; font-weight: 700; }
 
 /* ปุ่มดูดจุดกับปุ่มลูกศรเปิดกล่องตัวเลือกอยู่ติดกัน เพื่อให้เห็นว่าลูกศรขยายปุ่มไหน */

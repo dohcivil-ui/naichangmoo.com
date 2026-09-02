@@ -19,6 +19,11 @@ import {
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
 import {
+  gridIntersections,
+  nameGridLines,
+  type DraftedGridLine
+} from "@/lib/drawing-grid";
+import {
   collectSnapGeometry,
   DEFAULT_SNAP_SETTINGS,
   findGeometrySnap,
@@ -31,7 +36,9 @@ import {
 import { regionRejectionMessage, toGreyImage, traceRegion } from "@/lib/region-fill";
 import {
   calibrate,
+  calibrateFromDimension,
   calibrationRejectionMessage,
+  dimensionDisagreement,
   distancePoints,
   formatScaleRatio,
   lockToAngle,
@@ -39,9 +46,11 @@ import {
   polylineLengthPoints,
   SCALE_UNITS,
   scaleUnitLabel,
+  unitToMetres,
   type PagePoint,
   type PageScale,
-  type ScaleUnit
+  type ScaleUnit,
+  type StatedDimension
 } from "@/lib/drawing-scale";
 
 /**
@@ -147,6 +156,20 @@ const TOOLS: ToolSpec[] = [
     key: "C",
     hint: "คลิกทีละจุด คลิกขวาหรือกด Enter เพื่อจบ เหมาะกับฐานราก เสาเข็ม ดวงโคม",
     icon: "M7 5a2 2 0 1 0 .01 0M17 5a2 2 0 1 0 .01 0M7 17a2 2 0 1 0 .01 0M17 17a2 2 0 1 0 .01 0"
+  },
+  {
+    id: "gridline",
+    label: "ร่างกริด",
+    key: "D",
+    hint: "ลากทับแนวเสาทีละเส้น ระบบตั้งชื่อ 1 2 3 กับ A B C ให้เอง จุดตัดที่ได้คือจุดจริงบนแบบ",
+    icon: "M4 4v16M12 4v16M20 4v16M4 8h16M4 16h16"
+  },
+  {
+    id: "dimension",
+    label: "ระยะจริง",
+    key: "T",
+    hint: "ชี้สองจุดบนโซ่ระยะแล้วพิมพ์เลขที่แบบเขียนไว้ ตั้งสเกลของหน้าจากเลขนั้นได้เลย",
+    icon: "M3 12h18M3 9v6M21 9v6M7 12l3-3M7 12l3 3"
   }
 ];
 
@@ -201,6 +224,13 @@ const PANEL_MIN = 240;
 const PANEL_MAX = 560;
 
 type Camera = { scale: number; x: number; y: number };
+
+/** ทุกอย่างที่ผู้ใช้สร้างขึ้นบนแบบ เก็บรวมกันเพื่อให้ย้อนกลับได้เป็นก้อนเดียว */
+type WorkSnapshot = {
+  measurements: Measurement[];
+  gridLines: DraftedGridLine[];
+  dimensions: StatedDimension[];
+};
 /** `centre` คือจุดกึ่งกลางของปุ่มที่ชี้อยู่ ไม่ใช่ตำแหน่งซ้ายของป้าย — ป้ายคำนวณตำแหน่งเองหลังวัดความกว้างจริง */
 type TipState = { title: string; hint: string; key: string | null; centre: number; top: number } | null;
 
@@ -208,6 +238,9 @@ type TipState = { title: string; hint: string; key: string | null; centre: numbe
 const TIP_EDGE_GAP = 8;
 
 const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
+
+/** รหัสของสิ่งที่ผู้ใช้สร้าง ยังไม่ได้ลงฐานข้อมูล จึงพอแค่ไม่ชนกันภายในหน้าเดียว */
+const newId = () => `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
 export function DrawingMarkup({ projectName, projectHref }: { projectName: string; projectHref: string }) {
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -258,9 +291,24 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   const [draft, setDraft] = useState<PagePoint[]>([]);
   const [hover, setHover] = useState<PagePoint | null>(null);
 
-  const [past, setPast] = useState<Measurement[][]>([]);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
-  const [future, setFuture] = useState<Measurement[][]>([]);
+  const [gridLines, setGridLines] = useState<DraftedGridLine[]>([]);
+  const [dimensions, setDimensions] = useState<StatedDimension[]>([]);
+  /**
+   * ประวัติย้อนกลับเป็นก้อนเดียวที่รวมทั้งสามอย่าง
+   *
+   * ผู้ใช้ที่ลากเส้นแนวเสาพลาดจะกด Ctrl+Z แน่นอน ถ้าประวัติเก็บแต่รายการวัด
+   * การกดย้อนกลับจะไปลบรอยวัดที่ไม่เกี่ยวข้องแทน ซึ่งแย่กว่าไม่มีปุ่มย้อนกลับเลย
+   */
+  const [past, setPast] = useState<WorkSnapshot[]>([]);
+  const [future, setFuture] = useState<WorkSnapshot[]>([]);
+  /** จุดแรกของเส้นแนวเสาหรือเส้นระยะจริงที่กำลังลาก คลิกขวายกเลิก */
+  const [pendingRefStart, setPendingRefStart] = useState<PagePoint | null>(null);
+  /** เส้นระยะจริงที่เพิ่งลากเสร็จ รอผู้ใช้พิมพ์ค่าที่อ่านได้จากแบบ */
+  const [pendingDimension, setPendingDimension] = useState<{ a: PagePoint; b: PagePoint } | null>(null);
+  const [dimensionValue, setDimensionValue] = useState("");
+  const [dimensionUnit, setDimensionUnit] = useState<ScaleUnit>("m");
+  const [dimensionError, setDimensionError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   /**
@@ -282,33 +330,51 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   const pageScale = scales[page] ?? null;
 
   /** ทุกการเปลี่ยนรายการวัดผ่านที่นี่ที่เดียว ประวัติจึงครบเสมอ ไม่มีทางลืมบันทึกบางการกระทำ */
-  const commit = useCallback(
-    (next: Measurement[]) => {
-      setPast((history) => [...history, measurements]);
-      setMeasurements(next);
+  const snapshot = useCallback(
+    (): WorkSnapshot => ({ measurements, gridLines, dimensions }),
+    [dimensions, gridLines, measurements]
+  );
+
+  const restore = useCallback((state: WorkSnapshot) => {
+    setMeasurements(state.measurements);
+    setGridLines(state.gridLines);
+    setDimensions(state.dimensions);
+  }, []);
+
+  const commitWork = useCallback(
+    (next: Partial<WorkSnapshot>) => {
+      setPast((history) => [...history, snapshot()]);
+      if (next.measurements) setMeasurements(next.measurements);
+      if (next.gridLines) setGridLines(next.gridLines);
+      if (next.dimensions) setDimensions(next.dimensions);
       setFuture([]);
     },
-    [measurements]
+    [snapshot]
+  );
+
+  const commit = useCallback(
+    (next: Measurement[]) => commitWork({ measurements: next }),
+    [commitWork]
   );
 
   const undo = useCallback(() => {
     setPast((history) => {
       if (history.length === 0) return history;
       const previous = history[history.length - 1];
-      setFuture((forward) => [measurements, ...forward]);
-      setMeasurements(previous);
+      setFuture((forward) => [snapshot(), ...forward]);
+      restore(previous);
       return history.slice(0, -1);
     });
-  }, [measurements]);
+  }, [restore, snapshot]);
 
   const redo = useCallback(() => {
     setFuture((forward) => {
       if (forward.length === 0) return forward;
-      setPast((history) => [...history, measurements]);
-      setMeasurements(forward[0]);
+      setPast((history) => [...history, snapshot()]);
+      restore(forward[0]);
       return forward.slice(1);
     });
-  }, [measurements]);
+  }, [restore, snapshot]);
 
   async function openFile(file: File) {
     setLoadError("");
@@ -449,9 +515,18 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
    */
   /** เรขาคณิตของหน้านี้ที่การดูดจุดเอาไว้เกาะ คำนวณใหม่เมื่อรายการวัดหรือหน้าเปลี่ยน */
   const snapGeometry = useMemo(
-    () => collectSnapGeometry(measurements, [], [], page),
-    [measurements, page]
+    () => collectSnapGeometry(measurements, gridLines, dimensions, page),
+    [dimensions, gridLines, measurements, page]
   );
+
+  /** เส้นแนวเสาของหน้านี้พร้อมชื่อที่ไล่ให้ตามตำแหน่ง คำนวณใหม่เสมอ ไม่เก็บลงที่ไหน */
+  const namedGridLines = useMemo(
+    () => nameGridLines(gridLines.filter((line) => line.page === page)),
+    [gridLines, page]
+  );
+
+  /** จุดตัดของแนวเสา ใช้บอกตำแหน่งและใช้นับฐานรากในก้อนถัดไป */
+  const intersections = useMemo(() => gridIntersections(namedGridLines), [namedGridLines]);
 
   /**
    * หาว่าเมาส์ตรงนี้ควรดูดไปจุดไหน
@@ -578,6 +653,36 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       return;
     }
 
+    /**
+     * ร่างกริดกับระยะจริงใช้สองคลิก จุดแรกค้างไว้ จุดที่สองสร้างเส้น
+     *
+     * สองตัวนี้ทำงานได้ตั้งแต่ยังไม่ตั้งสเกล เพราะเส้นแนวเสาเป็นพิกัด และเลขระยะเป็นสิ่งที่
+     * คนอ่านจากแบบ ไม่ใช่ค่าที่คำนวณจากสเกล นี่คือลำดับที่เจ้าของงานใช้จริง คือร่างกริดก่อน
+     * แล้วสเกลตามมาทีหลัง
+     */
+    if (tool === "gridline" || tool === "dimension") {
+      const resolved = resolvePoint(event.clientX, event.clientY, pendingRefStart);
+      if (!resolved) return;
+      if (!pendingRefStart) {
+        setPendingRefStart(resolved.point);
+        return;
+      }
+      if (tool === "gridline") {
+        commitWork({
+          gridLines: [
+            ...gridLines,
+            { id: newId(), page, a: pendingRefStart, b: resolved.point }
+          ]
+        });
+      } else {
+        setPendingDimension({ a: pendingRefStart, b: resolved.point });
+        setDimensionValue("");
+        setDimensionUnit("m");
+      }
+      setPendingRefStart(null);
+      return;
+    }
+
     if (toolNeedsScale(tool) && !pageScale) return;
 
     /**
@@ -674,7 +779,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       y: pixel.y / analysisScale
     }));
     setPendingRoom({
-      id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      id: newId(),
       page,
       kind: "area",
       name: "",
@@ -702,7 +807,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
     }
     const kind: MeasurementKind = tool;
     const created: Measurement = {
-      id: `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      id: newId(),
       page,
       kind,
       name: "",
@@ -874,6 +979,40 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
     },
     [tip]
   );
+
+  /**
+   * บันทึกระยะที่แบบเขียน และตั้งสเกลจากมันได้ในคลิกเดียว
+   *
+   * นี่คือลำดับที่เจ้าของงานใช้จริง — อ่านเลขจากแบบแล้วพิมพ์เข้าไป ไม่ใช่ให้ระบบเดาสเกล
+   * จากตัวเลขใต้รูป เพราะแบบที่ถูกย่อขยายตอนพิมพ์จะมีสเกลจริงไม่ตรงกับที่เขียนไว้
+   * และไม่มีทางรู้เลยถ้าไม่เทียบกับเส้นที่วัดได้
+   */
+  function saveDimension(alsoCalibrate: boolean) {
+    if (!pendingDimension) return;
+    const typed = Number(dimensionValue);
+    if (!Number.isFinite(typed) || typed <= 0) {
+      setDimensionError("ระยะที่แบบเขียนต้องมากกว่าศูนย์");
+      return;
+    }
+    const dimension: StatedDimension = {
+      id: newId(),
+      page,
+      a: pendingDimension.a,
+      b: pendingDimension.b,
+      valueM: typed * unitToMetres[dimensionUnit]
+    };
+    if (alsoCalibrate) {
+      const result = calibrateFromDimension(dimension);
+      if (!result.ok) {
+        setDimensionError(calibrationRejectionMessage[result.reason]);
+        return;
+      }
+      setScales((current) => ({ ...current, [page]: result.scale }));
+    }
+    commitWork({ dimensions: [...dimensions, dimension] });
+    setPendingDimension(null);
+    setDimensionError("");
+  }
 
   return (
     <div className="mk">
@@ -1180,6 +1319,10 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           }}
           onContextMenu={(event) => {
             event.preventDefault();
+            if (tool === "gridline" || tool === "dimension") {
+              setPendingRefStart(null);
+              return;
+            }
             finish();
           }}
         >
@@ -1221,6 +1364,11 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
                 height={pageSize.height}
                 aria-hidden="true"
               >
+                <defs>
+                  <marker id="mk-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M0 0 10 5 0 10z" fill="var(--dimension-red)" />
+                  </marker>
+                </defs>
                 {measurements
                   .filter((item) => item.page === page)
                   .map((item) => {
@@ -1298,6 +1446,113 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
                     stroke="var(--orange)"
                     strokeWidth={stroke(2)}
                   />
+                ) : null}
+
+                {/*
+                  แนวเสาที่ผู้ใช้ร่างเอง — เส้นประสีเทาแบบเส้นศูนย์กลาง
+                  ตามที่เจ้าของงานสั่ง 2026-09-02 และตรงกับธรรมเนียมของแบบก่อสร้าง
+                  ที่เขียนแนวเสาเป็นเส้นศูนย์กลาง ขีดยาวสลับจุด ไม่ใช่เส้นทึบ
+                  เส้นทึบเป็นของจริงที่ก่อสร้างได้ ส่วนแนวเสาเป็นเส้นอ้างอิงที่ไม่มีอยู่จริงบนพื้น
+                */}
+                {namedGridLines.map((line) => (
+                  <g key={line.id}>
+                    <line
+                      x1={line.a.x}
+                      y1={line.a.y}
+                      x2={line.b.x}
+                      y2={line.b.y}
+                      stroke="var(--muted)"
+                      strokeWidth={stroke(1)}
+                      strokeDasharray={`${stroke(14)} ${stroke(4)} ${stroke(2)} ${stroke(4)}`}
+                    />
+                    <circle
+                      cx={line.a.x}
+                      cy={line.a.y}
+                      r={stroke(9)}
+                      fill="var(--paper)"
+                      stroke="var(--muted)"
+                      strokeWidth={stroke(1)}
+                    />
+                    <text
+                      x={line.a.x}
+                      y={line.a.y}
+                      fill="var(--muted)"
+                      fontSize={stroke(11)}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                    >
+                      {line.label}
+                    </text>
+                  </g>
+                ))}
+
+                {/* จุดตัดของแนวเสา — จุดจริงที่ใช้อ้างตำแหน่งและใช้นับฐานราก จึงทึบให้เห็นชัด */}
+                {intersections.map((node) => (
+                  <circle
+                    key={node.label}
+                    cx={node.point.x}
+                    cy={node.point.y}
+                    r={stroke(2.4)}
+                    fill="var(--ink-body)"
+                  />
+                ))}
+
+                {/* ระยะที่แบบเขียนกำกับ สีแดง หัวลูกศรสองหัว พร้อมค่าที่คนอ่านมาจากแบบ */}
+                {dimensions
+                  .filter((item) => item.page === page)
+                  .map((item) => {
+                    const middle = { x: (item.a.x + item.b.x) / 2, y: (item.a.y + item.b.y) / 2 };
+                    const gap = dimensionDisagreement(item, pageScale);
+                    const drifted = gap !== null && Math.abs(gap.differenceM) >= 0.005;
+                    return (
+                      <g key={item.id}>
+                        <line
+                          x1={item.a.x}
+                          y1={item.a.y}
+                          x2={item.b.x}
+                          y2={item.b.y}
+                          stroke="var(--dimension-red)"
+                          strokeWidth={stroke(1.4)}
+                          markerStart="url(#mk-arrow)"
+                          markerEnd="url(#mk-arrow)"
+                        />
+                        <text
+                          x={middle.x}
+                          y={middle.y - stroke(6)}
+                          fill="var(--dimension-red)"
+                          fontSize={stroke(11)}
+                          textAnchor="middle"
+                        >
+                          {formatMetres(item.valueM)} ม.
+                          {drifted ? ` (วัดได้ ${formatMetres(gap.measuredM)})` : ""}
+                        </text>
+                      </g>
+                    );
+                  })}
+
+                {/* จุดแรกของเส้นแนวเสาหรือเส้นระยะที่ยังลากไม่จบ */}
+                {pendingRefStart ? (
+                  <g>
+                    <circle
+                      cx={pendingRefStart.x}
+                      cy={pendingRefStart.y}
+                      r={stroke(4)}
+                      fill="none"
+                      stroke={tool === "gridline" ? "var(--muted)" : "var(--dimension-red)"}
+                      strokeWidth={stroke(1.6)}
+                    />
+                    {hover ? (
+                      <line
+                        x1={pendingRefStart.x}
+                        y1={pendingRefStart.y}
+                        x2={hover.x}
+                        y2={hover.y}
+                        stroke={tool === "gridline" ? "var(--muted)" : "var(--dimension-red)"}
+                        strokeWidth={stroke(1.2)}
+                        strokeDasharray={`${stroke(6)} ${stroke(4)}`}
+                      />
+                    ) : null}
+                  </g>
                 ) : null}
 
                 {/* จุดที่ดูดติดอยู่ตอนนี้ — ผู้ใช้ต้องเห็นก่อนกด ไม่ใช่รู้ตัวหลังจากคลิกไปแล้ว */}
@@ -1408,6 +1663,55 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
           <div>
             <button type="button" onClick={applyCalibration}>ยืนยันสเกลนี้</button>
             <button type="button" onClick={cancelDraft}>ยกเลิก</button>
+          </div>
+        </div>
+      ) : null}
+
+      {pendingDimension ? (
+        <div className="mk__dialog" role="dialog" aria-label="ระยะจริงที่แบบเขียนกำกับ">
+          <h2>ระยะที่แบบเขียนไว้</h2>
+          <p>
+            พิมพ์ตัวเลขที่อ่านได้จากแบบตรงช่วงนี้
+            <strong> เลขบนแบบคือเจตนาของผู้ออกแบบ ส่วนสเกลใต้รูปเชื่อไม่ได้เมื่อแบบถูกย่อขยายตอนพิมพ์</strong>
+          </p>
+          <p>ช่วงที่ชี้ยาว {distancePoints(pendingDimension.a, pendingDimension.b).toFixed(1)} หน่วยกระดาษ</p>
+          <label>
+            ระยะที่แบบเขียน
+            <input
+              value={dimensionValue}
+              onChange={(event) => setDimensionValue(event.target.value)}
+              inputMode="decimal"
+              autoFocus
+            />
+          </label>
+          <label>
+            หน่วย
+            <select
+              value={dimensionUnit}
+              onChange={(event) => setDimensionUnit(event.target.value as ScaleUnit)}
+            >
+              {SCALE_UNITS.map((value) => (
+                <option key={value} value={value}>
+                  {scaleUnitLabel[value]}
+                </option>
+              ))}
+            </select>
+          </label>
+          {dimensionError ? <p role="alert">{dimensionError}</p> : null}
+          <div>
+            <button type="button" onClick={() => saveDimension(false)}>บันทึกระยะนี้</button>
+            <button type="button" onClick={() => saveDimension(true)}>
+              {pageScale ? "บันทึกและตั้งสเกลใหม่จากระยะนี้" : "บันทึกและตั้งสเกลหน้านี้จากระยะนี้"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setPendingDimension(null);
+                setDimensionError("");
+              }}
+            >
+              ยกเลิก
+            </button>
           </div>
         </div>
       ) : null}
