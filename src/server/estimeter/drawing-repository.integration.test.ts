@@ -496,6 +496,65 @@ describe.skipIf(!enabled)("drawing calibration against PostgreSQL", () => {
     });
   });
 
+  it("files a stored mark into the take-off and stamps it as filed in the same transaction", async () => {
+    const { fileDrawingMark, loadDrawingState, saveCalibration, saveMarks } = await import(
+      "@/server/estimeter/drawing-repository"
+    );
+    const { getDb } = await import("@/db");
+    const { takeoffMeasurements } = await import("@/db/schema");
+    const fixture = await registeredDocument();
+    const scope = { organizationId: fixture.organizationId, documentId: fixture.documentId, actorId: fixture.userId };
+    await saveMarks({ ...scope, pageNumber: 7, marks });
+
+    // A length before the page has a scale cannot be filed: there is no number to file.
+    expect(
+      await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m1", item: { category: "structure", description: "ผนัง", unit: "m" } })
+    ).toEqual({ ok: false, reason: "needs_scale" });
+
+    const calibrated = await saveCalibration({
+      ...scope,
+      pageNumber: 7,
+      metresPerPoint: METRES_PER_POINT,
+      method: "stated_dimension",
+      reference,
+      grid: [],
+      dimensions: statedDimensions
+    });
+    if (!calibrated.ok) throw new Error("expected the scale to save");
+
+    expect(
+      await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m1", item: { category: "structure", description: "ผนัง", unit: "sq_m" } })
+    ).toEqual({ ok: false, reason: "unit_not_allowed" });
+    expect(
+      await fileDrawingMark({ ...scope, pageNumber: 7, markId: "nope", item: { category: "structure", description: "ผนัง", unit: "m" } })
+    ).toEqual({ ok: false, reason: "mark_not_found" });
+
+    const filed = await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m1", item: { category: "structure", description: "ผนัง", unit: "m" } });
+    if (!filed.ok) throw new Error(`expected the mark to file: ${filed.reason}`);
+
+    const state = await loadDrawingState({ organizationId: fixture.organizationId, documentId: fixture.documentId, userId: fixture.userId });
+    expect(state?.marks[7]?.find((mark) => mark.id === "m1")?.filed).toEqual({
+      itemId: filed.value.itemId,
+      measurementId: filed.value.measurementId,
+      evidenceId: filed.value.evidenceId
+    });
+    expect(state?.marks[7]?.find((mark) => mark.id === "m2")?.filed).toBeNull();
+
+    // 400 points at 5 m per 400 points is 5.00 m, multiplied by the calibration this test saved.
+    const line = await getDb().select().from(takeoffMeasurements).where(eq(takeoffMeasurements.id, filed.value.measurementId));
+    expect(Number(line[0]?.dimension1)).toBeCloseTo(5, 5);
+    expect(line[0]?.method).toBe("pointer");
+    expect(line[0]?.methodContext).toEqual({ version: 1, calibrationId: calibrated.value.calibrationId });
+
+    expect(
+      await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m1", item: { category: "structure", description: "ผนัง", unit: "m" } })
+    ).toEqual({ ok: false, reason: "mark_already_filed" });
+
+    // A count needs no scale and files under a counting unit.
+    const pins = await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m2", item: { category: "electrical", description: "ดวงโคม", unit: "set" } });
+    expect(pins.ok).toBe(true);
+  });
+
   it("hides another organization's marks", async () => {
     const { loadDrawingState, saveMarks } = await import("@/server/estimeter/drawing-repository");
     const owner = await registeredDocument();
