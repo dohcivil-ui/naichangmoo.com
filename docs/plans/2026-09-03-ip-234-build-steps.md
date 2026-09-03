@@ -44,15 +44,22 @@ drawing_marks
 - ทำไมไม่ยัดใน `drawing_calibrations`: แถวนั้นเกิดเมื่อคนยืนยันสเกล และ `confirmed_by` ต้องหมายถึง
   "ใครยืนยันสเกล" ถ้าเอา mark ไปแขวนไว้ที่นั่น การวาดหมุดนับหนึ่งอันจะไป re-stamp ชื่อคนยืนยันสเกล
   และหน้าที่ยังไม่มีสเกล (นับจำนวนไม่ต้องใช้สเกล) จะไม่มีที่เก็บ
-- `StoredMark = Measurement & { filed: { itemId; measurementId; evidenceId } | null }` —
+- `StoredMark = Measurement & { filed: { itemId; measurementId; evidenceId } | null; layerId: string | null }` —
   `Measurement` จาก `drawing-measurement.ts` (id, page, kind, name, points, colour) บวกร่องรอย
-  ว่าถูกส่งเข้าถอดปริมาณแล้วหรือยัง
+  ว่าถูกส่งเข้าถอดปริมาณแล้วหรือยัง และชั้นที่มันสังกัด
+- **`layerId` ใส่ตั้งแต่ใบนี้ ไม่ใช่ migration ใบหลัง** (เจ้าของงานเคาะ 2026-09-03 ·
+  สเปก `2026-09-03-drawing-layers.md` หัวข้อสอง) เพราะ layer เป็นความสัมพันธ์ที่แขวนอยู่กับ
+  ตัว object ทุกชิ้น ถ้าไม่ใส่ตอนนี้ต้องเขียน migration ถอนอีกใบเพื่อแก้รูป jsonb ทีหลัง ·
+  รอบนี้ **ยังไม่มีตารางทะเบียนชั้น** ค่าจึงเป็น `null` ทุกแถว แปลว่า "ยังไม่จัดชั้น"
+  และหน้าจอยังไม่มี UI ให้ตั้งค่านี้ · ห้าม parser ปฏิเสธแถวที่ `layerId` เป็น `null`
 - **ไม่ลง audit** เหตุผลเดียวกับ `drawing_view_states`: การลากเส้นยังไม่ใช่การกระทำที่ต้องตรวจย้อน
   จุดที่ต้องตรวจย้อนคือตอนส่งเข้าถอดปริมาณ ซึ่งลง audit อยู่แล้วในเส้นทาง take-off
 - เพิ่ม `drawingMarks` เข้า `CLOSED_TABLES` · เข้า `schema` object
 - parser `parseMarksPayload(unknown)` ใน `drawing-state.ts` (ไฟล์จาก IP-233) กติกาเดียวกับตัวอื่น ·
   `kind` ต้องผ่าน `isMeasurementKind` (มีอยู่ที่ `drawing-measurement.ts:115`) · `points` อย่างน้อย
-  `minimumPoints(kind)` · `colour` string ไม่ว่าง · `filed` เป็น null หรือสามช่อง string ไม่ว่าง
+  `minimumPoints(kind)` · `colour` string ไม่ว่าง · `filed` เป็น null หรือสามช่อง string ไม่ว่าง ·
+  `layerId` เป็น null หรือ string ไม่ว่าง (ช่องที่หายไปเลยให้อ่านเป็น null ได้ เพราะแถวที่เขียน
+  ก่อนมี layer ไม่มีช่องนี้ แต่ช่องที่มีค่าผิดรูปยังต้องคืน null ทั้งก้อนตามกติกาเดิม)
 
 ## ขั้น 2 — `takeoff-measurement.ts`: กติกาหน่วยสำหรับแถวที่มาจากการวาด (ADR 0024 ข้อ 7)
 
