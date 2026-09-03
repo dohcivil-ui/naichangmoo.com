@@ -1,3 +1,4 @@
+import type { QuantityMethod } from "@/lib/quantity-provenance";
 import { increaseByPercent, multiplyQuantities, parseQuantity, sumQuantities } from "@/lib/takeoff-quantity";
 import { findUnit, type QuantityDimension } from "@/lib/takeoff-units";
 
@@ -213,11 +214,23 @@ export function parseWasteForm(formData: FormData): WasteParseResult {
  * The form parser already enforces this, but the parser runs on input the browser sent. The
  * write path checks it again against the unit read from the database, so a line can never be
  * stored with the wrong number of factors by posting to the action directly.
+ *
+ * A line that came from pointing on a drawing (`pointer`, `region_trace`) may carry an area as
+ * ONE factor instead of width x length: a traced room has no width and length, only the polygon
+ * the person confirmed. ADR 0024 item 7 — จุดยอดคือตัวประกอบ อยู่ในหลักฐาน — the vertices are the
+ * factors, and they live in the evidence row, not here. Every other rule is unchanged, and the
+ * default `"typed"` keeps every existing caller behaving exactly as before.
  */
-export function measurementMatchesUnit(line: MeasurementFactors & { conversionNote?: string | null }, unitCode: string): boolean {
+export function measurementMatchesUnit(
+  line: MeasurementFactors & { conversionNote?: string | null },
+  unitCode: string,
+  method: QuantityMethod = "typed"
+): boolean {
   const unit = findUnit(unitCode);
   if (!unit) return false;
-  if (line.dimensions.length !== DIMENSION_RANK[unit.dimension]) return false;
+  const drawnArea = (method === "pointer" || method === "region_trace") && unit.dimension === "area";
+  const expectedRank = drawnArea && line.dimensions.length === 1 ? 1 : DIMENSION_RANK[unit.dimension];
+  if (line.dimensions.length !== expectedRank) return false;
   if (unit.dimension === "lump" && line.count !== 1) return false;
   if (unit.dimension === "mass") return line.conversionFactor !== null;
   return line.conversionFactor === null;

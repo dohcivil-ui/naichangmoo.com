@@ -283,4 +283,21 @@ describe("lump sum", () => {
     expect(measurementMatchesUnit({ count: 2, dimensions: [], conversionFactor: null }, "lump")).toBe(false);
     expect(measurementMatchesUnit({ count: 1, dimensions: [], conversionFactor: null }, "lump")).toBe(true);
   });
+
+  /**
+   * IP-234 ADR 0024 ข้อ 7 — พื้นที่ที่ได้จากการชี้บนแบบส่งมาเป็นตัวประกอบเดียว เพราะห้องที่ไล่ขอบ
+   * ไม่มีกว้างกับยาว มีแต่รูปหลายเหลี่ยม · ค่าตั้งต้น typed ต้องเข้มเท่าเดิมทุกบรรทัด
+   */
+  it("พื้นที่จากการชี้บนแบบยอมรับตัวประกอบเดียว แต่แถวที่คนพิมพ์ยังต้องกว้างคูณยาว", () => {
+    const area1 = { count: 1, dimensions: ["24.5"], conversionFactor: null };
+    const area2 = { count: 1, dimensions: ["5", "4.9"], conversionFactor: null };
+    expect(measurementMatchesUnit(area1, "sq_m")).toBe(false);
+    expect(measurementMatchesUnit(area1, "sq_m", "typed")).toBe(false);
+    expect(measurementMatchesUnit(area1, "sq_m", "pointer")).toBe(true);
+    expect(measurementMatchesUnit(area1, "sq_m", "region_trace")).toBe(true);
+    expect(measurementMatchesUnit(area2, "sq_m", "pointer")).toBe(true);
+    expect(measurementMatchesUnit(area1, "cu_m", "pointer")).toBe(false);
+    expect(measurementMatchesUnit({ count: 1, dimensions: ["5"], conversionFactor: null }, "m", "typed")).toBe(true);
+    expect(measurementMatchesUnit(area1, "sq_m", "pointer_count")).toBe(false);
+  });
 });
