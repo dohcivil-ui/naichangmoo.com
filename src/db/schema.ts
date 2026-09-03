@@ -283,6 +283,45 @@ export const drawingViewStates = pgTable("drawing_view_states", {
   check("drawing_view_states_page_number_positive", sql`${table.pageNumber} > 0`)
 ]);
 
+/**
+ * The lines, shapes and pins a person drew on one page — the marks, before any of them is a quantity.
+ *
+ * Two layers are deliberately separate, and moving from one to the other is an act a person
+ * performs, never something that happens on its own. A mark is a stroke on a drawing. A
+ * measurement is a line in a backup sheet, filed under a take-off item that has a category and a
+ * unit nobody can pick from a picture. `filed` on each mark is the only link between them, so a
+ * mark can exist for months as a note to self, and the same mark filed twice is visibly filed
+ * twice rather than silently duplicated.
+ *
+ * This is not a column on drawingCalibrations because that row is created when somebody confirms a
+ * scale, and its `confirmed_by` has to keep meaning "who stood behind this scale". Hanging marks
+ * there would let drawing one count pin re-stamp the name of the person who confirmed the scale,
+ * and would leave counts — which need no scale at all — with nowhere to live.
+ *
+ * No audit event, for the reason drawingViewStates gives: drawing a line is not an act anybody
+ * reviews. The act that is reviewed is filing a quantity, and that path raises its own events.
+ */
+export const drawingMarks = pgTable("drawing_marks", {
+  id: text("id").primaryKey(),
+  documentId: text("document_id").notNull().references(() => drawingDocuments.id, { onDelete: "cascade" }),
+  pageNumber: integer("page_number").notNull(),
+  /**
+   * {version:1, items:[…]} of StoredMark — a Measurement plus `filed` and `layerId`.
+   *
+   * `layerId` is here from this table's first migration even though no layer registry exists yet
+   * and the screen offers no way to set it: a layer is a relation that hangs off every object, so
+   * adding it later would mean a second migration to reshape rows that are already in the field.
+   * Null means the mark is not filed under any layer, which is every row until layers ship.
+   */
+  marks: jsonb("marks").notNull(),
+  updatedBy: text("updated_by").notNull().references(() => users.id),
+  createdAt,
+  updatedAt
+}, (table) => [
+  uniqueIndex("drawing_marks_page_idx").on(table.documentId, table.pageNumber),
+  check("drawing_marks_page_number_positive", sql`${table.pageNumber} > 0`)
+]);
+
 export const takeoffRuns = pgTable("takeoff_runs", {
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),

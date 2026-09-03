@@ -4,6 +4,7 @@ import {
   parseCalibrationReference,
   parseDimensionsPayload,
   parseGridPayload,
+  parseMarksPayload,
   parseViewPayload
 } from "@/lib/drawing-state";
 
@@ -36,6 +37,29 @@ const dimensionsRow = {
 };
 
 const viewRow = { version: 1, scale: 2.5, x: -120, y: 340 };
+
+const markRow = {
+  version: 1,
+  items: [
+    {
+      id: "m1",
+      page: 7,
+      kind: "length",
+      name: "แนวผนังทิศเหนือ",
+      points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
+      colour: "var(--teal)",
+      filed: null,
+      layerId: null
+    }
+  ]
+};
+
+const filedMark = {
+  ...markRow.items[0],
+  id: "m2",
+  filed: { itemId: "i1", measurementId: "ms1", evidenceId: "e1" },
+  layerId: "layer-1"
+};
 
 describe("จุดอ้างอิงของสเกล", () => {
   it("อ่านกลับได้เท่าที่เก็บไป", () => {
@@ -187,5 +211,80 @@ describe("จุดที่ค้างอยู่", () => {
   it("ไม่ยกช่องแปลกปลอมติดมา", () => {
     const parsed = parseViewPayload({ ...viewRow, page: 7 });
     expect(Object.keys(parsed ?? {}).sort()).toEqual(["scale", "version", "x", "y"]);
+  });
+});
+
+/**
+ * รอยที่คนวาดไว้ (IP-234)
+ *
+ * กลุ่มที่เฝ้าการตัดสินใจจริงคือสองข้อล่างสุด — ช่องที่หายไปกับช่องที่มีแต่ผิดรูปต้องได้ผลต่างกัน
+ * เพราะแถวที่เขียนก่อนช่องนั้นเกิดอ่านต่อได้ แต่แถวที่บอกว่าส่งเข้าถอดปริมาณแล้วโดยชี้กลับไม่ได้
+ * เชื่อไม่ได้ทั้งก้อน
+ */
+describe("รอยที่คนวาดไว้", () => {
+  it("อ่านกลับได้เท่าที่เก็บไป", () => {
+    expect(parseMarksPayload(markRow)).toEqual(markRow);
+  });
+
+  it("อ่านรอยที่ส่งเข้าถอดปริมาณแล้วและจัดชั้นแล้วได้ครบ", () => {
+    const parsed = parseMarksPayload({ version: 1, items: [filedMark] });
+    expect(parsed?.items[0].filed).toEqual({ itemId: "i1", measurementId: "ms1", evidenceId: "e1" });
+    expect(parsed?.items[0].layerId).toBe("layer-1");
+  });
+
+  it("ปฏิเสธ version ผิด", () => {
+    expect(parseMarksPayload({ ...markRow, version: 2 })).toBeNull();
+  });
+
+  it("ปฏิเสธชนิดที่ไม่อยู่ในทะเบียน", () => {
+    expect(parseMarksPayload({ version: 1, items: [{ ...markRow.items[0], kind: "volume" }] })).toBeNull();
+  });
+
+  it("ปฏิเสธเมื่อจุดน้อยกว่าที่ชนิดนั้นต้องใช้", () => {
+    expect(parseMarksPayload({
+      version: 1,
+      items: [{ ...markRow.items[0], points: [{ x: 0, y: 0 }] }]
+    })).toBeNull();
+  });
+
+  it("ปฏิเสธสีว่างและเลขหน้าที่ไม่ใช่จำนวนเต็มตั้งแต่หนึ่ง", () => {
+    expect(parseMarksPayload({ version: 1, items: [{ ...markRow.items[0], colour: "" }] })).toBeNull();
+    expect(parseMarksPayload({ version: 1, items: [{ ...markRow.items[0], page: 0 }] })).toBeNull();
+  });
+
+  it("สมาชิกผิดรูปหนึ่งตัวทำให้ทั้งก้อนตก ไม่กรองตัวเสียทิ้งเงียบ", () => {
+    expect(parseMarksPayload({
+      version: 1,
+      items: [markRow.items[0], { ...markRow.items[0], id: "" }]
+    })).toBeNull();
+  });
+
+  it("ช่อง filed กับ layerId ที่หายไปทั้งช่องอ่านเป็น null ได้", () => {
+    const legacy = { ...markRow.items[0] } as Record<string, unknown>;
+    delete legacy.filed;
+    delete legacy.layerId;
+    const parsed = parseMarksPayload({ version: 1, items: [legacy] });
+    expect(parsed?.items[0].filed).toBeNull();
+    expect(parsed?.items[0].layerId).toBeNull();
+  });
+
+  it("ช่อง filed หรือ layerId ที่มีอยู่แต่ผิดรูปคืน null ทั้งก้อน", () => {
+    expect(parseMarksPayload({
+      version: 1,
+      items: [{ ...markRow.items[0], filed: { itemId: "i1", measurementId: "ms1" } }]
+    })).toBeNull();
+    expect(parseMarksPayload({
+      version: 1,
+      items: [{ ...markRow.items[0], layerId: "" }]
+    })).toBeNull();
+  });
+
+  it("ไม่ยกช่องแปลกปลอมติดมา", () => {
+    const parsed = parseMarksPayload({
+      version: 1,
+      items: [{ ...markRow.items[0], scanState: "pending" }]
+    });
+    expect(Object.keys(parsed?.items[0] ?? {}).sort())
+      .toEqual(["colour", "filed", "id", "kind", "layerId", "name", "page", "points"]);
   });
 });

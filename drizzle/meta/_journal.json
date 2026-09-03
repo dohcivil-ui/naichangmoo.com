@@ -113,6 +113,13 @@
       "when": 1788431490293,
       "tag": "0015_harsh_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788445373278,
+      "tag": "0016_numerous_king_cobra",
+      "breakpoints": true
     }
   ]
 }

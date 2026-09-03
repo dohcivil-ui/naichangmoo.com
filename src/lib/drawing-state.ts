@@ -15,6 +15,7 @@
  * ไฟล์นี้ไม่รู้จัก React ไม่รู้จัก pdf.js และไม่รู้จักฐานข้อมูล
  */
 
+import { isMeasurementKind, minimumPoints, type Measurement } from "@/lib/drawing-measurement";
 import type { DraftedGridLine } from "@/lib/drawing-grid";
 import { SCALE_UNITS, type PagePoint, type ScaleUnit, type StatedDimension } from "@/lib/drawing-scale";
 
@@ -35,6 +36,20 @@ export type DimensionsPayload = { version: 1; items: StatedDimension[] };
 
 /** ระดับซูมและตำแหน่งที่เลื่อนไป — คู่กับคอลัมน์ `view` ของ `drawing_view_states` */
 export type ViewPayload = { version: 1; scale: number; x: number; y: number };
+
+/** ร่องรอยว่ารอยวัดนี้ถูกส่งเข้าถอดปริมาณแล้ว ชี้กลับได้ทั้งสามชั้น */
+export type MarkFiling = { itemId: string; measurementId: string; evidenceId: string };
+
+/**
+ * รอยที่คนวาดไว้หนึ่งชิ้น — คือ `Measurement` บวกร่องรอยการส่งเข้าถอดปริมาณและชั้นที่สังกัด
+ *
+ * `filed` เป็น null แปลว่ายังเป็นแค่รอยบนแบบ ยังไม่มีบรรทัดใน backup sheet
+ * `layerId` เป็น null แปลว่ายังไม่จัดชั้น ซึ่งเป็นค่าของทุกแถวจนกว่างาน layer จะลง
+ */
+export type StoredMark = Measurement & { filed: MarkFiling | null; layerId: string | null };
+
+/** รอยทั้งหมดของหน้าหนึ่ง — คู่กับคอลัมน์ `marks` ของ `drawing_marks` */
+export type MarksPayload = { version: 1; items: StoredMark[] };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
@@ -149,6 +164,64 @@ export function parseDimensionsPayload(value: unknown): DimensionsPayload | null
   const raw = versionOne(value);
   if (!raw) return null;
   const items = parseAll(raw.items, parseStatedDimension);
+  if (!items) return null;
+  return { version: 1, items };
+}
+
+function parseMarkFiling(value: unknown): MarkFiling | null {
+  const raw = asRecord(value);
+  if (!raw) return null;
+
+  const itemId = nonEmptyId(raw.itemId);
+  const measurementId = nonEmptyId(raw.measurementId);
+  const evidenceId = nonEmptyId(raw.evidenceId);
+  if (itemId === null || measurementId === null || evidenceId === null) return null;
+
+  return { itemId, measurementId, evidenceId };
+}
+
+function parseStoredMark(value: unknown): StoredMark | null {
+  const raw = asRecord(value);
+  if (!raw) return null;
+
+  const id = nonEmptyId(raw.id);
+  const page = pageNumber(raw.page);
+  const colour = nonEmptyId(raw.colour);
+  if (id === null || page === null || colour === null) return null;
+
+  if (typeof raw.kind !== "string" || !isMeasurementKind(raw.kind)) return null;
+  if (typeof raw.name !== "string") return null;
+
+  const points = parseAll(raw.points, parsePagePoint);
+  if (!points || points.length < minimumPoints(raw.kind)) return null;
+
+  /**
+   * `filed` ที่หายไปทั้งช่องอ่านเป็น null ได้ แต่ค่าที่มีอยู่แล้วผิดรูปคืน null ทั้งก้อน
+   *
+   * เหตุผลไม่เหมือนกันสองกรณี ช่องที่ไม่มีคือแถวที่เขียนก่อนช่องนี้เกิด ซึ่งอ่านต่อได้อย่าง
+   * ปลอดภัยเพราะความหมายของการไม่มีคือ "ยังไม่ได้ส่ง" ส่วนช่องที่มีแต่ผิดรูปคือข้อมูลที่เชื่อไม่ได้
+   * จะแปลว่ายังไม่ได้ส่งก็ไม่จริง จะแปลว่าส่งแล้วก็ชี้กลับไม่ได้ — เงียบไม่ได้ทั้งสองทาง
+   */
+  let filed: MarkFiling | null = null;
+  if (raw.filed !== undefined && raw.filed !== null) {
+    filed = parseMarkFiling(raw.filed);
+    if (!filed) return null;
+  }
+
+  /** `layerId` กติกาเดียวกับ `filed` — ไม่มีช่องคือยังไม่จัดชั้น มีแต่ผิดรูปคือเชื่อไม่ได้ */
+  let layerId: string | null = null;
+  if (raw.layerId !== undefined && raw.layerId !== null) {
+    layerId = nonEmptyId(raw.layerId);
+    if (layerId === null) return null;
+  }
+
+  return { id, page, kind: raw.kind, name: raw.name, points, colour, filed, layerId };
+}
+
+export function parseMarksPayload(value: unknown): MarksPayload | null {
+  const raw = versionOne(value);
+  if (!raw) return null;
+  const items = parseAll(raw.items, parseStoredMark);
   if (!items) return null;
   return { version: 1, items };
 }

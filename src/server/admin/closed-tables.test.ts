@@ -20,6 +20,8 @@ const CLOSED_TABLES = [
   // เป็นงานของเขาล้วน หลังบ้านไม่มีเหตุผลใดที่ต้องอ่าน — เหตุผลเดียวกับ takeoffItems
   "drawingCalibrations",
   "drawingViewStates",
+  // IP-234: รอยที่ลูกค้าวาดบนแบบ ยังไม่ใช่ปริมาณด้วยซ้ำ เหตุผลเดียวกับสามบรรทัดบน
+  "drawingMarks",
   "takeoffRuns",
   "takeoffGroups",
   "takeoffItems",
