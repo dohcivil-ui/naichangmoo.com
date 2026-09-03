@@ -1,8 +1,6 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { getPlatformSessionUser } from "@/server/auth-session";
 import {
   parseEvidenceForm,
   parseTakeoffItemForm,
@@ -15,7 +13,7 @@ import {
   parseWasteForm,
   type MeasurementFieldErrors
 } from "@/lib/takeoff-measurement";
-import { getEstimeterAccess } from "@/server/estimeter-access";
+import { requireEditAccess } from "@/server/estimeter/edit-access";
 import {
   addItemEvidence,
   addItemMeasurement,
@@ -56,40 +54,6 @@ const rejectionMessage: Record<WriteRejection, string> = {
   already_confirmed: "รายการนี้ยืนยันแล้ว",
   no_confirmed_items: "ยังไม่มีรายการที่ยืนยันแล้ว จึงยังปิดรอบการถอดปริมาณไม่ได้"
 };
-
-type EditContext = { userId: string; organizationId: string };
-
-/**
- * Every take-off action is a public POST endpoint, so the session, the entitlement and the
- * organization are resolved here rather than trusted from the page that rendered the form.
- */
-async function requireEditAccess(): Promise<{ ok: true; context: EditContext } | { ok: false; message: string }> {
-  const user = await getPlatformSessionUser(await headers());
-  if (!user) return { ok: false, message: "ต้องเข้าสู่ระบบด้วยบัญชีนายช่างหมูก่อนแก้ไขปริมาณ" };
-
-  let access;
-  try {
-    access = await getEstimeterAccess(user.id);
-  } catch {
-    return { ok: false, message: "ขณะนี้ตรวจสอบสิทธิ์การใช้งานไม่ได้ กรุณาลองใหม่อีกครั้ง" };
-  }
-
-  if (!access.capabilities.edit) {
-    return {
-      ok: false,
-      message:
-        access.state === "expired_read_only"
-          ? "สิทธิ์ทดลองใช้หมดอายุแล้ว เปิดดูข้อมูลเดิมได้ แต่แก้ไขปริมาณไม่ได้"
-          : access.state === "not_activated"
-            ? "บัญชีนี้ยังไม่ได้เริ่มทดลองใช้ ESTIMETR กดเริ่มทดลองใช้ก่อนจึงจะบันทึกปริมาณได้"
-            : "สิทธิ์ปัจจุบันไม่อนุญาตให้แก้ไขข้อมูลใน ESTIMETR"
-    };
-  }
-
-  if (!access.organizationId) return { ok: false, message: "บัญชีนี้ยังไม่มีองค์กรสำหรับเก็บข้อมูลการถอดปริมาณ" };
-
-  return { ok: true, context: { userId: user.id, organizationId: access.organizationId } };
-}
 
 function revalidateTakeoff(projectId: string) {
   revalidatePath(`/apps/estimeter/projects/${projectId}/takeoff`);
