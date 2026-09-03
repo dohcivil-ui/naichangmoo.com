@@ -15,7 +15,16 @@ import {
   type StoredMark,
   type ViewPayload
 } from "@/lib/drawing-state";
-import { WRITABLE_PROJECT_STATES } from "@/server/estimeter/takeoff-repository";
+import { POINTS_PER_METRE, type PageScale } from "@/lib/drawing-scale";
+import { toFiledLine, type FiledLineRejection } from "@/lib/takeoff-from-measurement";
+import type { TakeoffItemInput } from "@/lib/takeoff-item";
+import { findUnit } from "@/lib/takeoff-units";
+import {
+  fileMarkIntoTakeoffTx,
+  WRITABLE_PROJECT_STATES,
+  type FiledMarkIds,
+  type WriteRejection as TakeoffWriteRejection
+} from "@/server/estimeter/takeoff-repository";
 
 export type DrawingWriteRejection =
   | "project_not_found"
@@ -24,6 +33,20 @@ export type DrawingWriteRejection =
   | "invalid_payload";
 
 export type WriteResult<T = void> = { ok: true; value: T } | { ok: false; reason: DrawingWriteRejection };
+
+/**
+ * Filing a mark can fail for a drawing reason, a take-off reason, or a reason of its own; the
+ * caller maps every one of them to a sentence, so the union is spelled out rather than widened.
+ */
+export type FileMarkRejection =
+  | DrawingWriteRejection
+  | TakeoffWriteRejection
+  | FiledLineRejection
+  | "mark_not_found"
+  | "mark_already_filed"
+  | "unit_not_allowed";
+
+export type FileMarkResult = { ok: true; value: FiledMarkIds } | { ok: false; reason: FileMarkRejection };
 
 export type PageCalibrationView = {
   id: string;
@@ -387,6 +410,87 @@ export async function saveMarks(input: {
     }
 
     return { ok: true, value: undefined };
+  });
+}
+
+/**
+ * Files one stored mark into the take-off and stamps the mark as filed, in ONE transaction.
+ *
+ * The server reads the mark's points from `drawing_marks` itself — the browser sends only the
+ * mark's id and the three words a person chose (category, description, unit). A client that
+ * could post its own points could file a quantity that was never drawn, and the evidence row
+ * would point at geometry nobody can find on the sheet.
+ *
+ * The scale is read from the page's calibration row and copied into the evidence at this moment,
+ * so a later re-calibration cannot change what this line was multiplied by.
+ */
+export async function fileDrawingMark(input: {
+  organizationId: string;
+  actorId: string;
+  documentId: string;
+  pageNumber: number;
+  markId: string;
+  item: TakeoffItemInput;
+}): Promise<FileMarkResult> {
+  if (!Number.isInteger(input.pageNumber) || input.pageNumber < 1) return { ok: false, reason: "invalid_payload" };
+  const unit = findUnit(input.item.unit);
+  if (!unit) return { ok: false, reason: "invalid_payload" };
+
+  return getDb().transaction(async (tx) => {
+    const scoped = await loadDocumentScoped(tx, input.organizationId, input.documentId, true);
+    if (!scoped) return { ok: false, reason: "document_not_found" };
+    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+
+    const rows = await tx
+      .select({ id: drawingMarks.id, marks: drawingMarks.marks })
+      .from(drawingMarks)
+      .where(and(eq(drawingMarks.documentId, input.documentId), eq(drawingMarks.pageNumber, input.pageNumber)))
+      .limit(1)
+      .for("update");
+    const stored = rows[0] ? parseMarksPayload(rows[0].marks) : null;
+    const mark = stored?.items.find((item) => item.id === input.markId);
+    if (!rows[0] || !stored || !mark) return { ok: false, reason: "mark_not_found" };
+    if (mark.filed) return { ok: false, reason: "mark_already_filed" };
+
+    const calibrationRows = await tx
+      .select({ id: drawingCalibrations.id, metresPerPoint: drawingCalibrations.metresPerPoint })
+      .from(drawingCalibrations)
+      .where(and(eq(drawingCalibrations.documentId, input.documentId), eq(drawingCalibrations.pageNumber, input.pageNumber)))
+      .limit(1);
+    const calibration = calibrationRows[0] ?? null;
+    const scale: PageScale | null = calibration
+      ? { metresPerPoint: Number(calibration.metresPerPoint), ratio: Number(calibration.metresPerPoint) * POINTS_PER_METRE }
+      : null;
+
+    const converted = toFiledLine(mark, scale);
+    if (!converted.ok) return { ok: false, reason: converted.reason };
+    // The unit a person picked has to be one the mark's kind can carry: a length is metres,
+    // an area is square metres, a count is whatever is being counted.
+    if (unit.dimension !== converted.line.unitDimension) return { ok: false, reason: "unit_not_allowed" };
+
+    const filed = await fileMarkIntoTakeoffTx(tx, {
+      organizationId: input.organizationId,
+      projectId: scoped.projectId,
+      actorId: input.actorId,
+      documentId: input.documentId,
+      calibrationId: calibration?.id ?? null,
+      item: input.item,
+      line: converted.line,
+      markId: mark.id
+    });
+    if (!filed.ok) return filed;
+
+    const items = stored.items.map((item) =>
+      item.id === mark.id
+        ? { ...item, filed: { itemId: filed.value.itemId, measurementId: filed.value.measurementId, evidenceId: filed.value.evidenceId } }
+        : item
+    );
+    await tx
+      .update(drawingMarks)
+      .set({ marks: { version: 1, items }, updatedBy: input.actorId, updatedAt: new Date() })
+      .where(eq(drawingMarks.id, rows[0].id));
+
+    return filed;
   });
 }
 

@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { getPlatformSessionUser } from "@/server/auth-session";
 import { getEstimeterAccess } from "@/server/estimeter-access";
@@ -42,4 +43,14 @@ export async function requireEditAccess(): Promise<
   if (!access.organizationId) return { ok: false, message: "บัญชีนี้ยังไม่มีองค์กรสำหรับเก็บข้อมูลการถอดปริมาณ" };
 
   return { ok: true, context: { userId: user.id, organizationId: access.organizationId } };
+}
+
+/**
+ * The two server-rendered pages that show take-off figures. Shared here because the markup page
+ * now writes quantities too (IP-234), and a second copy of these paths would drift the day a
+ * third page starts reading them.
+ */
+export function revalidateTakeoff(projectId: string): void {
+  revalidatePath(`/apps/estimeter/projects/${projectId}/takeoff`);
+  revalidatePath(`/apps/estimeter/projects/${projectId}`);
 }

@@ -89,7 +89,8 @@ export type WriteRejection =
 export type WriteResult<T = void> = { ok: true; value: T } | { ok: false; reason: WriteRejection };
 
 type Db = ReturnType<typeof getDb>;
-type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+/** Exported so the drawing repository can file a mark and stamp it as filed in one transaction. */
+export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
 function canonicalHash(payload: unknown): string {
   return createHash("sha256").update(JSON.stringify(payload)).digest("hex");
@@ -896,7 +897,7 @@ export async function addItemEvidence(input: {
  * is already confirmed is refused with `item_locked` rather than silently creating a namesake —
  * the person names it differently on purpose, or unlocks it on the take-off page.
  */
-export async function fileMarkIntoTakeoff(input: {
+export type FileMarkInput = {
   organizationId: string;
   projectId: string;
   actorId: string;
@@ -905,8 +906,16 @@ export async function fileMarkIntoTakeoff(input: {
   item: TakeoffItemInput;
   line: FiledLine;
   markId: string;
-}): Promise<WriteResult<{ runId: string; itemId: string; measurementId: string; evidenceId: string; reused: boolean }>> {
-  return getDb().transaction(async (tx) => {
+};
+
+export type FiledMarkIds = { runId: string; itemId: string; measurementId: string; evidenceId: string; reused: boolean };
+
+export async function fileMarkIntoTakeoff(input: FileMarkInput): Promise<WriteResult<FiledMarkIds>> {
+  return getDb().transaction((tx) => fileMarkIntoTakeoffTx(tx, input));
+}
+
+export async function fileMarkIntoTakeoffTx(tx: Tx, input: FileMarkInput): Promise<WriteResult<FiledMarkIds>> {
+  {
     const run = await startManualRunTx(tx, {
       organizationId: input.organizationId,
       projectId: input.projectId,
@@ -969,7 +978,7 @@ export async function fileMarkIntoTakeoff(input: {
       ok: true,
       value: { runId, itemId, measurementId: measured.value.measurementId, evidenceId: evidenced.value.evidenceId, reused }
     };
-  });
+  }
 }
 
 /**
