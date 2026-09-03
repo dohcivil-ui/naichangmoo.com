@@ -386,6 +386,16 @@ export function DrawingMarkup({
   const hydratingRef = useRef(false);
   /** ลายเซ็นของแต่ละหน้า ณ ครั้งที่เซฟสำเร็จล่าสุด */
   const lastSavedRef = useRef<Record<number, string>>({});
+  /**
+   * เลขหน้าที่ยกซูมและตำแหน่งกลับมาจากฐาน — null แปลว่าไม่มีของที่ต้องหวง
+   *
+   * effect พอดีกรอบผูกกับ `page` และกับขนาดหน้า ทั้งสองอย่างเปลี่ยนหลังการยกของขึ้นจอเสมอ
+   * (`setPage` ของหน้าที่ค้างไว้ยิงก่อน แล้วขนาดหน้าตามมาเมื่อ pdf.js เรนเดอร์เสร็จ)
+   * ถ้าไม่หวงไว้ พอดีกรอบจะทับซูมและตำแหน่งที่เพิ่งอ่านมา แล้ว effect เซฟจุดที่ค้าง
+   * จะเอาค่าพอดีกรอบไปทับแถวในฐานต่อ ตำแหน่งที่ผู้ใช้ค้างไว้จึงหายถาวร
+   * (กดมือแล้วเจอจริงเมื่อ 2026-09-03 ซูม 510% กลับมาเป็น 71%)
+   */
+  const resumedPageRef = useRef<number | null>(null);
 
   const [calibrationOpen, setCalibrationOpen] = useState(false);
   const [calibrationPoints, setCalibrationPoints] = useState<PagePoint[]>([]);
@@ -484,6 +494,7 @@ export function DrawingMarkup({
       setSelectedId(null);
       setDocumentId(null);
       lastSavedRef.current = {};
+      resumedPageRef.current = null;
       setSaveStatus({ kind: "idle" });
 
       hydratingRef.current = true;
@@ -540,7 +551,9 @@ export function DrawingMarkup({
 
         if (restored.state.view) {
           const resumed = restored.state.view;
-          setPage(Math.min(Math.max(resumed.pageNumber, 1), loaded.numPages));
+          const resumedPage = Math.min(Math.max(resumed.pageNumber, 1), loaded.numPages);
+          resumedPageRef.current = resumedPage;
+          setPage(resumedPage);
           setView({ scale: resumed.view.scale, x: resumed.view.x, y: resumed.view.y });
         }
       } finally {
@@ -684,8 +697,23 @@ export function DrawingMarkup({
 
   // พอดีกรอบเมื่อเปิดแบบใหม่หรือเปลี่ยนหน้า และเมื่อพื้นที่วาดเปลี่ยนขนาด
   useEffect(() => {
+    // หน้าที่ยกซูมและตำแหน่งกลับมาจากฐานห้ามถูกพอดีกรอบทับ ของที่ผู้ใช้ค้างไว้ต้องชนะค่าเริ่มต้น
+    if (resumedPageRef.current === page) return;
     fitToStage();
   }, [fitToStage, page]);
+
+  /**
+   * ปล่อยการหวงเมื่อผู้ใช้ออกจากหน้าที่ยกกลับมา
+   *
+   * ประกาศทีหลัง effect พอดีกรอบโดยเจตนา เพราะ effect เรียงตามลำดับที่เขียน
+   * ตอนเปลี่ยนไปหน้าอื่น พอดีกรอบจึงได้ทำงานก่อนแล้วการหวงค่อยหลุด กลับมาหน้าเดิมอีกครั้ง
+   * จะพอดีกรอบตามปกติ ไม่ใช่ค้างที่ซูมเดิมตลอดกาล
+   */
+  useEffect(() => {
+    if (resumedPageRef.current !== null && resumedPageRef.current !== page) {
+      resumedPageRef.current = null;
+    }
+  }, [page]);
 
   useEffect(() => {
     const stage = stageRef.current;

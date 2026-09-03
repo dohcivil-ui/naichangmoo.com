@@ -2593,7 +2593,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__stage[data-dragging="true"] { cursor: grabbing; }
 /* แผ่นหน้าแบบวัดเป็นหน่วยหน้ากระดาษล้วน ผืนวาดทุกชั้นและชั้นรอยวัดจึงอยู่ในระบบพิกัดเดียวกัน
    ความละเอียดที่วาดจริงอยู่ในขนาดผืนวาด ไม่ใช่ในสูตร transform ตรงนี้ */
-.mk__sheet { position: absolute; inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; will-change: transform; background: var(--paper); box-shadow: 0 18px 50px -20px rgba(0, 0, 0, .45); }
+/**
+ * ห้ามใส่ will-change: transform ที่นี่
+ *
+ * มันสั่งให้เบราว์เซอร์แปลงกล่องนี้เป็นภาพนิ่งใบเดียวไว้ล่วงหน้า แล้วเวลาซูมก็เอาภาพใบเดิมมายืด
+ * ไม่ได้วาดใหม่ ตัวแบบ PDF ไม่เบลอเพราะมี canvas ความคมชัดวาดใหม่ตามจอให้ แต่ชั้นเส้นวัดที่เป็น
+ * SVG อยู่ในกล่องนี้ไม่มีทางนั้น พอซูม 500% เส้นบอกระยะกับป้ายตัวเลขจึงฟุ้งจนอ่านไม่ออก
+ * (เจ้าของงานทักเมื่อ 2026-09-03 พิสูจน์ด้วยการปิดสดในเบราว์เซอร์แล้วเทียบภาพ)
+ */
+.mk__sheet { position: absolute; inset-block-start: 0; inset-inline-start: 0; transform-origin: 0 0; background: var(--paper); box-shadow: 0 18px 50px -20px rgba(0, 0, 0, .45); }
 .mk__sheet canvas { display: block; position: absolute; inset-block-start: 0; inset-inline-start: 0; }
 /* ชั้นคมวางทับชั้นฐานเฉพาะกรอบที่ถ่ายไว้ ชั้นฐานจึงยังเห็นได้รอบ ๆ ระหว่างรอถ่ายรอบใหม่ */
 .mk__sharp { pointer-events: none; }
