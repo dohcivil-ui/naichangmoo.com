@@ -929,6 +929,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .measurement-list__label { display: block; font-weight: 700; color: #23424b; }
 .measurement-list__working { display: block; font-variant-numeric: tabular-nums; }
 .measurement-list em { display: block; color: #79909a; font-style: normal; font-size: .72rem; }
+/* IP-234: ทุกบรรทัดใน backup sheet บอกว่าได้มาอย่างไร ค่าที่โมเดลเสนอต้องเปิดเผยชัดกว่า */
+.measurement-list__method { display: inline-block; margin-top: .2rem; padding: 0 .4rem; border: 1px solid #cfe5e1; border-radius: 999px; color: #23424b; font-size: .68rem; font-weight: 600; line-height: 1.5; }
+.measurement-list__method--disclosed { border-color: #d98c3f; color: #9a4f0e; }
 .quantity-note { display: block; margin-top: .2rem; color: #79909a; font-style: normal; font-size: .68rem; font-weight: 600; }
 .waste-form { display: grid; grid-template-columns: minmax(96px, .5fr) minmax(200px, 2.2fr) auto; gap: .6rem; align-items: end; margin-top: .5rem; padding: .8rem; }
 .waste-form > label { margin-top: 0; font-size: .78rem; }
@@ -2646,6 +2649,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .markup-register tr[aria-selected="true"] { background: var(--canvas); }
 .markup-register input { width: 100%; min-height: 32px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 6px; }
 .markup-register__swatch { display: inline-block; width: 10px; height: 10px; margin-inline-end: 6px; }
+/* IP-234: รายการที่ส่งเข้าถอดปริมาณแล้วล็อกไว้ ป้ายบอกและปุ่มลบหาย */
+.markup-register__filed { display: inline-block; margin-inline-start: 6px; padding: 1px 6px; border: 1px solid var(--teal); color: var(--teal); font-size: .72rem; line-height: 1.4; }
+.markup-register tr[data-filed="true"] input { color: var(--muted); }
+.markup-register__actions { white-space: nowrap; }
+.markup-register__actions button { min-height: 32px; padding: 0 8px; margin-inline-start: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; font-size: .78rem; }
+.markup-register__actions button:first-child { border-color: var(--teal); color: var(--teal); }
+.mk__confirm span small { display: block; color: var(--muted); }
+.mk__confirm-name { min-height: 44px; flex: 1 1 180px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 10px; }
 .markup-register tfoot th,
 .markup-register tfoot td { font-weight: 700; }
 .markup-register__total { margin-block-start: 16px; }

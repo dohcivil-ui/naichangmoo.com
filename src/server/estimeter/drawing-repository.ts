@@ -383,17 +383,29 @@ export async function saveMarks(input: {
     }
 
     const existing = await tx
-      .select({ id: drawingMarks.id })
+      .select({ id: drawingMarks.id, marks: drawingMarks.marks })
       .from(drawingMarks)
       .where(and(eq(drawingMarks.documentId, input.documentId), eq(drawingMarks.pageNumber, input.pageNumber)))
       .limit(1);
 
-    if (input.marks.length === 0) {
+    /**
+     * `filed` is the server's word, never the browser's. Whatever the page sends, a mark keeps
+     * the filing the database already holds, and a filed mark the page left out comes back —
+     * otherwise a client could unfile a quantity, or claim one was filed, by editing JSON.
+     */
+    const stored = existing[0] ? parseMarksPayload(existing[0].marks)?.items ?? [] : [];
+    const filedById = new Map(stored.filter((mark) => mark.filed).map((mark) => [mark.id, mark]));
+    const items: StoredMark[] = input.marks.map((mark) => ({ ...mark, filed: filedById.get(mark.id)?.filed ?? null }));
+    for (const [id, mark] of filedById) {
+      if (!items.some((item) => item.id === id)) items.push(mark);
+    }
+
+    if (items.length === 0) {
       if (existing[0]) await tx.delete(drawingMarks).where(eq(drawingMarks.id, existing[0].id));
       return { ok: true, value: undefined };
     }
 
-    const payload = { version: 1, items: input.marks };
+    const payload = { version: 1, items };
     if (existing[0]) {
       await tx
         .update(drawingMarks)
@@ -473,7 +485,9 @@ export async function fileDrawingMark(input: {
       projectId: scoped.projectId,
       actorId: input.actorId,
       documentId: input.documentId,
-      calibrationId: calibration?.id ?? null,
+      // A count is not multiplied by anything, so it names no calibration: the context records
+      // what the figure was made from, and claiming a scale it never used would be a false trail.
+      calibrationId: converted.line.geometry.scale ? (calibration?.id ?? null) : null,
       item: input.item,
       line: converted.line,
       markId: mark.id

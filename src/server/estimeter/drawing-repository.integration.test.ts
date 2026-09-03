@@ -553,6 +553,20 @@ describe.skipIf(!enabled)("drawing calibration against PostgreSQL", () => {
     // A count needs no scale and files under a counting unit.
     const pins = await fileDrawingMark({ ...scope, pageNumber: 7, markId: "m2", item: { category: "electrical", description: "ดวงโคม", unit: "set" } });
     expect(pins.ok).toBe(true);
+
+    // `filed` is the server's word: a page that claims a mark is unfiled, or leaves a filed mark
+    // out, changes nothing about the filing. The browser cannot unfile a quantity by editing JSON.
+    const forged = marks.map((mark) => ({ ...mark, name: `${mark.name} แก้ชื่อ`, filed: null }));
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks: [forged[0]] })).toEqual({ ok: true, value: undefined });
+    const after = await loadDrawingState({ organizationId: fixture.organizationId, documentId: fixture.documentId, userId: fixture.userId });
+    const m1 = after?.marks[7]?.find((mark) => mark.id === "m1");
+    const m2 = after?.marks[7]?.find((mark) => mark.id === "m2");
+    expect(m1?.filed?.itemId).toBe(filed.value.itemId);
+    expect(m1?.name).toBe("แนวผนังทิศเหนือ แก้ชื่อ");
+    expect(m2?.filed).not.toBeNull();
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks: [] })).toEqual({ ok: true, value: undefined });
+    const emptied = await loadDrawingState({ organizationId: fixture.organizationId, documentId: fixture.documentId, userId: fixture.userId });
+    expect(emptied?.marks[7]?.map((mark) => mark.id).sort()).toEqual(["m1", "m2"]);
   });
 
   it("hides another organization's marks", async () => {

@@ -13,7 +13,6 @@ import {
   outlinePoints,
   summarise,
   formatMetres,
-  type Measurement,
   type MeasurementKind
 } from "@/lib/drawing-measurement";
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
@@ -54,11 +53,15 @@ import {
   type StatedDimension
 } from "@/lib/drawing-scale";
 import type { CalibrationMethod } from "@/lib/drawing-calibration-method";
-import type { CalibrationReference } from "@/lib/drawing-state";
+import type { CalibrationReference, StoredMark } from "@/lib/drawing-state";
+import { TAKEOFF_CATEGORIES, TAKEOFF_UNITS } from "@/lib/takeoff-units";
 import {
+  fileDrawingMark,
+  listOpenRunItems,
   loadDrawing,
   registerDrawing,
   saveDrawingCalibration,
+  saveDrawingMarks,
   saveDrawingView
 } from "@/server/actions/estimeter-drawing";
 
@@ -236,10 +239,27 @@ type Camera = { scale: number; x: number; y: number };
 
 /** ทุกอย่างที่ผู้ใช้สร้างขึ้นบนแบบ เก็บรวมกันเพื่อให้ย้อนกลับได้เป็นก้อนเดียว */
 type WorkSnapshot = {
-  measurements: Measurement[];
+  measurements: StoredMark[];
   gridLines: DraftedGridLine[];
   dimensions: StatedDimension[];
 };
+
+/** กล่องส่งรายการวัดเข้าถอดปริมาณ — เปิดทีละรายการ สามช่องที่คนต้องเลือกเอง (IP-234) */
+type FilingState = {
+  mark: StoredMark;
+  description: string;
+  category: string;
+  unit: string;
+  error: string;
+  busy: boolean;
+  /** รายการที่เปิดอยู่ใน run เพื่อเตือนว่าจะรวมเข้ารายการเดิม โหลดครั้งเดียวตอนเปิดกล่อง */
+  openItems: { description: string; unit: string; reviewState: string }[];
+};
+
+/** ลายเซ็นของรอยทั้งหน้า ใช้ตอบว่าหน้านี้ต้องเซฟรอยใหม่ไหม กติกาเดียวกับ pageSignature */
+function marksSignature(marks: StoredMark[]): string {
+  return JSON.stringify(marks);
+}
 /** `centre` คือจุดกึ่งกลางของปุ่มที่ชี้อยู่ ไม่ใช่ตำแหน่งซ้ายของป้าย — ป้ายคำนวณตำแหน่งเองหลังวัดความกว้างจริง */
 type TipState = { title: string; hint: string; key: string | null; centre: number; top: number } | null;
 
@@ -259,7 +279,7 @@ const newId = () => `m${Date.now().toString(36)}${Math.random().toString(36).sli
 /** วิธีและจุดอ้างอิงที่ใช้ตั้งสเกลของหน้าหนึ่ง — ต้องส่งซ้ำทุกครั้งที่เซฟหน้านั้น */
 type PageReference = { method: CalibrationMethod; reference: CalibrationReference };
 
-type SaveStatus = { kind: "idle" | "saving" | "saved" | "failed"; at?: Date; message?: string };
+type SaveStatus = { kind: "idle" | "saving" | "saved" | "failed" | "filed"; at?: Date; message?: string };
 
 /**
  * ลายเซ็นของงานหนึ่งหน้า ใช้ตอบว่า "สิ่งที่อยู่บนจอตอนนี้ ตรงกับที่เซฟไปแล้วหรือยัง"
@@ -347,7 +367,8 @@ export function DrawingMarkup({
   const [draft, setDraft] = useState<PagePoint[]>([]);
   const [hover, setHover] = useState<PagePoint | null>(null);
 
-  const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  /** รายการวัดคือ StoredMark — มี `filed` บอกว่าส่งเข้าถอดปริมาณแล้วหรือยัง และ `layerId` (ยังไม่มี UI ให้ตั้ง) */
+  const [measurements, setMeasurements] = useState<StoredMark[]>([]);
   const [gridLines, setGridLines] = useState<DraftedGridLine[]>([]);
   const [dimensions, setDimensions] = useState<StatedDimension[]>([]);
   /**
@@ -373,7 +394,7 @@ export function DrawingMarkup({
    * เจ้าของงานเคาะเมื่อ 2026-09-01 ว่าการเลือกพื้นที่ห้องต้องผ่านสายตาคนทุกครั้ง
    * เพราะการทะลุออกนอกห้องดูออกด้วยตาในหนึ่งวินาที แต่ถ้าไหลเข้าใบราคาไปแล้วไม่มีใครจับได้
    */
-  const [pendingRoom, setPendingRoom] = useState<Measurement | null>(null);
+  const [pendingRoom, setPendingRoom] = useState<StoredMark | null>(null);
   const panRef = useRef<{ x: number; y: number; view: Camera; moved: boolean } | null>(null);
   const splitRef = useRef<{ which: "rail" | "panel"; x: number; width: number } | null>(null);
 
@@ -386,6 +407,9 @@ export function DrawingMarkup({
   const hydratingRef = useRef(false);
   /** ลายเซ็นของแต่ละหน้า ณ ครั้งที่เซฟสำเร็จล่าสุด */
   const lastSavedRef = useRef<Record<number, string>>({});
+  /** ลายเซ็นของรอยแต่ละหน้า ณ ครั้งที่เซฟสำเร็จล่าสุด — แยกจากสเกลเพราะรอยเซฟได้แม้หน้ายังไม่มีสเกล */
+  const lastMarksSavedRef = useRef<Record<number, string>>({});
+  const [filing, setFiling] = useState<FilingState | null>(null);
   /**
    * เลขหน้าที่ยกซูมและตำแหน่งกลับมาจากฐาน — null แปลว่าไม่มีของที่ต้องหวง
    *
@@ -411,8 +435,17 @@ export function DrawingMarkup({
     [dimensions, gridLines, measurements]
   );
 
+  /**
+   * ย้อนกลับหรือทำซ้ำ — แต่รอยที่ส่งเข้าถอดปริมาณแล้วต้องไม่หายจากจอ
+   *
+   * ปริมาณของมันอยู่ใน backup sheet แล้ว การให้ Ctrl+Z ทำให้รอยหายไปจากแบบจะเหลือบรรทัดที่
+   * ชี้กลับมาที่รอยซึ่งไม่มีอยู่ ลบได้ทางเดียวคือลบบรรทัดจากหน้าถอดปริมาณ (สเปก IP-234 ขั้น 7.1)
+   */
   const restore = useCallback((state: WorkSnapshot) => {
-    setMeasurements(state.measurements);
+    setMeasurements((current) => {
+      const kept = current.filter((mark) => mark.filed && !state.measurements.some((item) => item.id === mark.id));
+      return [...state.measurements, ...kept];
+    });
     setGridLines(state.gridLines);
     setDimensions(state.dimensions);
   }, []);
@@ -429,7 +462,7 @@ export function DrawingMarkup({
   );
 
   const commit = useCallback(
-    (next: Measurement[]) => commitWork({ measurements: next }),
+    (next: StoredMark[]) => commitWork({ measurements: next }),
     [commitWork]
   );
 
@@ -494,7 +527,9 @@ export function DrawingMarkup({
       setSelectedId(null);
       setDocumentId(null);
       lastSavedRef.current = {};
+      lastMarksSavedRef.current = {};
       resumedPageRef.current = null;
+      setFiling(null);
       setSaveStatus({ kind: "idle" });
 
       hydratingRef.current = true;
@@ -548,6 +583,16 @@ export function DrawingMarkup({
         setGridLines(nextGrid);
         setDimensions(nextDimensions);
         lastSavedRef.current = nextSaved;
+
+        // รอยทุกหน้าขึ้นจอพร้อมกัน และจำลายเซ็นไว้ไม่ให้ effect เซฟซ้ำสิ่งที่เพิ่งอ่านมา
+        const nextMarks: StoredMark[] = [];
+        const nextMarksSaved: Record<number, string> = {};
+        for (const [key, items] of Object.entries(restored.state.marks)) {
+          nextMarks.push(...items);
+          nextMarksSaved[Number(key)] = marksSignature(items);
+        }
+        setMeasurements(nextMarks);
+        lastMarksSavedRef.current = nextMarksSaved;
 
         if (restored.state.view) {
           const resumed = restored.state.view;
@@ -622,6 +667,105 @@ export function DrawingMarkup({
     }, 800);
     return () => clearTimeout(timer);
   }, [dimensions, documentId, gridLines, persistPage, references, scales]);
+
+  /**
+   * เซฟรอยวัดต่อหน้า ครอบการวาด ลบ ตั้งชื่อ และย้อนกลับ — ไม่ต้องมีสเกล เพราะการนับไม่ใช้สเกล
+   * และรอยที่วาดก่อนตั้งสเกลก็เป็นงานที่คนไม่อยากทำซ้ำเหมือนกัน
+   *
+   * หน้าที่รอยหายไปหมดต้องเซฟด้วย (เป็นรายการว่าง) ไม่งั้นแถวในฐานจะยังมีรอยที่คนลบไปแล้ว
+   */
+  useEffect(() => {
+    if (hydratingRef.current || !documentId) return;
+    const timer = setTimeout(() => {
+      const pages = new Set<number>([...measurements.map((mark) => mark.page), ...Object.keys(lastMarksSavedRef.current).map(Number)]);
+      for (const pageNumber of pages) {
+        const onPage = measurements.filter((mark) => mark.page === pageNumber);
+        const signature = marksSignature(onPage);
+        if (lastMarksSavedRef.current[pageNumber] === signature) continue;
+        if (onPage.length === 0 && lastMarksSavedRef.current[pageNumber] === undefined) continue;
+        void (async () => {
+          const result = await saveDrawingMarks({ documentId, pageNumber, marks: onPage });
+          if (result.ok) {
+            lastMarksSavedRef.current[pageNumber] = signature;
+            setSaveStatus({ kind: "saved", at: new Date() });
+          } else {
+            setSaveStatus({ kind: "failed", message: result.message });
+          }
+        })();
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [documentId, measurements]);
+
+  /** เปิดกล่องส่งเข้าถอดปริมาณ พร้อมโหลดรายการที่เปิดอยู่ใน run เพื่อเตือนเรื่องรวมเข้ารายการเดิม */
+  async function openFiling(markId: string) {
+    const mark = measurements.find((item) => item.id === markId);
+    if (!mark || mark.filed) return;
+    const kind = mark.kind;
+    // ความยาวมีแค่ ม. พื้นที่มีแค่ ตร.ม. การนับให้เลือกเอง ไม่มีค่าเลือกล่วงหน้า
+    const unit = kind === "length" || kind === "polyline" ? "m" : kind === "area" || kind === "rect" ? "sq_m" : "";
+    setFiling({ mark, description: mark.name.trim(), category: "", unit, error: "", busy: false, openItems: [] });
+    const open = await listOpenRunItems({ projectId });
+    if (open.ok) setFiling((current) => (current && current.mark.id === markId ? { ...current, openItems: open.items } : current));
+  }
+
+  async function submitFiling() {
+    if (!filing || !documentId || filing.busy) return;
+    setFiling({ ...filing, busy: true, error: "" });
+    const result = await fileDrawingMark({
+      documentId,
+      pageNumber: filing.mark.page,
+      markId: filing.mark.id,
+      category: filing.category,
+      description: filing.description,
+      unit: filing.unit
+    });
+    if (!result.ok) {
+      setFiling((current) => (current ? { ...current, busy: false, error: result.message } : current));
+      return;
+    }
+    // ข้อเท็จจริงจากเซิร์ฟเวอร์ ไม่ผ่าน commitWork — การกดย้อนกลับต้องยกเลิกการส่งไม่ได้
+    // และเซิร์ฟเวอร์ประทับ filed ลงฐานไปแล้ว จึงเลื่อนลายเซ็นให้ตรง ไม่ให้ effect เซฟหน้านี้ซ้ำ
+    // แล้วเอาข้อความ "บันทึกแล้ว" มาทับ "ส่งเข้าถอดปริมาณแล้ว" ที่คนควรได้เห็น
+    setMeasurements((current) => {
+      const next = current.map((mark) => (mark.id === filing.mark.id ? { ...mark, filed: result.filed } : mark));
+      lastMarksSavedRef.current[filing.mark.page] = marksSignature(next.filter((mark) => mark.page === filing.mark.page));
+      return next;
+    });
+    setSaveStatus({ kind: "filed", at: new Date() });
+    setFiling(null);
+  }
+
+  /** บรรทัดวิธีคิดที่ผู้ใช้ต้องเห็นก่อนส่ง — ห้ามโชว์เลขโดยไม่บอกว่าวัดถึงไหน (สเปกพื้นที่ห้อง ข้อสาม) */
+  function filingWorking(mark: StoredMark): { figure: string; how: string } {
+    const scale = scales[mark.page] ?? null;
+    const value = measure(mark, scale);
+    const ratio = scale ? formatScaleRatio(scale) : "ยังไม่ตั้ง";
+    switch (mark.kind) {
+      case "length":
+      case "polyline":
+        return {
+          figure: `${formatMetres(value.lengthMetres ?? 0)} ม.`,
+          how: `ระยะระหว่างจุดที่ชี้ ${mark.points.length} จุด คูณสเกล ${ratio} ของหน้า ${mark.page}`
+        };
+      case "rect":
+        return {
+          figure: `${formatMetres(value.areaSquareMetres ?? 0)} ตร.ม.`,
+          how: `กว้าง ${formatMetres(value.segmentsMetres[0] ?? 0)} × ยาว ${formatMetres(value.segmentsMetres[1] ?? 0)} ม. จากสองมุมที่ชี้ คูณสเกล ${ratio}`
+        };
+      case "area":
+        return {
+          figure: `${formatMetres(value.areaSquareMetres ?? 0)} ตร.ม.`,
+          how:
+            (mark.origin === "region_trace"
+              ? "พื้นที่ผิวในของห้อง ระบบไล่ตามผนังแล้วคนยืนยัน"
+              : "พื้นที่ในรูปหลายเหลี่ยมที่ชี้เอง") +
+            ` ${mark.points.length} ด้าน เส้นรอบรูป ${formatMetres(value.perimeterMetres ?? 0)} ม. คูณสเกล ${ratio} — วัดถึงผิวผนัง ไม่ใช่กึ่งกลางเสา`
+        };
+      case "count":
+        return { figure: `${value.count ?? mark.points.length} จุด`, how: "นับจุดที่แตะทีละจุด ไม่ใช้สเกล" };
+    }
+  }
 
   /**
    * เซฟจุดที่ค้างอยู่ เงียบ ๆ ไม่แตะแถบสถานะ
@@ -1041,7 +1185,9 @@ export function DrawingMarkup({
       points: polygon,
       colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length],
       // ระบบไล่ขอบห้องให้ คนยืนยัน — ตอนส่งเข้าถอดปริมาณจะกลายเป็น method region_trace
-      origin: "region_trace"
+      origin: "region_trace",
+      filed: null,
+      layerId: null
     });
   }
 
@@ -1063,14 +1209,16 @@ export function DrawingMarkup({
       return;
     }
     const kind: MeasurementKind = tool;
-    const created: Measurement = {
+    const created: StoredMark = {
       id: newId(),
       page,
       kind,
       name: "",
       points,
       colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length],
-      origin: "pointer"
+      origin: "pointer",
+      filed: null,
+      layerId: null
     };
     commit([...measurements, created]);
     setSelectedId(created.id);
@@ -1231,6 +1379,21 @@ export function DrawingMarkup({
     calibrationPoints.length === 2 ? distancePoints(calibrationPoints[0], calibrationPoints[1]) : 0;
 
   const pendingValue = pendingRoom ? measure(pendingRoom, pageScale) : null;
+  const filedIds = useMemo(
+    () => new Set(measurements.filter((mark) => mark.filed).map((mark) => mark.id)),
+    [measurements]
+  );
+  const filingWork = filing ? filingWorking(filing.mark) : null;
+  const filingMatch = filing
+    ? filing.openItems.find(
+        (item) => item.description.trim() === filing.description.trim() && item.unit === filing.unit
+      ) ?? null
+    : null;
+  const filingUnits = filing
+    ? filing.mark.kind === "count"
+      ? TAKEOFF_UNITS.filter((item) => item.dimension === "count")
+      : TAKEOFF_UNITS.filter((item) => item.code === filing.unit)
+    : [];
   const stroke = (weight: number) => weight / view.scale;
 
   function showTip(event: React.PointerEvent | React.FocusEvent, spec: { label: string; hint: string; key?: string }) {
@@ -1538,7 +1701,15 @@ export function DrawingMarkup({
           <span>
             พื้นที่ห้องที่ไล่ได้ {formatMetres(pendingValue?.areaSquareMetres ?? 0)} ตร.ม.
             เส้นรอบรูป {formatMetres(pendingValue?.perimeterMetres ?? 0)} ม.
+            <small> วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</small>
           </span>
+          <input
+            className="mk__confirm-name"
+            value={pendingRoom.name}
+            placeholder="ตั้งชื่อห้อง เช่น ห้องแยก"
+            aria-label="ชื่อห้อง"
+            onChange={(event) => setPendingRoom({ ...pendingRoom, name: event.target.value })}
+          />
           <strong>ดูรูปบนแบบว่าตรงกับห้องจริงก่อนยืนยัน ถ้าสีทะลุออกนอกห้องให้ยกเลิกแล้วคลิกไล่มุมแทน</strong>
           <button type="button" onClick={confirmRoom}>ยืนยันพื้นที่นี้</button>
           <button type="button" onClick={() => setPendingRoom(null)}>ยกเลิก</button>
@@ -1901,8 +2072,19 @@ export function DrawingMarkup({
             currentPage={page}
             onGoToPage={setPage}
             onSelect={setSelectedId}
-            onRename={(id, name) => commit(measurements.map((item) => (item.id === id ? { ...item, name } : item)))}
-            onRemove={(id) => commit(measurements.filter((item) => item.id !== id))}
+            filedIds={filedIds}
+            onFile={(id) => void openFiling(id)}
+            onRename={(id, name) => {
+              if (filedIds.has(id)) return;
+              commit(measurements.map((item) => (item.id === id ? { ...item, name } : item)));
+            }}
+            onRemove={(id) => {
+              if (filedIds.has(id)) {
+                setRegionError("รายการนี้ส่งเข้าถอดปริมาณแล้ว ลบได้จากหน้าถอดปริมาณ");
+                return;
+              }
+              commit(measurements.filter((item) => item.id !== id));
+            }}
           />
         </aside>
       </div>
@@ -1928,7 +2110,9 @@ export function DrawingMarkup({
                 ? "กำลังบันทึก"
                 : saveStatus.kind === "saved"
                   ? `บันทึกแล้ว ${saveStatus.at ? savedAtFormat.format(saveStatus.at) : ""}`.trim()
-                  : `บันทึกไม่สำเร็จ — ${saveStatus.message ?? ""}`.trim()}
+                  : saveStatus.kind === "filed"
+                    ? `ส่งเข้าถอดปริมาณแล้ว ${saveStatus.at ? savedAtFormat.format(saveStatus.at) : ""}`.trim()
+                    : `บันทึกไม่สำเร็จ — ${saveStatus.message ?? ""}`.trim()}
             </span>
           ) : null}
         </span>
@@ -2020,6 +2204,77 @@ export function DrawingMarkup({
                 setDimensionError("");
               }}
             >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {filing && filingWork ? (
+        <div className="mk__dialog" role="dialog" aria-label="ส่งรายการวัดเข้าถอดปริมาณ">
+          <h2>ส่งเข้าถอดปริมาณ</h2>
+          <p>
+            <strong>{filingWork.figure}</strong> — {filingWork.how}
+          </p>
+          <p>
+            หมวดงานกับหน่วยเลือกจากรูปไม่ได้ ต้องเป็นคนตัดสิน รายการนี้จะกลายเป็นบรรทัดหนึ่งใน backup sheet
+            พร้อมวิธีคิดข้างบนและจุดที่ชี้ ชี้กลับมาที่แบบได้เสมอ
+          </p>
+          <label>
+            รายการ
+            <input
+              value={filing.description}
+              onChange={(event) => setFiling({ ...filing, description: event.target.value })}
+              list="mk-filing-items"
+              autoFocus
+            />
+            <datalist id="mk-filing-items">
+              {filing.openItems
+                .filter((item) => item.unit === filing.unit && item.reviewState !== "confirmed")
+                .map((item) => (
+                  <option key={`${item.description}-${item.unit}`} value={item.description} />
+                ))}
+            </datalist>
+          </label>
+          <label>
+            หมวดงาน
+            <select value={filing.category} onChange={(event) => setFiling({ ...filing, category: event.target.value })}>
+              <option value="">เลือกหมวดงาน</option>
+              {TAKEOFF_CATEGORIES.map((item) => (
+                <option key={item.code} value={item.code}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            หน่วย
+            {filing.mark.kind === "count" ? (
+              <select value={filing.unit} onChange={(event) => setFiling({ ...filing, unit: event.target.value })}>
+                <option value="">เลือกหน่วยนับ</option>
+                {filingUnits.map((item) => (
+                  <option key={item.code} value={item.code}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input value={filingUnits[0]?.label ?? ""} readOnly aria-readonly="true" />
+            )}
+          </label>
+          {filingMatch ? (
+            <p role="status">
+              {filingMatch.reviewState === "confirmed"
+                ? "รายการชื่อนี้ยืนยันแล้ว ส่งเข้ารวมไม่ได้ ตั้งชื่อใหม่หรือปลดการยืนยันที่หน้าถอดปริมาณ"
+                : "จะรวมเข้ากับรายการเดิมชื่อนี้ ปริมาณจะบวกเข้าไปเป็นอีกบรรทัด"}
+            </p>
+          ) : null}
+          {filing.error ? <p role="alert">{filing.error}</p> : null}
+          <div>
+            <button type="button" onClick={() => void submitFiling()} disabled={filing.busy}>
+              {filing.busy ? "กำลังส่ง" : "ส่ง"}
+            </button>
+            <button type="button" onClick={() => setFiling(null)} disabled={filing.busy}>
               ยกเลิก
             </button>
           </div>

@@ -7,6 +7,7 @@ import { AddMeasurementForm } from "@/components/estimeter/takeoff/add-measureme
 import { AddGroupForm, ItemGroupSelect } from "@/components/estimeter/takeoff/group-forms";
 import { TakeoffActionButton } from "@/components/estimeter/takeoff/takeoff-action-button";
 import { WasteForm } from "@/components/estimeter/takeoff/waste-form";
+import { methodNeedsDisclosure, quantityMethodKind } from "@/lib/quantity-provenance";
 import { itemConfirmationBlocker } from "@/lib/takeoff-item";
 import { buildOutline, type OutlineNode } from "@/lib/takeoff-outline";
 import { formatQuantity } from "@/lib/takeoff-quantity";
@@ -211,6 +212,17 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                                     {itemMeasurements.map((line) => (
                                       <li key={line.id}>
                                         <span className="measurement-list__label">{line.label}</span>
+                                        {/* IP-234: ทุกบรรทัดบอกว่าได้มาอย่างไร ค่าที่โมเดลเสนอต้องเปิดเผยชัดกว่า (ADR 0024) */}
+                                        <span
+                                          className={
+                                            methodNeedsDisclosure(line.method)
+                                              ? "measurement-list__method measurement-list__method--disclosed"
+                                              : "measurement-list__method"
+                                          }
+                                          title={quantityMethodKind(line.method).description}
+                                        >
+                                          {quantityMethodKind(line.method).label}
+                                        </span>
                                         <span className="measurement-list__working">
                                           {[String(line.count), ...line.dimensions, line.conversionFactor]
                                             .filter((factor): factor is string => Boolean(factor))

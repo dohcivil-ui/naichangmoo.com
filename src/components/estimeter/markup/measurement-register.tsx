@@ -22,6 +22,10 @@ type Props = {
   onSelect: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onRemove: (id: string) => void;
+  /** ส่งรายการนี้เข้าถอดปริมาณ — ปุ่มขึ้นเฉพาะรายการที่ยังไม่ส่งและมีตัวเลขแล้ว (IP-234) */
+  onFile: (id: string) => void;
+  /** id ของรายการที่ส่งเข้าถอดปริมาณแล้ว รายการพวกนี้ล็อก ลบและแก้ชื่อไม่ได้ */
+  filedIds: ReadonlySet<string>;
   currentPage: number;
   onGoToPage: (page: number) => void;
 };
@@ -32,6 +36,8 @@ export function MeasurementRegister({
   onSelect,
   onRename,
   onRemove,
+  onFile,
+  filedIds,
   currentPage,
   onGoToPage
 }: Props) {
@@ -72,16 +78,19 @@ export function MeasurementRegister({
                 <th scope="col">ความยาว (ม.)</th>
                 <th scope="col">พื้นที่ (ตร.ม.)</th>
                 <th scope="col">
-                  <span className="sr-only">ลบ</span>
+                  <span className="sr-only">ส่งเข้าถอดปริมาณหรือลบ</span>
                 </th>
               </tr>
             </thead>
             <tbody>
-              {group.rows.map(({ measurement, value }) => (
+              {group.rows.map(({ measurement, value }) => {
+                const filed = filedIds.has(measurement.id);
+                return (
                 <tr
                   key={measurement.id}
                   onClick={() => onSelect(measurement.id)}
                   aria-selected={measurement.id === selectedId}
+                  data-filed={filed ? "true" : undefined}
                 >
                   <td>
                     <span
@@ -94,7 +103,10 @@ export function MeasurementRegister({
                       placeholder="ตั้งชื่อรายการ"
                       onChange={(event) => onRename(measurement.id, event.target.value)}
                       aria-label={`ชื่อของรายการที่ ${measurement.id}`}
+                      readOnly={filed}
+                      title={filed ? "รายการนี้ส่งเข้าถอดปริมาณแล้ว แก้ชื่อได้จากหน้าถอดปริมาณ" : undefined}
                     />
+                    {filed ? <span className="markup-register__filed">ส่งแล้ว</span> : null}
                   </td>
                   <td>{measurementKindLabel[measurement.kind]}</td>
                   <td>
@@ -111,20 +123,37 @@ export function MeasurementRegister({
                   <td>
                     {value.areaSquareMetres !== null ? formatMetres(value.areaSquareMetres) : "—"}
                   </td>
-                  <td>
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRemove(measurement.id);
-                      }}
-                      aria-label={`ลบรายการ ${measurement.name || measurementKindLabel[measurement.kind]}`}
-                    >
-                      ลบ
-                    </button>
+                  <td className="markup-register__actions">
+                    {filed ? null : (
+                      <>
+                        {value.blockedByScale ? null : (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onFile(measurement.id);
+                            }}
+                            aria-label={`ส่งรายการ ${measurement.name || measurementKindLabel[measurement.kind]} เข้าถอดปริมาณ`}
+                          >
+                            ส่งเข้าถอดปริมาณ
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onRemove(measurement.id);
+                          }}
+                          aria-label={`ลบรายการ ${measurement.name || measurementKindLabel[measurement.kind]}`}
+                        >
+                          ลบ
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
             <tfoot>
               <tr>
