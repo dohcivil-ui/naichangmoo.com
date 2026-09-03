@@ -2,12 +2,14 @@ import { createHash, randomUUID } from "node:crypto";
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditEvents, evidenceReferences, projects, takeoffGroups, takeoffItems, takeoffMeasurements, takeoffRuns } from "@/db/schema";
+import type { EvidenceGeometry } from "@/lib/drawing-evidence";
 import type { EvidenceInput, TakeoffItemInput } from "@/lib/takeoff-item";
 import { itemConfirmationBlocker } from "@/lib/takeoff-item";
+import type { FiledLine } from "@/lib/takeoff-from-measurement";
 import type { MeasurementInput } from "@/lib/takeoff-measurement";
 import { grossQuantity, measurementMatchesUnit, measurementSubtotal, netQuantity } from "@/lib/takeoff-measurement";
 import { MAX_GROUP_DEPTH, type OutlineGroupInput } from "@/lib/takeoff-outline";
-import type { QuantityMethod } from "@/lib/quantity-provenance";
+import { isQuantityMethod, type MethodContext, type QuantityMethod } from "@/lib/quantity-provenance";
 
 export const MANUAL_RUNNER = "manual";
 
@@ -55,12 +57,16 @@ export type MeasurementView = {
   conversionFactor: string | null;
   conversionNote: string | null;
   subtotal: string;
+  /** How the figure was produced — the take-off page labels every line with it (IP-234). */
+  method: QuantityMethod;
   createdAt: Date;
 };
 
 export type EvidenceView = {
   id: string;
   takeoffItemId: string;
+  /** The drawing the evidence points into, when it came from one. Geometry is not returned yet. */
+  documentId: string | null;
   pageNumber: number | null;
   note: string | null;
   createdAt: Date;
@@ -235,6 +241,7 @@ export async function listEvidenceForItems(itemIds: readonly string[]): Promise<
     .select({
       id: evidenceReferences.id,
       takeoffItemId: evidenceReferences.takeoffItemId,
+      documentId: evidenceReferences.documentId,
       pageNumber: evidenceReferences.pageNumber,
       note: evidenceReferences.note,
       createdAt: evidenceReferences.createdAt
@@ -248,80 +255,143 @@ export async function listEvidenceForItems(itemIds: readonly string[]): Promise<
  * Opens the manual take-off run, or returns the one already open. The project row is locked
  * first so two submits cannot create two competing runs for the same project.
  */
+/**
+ * The body of `startManualRun`, exposed on a transaction so that filing a mark from a drawing
+ * can open the run, add the item, the line and the evidence as ONE transaction (IP-234). Each
+ * public function below is that body wrapped in its own transaction, with behaviour unchanged.
+ *
+ * `documentId` is the drawing the run is being fed from. A run created here records it; a run
+ * that already exists without one adopts it; a run that already names a different drawing keeps
+ * that one. A project with several drawings therefore binds its run to the first drawing filed
+ * from — a known limit of this round, not a rule anyone chose.
+ */
+async function startManualRunTx(
+  tx: Tx,
+  input: { organizationId: string; projectId: string; actorId: string; documentId?: string }
+): Promise<WriteResult<TakeoffRunView>> {
+  const locked = await tx
+    .select({ id: projects.id, state: projects.state })
+    .from(projects)
+    .where(and(eq(projects.id, input.projectId), eq(projects.organizationId, input.organizationId)))
+    .limit(1)
+    .for("update");
+
+  const project = locked[0];
+  if (!project) return { ok: false, reason: "run_not_found" };
+  if (!WRITABLE_PROJECT_STATES.has(project.state)) return { ok: false, reason: "project_not_writable" };
+
+  const existing = await tx
+    .select({
+      id: takeoffRuns.id,
+      projectId: takeoffRuns.projectId,
+      runner: takeoffRuns.runner,
+      state: takeoffRuns.state,
+      outputHash: takeoffRuns.outputHash,
+      createdAt: takeoffRuns.createdAt,
+      updatedAt: takeoffRuns.updatedAt,
+      documentId: takeoffRuns.documentId
+    })
+    .from(takeoffRuns)
+    .where(
+      and(
+        eq(takeoffRuns.projectId, input.projectId),
+        eq(takeoffRuns.runner, MANUAL_RUNNER),
+        eq(takeoffRuns.state, "running")
+      )
+    )
+    .limit(1);
+  if (existing[0]) {
+    const { documentId: currentDocument, ...run } = existing[0];
+    if (input.documentId && currentDocument === null) {
+      await tx.update(takeoffRuns).set({ documentId: input.documentId, updatedAt: new Date() }).where(eq(takeoffRuns.id, run.id));
+    }
+    return { ok: true, value: run };
+  }
+
+  const runId = randomUUID();
+  // input_hash is NOT NULL and exists to identify what a run was computed from. A manual run
+  // has no machine input, so it records the project and operator that opened it.
+  const inputHash = canonicalHash({ projectId: input.projectId, runner: MANUAL_RUNNER, actorId: input.actorId, runId });
+
+  const inserted = await tx
+    .insert(takeoffRuns)
+    .values({
+      id: runId,
+      projectId: input.projectId,
+      documentId: input.documentId ?? null,
+      runner: MANUAL_RUNNER,
+      state: "running",
+      inputHash
+    })
+    .returning({
+      id: takeoffRuns.id,
+      projectId: takeoffRuns.projectId,
+      runner: takeoffRuns.runner,
+      state: takeoffRuns.state,
+      outputHash: takeoffRuns.outputHash,
+      createdAt: takeoffRuns.createdAt,
+      updatedAt: takeoffRuns.updatedAt
+    });
+
+  await tx.insert(auditEvents).values({
+    id: randomUUID(),
+    organizationId: input.organizationId,
+    actorId: input.actorId,
+    eventType: "takeoff.run_started",
+    resourceType: "takeoff_run",
+    resourceId: runId,
+    metadata: { projectId: input.projectId, runner: MANUAL_RUNNER }
+  });
+
+  return { ok: true, value: inserted[0]! };
+}
+
 export async function startManualRun(input: {
   organizationId: string;
   projectId: string;
   actorId: string;
 }): Promise<WriteResult<TakeoffRunView>> {
-  return getDb().transaction(async (tx) => {
-    const locked = await tx
-      .select({ id: projects.id, state: projects.state })
-      .from(projects)
-      .where(and(eq(projects.id, input.projectId), eq(projects.organizationId, input.organizationId)))
-      .limit(1)
-      .for("update");
+  return getDb().transaction((tx) => startManualRunTx(tx, input));
+}
 
-    const project = locked[0];
-    if (!project) return { ok: false, reason: "run_not_found" };
-    if (!WRITABLE_PROJECT_STATES.has(project.state)) return { ok: false, reason: "project_not_writable" };
+async function addManualItemTx(
+  tx: Tx,
+  input: { organizationId: string; runId: string; actorId: string; item: TakeoffItemInput }
+): Promise<WriteResult<{ itemId: string; projectId: string }>> {
+  const scoped = await loadRunScoped(tx, input.organizationId, input.runId);
+  if (!scoped) return { ok: false, reason: "run_not_found" };
+  if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+  if (scoped.run.state !== "running") return { ok: false, reason: "run_not_open" };
 
-    const existing = await tx
-      .select({
-        id: takeoffRuns.id,
-        projectId: takeoffRuns.projectId,
-        runner: takeoffRuns.runner,
-        state: takeoffRuns.state,
-        outputHash: takeoffRuns.outputHash,
-        createdAt: takeoffRuns.createdAt,
-        updatedAt: takeoffRuns.updatedAt
-      })
-      .from(takeoffRuns)
-      .where(
-        and(
-          eq(takeoffRuns.projectId, input.projectId),
-          eq(takeoffRuns.runner, MANUAL_RUNNER),
-          eq(takeoffRuns.state, "running")
-        )
-      )
-      .limit(1);
-    if (existing[0]) return { ok: true, value: existing[0] };
-
-    const runId = randomUUID();
-    // input_hash is NOT NULL and exists to identify what a run was computed from. A manual run
-    // has no machine input, so it records the project and operator that opened it.
-    const inputHash = canonicalHash({ projectId: input.projectId, runner: MANUAL_RUNNER, actorId: input.actorId, runId });
-
-    const inserted = await tx
-      .insert(takeoffRuns)
-      .values({
-        id: runId,
-        projectId: input.projectId,
-        runner: MANUAL_RUNNER,
-        state: "running",
-        inputHash
-      })
-      .returning({
-        id: takeoffRuns.id,
-        projectId: takeoffRuns.projectId,
-        runner: takeoffRuns.runner,
-        state: takeoffRuns.state,
-        outputHash: takeoffRuns.outputHash,
-        createdAt: takeoffRuns.createdAt,
-        updatedAt: takeoffRuns.updatedAt
-      });
-
-    await tx.insert(auditEvents).values({
-      id: randomUUID(),
-      organizationId: input.organizationId,
-      actorId: input.actorId,
-      eventType: "takeoff.run_started",
-      resourceType: "takeoff_run",
-      resourceId: runId,
-      metadata: { projectId: input.projectId, runner: MANUAL_RUNNER }
-    });
-
-    return { ok: true, value: inserted[0]! };
+  const itemId = randomUUID();
+  await tx.insert(takeoffItems).values({
+    id: itemId,
+    runId: input.runId,
+    category: input.item.category,
+    description: input.item.description,
+    unit: input.item.unit,
+    // A new item has been named but not yet measured. Its quantity is the total of its
+    // measurement lines, so it starts at zero and cannot be confirmed until it has some.
+    quantity: "0",
+    quantityGross: "0",
+    reviewState: "proposed"
   });
+
+  await tx.insert(auditEvents).values({
+    id: randomUUID(),
+    organizationId: input.organizationId,
+    actorId: input.actorId,
+    eventType: "takeoff.item_added",
+    resourceType: "takeoff_item",
+    resourceId: itemId,
+    metadata: {
+      runId: input.runId,
+      category: input.item.category,
+      unit: input.item.unit
+    }
+  });
+
+  return { ok: true, value: { itemId, projectId: scoped.run.projectId } };
 }
 
 export async function addManualItem(input: {
@@ -330,42 +400,7 @@ export async function addManualItem(input: {
   actorId: string;
   item: TakeoffItemInput;
 }): Promise<WriteResult<{ itemId: string; projectId: string }>> {
-  return getDb().transaction(async (tx) => {
-    const scoped = await loadRunScoped(tx, input.organizationId, input.runId);
-    if (!scoped) return { ok: false, reason: "run_not_found" };
-    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
-    if (scoped.run.state !== "running") return { ok: false, reason: "run_not_open" };
-
-    const itemId = randomUUID();
-    await tx.insert(takeoffItems).values({
-      id: itemId,
-      runId: input.runId,
-      category: input.item.category,
-      description: input.item.description,
-      unit: input.item.unit,
-      // A new item has been named but not yet measured. Its quantity is the total of its
-      // measurement lines, so it starts at zero and cannot be confirmed until it has some.
-      quantity: "0",
-      quantityGross: "0",
-      reviewState: "proposed"
-    });
-
-    await tx.insert(auditEvents).values({
-      id: randomUUID(),
-      organizationId: input.organizationId,
-      actorId: input.actorId,
-      eventType: "takeoff.item_added",
-      resourceType: "takeoff_item",
-      resourceId: itemId,
-      metadata: {
-        runId: input.runId,
-        category: input.item.category,
-        unit: input.item.unit
-      }
-    });
-
-    return { ok: true, value: { itemId, projectId: scoped.run.projectId } };
-  });
+  return getDb().transaction((tx) => addManualItemTx(tx, input));
 }
 
 export async function listMeasurementsForItems(itemIds: readonly string[]): Promise<MeasurementView[]> {
@@ -381,6 +416,7 @@ export async function listMeasurementsForItems(itemIds: readonly string[]): Prom
       dimension3: takeoffMeasurements.dimension3,
       conversionFactor: takeoffMeasurements.conversionFactor,
       conversionNote: takeoffMeasurements.conversionNote,
+      method: takeoffMeasurements.method,
       createdAt: takeoffMeasurements.createdAt
     })
     .from(takeoffMeasurements)
@@ -401,6 +437,10 @@ export async function listMeasurementsForItems(itemIds: readonly string[]): Prom
       conversionFactor: row.conversionFactor,
       conversionNote: row.conversionNote,
       subtotal: measurementSubtotal(factors),
+      // The column has no default and every write path names its method, so a value outside the
+      // registry can only be a row from a newer build. Reading it as "typed" would launder it;
+      // the page shows the honest label for what it cannot classify.
+      method: isQuantityMethod(row.method) ? row.method : "typed",
       createdAt: row.createdAt
     };
   });
@@ -480,67 +520,88 @@ async function lockItemForMeasurement(
   };
 }
 
+/**
+ * `method` and `methodContext` have no defaults on purpose: every caller says how the figure was
+ * produced. The typed form passes `"typed"` and `null`; filing from a drawing passes the method
+ * the mark's kind implies and the calibration it was multiplied by. A caller that forgets fails
+ * to compile instead of quietly claiming a person keyed the number in.
+ */
+async function addItemMeasurementTx(
+  tx: Tx,
+  input: {
+    organizationId: string;
+    itemId: string;
+    actorId: string;
+    measurement: MeasurementInput;
+    method: QuantityMethod;
+    methodContext: MethodContext | null;
+  }
+): Promise<WriteResult<{ measurementId: string; projectId: string; quantity: string }>> {
+  const locked = await lockItemForMeasurement(tx, input.organizationId, input.itemId);
+  if (!locked.ok) return locked;
+
+  // Re-checked against the unit stored on the item, not the one the browser posted.
+  if (!measurementMatchesUnit(input.measurement, locked.item.unit, input.method)) {
+    return { ok: false, reason: "measurement_shape_mismatch" };
+  }
+
+  const [dimension1 = null, dimension2 = null, dimension3 = null] = input.measurement.dimensions;
+  const measurementId = randomUUID();
+  const nextOrder = await tx
+    .select({ value: sql<number>`coalesce(max(${takeoffMeasurements.sortOrder}), -1) + 1` })
+    .from(takeoffMeasurements)
+    .where(eq(takeoffMeasurements.takeoffItemId, input.itemId));
+
+  await tx.insert(takeoffMeasurements).values({
+    id: measurementId,
+    takeoffItemId: input.itemId,
+    label: input.measurement.label,
+    count: input.measurement.count,
+    dimension1,
+    dimension2,
+    dimension3,
+    conversionFactor: input.measurement.conversionFactor,
+    conversionNote: input.measurement.conversionNote,
+    sortOrder: Number(nextOrder[0]?.value ?? 0),
+    method: input.method,
+    // Nothing here is a model's value, so there is never a proposal to point at. The database
+    // CHECK refuses the pair the other way round too.
+    proposalId: null,
+    methodContext: input.methodContext
+  });
+
+  const totals = await recomputeItemQuantity(tx, input.itemId, locked.item.wastePercent);
+
+  await tx.insert(auditEvents).values({
+    id: randomUUID(),
+    organizationId: input.organizationId,
+    actorId: input.actorId,
+    eventType: "takeoff.measurement_added",
+    resourceType: "takeoff_measurement",
+    resourceId: measurementId,
+    metadata: {
+      itemId: input.itemId,
+      label: input.measurement.label,
+      count: input.measurement.count,
+      dimensions: input.measurement.dimensions,
+      conversionFactor: input.measurement.conversionFactor,
+      method: input.method,
+      quantityGross: totals.gross,
+      quantity: totals.net
+    }
+  });
+
+  return { ok: true, value: { measurementId, projectId: locked.projectId, quantity: totals.net } };
+}
+
 export async function addItemMeasurement(input: {
   organizationId: string;
   itemId: string;
   actorId: string;
   measurement: MeasurementInput;
 }): Promise<WriteResult<{ measurementId: string; projectId: string; quantity: string }>> {
-  return getDb().transaction(async (tx) => {
-    const locked = await lockItemForMeasurement(tx, input.organizationId, input.itemId);
-    if (!locked.ok) return locked;
-
-    // Re-checked against the unit stored on the item, not the one the browser posted.
-    if (!measurementMatchesUnit(input.measurement, locked.item.unit)) {
-      return { ok: false, reason: "measurement_shape_mismatch" };
-    }
-
-    const [dimension1 = null, dimension2 = null, dimension3 = null] = input.measurement.dimensions;
-    const measurementId = randomUUID();
-    const nextOrder = await tx
-      .select({ value: sql<number>`coalesce(max(${takeoffMeasurements.sortOrder}), -1) + 1` })
-      .from(takeoffMeasurements)
-      .where(eq(takeoffMeasurements.takeoffItemId, input.itemId));
-
-    await tx.insert(takeoffMeasurements).values({
-      id: measurementId,
-      takeoffItemId: input.itemId,
-      label: input.measurement.label,
-      count: input.measurement.count,
-      dimension1,
-      dimension2,
-      dimension3,
-      conversionFactor: input.measurement.conversionFactor,
-      conversionNote: input.measurement.conversionNote,
-      sortOrder: Number(nextOrder[0]?.value ?? 0),
-      // This path is the typed form: a person read the drawing and keyed the figures in. The
-      // method is written here rather than defaulted in the column so that a future path which
-      // forgets to say how it measured fails to compile instead of quietly claiming this one.
-      method: "typed" satisfies QuantityMethod
-    });
-
-    const totals = await recomputeItemQuantity(tx, input.itemId, locked.item.wastePercent);
-
-    await tx.insert(auditEvents).values({
-      id: randomUUID(),
-      organizationId: input.organizationId,
-      actorId: input.actorId,
-      eventType: "takeoff.measurement_added",
-      resourceType: "takeoff_measurement",
-      resourceId: measurementId,
-      metadata: {
-        itemId: input.itemId,
-        label: input.measurement.label,
-        count: input.measurement.count,
-        dimensions: input.measurement.dimensions,
-        conversionFactor: input.measurement.conversionFactor,
-        quantityGross: totals.gross,
-        quantity: totals.net
-      }
-    });
-
-    return { ok: true, value: { measurementId, projectId: locked.projectId, quantity: totals.net } };
-  });
+  // This path is the typed form: a person read the drawing and keyed the figures in.
+  return getDb().transaction((tx) => addItemMeasurementTx(tx, { ...input, method: "typed", methodContext: null }));
 }
 
 export async function removeItemMeasurement(input: {
@@ -772,39 +833,142 @@ export async function assignItemGroup(input: {
   });
 }
 
+async function addItemEvidenceTx(
+  tx: Tx,
+  input: {
+    organizationId: string;
+    itemId: string;
+    actorId: string;
+    evidence: EvidenceInput;
+    documentId: string | null;
+    geometry: EvidenceGeometry | null;
+  }
+): Promise<WriteResult<{ evidenceId: string; projectId: string }>> {
+  const scoped = await loadItemScoped(tx, input.organizationId, input.itemId);
+  if (!scoped) return { ok: false, reason: "item_not_found" };
+  if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+  if (scoped.runState !== "running") return { ok: false, reason: "run_not_open" };
+  // Evidence behind a confirmed quantity must stay as it was when the quantity was accepted.
+  if (scoped.item.reviewState === "confirmed") return { ok: false, reason: "item_locked" };
+
+  const evidenceId = randomUUID();
+  await tx.insert(evidenceReferences).values({
+    id: evidenceId,
+    takeoffItemId: input.itemId,
+    documentId: input.documentId,
+    pageNumber: input.evidence.pageNumber,
+    geometry: input.geometry,
+    note: input.evidence.note
+  });
+
+  await tx.insert(auditEvents).values({
+    id: randomUUID(),
+    organizationId: input.organizationId,
+    actorId: input.actorId,
+    eventType: "takeoff.evidence_added",
+    resourceType: "evidence_reference",
+    resourceId: evidenceId,
+    metadata: { itemId: input.itemId, pageNumber: input.evidence.pageNumber, documentId: input.documentId }
+  });
+
+  return { ok: true, value: { evidenceId, projectId: scoped.projectId } };
+}
+
 export async function addItemEvidence(input: {
   organizationId: string;
   itemId: string;
   actorId: string;
   evidence: EvidenceInput;
 }): Promise<WriteResult<{ evidenceId: string; projectId: string }>> {
+  // The evidence form names a sheet in words. It points at no stored drawing and no geometry,
+  // and the master plan's biggest trap is this path changing a byte without anyone noticing.
+  return getDb().transaction((tx) => addItemEvidenceTx(tx, { ...input, documentId: null, geometry: null }));
+}
+
+/**
+ * Files one mark drawn on a sheet into the take-off as a line under an item, in ONE transaction:
+ * open (or reuse) the manual run, find or add the item, add the measurement line, add the
+ * evidence that points back at the drawing. Every step keeps its own audit event, so nothing
+ * here raises another.
+ *
+ * The item is matched by description and unit within the open run so that filing two walls under
+ * "ผนังก่ออิฐ ชั้น 2" produces one item with two lines, the way a backup sheet reads. A match that
+ * is already confirmed is refused with `item_locked` rather than silently creating a namesake —
+ * the person names it differently on purpose, or unlocks it on the take-off page.
+ */
+export async function fileMarkIntoTakeoff(input: {
+  organizationId: string;
+  projectId: string;
+  actorId: string;
+  documentId: string;
+  calibrationId: string | null;
+  item: TakeoffItemInput;
+  line: FiledLine;
+  markId: string;
+}): Promise<WriteResult<{ runId: string; itemId: string; measurementId: string; evidenceId: string; reused: boolean }>> {
   return getDb().transaction(async (tx) => {
-    const scoped = await loadItemScoped(tx, input.organizationId, input.itemId);
-    if (!scoped) return { ok: false, reason: "item_not_found" };
-    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
-    if (scoped.runState !== "running") return { ok: false, reason: "run_not_open" };
-    // Evidence behind a confirmed quantity must stay as it was when the quantity was accepted.
-    if (scoped.item.reviewState === "confirmed") return { ok: false, reason: "item_locked" };
-
-    const evidenceId = randomUUID();
-    await tx.insert(evidenceReferences).values({
-      id: evidenceId,
-      takeoffItemId: input.itemId,
-      pageNumber: input.evidence.pageNumber,
-      note: input.evidence.note
-    });
-
-    await tx.insert(auditEvents).values({
-      id: randomUUID(),
+    const run = await startManualRunTx(tx, {
       organizationId: input.organizationId,
+      projectId: input.projectId,
       actorId: input.actorId,
-      eventType: "takeoff.evidence_added",
-      resourceType: "evidence_reference",
-      resourceId: evidenceId,
-      metadata: { itemId: input.itemId, pageNumber: input.evidence.pageNumber }
+      documentId: input.documentId
     });
+    if (!run.ok) return run;
+    const runId = run.value.id;
 
-    return { ok: true, value: { evidenceId, projectId: scoped.projectId } };
+    const description = input.item.description.trim();
+    const candidates = await tx
+      .select({ id: takeoffItems.id, description: takeoffItems.description, reviewState: takeoffItems.reviewState })
+      .from(takeoffItems)
+      .where(and(eq(takeoffItems.runId, runId), eq(takeoffItems.unit, input.item.unit)));
+    const matching = candidates.filter((row) => row.description.trim() === description);
+
+    let itemId: string;
+    let reused = false;
+    const open = matching.find((row) => row.reviewState !== "confirmed");
+    if (open) {
+      itemId = open.id;
+      reused = true;
+    } else if (matching.length > 0) {
+      return { ok: false, reason: "item_locked" };
+    } else {
+      const added = await addManualItemTx(tx, {
+        organizationId: input.organizationId,
+        runId,
+        actorId: input.actorId,
+        item: { ...input.item, description }
+      });
+      if (!added.ok) return added;
+      itemId = added.value.itemId;
+    }
+
+    const methodContext: MethodContext | null = input.calibrationId
+      ? { version: 1, calibrationId: input.calibrationId }
+      : null;
+    const measured = await addItemMeasurementTx(tx, {
+      organizationId: input.organizationId,
+      itemId,
+      actorId: input.actorId,
+      measurement: input.line.measurement,
+      method: input.line.method,
+      methodContext
+    });
+    if (!measured.ok) return measured;
+
+    const evidenced = await addItemEvidenceTx(tx, {
+      organizationId: input.organizationId,
+      itemId,
+      actorId: input.actorId,
+      evidence: { note: `วัดจากแบบ หน้า ${input.line.geometry.page} · รอย ${input.markId}`, pageNumber: input.line.geometry.page },
+      documentId: input.documentId,
+      geometry: input.line.geometry
+    });
+    if (!evidenced.ok) return evidenced;
+
+    return {
+      ok: true,
+      value: { runId, itemId, measurementId: measured.value.measurementId, evidenceId: evidenced.value.evidenceId, reused }
+    };
   });
 }
 

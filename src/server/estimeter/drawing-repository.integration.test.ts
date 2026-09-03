@@ -422,4 +422,91 @@ describe.skipIf(!enabled)("drawing calibration against PostgreSQL", () => {
     );
     expect(message).toContain("confirmed_by");
   });
+
+  /**
+   * IP-234 — รอยที่วาดไว้ลงฐานแยกจากสเกล และไม่ลง audit
+   */
+  const marks = [
+    {
+      id: "m1",
+      page: 7,
+      kind: "length" as const,
+      name: "แนวผนังทิศเหนือ",
+      points: [{ x: 100, y: 400 }, { x: 500, y: 400 }],
+      colour: "var(--teal)",
+      origin: "pointer" as const,
+      filed: null,
+      layerId: null
+    },
+    {
+      id: "m2",
+      page: 7,
+      kind: "count" as const,
+      name: "",
+      points: [{ x: 120, y: 420 }, { x: 140, y: 420 }, { x: 160, y: 420 }],
+      colour: "var(--orange)",
+      origin: "pointer" as const,
+      filed: null,
+      layerId: null
+    }
+  ];
+
+  it("keeps drawn marks per page, replaces them on resave, and raises no audit event", async () => {
+    const { loadDrawingState, saveMarks } = await import("@/server/estimeter/drawing-repository");
+    const { getDb } = await import("@/db");
+    const { auditEvents, drawingMarks } = await import("@/db/schema");
+    const fixture = await registeredDocument();
+    const scope = { organizationId: fixture.organizationId, documentId: fixture.documentId, actorId: fixture.userId };
+
+    const countAudits = async () =>
+      (await getDb().select({ id: auditEvents.id }).from(auditEvents).where(eq(auditEvents.organizationId, fixture.organizationId)))
+        .length;
+    const before = await countAudits();
+
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks })).toEqual({ ok: true, value: undefined });
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks: [marks[0]] })).toEqual({ ok: true, value: undefined });
+
+    const rows = await getDb().select({ id: drawingMarks.id }).from(drawingMarks).where(eq(drawingMarks.documentId, fixture.documentId));
+    expect(rows).toHaveLength(1);
+
+    const state = await loadDrawingState({ organizationId: fixture.organizationId, documentId: fixture.documentId, userId: fixture.userId });
+    expect(state?.marks[7]).toEqual([marks[0]]);
+    expect(await countAudits()).toBe(before);
+  });
+
+  it("deletes the page row when the last mark is removed, and refuses marks filed under another page", async () => {
+    const { loadDrawingState, saveMarks } = await import("@/server/estimeter/drawing-repository");
+    const { getDb } = await import("@/db");
+    const { drawingMarks } = await import("@/db/schema");
+    const fixture = await registeredDocument();
+    const scope = { organizationId: fixture.organizationId, documentId: fixture.documentId, actorId: fixture.userId };
+
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks })).toEqual({ ok: true, value: undefined });
+    expect(await saveMarks({ ...scope, pageNumber: 7, marks: [] })).toEqual({ ok: true, value: undefined });
+    const rows = await getDb().select({ id: drawingMarks.id }).from(drawingMarks).where(eq(drawingMarks.documentId, fixture.documentId));
+    expect(rows).toHaveLength(0);
+
+    const state = await loadDrawingState({ organizationId: fixture.organizationId, documentId: fixture.documentId, userId: fixture.userId });
+    expect(state?.marks).toEqual({});
+
+    expect(await saveMarks({ ...scope, pageNumber: 8, marks })).toEqual({ ok: false, reason: "invalid_payload" });
+    expect(await saveMarks({ ...scope, pageNumber: 99, marks: marks.map((mark) => ({ ...mark, page: 99 })) })).toEqual({
+      ok: false,
+      reason: "invalid_payload"
+    });
+  });
+
+  it("hides another organization's marks", async () => {
+    const { loadDrawingState, saveMarks } = await import("@/server/estimeter/drawing-repository");
+    const owner = await registeredDocument();
+    const stranger = await createProjectFixture();
+    await saveMarks({ organizationId: owner.organizationId, documentId: owner.documentId, actorId: owner.userId, pageNumber: 7, marks });
+
+    expect(
+      await saveMarks({ organizationId: stranger.organizationId, documentId: owner.documentId, actorId: stranger.userId, pageNumber: 7, marks })
+    ).toEqual({ ok: false, reason: "document_not_found" });
+    expect(
+      await loadDrawingState({ organizationId: stranger.organizationId, documentId: owner.documentId, userId: stranger.userId })
+    ).toBeNull();
+  });
 });

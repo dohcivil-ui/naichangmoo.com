@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import { auditEvents, drawingCalibrations, drawingDocuments, drawingViewStates, projects } from "@/db/schema";
+import { auditEvents, drawingCalibrations, drawingDocuments, drawingMarks, drawingViewStates, projects } from "@/db/schema";
 import { isCalibrationMethod, type CalibrationMethod } from "@/lib/drawing-calibration-method";
 import type { DraftedGridLine } from "@/lib/drawing-grid";
 import type { StatedDimension } from "@/lib/drawing-scale";
@@ -9,8 +9,10 @@ import {
   parseCalibrationReference,
   parseDimensionsPayload,
   parseGridPayload,
+  parseMarksPayload,
   parseViewPayload,
   type CalibrationReference,
+  type StoredMark,
   type ViewPayload
 } from "@/lib/drawing-state";
 import { WRITABLE_PROJECT_STATES } from "@/server/estimeter/takeoff-repository";
@@ -36,6 +38,8 @@ export type PageCalibrationView = {
 
 export type DrawingStateView = {
   calibrations: PageCalibrationView[];
+  /** รอยที่วาดไว้ แยกตามเลขหน้า — หน้าที่ jsonb อ่านไม่ผ่านเป็น [] ไม่ใช่หายไปจาก key */
+  marks: Record<number, StoredMark[]>;
   view: { pageNumber: number; view: ViewPayload } | null;
 };
 
@@ -312,7 +316,78 @@ export async function loadDrawingState(input: {
   const parsedView = viewRows[0] ? parseViewPayload(viewRows[0].view) : null;
   const view = viewRows[0] && parsedView ? { pageNumber: viewRows[0].pageNumber, view: parsedView } : null;
 
-  return { calibrations, view };
+  const markRows = await db
+    .select({ pageNumber: drawingMarks.pageNumber, marks: drawingMarks.marks })
+    .from(drawingMarks)
+    .where(eq(drawingMarks.documentId, input.documentId))
+    .orderBy(asc(drawingMarks.pageNumber));
+
+  const marks: Record<number, StoredMark[]> = {};
+  for (const row of markRows) {
+    // A page whose payload fails to parse comes back empty rather than missing, so the browser
+    // can tell "this build cannot read what is stored" from "nothing was ever drawn here".
+    marks[row.pageNumber] = parseMarksPayload(row.marks)?.items ?? [];
+  }
+
+  return { calibrations, marks, view };
+}
+
+/**
+ * Writes every mark on one page as a single payload, keyed by (document, page). An empty page
+ * deletes the row: the absence of marks is NULL-shaped, not `{items: []}`, for the same reason
+ * `saveCalibration` stores an undrafted grid as NULL.
+ *
+ * No audit event, for the reason the `drawingMarks` table comment gives: drawing a line is not
+ * an act anybody reviews. Filing a mark into the take-off is, and that path raises its own.
+ */
+export async function saveMarks(input: {
+  organizationId: string;
+  documentId: string;
+  actorId: string;
+  pageNumber: number;
+  marks: StoredMark[];
+}): Promise<WriteResult<void>> {
+  if (!Number.isInteger(input.pageNumber) || input.pageNumber < 1) return { ok: false, reason: "invalid_payload" };
+  // A mark filed under the wrong page would come back on a page it was never drawn on.
+  if (input.marks.some((mark) => mark.page !== input.pageNumber)) return { ok: false, reason: "invalid_payload" };
+
+  return getDb().transaction(async (tx) => {
+    const scoped = await loadDocumentScoped(tx, input.organizationId, input.documentId, true);
+    if (!scoped) return { ok: false, reason: "document_not_found" };
+    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+    if (scoped.pageCount !== null && input.pageNumber > scoped.pageCount) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const existing = await tx
+      .select({ id: drawingMarks.id })
+      .from(drawingMarks)
+      .where(and(eq(drawingMarks.documentId, input.documentId), eq(drawingMarks.pageNumber, input.pageNumber)))
+      .limit(1);
+
+    if (input.marks.length === 0) {
+      if (existing[0]) await tx.delete(drawingMarks).where(eq(drawingMarks.id, existing[0].id));
+      return { ok: true, value: undefined };
+    }
+
+    const payload = { version: 1, items: input.marks };
+    if (existing[0]) {
+      await tx
+        .update(drawingMarks)
+        .set({ marks: payload, updatedBy: input.actorId, updatedAt: new Date() })
+        .where(eq(drawingMarks.id, existing[0].id));
+    } else {
+      await tx.insert(drawingMarks).values({
+        id: randomUUID(),
+        documentId: input.documentId,
+        pageNumber: input.pageNumber,
+        marks: payload,
+        updatedBy: input.actorId
+      });
+    }
+
+    return { ok: true, value: undefined };
+  });
 }
 
 /**

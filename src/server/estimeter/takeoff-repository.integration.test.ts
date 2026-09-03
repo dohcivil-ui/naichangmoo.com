@@ -705,4 +705,146 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
 
     expect(await listRunGroups(stranger.organizationId, owner.runId)).toEqual([]);
   });
+
+  /**
+   * IP-234 — ส่งรอยวัดจากแบบเข้าถอดปริมาณเป็นธุรกรรมเดียว และเส้นทางฟอร์มเดิมไม่เปลี่ยนแม้ไบต์เดียว
+   */
+  async function registeredDrawing() {
+    const { registerDrawingDocument } = await import("@/server/estimeter/drawing-repository");
+    const fixture = await createProjectFixture();
+    const registered = await registerDrawingDocument({
+      organizationId: fixture.organizationId,
+      projectId: fixture.projectId,
+      actorId: fixture.userId,
+      checksum: "c".repeat(64),
+      mimeType: "application/pdf",
+      byteSize: 1_048_576,
+      pageCount: 12
+    });
+    if (!registered.ok) throw new Error("expected the document to register");
+    return { ...fixture, documentId: registered.value.documentId };
+  }
+
+  const lengthLine = (metres: string) => ({
+    unitDimension: "length" as const,
+    method: "pointer" as const,
+    measurement: { label: "หน้า 7 · ระยะสองจุด", count: 1, dimensions: [metres], conversionFactor: null, conversionNote: null },
+    geometry: {
+      kind: "measurement" as const,
+      version: 1 as const,
+      page: 7,
+      measurementKind: "length" as const,
+      origin: "pointer" as const,
+      points: [{ x: 178.1, y: 294 }, { x: 291.3, y: 294 }],
+      scale: { metresPerPoint: 0.044156 }
+    }
+  });
+
+  it("files two marks with the same name into one item whose quantity is their sum, and stamps the run with the drawing", async () => {
+    const { fileMarkIntoTakeoff, listEvidenceForItems, listMeasurementsForItems } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const { parseEvidenceGeometry } = await import("@/lib/drawing-evidence");
+    const { getDb } = await import("@/db");
+    const { takeoffItems, takeoffRuns } = await import("@/db/schema");
+    const fixture = await registeredDrawing();
+    const base = {
+      organizationId: fixture.organizationId,
+      projectId: fixture.projectId,
+      actorId: fixture.userId,
+      documentId: fixture.documentId,
+      calibrationId: null,
+      item: { category: "structure", description: " ผนังก่ออิฐ ชั้น 2 ", unit: "m" }
+    };
+
+    const first = await fileMarkIntoTakeoff({ ...base, line: lengthLine("5.000000"), markId: "m1" });
+    const second = await fileMarkIntoTakeoff({ ...base, line: lengthLine("3.500000"), markId: "m2" });
+    if (!first.ok || !second.ok) throw new Error("expected both marks to file");
+    expect(first.value.reused).toBe(false);
+    expect(second.value.reused).toBe(true);
+    expect(second.value.itemId).toBe(first.value.itemId);
+
+    const items = await getDb().select().from(takeoffItems).where(eq(takeoffItems.runId, first.value.runId));
+    expect(items).toHaveLength(1);
+    expect(items[0]?.description).toBe("ผนังก่ออิฐ ชั้น 2");
+    expect(Number(items[0]?.quantity)).toBeCloseTo(8.5, 5);
+
+    const lines = await listMeasurementsForItems([first.value.itemId]);
+    expect(lines.map((line) => line.method)).toEqual(["pointer", "pointer"]);
+
+    const evidence = await listEvidenceForItems([first.value.itemId]);
+    expect(evidence.map((row) => row.documentId)).toEqual([fixture.documentId, fixture.documentId]);
+    const { evidenceReferences } = await import("@/db/schema");
+    const stored = await getDb().select({ geometry: evidenceReferences.geometry }).from(evidenceReferences).where(eq(evidenceReferences.id, first.value.evidenceId));
+    expect(parseEvidenceGeometry(stored[0]?.geometry)).toEqual(lengthLine("5.000000").geometry);
+
+    const runs = await getDb().select({ documentId: takeoffRuns.documentId }).from(takeoffRuns).where(eq(takeoffRuns.id, first.value.runId));
+    expect(runs[0]?.documentId).toBe(fixture.documentId);
+  });
+
+  it("files a traced room and a count with their own methods, and refuses a namesake of a confirmed item", async () => {
+    const { confirmManualItem, fileMarkIntoTakeoff, listMeasurementsForItems } = await import(
+      "@/server/estimeter/takeoff-repository"
+    );
+    const fixture = await registeredDrawing();
+    const base = { organizationId: fixture.organizationId, projectId: fixture.projectId, actorId: fixture.userId, documentId: fixture.documentId, calibrationId: null };
+
+    const room = await fileMarkIntoTakeoff({
+      ...base,
+      markId: "r1",
+      item: { category: "architecture", description: "พื้นห้องพักพยาบาล", unit: "sq_m" },
+      line: {
+        unitDimension: "area",
+        method: "region_trace",
+        measurement: { label: "หน้า 7 · พื้นที่หลายเหลี่ยม", count: 1, dimensions: ["24.500000"], conversionFactor: null, conversionNote: null },
+        geometry: { ...lengthLine("0").geometry, measurementKind: "area", origin: "region_trace", points: [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }] }
+      }
+    });
+    const pins = await fileMarkIntoTakeoff({
+      ...base,
+      markId: "c1",
+      item: { category: "electrical", description: "ดวงโคม", unit: "set" },
+      line: {
+        unitDimension: "count",
+        method: "pointer_count",
+        measurement: { label: "หน้า 7 · นับจำนวน", count: 3, dimensions: [], conversionFactor: null, conversionNote: null },
+        geometry: { ...lengthLine("0").geometry, measurementKind: "count", points: [{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }], scale: null }
+      }
+    });
+    if (!room.ok || !pins.ok) throw new Error("expected the room and the pins to file");
+    expect((await listMeasurementsForItems([room.value.itemId]))[0]?.method).toBe("region_trace");
+    expect((await listMeasurementsForItems([pins.value.itemId]))[0]?.method).toBe("pointer_count");
+
+    const confirmed = await confirmManualItem({ organizationId: fixture.organizationId, itemId: pins.value.itemId, actorId: fixture.userId });
+    if (!confirmed.ok) throw new Error(`expected the item to confirm: ${confirmed.reason}`);
+    const again = await fileMarkIntoTakeoff({
+      ...base,
+      markId: "c2",
+      item: { category: "electrical", description: "ดวงโคม", unit: "set" },
+      line: {
+        unitDimension: "count",
+        method: "pointer_count",
+        measurement: { label: "หน้า 7 · นับจำนวน", count: 1, dimensions: [], conversionFactor: null, conversionNote: null },
+        geometry: { ...lengthLine("0").geometry, measurementKind: "count", points: [{ x: 9, y: 9 }], scale: null }
+      }
+    });
+    expect(again).toEqual({ ok: false, reason: "item_locked" });
+  });
+
+  it("leaves the typed form path exactly as it was: method typed, no drawing, no geometry", async () => {
+    const { addItemEvidence, listEvidenceForItems, listMeasurementsForItems } = await import("@/server/estimeter/takeoff-repository");
+    const { getDb } = await import("@/db");
+    const { evidenceReferences, takeoffMeasurements } = await import("@/db/schema");
+    const fixture = await measuredItem();
+    const added = await addItemEvidence({ organizationId: fixture.organizationId, itemId: fixture.itemId, actorId: fixture.userId, evidence });
+    if (!added.ok) throw new Error("expected the evidence to be recorded");
+
+    expect((await listMeasurementsForItems([fixture.itemId]))[0]?.method).toBe("typed");
+    expect((await listEvidenceForItems([fixture.itemId]))[0]?.documentId).toBeNull();
+    const evidenceRow = await getDb().select().from(evidenceReferences).where(eq(evidenceReferences.id, added.value.evidenceId));
+    expect(evidenceRow[0]?.geometry).toBeNull();
+    const measurementRow = await getDb().select().from(takeoffMeasurements).where(eq(takeoffMeasurements.takeoffItemId, fixture.itemId));
+    expect(measurementRow[0]?.methodContext).toBeNull();
+    expect(measurementRow[0]?.proposalId).toBeNull();
+  });
 });
