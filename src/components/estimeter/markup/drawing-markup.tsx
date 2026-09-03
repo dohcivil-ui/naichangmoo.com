@@ -44,6 +44,7 @@ import {
   lockToAngle,
   lockToAxis,
   polylineLengthPoints,
+  POINTS_PER_METRE,
   SCALE_UNITS,
   scaleUnitLabel,
   unitToMetres,
@@ -52,6 +53,14 @@ import {
   type ScaleUnit,
   type StatedDimension
 } from "@/lib/drawing-scale";
+import type { CalibrationMethod } from "@/lib/drawing-calibration-method";
+import type { CalibrationReference } from "@/lib/drawing-state";
+import {
+  loadDrawing,
+  registerDrawing,
+  saveDrawingCalibration,
+  saveDrawingView
+} from "@/server/actions/estimeter-drawing";
 
 /**
  * หน้าจอมาร์กอัปและวัดปริมาณบนแบบก่อสร้าง PDF (IP-227)
@@ -239,10 +248,57 @@ const TIP_EDGE_GAP = 8;
 
 const clampZoom = (value: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, value));
 
-/** รหัสของสิ่งที่ผู้ใช้สร้าง ยังไม่ได้ลงฐานข้อมูล จึงพอแค่ไม่ชนกันภายในหน้าเดียว */
+/**
+ * รหัสของเส้นแนวเสาและระยะจริงที่ผู้ใช้สร้าง
+ *
+ * ค่านี้ลงฐานข้อมูลแล้วผ่านคอลัมน์ jsonb (IP-233) แต่ยังเป็นแค่ตัวจับคู่ภายในเอกสารหนึ่งใบ
+ * ไม่ใช่ primary key ของแถวไหน จึงพอแค่ไม่ชนกันภายในเอกสารเดียว ไม่ต้องไม่ชนทั้งระบบ
+ */
 const newId = () => `m${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-export function DrawingMarkup({ projectName, projectHref }: { projectName: string; projectHref: string }) {
+/** วิธีและจุดอ้างอิงที่ใช้ตั้งสเกลของหน้าหนึ่ง — ต้องส่งซ้ำทุกครั้งที่เซฟหน้านั้น */
+type PageReference = { method: CalibrationMethod; reference: CalibrationReference };
+
+type SaveStatus = { kind: "idle" | "saving" | "saved" | "failed"; at?: Date; message?: string };
+
+/**
+ * ลายเซ็นของงานหนึ่งหน้า ใช้ตอบว่า "สิ่งที่อยู่บนจอตอนนี้ ตรงกับที่เซฟไปแล้วหรือยัง"
+ *
+ * เทียบด้วยลายเซ็นแทนการเทียบทีละช่อง เพราะการกดย้อนกลับพาค่ากลับไปเท่าเดิมได้พอดี
+ * และตอนนั้นต้องไม่เซฟซ้ำ
+ */
+const pageSignature = (scale: PageScale, grid: DraftedGridLine[], items: StatedDimension[]) =>
+  JSON.stringify({ m: scale.metresPerPoint, g: grid, d: items });
+
+/** เวลาไทยแบบ 24 ชั่วโมง สำหรับป้าย "บันทึกแล้ว" ในแถบสถานะ */
+const savedAtFormat = new Intl.DateTimeFormat("th-TH", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "Asia/Bangkok"
+});
+
+/**
+ * checksum ของไฟล์ที่เปิด ซึ่งเป็นตัวตนของแบบใบนั้นตลอดอายุโครงการ (IP-233)
+ *
+ * คำนวณในเบราว์เซอร์ ไม่มีไบต์ไหนของแบบออกจากเครื่องผู้ใช้
+ */
+async function sha256Hex(buffer: ArrayBuffer): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+export function DrawingMarkup({
+  projectName,
+  projectHref,
+  projectId
+}: {
+  projectName: string;
+  projectHref: string;
+  projectId: string;
+}) {
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   const [doc, setDoc] = useState<PdfDocument | null>(null);
@@ -321,6 +377,16 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
   const panRef = useRef<{ x: number; y: number; view: Camera; moved: boolean } | null>(null);
   const splitRef = useRef<{ which: "rail" | "panel"; x: number; width: number } | null>(null);
 
+  /** ตัวตนของแบบใบที่เปิดอยู่ในฐานข้อมูล — null แปลว่ายังลงทะเบียนไม่สำเร็จ จึงยังเซฟไม่ได้ */
+  const [documentId, setDocumentId] = useState<string | null>(null);
+  /** วิธีและจุดอ้างอิงที่ใช้ตั้งสเกลของแต่ละหน้า ต้องส่งซ้ำทุกครั้งที่เซฟหน้านั้น */
+  const [references, setReferences] = useState<Record<number, PageReference>>({});
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>({ kind: "idle" });
+  /** จริงระหว่างยกงานเก่าขึ้นจอ กัน effect เซฟย้อนกลับทับของที่เพิ่งอ่านมา */
+  const hydratingRef = useRef(false);
+  /** ลายเซ็นของแต่ละหน้า ณ ครั้งที่เซฟสำเร็จล่าสุด */
+  const lastSavedRef = useRef<Record<number, string>>({});
+
   const [calibrationOpen, setCalibrationOpen] = useState(false);
   const [calibrationPoints, setCalibrationPoints] = useState<PagePoint[]>([]);
   const [realDistance, setRealDistance] = useState("");
@@ -376,30 +442,191 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
     });
   }, [restore, snapshot]);
 
+  /**
+   * เปิดไฟล์ ลงทะเบียนตัวตนของแบบ แล้วยกงานที่เคยทำไว้กับแบบใบนี้ขึ้นจอ (IP-233)
+   *
+   * **ลำดับสองบรรทัดแรกห้ามสลับ** `getDocument({ data })` ของ pdf.js โอนสิทธิ์ ArrayBuffer
+   * ไปให้ตัวมันเอง ถ้าคำนวณ checksum ทีหลัง buffer จะว่างและได้ค่าเดียวกันทุกไฟล์
+   *
+   * ลงทะเบียนไม่สำเร็จก็ยังเปิดวัดต่อได้ แค่ไม่มีการเซฟ — เครื่องมือวัดที่เปิดไฟล์ไม่ได้
+   * เพราะเน็ตสะดุด แย่กว่าเครื่องมือวัดที่เซฟไม่ได้ชั่วคราวแล้วบอกให้รู้
+   */
   async function openFile(file: File) {
     setLoadError("");
     try {
+      const buffer = await file.arrayBuffer();
+      const checksum = await sha256Hex(buffer);
       const pdfjs = await import("pdfjs-dist");
       pdfjs.GlobalWorkerOptions.workerSrc = new URL(
         "pdfjs-dist/build/pdf.worker.min.mjs",
         import.meta.url
       ).toString();
-      const bytes = new Uint8Array(await file.arrayBuffer());
+      const bytes = new Uint8Array(buffer);
       const loaded = (await pdfjs.getDocument({ data: bytes }).promise) as unknown as PdfDocument;
       setDoc(loaded);
       setPageCount(loaded.numPages);
       setFileName(file.name);
       setPage(1);
+      setView({ scale: 1, x: 0, y: 0 });
       setScales({});
       setMeasurements([]);
+      // เส้นแนวเสาและระยะจริงของไฟล์ก่อนหน้าต้องหายไปพร้อมกับไฟล์นั้น ไม่อย่างนั้นมันจะไปโผล่
+      // ทับแบบใบใหม่ที่คนละอาคารกัน (บั๊กที่บันทึกไว้ในไม้ต่อ 2026-09-02)
+      setGridLines([]);
+      setDimensions([]);
+      setReferences({});
       setPast([]);
       setFuture([]);
       setThumbs({});
       setPendingRoom(null);
+      setPendingDimension(null);
+      setPendingRefStart(null);
+      setSelectedId(null);
+      setDocumentId(null);
+      lastSavedRef.current = {};
+      setSaveStatus({ kind: "idle" });
+
+      hydratingRef.current = true;
+      try {
+        const registered = await registerDrawing({
+          projectId,
+          checksum,
+          mimeType: "application/pdf",
+          byteSize: file.size,
+          pageCount: loaded.numPages
+        });
+        if (!registered.ok) {
+          setSaveStatus({ kind: "failed", message: registered.message });
+          return;
+        }
+        setDocumentId(registered.documentId);
+
+        const restored = await loadDrawing({ documentId: registered.documentId });
+        if (!restored.ok) {
+          setSaveStatus({ kind: "failed", message: restored.message });
+          return;
+        }
+
+        const nextScales: Record<number, PageScale> = {};
+        const nextReferences: Record<number, PageReference> = {};
+        const nextGrid: DraftedGridLine[] = [];
+        const nextDimensions: StatedDimension[] = [];
+        const nextSaved: Record<number, string> = {};
+
+        for (const calibration of restored.state.calibrations) {
+          // อัตราส่วนที่คนอ่านคำนวณจาก metresPerPoint เสมอ ฐานไม่เก็บไว้ซ้ำ
+          const scale: PageScale = {
+            metresPerPoint: calibration.metresPerPoint,
+            ratio: calibration.metresPerPoint * POINTS_PER_METRE
+          };
+          nextScales[calibration.pageNumber] = scale;
+          if (calibration.reference) {
+            nextReferences[calibration.pageNumber] = {
+              method: calibration.method,
+              reference: calibration.reference
+            };
+          }
+          nextGrid.push(...calibration.grid);
+          nextDimensions.push(...calibration.dimensions);
+          nextSaved[calibration.pageNumber] = pageSignature(scale, calibration.grid, calibration.dimensions);
+        }
+
+        // ยกของขึ้นจอไม่ผ่าน commitWork เพราะไม่ใช่การกระทำของผู้ใช้ ประวัติย้อนกลับต้องเริ่มว่าง
+        setScales(nextScales);
+        setReferences(nextReferences);
+        setGridLines(nextGrid);
+        setDimensions(nextDimensions);
+        lastSavedRef.current = nextSaved;
+
+        if (restored.state.view) {
+          const resumed = restored.state.view;
+          setPage(Math.min(Math.max(resumed.pageNumber, 1), loaded.numPages));
+          setView({ scale: resumed.view.scale, x: resumed.view.x, y: resumed.view.y });
+        }
+      } finally {
+        hydratingRef.current = false;
+      }
     } catch (error) {
+      hydratingRef.current = false;
       setLoadError(`เปิดไฟล์ไม่ได้: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
+
+  /**
+   * เซฟงานของหน้าหนึ่งลงฐาน — สเกล จุดอ้างอิง แนวเสา และระยะจริง ไปด้วยกันเป็นก้อนเดียว
+   *
+   * กริดกับระยะจริงรับเข้ามาเป็นอาร์กิวเมนต์ ไม่ได้อ่านจาก closure เพราะฟังก์ชันนี้ถูกเรียก
+   * จากตัวตั้งเวลา ซึ่งค่าใน closure ตอนนั้นอาจเก่ากว่าที่อยู่บนจอไปแล้วหนึ่งการกระทำ
+   */
+  const persistPage = useCallback(
+    async (
+      pageNumber: number,
+      scale: PageScale,
+      reference: PageReference,
+      grid: DraftedGridLine[],
+      items: StatedDimension[]
+    ) => {
+      if (!documentId) return;
+      setSaveStatus({ kind: "saving" });
+      const result = await saveDrawingCalibration({
+        documentId,
+        pageNumber,
+        metresPerPoint: scale.metresPerPoint,
+        method: reference.method,
+        reference: reference.reference,
+        grid,
+        dimensions: items
+      });
+      if (result.ok) {
+        lastSavedRef.current[pageNumber] = pageSignature(scale, grid, items);
+        setSaveStatus({ kind: "saved", at: new Date() });
+      } else {
+        setSaveStatus({ kind: "failed", message: result.message });
+      }
+    },
+    [documentId]
+  );
+
+  /**
+   * เซฟตามการเปลี่ยนของกริดและระยะจริง ครอบทั้งการวาง การลบ และการกดย้อนกลับ
+   *
+   * หน่วงไว้ก่อนเพราะการลากเส้นติดกันหลายเส้นไม่ควรเป็นการเขียนฐานหลายครั้ง
+   * หน้าที่ยังไม่มีสเกลไม่เซฟ — กริดที่ร่างก่อนยืนยันสเกลอยู่ในเบราว์เซอร์จนถึงตอนนั้น
+   */
+  useEffect(() => {
+    if (hydratingRef.current || !documentId) return;
+    const timer = setTimeout(() => {
+      for (const key of Object.keys(scales)) {
+        const pageNumber = Number(key);
+        const scale = scales[pageNumber];
+        const reference = references[pageNumber];
+        if (!scale || !reference) continue;
+        const grid = gridLines.filter((line) => line.page === pageNumber);
+        const items = dimensions.filter((item) => item.page === pageNumber);
+        if (lastSavedRef.current[pageNumber] === pageSignature(scale, grid, items)) continue;
+        void persistPage(pageNumber, scale, reference, grid, items);
+      }
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [dimensions, documentId, gridLines, persistPage, references, scales]);
+
+  /**
+   * เซฟจุดที่ค้างอยู่ เงียบ ๆ ไม่แตะแถบสถานะ
+   *
+   * ล้มเหลวก็ไม่เป็นไร ตามคอมเมนต์ของตาราง drawing_view_states — ตำแหน่งสายตาไม่ใช่หลักฐาน
+   * ของปริมาณใด และไม่มีผลอะไรถ้ามันหายไป
+   */
+  useEffect(() => {
+    if (hydratingRef.current || !documentId) return;
+    const timer = setTimeout(() => {
+      void saveDrawingView({
+        documentId,
+        pageNumber: page,
+        view: { version: 1, scale: view.scale, x: view.x, y: view.y }
+      });
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [documentId, page, view]);
 
   // รูปย่อของทุกหน้า ทยอยวาดทีละหน้าเพื่อไม่ให้แย่งเครื่องกับหน้าที่ผู้ใช้กำลังดู
   useEffect(() => {
@@ -839,6 +1066,24 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       return;
     }
     setScales((current) => ({ ...current, [page]: result.scale }));
+    const reference: PageReference = {
+      method: "two_point",
+      reference: {
+        version: 1,
+        a: calibrationPoints[0],
+        b: calibrationPoints[1],
+        realDistance: Number(realDistance),
+        unit
+      }
+    };
+    setReferences((current) => ({ ...current, [page]: reference }));
+    void persistPage(
+      page,
+      result.scale,
+      reference,
+      gridLines.filter((line) => line.page === page),
+      dimensions.filter((item) => item.page === page)
+    );
     setCalibrationError("");
     setCalibrationOpen(false);
     setCalibrationPoints([]);
@@ -1001,6 +1246,7 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
       b: pendingDimension.b,
       valueM: typed * unitToMetres[dimensionUnit]
     };
+    const nextDimensions = [...dimensions, dimension];
     if (alsoCalibrate) {
       const result = calibrateFromDimension(dimension);
       if (!result.ok) {
@@ -1008,8 +1254,28 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
         return;
       }
       setScales((current) => ({ ...current, [page]: result.scale }));
+      const reference: PageReference = {
+        method: "stated_dimension",
+        reference: {
+          version: 1,
+          a: dimension.a,
+          b: dimension.b,
+          realDistance: dimension.valueM,
+          unit: "m"
+        }
+      };
+      setReferences((current) => ({ ...current, [page]: reference }));
+      // ส่งรายการที่รวมตัวใหม่แล้ว เพราะ state ยังไม่ทันเปลี่ยนในจังหวะนี้
+      void persistPage(
+        page,
+        result.scale,
+        reference,
+        gridLines.filter((line) => line.page === page),
+        nextDimensions.filter((item) => item.page === page)
+      );
     }
-    commitWork({ dimensions: [...dimensions, dimension] });
+    // ไม่ได้ตั้งสเกลด้วยก็ไม่ต้องเรียกเซฟตรงนี้ effect ที่เฝ้าระยะจริงจะเห็นการเปลี่ยนเอง
+    commitWork({ dimensions: nextDimensions });
     setPendingDimension(null);
     setDimensionError("");
   }
@@ -1621,6 +1887,19 @@ export function DrawingMarkup({ projectName, projectHref }: { projectName: strin
         <span className="mk__status-right">
           <span>หน้า <b>{pageCount === 0 ? "—" : `${page} จาก ${pageCount}`}</b></span>
           <span>ซูม <b>{Math.round(view.scale * 100)}%</b></span>
+          {doc && saveStatus.kind !== "idle" ? (
+            <span
+              className="mk__status-save"
+              data-state={saveStatus.kind}
+              role="status"
+            >
+              {saveStatus.kind === "saving"
+                ? "กำลังบันทึก"
+                : saveStatus.kind === "saved"
+                  ? `บันทึกแล้ว ${saveStatus.at ? savedAtFormat.format(saveStatus.at) : ""}`.trim()
+                  : `บันทึกไม่สำเร็จ — ${saveStatus.message ?? ""}`.trim()}
+            </span>
+          ) : null}
         </span>
       </div>
 
