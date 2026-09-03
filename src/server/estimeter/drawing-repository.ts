@@ -13,12 +13,7 @@ import {
   type CalibrationReference,
   type ViewPayload
 } from "@/lib/drawing-state";
-
-/**
- * States in which a project still accepts drawing writes. Same pair, and the same reason, as
- * the take-off repository: a locked or archived project must not gain a new scale either.
- */
-const WRITABLE_PROJECT_STATES = new Set(["draft", "active"]);
+import { WRITABLE_PROJECT_STATES } from "@/server/estimeter/takeoff-repository";
 
 export type DrawingWriteRejection =
   | "project_not_found"

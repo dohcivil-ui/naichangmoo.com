@@ -241,7 +241,7 @@ export const drawingCalibrations = pgTable("drawing_calibrations", {
   metresPerPoint: numeric("metres_per_point", { precision: 18, scale: 12 }).notNull(),
   /** How the scale was established. Valid values live in src/lib/drawing-calibration-method.ts. */
   method: text("method").notNull(),
-  /** {version:1, points:[a,b], realDistance, unit} — what the person actually did. */
+  /** {version:1, a, b, realDistance, unit} — what the person actually did. */
   referenceGeometry: jsonb("reference_geometry").notNull(),
   /** {version:1, lines:[…]} of drafted grid lines. Null means nobody drafted a grid yet. */
   grid: jsonb("grid"),
@@ -274,7 +274,7 @@ export const drawingViewStates = pgTable("drawing_view_states", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   documentId: text("document_id").notNull().references(() => drawingDocuments.id, { onDelete: "cascade" }),
   pageNumber: integer("page_number").notNull(),
-  /** {version:1, scale, offsetX, offsetY} — the camera, in the same units the canvas uses. */
+  /** {version:1, scale, x, y} — the camera, in the same units the canvas uses. */
   view: jsonb("view").notNull(),
   createdAt,
   updatedAt

@@ -11,8 +11,14 @@ import type { QuantityMethod } from "@/lib/quantity-provenance";
 
 export const MANUAL_RUNNER = "manual";
 
-/** States in which a project still accepts take-off writes. */
-const WRITABLE_PROJECT_STATES = new Set(["draft", "active"]);
+/**
+ * States in which a project still accepts estimeter writes.
+ *
+ * Exported because the drawing repository needs the same answer: a project that is locked or
+ * archived must not gain a new scale either. One value, declared once — two copies would drift
+ * the day a third state is added, and nothing would say which copy was the stale one.
+ */
+export const WRITABLE_PROJECT_STATES = new Set(["draft", "active"]);
 
 export type TakeoffRunView = {
   id: string;
