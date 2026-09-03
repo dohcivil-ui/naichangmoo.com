@@ -30,7 +30,13 @@ import {
   type SnapHit,
   type SnapSettings
 } from "@/lib/drawing-snap";
-import { regionRejectionMessage, SYMBOL_CLOSE_METRES, toGreyImage, traceRegion } from "@/lib/region-fill";
+import {
+  DOOR_BRIDGE_METRES,
+  regionRejectionMessage,
+  SYMBOL_CLOSE_METRES,
+  toGreyImage,
+  traceRegion
+} from "@/lib/region-fill";
 import {
   calibrate,
   calibrateFromDimension,
@@ -1168,13 +1174,15 @@ export function DrawingMarkup({
      * กว้างกี่พิกเซล หน้าที่ยังไม่ตั้งสเกลจึงไม่กลบ ซึ่งไม่เป็นปัญหาเพราะเครื่องมือนี้
      * ถูกล็อกไว้จนกว่าจะตั้งสเกลอยู่แล้ว (`toolNeedsScale`)
      */
-    const closeRadiusPixels = pageScale
-      ? (SYMBOL_CLOSE_METRES / pageScale.metresPerPoint) * analysisScale
-      : 0;
+    const pixelsPerMetre = pageScale ? analysisScale / pageScale.metresPerPoint : 0;
     const result = traceRegion(
       grey,
       { x: point.x * analysisScale, y: point.y * analysisScale },
-      { closeRadiusPixels }
+      {
+        closeRadiusPixels: SYMBOL_CLOSE_METRES * pixelsPerMetre,
+        // ปิดช่องได้กว้างสองเท่าของรัศมี จึงส่งครึ่งหนึ่งของความกว้างประตูที่ยอมเชื่อม
+        bridgeGapPixels: (DOOR_BRIDGE_METRES / 2) * pixelsPerMetre
+      }
     );
     if (!result.ok) {
       setPendingRoom(null);

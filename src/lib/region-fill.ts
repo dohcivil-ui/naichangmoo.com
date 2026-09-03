@@ -40,6 +40,20 @@ export type RegionOptions = {
    * ผู้เรียกเป็นคนคำนวณค่านี้จากสเกลของหน้า เพราะไฟล์นี้ไม่รู้จักเมตร รู้จักแต่พิกเซล
    */
   closeRadiusPixels?: number;
+  /**
+   * รัศมีของการเชื่อมช่องเปิดบนเส้นในแบบ ก่อนเริ่มไล่สี หน่วยเป็นพิกเซลของภาพวิเคราะห์
+   *
+   * **ทำไมต้องมี** ผังพื้นเขียนช่องประตูเป็นช่องว่างบนเส้นผนัง ไม่มีเส้นปิดพาด สีจึงลอด
+   * ออกไปทั้งชั้นแล้วได้พื้นที่ที่ไม่มีความหมาย เจ้าของงานทักเมื่อ 2026-09-04 ว่า
+   * "ห้องที่ไม่มีเส้นกั้นตรงประตูคลิ้กเลือกแล้วไม่เป็นเหมือนภาพตัวอย่าง" · ช่องที่แคบกว่า
+   * สองเท่าของรัศมีจะถูกเชื่อมเป็นเส้นตรงพาดที่ผิวผนังพอดี ซึ่งตรงกับที่คนประมาณราคา
+   * ลากเองด้วยมือ ส่วนช่องที่กว้างกว่านั้นไม่ถูกเชื่อม เพราะมันคือทางเชื่อมห้องจริง
+   *
+   * **นี่คือข้อเสนอ ไม่ใช่คำตัดสิน** ตามที่เจ้าของงานเคาะไว้ว่าระบบเสนอเส้นปิด คนกดรับ
+   * ด่านจริงยังเป็นคนที่ดูรูปบนแบบก่อนกดยืนยัน การเชื่อมนี้แค่ทำให้สิ่งที่เขาต้องดูมีอยู่จริง
+   * แทนที่จะเป็นสีที่ไหลไปทั้งชั้นซึ่งดูแล้วก็ทำอะไรต่อไม่ได้
+   */
+  bridgeGapPixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -77,6 +91,22 @@ const MIN_AREA_PIXELS = 40;
  */
 export const SYMBOL_CLOSE_METRES = 0.4;
 
+/**
+ * ช่องเปิดที่แคบกว่าค่านี้ถือว่าเป็นประตู ไม่ใช่ทางเชื่อมห้อง วัดเป็นเมตรบนอาคารจริง
+ *
+ * ผู้เรียกแปลงครึ่งหนึ่งของค่านี้เป็นพิกเซลแล้วส่งเข้า `bridgeGapPixels` เพราะการเชื่อม
+ * ปิดช่องได้กว้างสองเท่าของรัศมี
+ *
+ * **ที่มาของ 1.00** ประตูภายในอาคารสถาบันของไทยกว้าง 0.80 ถึง 1.00 เมตรเป็นส่วนใหญ่
+ * ค่านี้จึงครอบประตูเดี่ยวได้ทั้งหมด ส่วนช่องที่กว้างกว่านี้ เช่น ประตูคู่ ซุ้มโล่ง หรือ
+ * ทางเชื่อมโถง ไม่ถูกเชื่อมให้ ซึ่งถูกแล้ว เพราะสองห้องที่เปิดถึงกันกว้างขนาดนั้น
+ * คนประมาณราคาก็ต้องตัดสินเองอยู่ดีว่าจะนับเป็นห้องเดียวหรือสองห้อง
+ *
+ * **สิ่งที่แลกไป** ที่ว่างซึ่งแคบกว่า 1.00 เมตรทั้งช่วง เช่น ช่องท่อหรือตู้ฝัง จะถูกถมเป็นผนัง
+ * ไปด้วย ซึ่งรับได้เพราะที่ว่างขนาดนั้นไม่ใช่ห้องที่ใครถอดปริมาณพื้นแยกเป็นรายการ
+ */
+export const DOOR_BRIDGE_METRES = 1.0;
+
 export const regionRejectionMessage: Record<RegionRejection, string> = {
   seed_outside: "คลิกนอกขอบหน้าแบบ",
   seed_on_line: "คลิกโดนเส้นในแบบพอดี ลองคลิกกลางห้องที่ว่าง",
@@ -101,8 +131,16 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
   if (sx < 0 || sy < 0 || sx >= image.width || sy >= image.height) {
     return { ok: false, reason: "seed_outside", areaPixels: 0 };
   }
-  const at = (x: number, y: number) => image.data[y * image.width + x];
-  if (at(sx, sy) <= threshold) {
+
+  const drawn = new Uint8Array(image.width * image.height);
+  for (let index = 0; index < drawn.length; index += 1) {
+    drawn[index] = image.data[index] <= threshold ? 1 : 0;
+  }
+  const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
+  const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;
+  const blocked = (x: number, y: number) => barrier[y * image.width + x] === 1;
+
+  if (blocked(sx, sy)) {
     return { ok: false, reason: "seed_on_line", areaPixels: 0 };
   }
 
@@ -131,7 +169,7 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
       if (nx < 0 || ny < 0 || nx >= image.width || ny >= image.height) continue;
       const nextIndex = ny * image.width + nx;
       if (filled[nextIndex]) continue;
-      if (at(nx, ny) <= threshold) continue;
+      if (blocked(nx, ny)) continue;
       filled[nextIndex] = 1;
       stack.push(nextIndex);
     }
@@ -170,54 +208,76 @@ export function closeMask(
   height: number,
   radius: number
 ): Uint8Array {
-  return sweep(sweep(mask, width, height, radius, "max"), width, height, radius, "min");
+  const grown = distanceToSet(mask, width, height, 1);
+  const dilated = new Uint8Array(mask.length);
+  for (let index = 0; index < mask.length; index += 1) {
+    dilated[index] = grown[index] <= radius ? 1 : 0;
+  }
+  const gap = distanceToSet(dilated, width, height, 0);
+  const closed = new Uint8Array(mask.length);
+  for (let index = 0; index < mask.length; index += 1) {
+    closed[index] = gap[index] > radius ? 1 : 0;
+  }
+  return closed;
 }
 
+const FAR = 1 << 28;
+
 /**
- * ขยายหรือหดด้วยหน้าต่างสี่เหลี่ยม แยกเป็นสองรอบ แนวนอนแล้วแนวตั้ง
+ * ระยะจากทุกพิกเซลไปยังพิกเซลที่ใกล้ที่สุดซึ่งมีค่าเท่ากับ `target`
  *
- * แยกได้เพราะหน้าต่างสี่เหลี่ยมคูณกันได้จากสองแกน ทำให้งานเป็นเชิงเส้นกับจำนวนพิกเซล
- * แทนที่จะเป็นกำลังสองของรัศมี ซึ่งสำคัญเพราะภาพวิเคราะห์ของหน้า A3 มีหลายล้านพิกเซล
+ * วัดแบบเชบีเชฟ คือนับก้าวที่ไปได้ทั้งแปดทิศเป็นหนึ่งก้าวเท่ากันหมด ระยะแบบนี้ตรงกับ
+ * หน้าต่างสี่เหลี่ยมพอดี การขยายด้วยหน้าต่างสี่เหลี่ยมรัศมี r จึงเท่ากับ "ระยะไม่เกิน r"
  *
- * นอกขอบภาพถือว่าว่างตอนขยาย และถือว่าเต็มตอนหด เพื่อไม่ให้ขอบภาพกัดรูปทรงเข้ามาเอง
- * บริเวณที่แตะขอบกระดาษถูกปฏิเสธไปก่อนหน้านี้แล้ว จึงไม่มีรูปทรงจริงที่พึ่งพากติกานี้
+ * **ทำไมต้องเป็นวิธีนี้** ของเดิมไล่ดูทีละพิกเซลในหน้าต่าง ซึ่งงานโตตามรัศมี พอเอาไปใช้
+ * กับภาพวิเคราะห์จริงของหน้า A3 ที่มีหลายล้านพิกเซล และรัศมีระดับยี่สิบพิกเซล มันกลายเป็น
+ * หลายร้อยล้านครั้งต่อการคลิกหนึ่งครั้ง วิธีนี้เดินสองรอบจบ งานจึงไม่ขึ้นกับรัศมีเลย
+ *
+ * นอกขอบภาพไม่นับเป็นเป้าหมาย รูปทรงที่แตะขอบกระดาษถูกปฏิเสธไปก่อนหน้านี้แล้ว
  */
-function sweep(
+function distanceToSet(
   mask: Uint8Array,
   width: number,
   height: number,
-  radius: number,
-  mode: "max" | "min"
-): Uint8Array {
-  const wanted = mode === "max" ? 1 : 0;
-  const outside = mode === "max" ? 0 : 1;
-  const horizontal = new Uint8Array(mask.length);
+  target: number
+): Int32Array {
+  const distance = new Int32Array(mask.length);
+  for (let index = 0; index < mask.length; index += 1) {
+    distance[index] = mask[index] === target ? 0 : FAR;
+  }
+
+  const relax = (index: number, from: number) => {
+    const candidate = distance[from] + 1;
+    if (candidate < distance[index]) distance[index] = candidate;
+  };
+
   for (let y = 0; y < height; y += 1) {
-    const row = y * width;
     for (let x = 0; x < width; x += 1) {
-      let found = false;
-      for (let dx = -radius; dx <= radius && !found; dx += 1) {
-        const nx = x + dx;
-        const value = nx < 0 || nx >= width ? outside : mask[row + nx];
-        if (value === wanted) found = true;
+      const index = y * width + x;
+      if (distance[index] === 0) continue;
+      if (x > 0) relax(index, index - 1);
+      if (y > 0) {
+        relax(index, index - width);
+        if (x > 0) relax(index, index - width - 1);
+        if (x < width - 1) relax(index, index - width + 1);
       }
-      horizontal[row + x] = found ? wanted : 1 - wanted;
     }
   }
 
-  const vertical = new Uint8Array(mask.length);
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      let found = false;
-      for (let dy = -radius; dy <= radius && !found; dy += 1) {
-        const ny = y + dy;
-        const value = ny < 0 || ny >= height ? outside : horizontal[ny * width + x];
-        if (value === wanted) found = true;
+  for (let y = height - 1; y >= 0; y -= 1) {
+    for (let x = width - 1; x >= 0; x -= 1) {
+      const index = y * width + x;
+      if (distance[index] === 0) continue;
+      if (x < width - 1) relax(index, index + 1);
+      if (y < height - 1) {
+        relax(index, index + width);
+        if (x < width - 1) relax(index, index + width + 1);
+        if (x > 0) relax(index, index + width - 1);
       }
-      vertical[y * width + x] = found ? wanted : 1 - wanted;
     }
   }
-  return vertical;
+
+  return distance;
 }
 
 /**

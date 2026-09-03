@@ -199,6 +199,97 @@ describe("การกลบรอยเว้าที่สัญลักษ�
   });
 });
 
+/**
+ * ช่องประตูที่แบบไม่ได้ลากเส้นปิด
+ *
+ * เจ้าของงานทักเมื่อ 2026-09-04 ว่า "ห้องที่ไม่มีเส้นกั้นตรงประตูคลิ้กเลือกแล้วไม่เป็น
+ * เหมือนภาพตัวอย่าง" — ผังพื้นเขียนประตูเป็นช่องว่างบนเส้นผนัง สีจึงลอดออกไปทั้งชั้น
+ * ภาพที่เขาวาดให้ดูมีเส้นแดงพาดตรงช่องประตูที่ผิวผนังพอดี ซึ่งคือสิ่งที่ต้องได้
+ */
+describe("การเชื่อมช่องประตูก่อนไล่สี", () => {
+  it("ไม่เชื่อม ห้องที่ประตูเปิดอยู่ทำให้สีทะลุ", () => {
+    const image = pageWithRoom({
+      width: 200,
+      height: 200,
+      room: { x: 40, y: 40, w: 80, h: 60 },
+      gap: 9
+    });
+    const result = traceRegion(image, { x: 80, y: 70 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("leaked");
+  });
+
+  it("เชื่อมช่องที่แคบกว่าสองเท่าของรัศมี ได้ห้องปิดที่พื้นที่เท่าห้องจริง", () => {
+    const image = pageWithRoom({
+      width: 200,
+      height: 200,
+      room: { x: 40, y: 40, w: 80, h: 60 },
+      gap: 9
+    });
+    const result = traceRegion(image, { x: 80, y: 70 }, { bridgeGapPixels: 6 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  /**
+   * ด้านกลับของข้อบน ช่องที่กว้างกว่าประตูคือทางเชื่อมห้องจริง ระบบต้องไม่เดาปิดให้
+   * เพราะสองห้องที่เปิดถึงกันกว้างขนาดนั้น คนประมาณราคาต้องตัดสินเองว่านับเป็นกี่ห้อง
+   */
+  it("ช่องที่กว้างเกินกว่าจะเป็นประตู ยังไม่ถูกเชื่อม และยังรายงานว่าทะลุ", () => {
+    const image = pageWithRoom({
+      width: 200,
+      height: 200,
+      room: { x: 40, y: 40, w: 80, h: 60 },
+      gap: 30
+    });
+    const result = traceRegion(image, { x: 80, y: 70 }, { bridgeGapPixels: 6 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("leaked");
+  });
+
+  it("การเชื่อมไม่ขยับผนังของห้องที่ปิดสนิทอยู่แล้ว", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const plain = traceRegion(image, { x: 80, y: 70 });
+    const bridged = traceRegion(image, { x: 80, y: 70 }, { bridgeGapPixels: 6 });
+    expect(plain.ok && bridged.ok).toBe(true);
+    if (!plain.ok || !bridged.ok) return;
+    expect(bridged.areaPixels).toBe(plain.areaPixels);
+    expect(bridged.polygon).toEqual(plain.polygon);
+  });
+
+  it("คลิกลงบนช่องประตูที่เพิ่งถูกเชื่อม ถือว่าคลิกโดนเส้น ไม่ใช่คืนพื้นที่มั่ว", () => {
+    const image = pageWithRoom({
+      width: 200,
+      height: 200,
+      room: { x: 40, y: 40, w: 80, h: 60 },
+      gap: 9
+    });
+    const result = traceRegion(image, { x: 82, y: 40 }, { bridgeGapPixels: 6 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe("seed_on_line");
+  });
+
+  it("เชื่อมประตูและกลบสัญลักษณ์พร้อมกัน ได้ห้องเต็มทั้งใบ", () => {
+    const image = pageWithRoom({
+      width: 200,
+      height: 200,
+      room: { x: 40, y: 40, w: 80, h: 60 },
+      gap: 9
+    });
+    for (let x = 60; x < 66; x += 1) {
+      for (let y = 93; y < 98; y += 1) image.data[y * image.width + x] = 0;
+    }
+    const result = traceRegion(image, { x: 100, y: 70 }, { bridgeGapPixels: 6, closeRadiusPixels: 4 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+});
+
 describe("การลดจำนวนจุดของเส้นขอบ", () => {
   it("จุดที่อยู่บนเส้นตรงเดิมถูกตัดทิ้ง", () => {
     const line = [
