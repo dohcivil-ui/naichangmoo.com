@@ -1039,7 +1039,9 @@ export function DrawingMarkup({
       kind: "area",
       name: "",
       points: polygon,
-      colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length]
+      colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length],
+      // ระบบไล่ขอบห้องให้ คนยืนยัน — ตอนส่งเข้าถอดปริมาณจะกลายเป็น method region_trace
+      origin: "region_trace"
     });
   }
 
@@ -1067,7 +1069,8 @@ export function DrawingMarkup({
       kind,
       name: "",
       points,
-      colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length]
+      colour: MEASUREMENT_COLOURS[measurements.length % MEASUREMENT_COLOURS.length],
+      origin: "pointer"
     };
     commit([...measurements, created]);
     setSelectedId(created.id);

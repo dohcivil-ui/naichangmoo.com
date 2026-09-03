@@ -29,6 +29,7 @@ const make = (over: Partial<Measurement> & Pick<Measurement, "kind" | "points">)
   page: over.page ?? 1,
   name: over.name ?? "",
   colour: over.colour ?? "var(--teal)",
+  origin: over.origin ?? "pointer",
   ...over
 });
 

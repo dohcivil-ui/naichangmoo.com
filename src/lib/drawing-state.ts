@@ -15,7 +15,13 @@
  * ไฟล์นี้ไม่รู้จัก React ไม่รู้จัก pdf.js และไม่รู้จักฐานข้อมูล
  */
 
-import { isMeasurementKind, minimumPoints, type Measurement } from "@/lib/drawing-measurement";
+import {
+  isMeasurementKind,
+  isMeasurementOrigin,
+  minimumPoints,
+  type Measurement,
+  type MeasurementOrigin
+} from "@/lib/drawing-measurement";
 import type { DraftedGridLine } from "@/lib/drawing-grid";
 import { SCALE_UNITS, type PagePoint, type ScaleUnit, type StatedDimension } from "@/lib/drawing-scale";
 
@@ -196,6 +202,16 @@ function parseStoredMark(value: unknown): StoredMark | null {
   if (!points || points.length < minimumPoints(raw.kind)) return null;
 
   /**
+   * `origin` ที่หายไปอ่านเป็น `pointer` เพราะก่อนช่องนี้เกิด ทุกอย่างคือคนชี้เอง (การไล่ห้องยัง
+   * ไม่เคยถูกเซฟ) ส่วนค่าที่มีแต่ไม่อยู่ในทะเบียนคืน null ทั้งก้อน กติกาเดียวกับ `kind`
+   */
+  let origin: MeasurementOrigin = "pointer";
+  if (raw.origin !== undefined) {
+    if (typeof raw.origin !== "string" || !isMeasurementOrigin(raw.origin)) return null;
+    origin = raw.origin;
+  }
+
+  /**
    * `filed` ที่หายไปทั้งช่องอ่านเป็น null ได้ แต่ค่าที่มีอยู่แล้วผิดรูปคืน null ทั้งก้อน
    *
    * เหตุผลไม่เหมือนกันสองกรณี ช่องที่ไม่มีคือแถวที่เขียนก่อนช่องนี้เกิด ซึ่งอ่านต่อได้อย่าง
@@ -215,7 +231,7 @@ function parseStoredMark(value: unknown): StoredMark | null {
     if (layerId === null) return null;
   }
 
-  return { id, page, kind: raw.kind, name: raw.name, points, colour, filed, layerId };
+  return { id, page, kind: raw.kind, name: raw.name, points, colour, origin, filed, layerId };
 }
 
 export function parseMarksPayload(value: unknown): MarksPayload | null {

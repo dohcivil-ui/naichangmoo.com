@@ -72,6 +72,7 @@ describe("รวบรวมเรขาคณิตของหน้า", () =
     kind: "length",
     name: "",
     colour: "var(--ink)",
+    origin: "pointer",
     points: [
       { x: 0, y: 0 },
       { x: 10, y: 0 }

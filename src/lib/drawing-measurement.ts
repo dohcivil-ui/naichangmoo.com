@@ -64,7 +64,20 @@ export type Measurement = {
   /** จุดทั้งหมดในพิกัดของหน้ากระดาษ ไม่ใช่พิกเซลบนจอ */
   points: PagePoint[];
   colour: string;
+  /**
+   * จุดพวกนี้ได้มาอย่างไร — คนชี้เอง หรือระบบไล่ขอบห้องแล้วคนยืนยัน
+   *
+   * ต้องเก็บตั้งแต่ตอนวาด เพราะหลังยืนยันแล้วรูปห้องกับรูปหลายเหลี่ยมที่ลากเองหน้าตาเหมือนกันทุกจุด
+   * แต่ตอนส่งเข้าถอดปริมาณต้องบอกได้ว่าเป็น `pointer` หรือ `region_trace` (ADR 0024)
+   */
+  origin: MeasurementOrigin;
 };
+
+export type MeasurementOrigin = "pointer" | "region_trace";
+
+export function isMeasurementOrigin(value: string): value is MeasurementOrigin {
+  return value === "pointer" || value === "region_trace";
+}
 
 /**
  * ค่าที่คำนวณได้จากรายการวัดหนึ่งรายการ

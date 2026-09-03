@@ -48,6 +48,7 @@ const markRow = {
       name: "แนวผนังทิศเหนือ",
       points: [{ x: 0, y: 0 }, { x: 100, y: 0 }],
       colour: "var(--teal)",
+      origin: "pointer",
       filed: null,
       layerId: null
     }
@@ -259,13 +260,21 @@ describe("รอยที่คนวาดไว้", () => {
     })).toBeNull();
   });
 
-  it("ช่อง filed กับ layerId ที่หายไปทั้งช่องอ่านเป็น null ได้", () => {
+  it("ช่อง filed กับ layerId ที่หายไปทั้งช่องอ่านเป็น null ได้ และ origin ที่หายไปคือคนชี้เอง", () => {
     const legacy = { ...markRow.items[0] } as Record<string, unknown>;
     delete legacy.filed;
     delete legacy.layerId;
+    delete legacy.origin;
     const parsed = parseMarksPayload({ version: 1, items: [legacy] });
     expect(parsed?.items[0].filed).toBeNull();
     expect(parsed?.items[0].layerId).toBeNull();
+    expect(parsed?.items[0].origin).toBe("pointer");
+  });
+
+  it("origin ที่ไม่อยู่ในทะเบียนคืน null ทั้งก้อน ส่วน region_trace อ่านกลับได้", () => {
+    expect(parseMarksPayload({ version: 1, items: [{ ...markRow.items[0], origin: "magic" }] })).toBeNull();
+    const parsed = parseMarksPayload({ version: 1, items: [{ ...markRow.items[0], origin: "region_trace" }] });
+    expect(parsed?.items[0].origin).toBe("region_trace");
   });
 
   it("ช่อง filed หรือ layerId ที่มีอยู่แต่ผิดรูปคืน null ทั้งก้อน", () => {
@@ -285,6 +294,6 @@ describe("รอยที่คนวาดไว้", () => {
       items: [{ ...markRow.items[0], scanState: "pending" }]
     });
     expect(Object.keys(parsed?.items[0] ?? {}).sort())
-      .toEqual(["colour", "filed", "id", "kind", "layerId", "name", "page", "points"]);
+      .toEqual(["colour", "filed", "id", "kind", "layerId", "name", "origin", "page", "points"]);
   });
 });
