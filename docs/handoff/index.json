@@ -1,5 +1,22 @@
 [
   {
+    "title": "รอยวัดลงฐานและส่งเข้าถอดปริมาณจากหน้าวาด กดจริงผ่าน เหลือขั้น 8 กับตัดรุ่น",
+    "description": "IP-233 กดจริงผ่านครบและแก้สองบั๊กที่เจอ (ซูมไม่กลับ เส้นวัดเบลอ) · IP-234 ขั้น 1–7 ลงครบ migration 0016 รันแล้ว รอยวัดปิดเว็บไม่หาย ส่งเข้าถอดปริมาณเป็นธุรกรรมเดียวพร้อมหลักฐานที่ก๊อปสเกล ณ ตอนส่ง กดจริงขั้น 9 ผ่าน · สเปก layer สเปกพื้นที่ห้องต้องบอกวิธีคิด และงานค้นอัตราใช้วัสดุจากผู้ผลิตไทย · ค้างขั้น 8 method-claims และตัดรุ่น 0.99.0",
+    "scope": [
+      "IP-233 ขั้น 6 กดจริง สเกล 1:125.17 เทียบแบบเขียน 1:125 วัดช่วง 5.00 ได้ 5.00 ปิดแท็บเปิดใหม่กลับมาครบ",
+      "IP-234 ตาราง drawing_marks parser สะพานไป backup sheet หลักฐานเรขาคณิต repository action หน้าจอ และป้ายวิธีที่มาบนหน้าถอดปริมาณ",
+      "สเปก layer และสเปกพื้นที่ห้องพร้อมคำตัดสินของเจ้าของงานเก้าข้อ · research อัตราใช้วัสดุ 31 ค่าปฐมภูมิ"
+    ],
+    "verification": [
+      "pnpm lint · pnpm typecheck · pnpm test 1,089 ตัวผ่าน",
+      "ESTIMETR_DB_TESTS=1 pnpm vitest run src/server/estimeter/drawing-repository.integration.test.ts src/server/estimeter/takeoff-repository.integration.test.ts 38 ตัวผ่าน",
+      "กดจริงใน Edge ครบขั้น 9 ของสเปก IP-234 ภาพ step6-* step9-* ในสคราตช์แพดของเซสชัน 2026-09-03 ค่ำ",
+      "ตรวจแถวจริง takeoff_measurements.method สามค่า evidence_references.geometry มีจุดและสเกล takeoff_runs.document_id ตั้ง"
+    ],
+    "rollback": "หน้าจอ git revert abeee0d ตัวเดียว · migration 0016 เป็นการเพิ่มตารางล้วน ถอนต้องเขียน migration ใหม่ ไม่มีข้อมูลลูกค้าจริงในตาราง",
+    "path": "docs/handoff/2026-09-03-ip-234-marks-filed-next-steps.md"
+  },
+  {
     "title": "ที่มาของปริมาณและงานวัดลงฐาน ค้างขั้นกดจริง",
     "description": "แบบ IP-232 กับ IP-230 · migration 0015 เพิ่มที่มาของปริมาณ ตารางสเกล และจุดที่ค้าง · IP-233 ครบขั้น 1–5 ปิดหน้าเว็บแล้วสเกล กริด ระยะจริง กลับมาครบ · ADR 0024 · ค้างขั้นกดจริงใน Edge เพราะ MCP ค้างทั้งเซสชัน",
     "scope": [
