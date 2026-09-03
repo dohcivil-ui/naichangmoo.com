@@ -111,6 +111,94 @@ describe("การเลือกพื้นที่ห้องด้วย�
   });
 });
 
+/**
+ * สัญลักษณ์ในแบบต้องไม่กินพื้นที่ห้อง
+ *
+ * เจ้าของงานกดจริงเมื่อ 2026-09-04 แล้วทักว่า "ยังเว้นช่องสัญลักษณ์ สามเหลี่ยมอยู่เลย
+ * มันต้องไฮไลท์เต็ม" — แบบก่อสร้างมีสามเหลี่ยมบอกระดับ ตัวอักษรชื่อห้อง ป้ายชนิดพื้นและฝ้า
+ * วางอยู่ในห้องเต็มไปหมด บางอันชิดผนังจนสีลอดไม่ได้ ขอบที่ไล่ได้จึงเว้าเข้ามาและพื้นที่ขาด
+ */
+describe("การกลบรอยเว้าที่สัญลักษณ์ทิ้งไว้", () => {
+  /** ห้องที่มีแท่งทึบยื่นจากผนังบนเข้ามาในห้อง จำลองสัญลักษณ์ที่วางชิดผนัง */
+  function roomWithStubFromWall(stubWidth: number, stubDepth: number): GreyImage {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const left = 70;
+    for (let x = left; x < left + stubWidth; x += 1) {
+      for (let y = 41; y < 41 + stubDepth; y += 1) image.data[y * image.width + x] = 0;
+    }
+    return image;
+  }
+
+  it("ไม่กลบ พื้นที่ขาดไปเท่ากับขนาดสัญลักษณ์", () => {
+    const image = roomWithStubFromWall(6, 8);
+    const result = traceRegion(image, { x: 60, y: 90 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58 - 6 * 8);
+  });
+
+  it("กลบด้วยรัศมีที่กว้างกว่าครึ่งหนึ่งของสัญลักษณ์ ได้พื้นที่เต็มห้องคืนมา", () => {
+    const image = roomWithStubFromWall(6, 8);
+    const result = traceRegion(image, { x: 60, y: 90 }, { closeRadiusPixels: 4 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  it("ห้องที่ไม่มีสัญลักษณ์เลย การกลบไม่ขยับขอบสักพิกเซล", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const plain = traceRegion(image, { x: 80, y: 70 });
+    const closed = traceRegion(image, { x: 80, y: 70 }, { closeRadiusPixels: 4 });
+    expect(plain.ok && closed.ok).toBe(true);
+    if (!plain.ok || !closed.ok) return;
+    expect(closed.areaPixels).toBe(plain.areaPixels);
+    expect(closed.polygon).toEqual(plain.polygon);
+  });
+
+  /**
+   * ข้อที่สำคัญที่สุดของชุดนี้ การกลบต้องเพิ่มพื้นที่ได้ แต่ต้องข้ามผนังไปห้องข้าง ๆ ไม่ได้
+   * ถ้าข้ามได้เมื่อไหร่ มันก็ไม่ต่างอะไรกับการรั่ว ซึ่งเป็นสิ่งที่ทั้งไฟล์นี้มีไว้เพื่อกัน
+   */
+  it("กลบด้วยรัศมีใหญ่ ก็ยังข้ามผนังไปห้องติดกันไม่ได้", () => {
+    const width = 200;
+    const height = 200;
+    const data = new Uint8ClampedArray(width * height).fill(255);
+    const dark = (x: number, y: number) => {
+      data[y * width + x] = 0;
+    };
+    // ห้องคู่ กว้างห้องละ 38 พิกเซล คั่นด้วยผนังหนา 2 พิกเซลตรงกลาง
+    for (let x = 40; x < 120; x += 1) {
+      dark(x, 40);
+      dark(x, 99);
+    }
+    for (let y = 40; y < 100; y += 1) {
+      dark(40, y);
+      dark(119, y);
+      dark(79, y);
+      dark(80, y);
+    }
+    const image: GreyImage = { data, width, height };
+    const left = traceRegion(image, { x: 60, y: 70 }, { closeRadiusPixels: 8 });
+    expect(left.ok).toBe(true);
+    if (!left.ok) return;
+    // ห้องซ้ายภายในคือ 38 x 58 ห้องขวาอีก 38 x 58 — ต้องได้แค่ห้องเดียว
+    expect(left.areaPixels).toBeLessThan(38 * 58 * 1.5);
+  });
+
+  it("รูที่สัญลักษณ์ลอยกลางห้องทิ้งไว้ ถูกกลบด้วย ไม่เหลือเป็นรูในรูปทรง", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    for (let x = 70; x < 76; x += 1) {
+      for (let y = 60; y < 66; y += 1) image.data[y * image.width + x] = 0;
+    }
+    const plain = traceRegion(image, { x: 50, y: 50 });
+    const closed = traceRegion(image, { x: 50, y: 50 }, { closeRadiusPixels: 4 });
+    expect(plain.ok && closed.ok).toBe(true);
+    if (!plain.ok || !closed.ok) return;
+    expect(plain.areaPixels).toBe(78 * 58 - 36);
+    expect(closed.areaPixels).toBe(78 * 58);
+  });
+});
+
 describe("การลดจำนวนจุดของเส้นขอบ", () => {
   it("จุดที่อยู่บนเส้นตรงเดิมถูกตัดทิ้ง", () => {
     const line = [

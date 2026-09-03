@@ -27,6 +27,19 @@ export type RegionOptions = {
   lineThreshold?: number;
   /** สัดส่วนของทั้งหน้าที่ถ้าเกินแล้วถือว่าสีทะลุออกนอกห้อง */
   maxAreaFraction?: number;
+  /**
+   * รัศมีของการกลบรอยเว้าและรูที่สัญลักษณ์ในแบบทิ้งไว้ หน่วยเป็นพิกเซลของภาพวิเคราะห์
+   *
+   * **ทำไมต้องมี** การไล่สีหยุดที่ทุกเส้นที่เขียนในแบบ ซึ่งรวมสิ่งที่ไม่ใช่ผนังด้วย คือ
+   * สัญลักษณ์สามเหลี่ยมบอกระดับ ตัวอักษรชื่อห้อง ป้ายชนิดพื้นและฝ้า เส้นบอกระยะ สัญลักษณ์
+   * ประตูหน้าต่าง เมื่อของพวกนี้อยู่ชิดผนัง สีลอดเข้าไประหว่างมันกับผนังไม่ได้ ขอบที่ไล่ได้
+   * จึงเว้าเข้ามาเป็นรอยหยัก และพื้นที่ที่ได้ขาดไปจากของจริง เจ้าของงานทักเรื่องนี้เมื่อ
+   * 2026-09-04 ว่า "ยังเว้นช่องสัญลักษณ์ สามเหลี่ยมอยู่เลย มันต้องไฮไลท์เต็ม"
+   *
+   * ศูนย์แปลว่าไม่กลบ ซึ่งเป็นค่าตั้งต้นเพื่อให้ฟังก์ชันนี้ยังเป็นการไล่ขอบล้วนเมื่อไม่สั่ง
+   * ผู้เรียกเป็นคนคำนวณค่านี้จากสเกลของหน้า เพราะไฟล์นี้ไม่รู้จักเมตร รู้จักแต่พิกเซล
+   */
+  closeRadiusPixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -47,6 +60,22 @@ export const DEFAULT_LINE_THRESHOLD = 140;
  */
 const DEFAULT_MAX_AREA_FRACTION = 0.25;
 const MIN_AREA_PIXELS = 40;
+
+/**
+ * ขนาดของสิ่งที่ถือว่าเป็นสัญลักษณ์ ไม่ใช่ผนัง วัดเป็นเมตรบนอาคารจริง
+ *
+ * ผู้เรียกแปลงค่านี้เป็นพิกเซลของภาพวิเคราะห์แล้วส่งเข้า `closeRadiusPixels` — อยู่ที่นี่
+ * เพราะมันเป็นค่าปรับจูนของอัลกอริทึมนี้ ไม่ใช่ของหน้าจอ แต่ตัวฟังก์ชันรู้จักแต่พิกเซล
+ *
+ * **ที่มาของ 0.40** สัญลักษณ์บอกระดับบนแบบ A3 มาตราส่วน 1:125 สูงราวหกมิลลิเมตรบนกระดาษ
+ * ซึ่งเท่ากับ 0.75 เมตรบนอาคารจริง รัศมีนี้กลบรอยเว้าที่กว้างไม่เกินสองเท่าคือ 0.80 เมตร
+ * จึงครอบสัญลักษณ์พวกนั้นได้พอดี
+ *
+ * **สิ่งที่แลกไป** เสาหรือแป้นที่ยื่นเข้ามาในห้องแคบกว่า 0.80 เมตรจะถูกกลบทับไปด้วย
+ * ซึ่งรับได้เพราะวิธีประมาณราคาที่เจ้าของงานใช้จริงคือวัดกึ่งกลางเสาถึงกึ่งกลางเสา
+ * ซึ่งนับเสาเข้าไปในพื้นที่อยู่แล้ว การกลบนี้จึงเดินไปทางเดียวกับวิธีที่เขาใช้ ไม่ใช่สวนทาง
+ */
+export const SYMBOL_CLOSE_METRES = 0.4;
 
 export const regionRejectionMessage: Record<RegionRejection, string> = {
   seed_outside: "คลิกนอกขอบหน้าแบบ",
@@ -111,8 +140,84 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
   if (touchedBorder) return { ok: false, reason: "leaked", areaPixels };
   if (areaPixels < MIN_AREA_PIXELS) return { ok: false, reason: "too_small", areaPixels };
 
-  const outline = traceOutline(filled, image.width, image.height);
-  return { ok: true, polygon: simplify(outline, 1.5), areaPixels };
+  const radius = Math.floor(options.closeRadiusPixels ?? 0);
+  const shape = radius > 0 ? closeMask(filled, image.width, image.height, radius) : filled;
+  let closedArea = areaPixels;
+  if (shape !== filled) {
+    closedArea = 0;
+    for (let index = 0; index < shape.length; index += 1) if (shape[index]) closedArea += 1;
+  }
+
+  const outline = traceOutline(shape, image.width, image.height);
+  return { ok: true, polygon: simplify(outline, 1.5), areaPixels: closedArea };
+}
+
+/**
+ * กลบรอยเว้าและรูที่แคบกว่าสองเท่าของรัศมี โดยไม่ขยับขอบที่เป็นเส้นตรง
+ *
+ * เป็นการปิดทางสัณฐานวิทยา (morphological closing) คือขยายก่อนแล้วหดกลับ ผลของสองขั้นนี้
+ * บนขอบตรงคือได้ขอบเดิมเป๊ะ ส่วนบนรอยเว้าแคบคือถูกเติมเต็ม เพราะตอนขยายมันเชื่อมถึงกัน
+ * แล้วตอนหดกลับมันไม่ถูกแยกออกอีก
+ *
+ * **ทำไมมันข้ามผนังไปห้องข้าง ๆ ไม่ได้** ห้องข้าง ๆ เป็นที่ว่างกว้างกว่ารัศมีอยู่แล้ว
+ * ตอนหดกลับ พิกเซลทุกตัวที่ยื่นข้ามผนังไปจึงถูกหดทิ้งหมด สิ่งที่เหลืออยู่ได้คือพิกเซลที่
+ * "วงกลมรัศมีนี้วางในที่ว่างแล้วเอื้อมไปไม่ถึง" ซึ่งก็คือรอยเว้าแคบกับรูเล็ก ตรงตามที่ต้องการ
+ * · การกลบนี้จึงเพิ่มพื้นที่ได้ แต่ทำให้สีรั่วออกนอกห้องไม่ได้ ซึ่งเป็นคนละเรื่องกัน
+ */
+export function closeMask(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  radius: number
+): Uint8Array {
+  return sweep(sweep(mask, width, height, radius, "max"), width, height, radius, "min");
+}
+
+/**
+ * ขยายหรือหดด้วยหน้าต่างสี่เหลี่ยม แยกเป็นสองรอบ แนวนอนแล้วแนวตั้ง
+ *
+ * แยกได้เพราะหน้าต่างสี่เหลี่ยมคูณกันได้จากสองแกน ทำให้งานเป็นเชิงเส้นกับจำนวนพิกเซล
+ * แทนที่จะเป็นกำลังสองของรัศมี ซึ่งสำคัญเพราะภาพวิเคราะห์ของหน้า A3 มีหลายล้านพิกเซล
+ *
+ * นอกขอบภาพถือว่าว่างตอนขยาย และถือว่าเต็มตอนหด เพื่อไม่ให้ขอบภาพกัดรูปทรงเข้ามาเอง
+ * บริเวณที่แตะขอบกระดาษถูกปฏิเสธไปก่อนหน้านี้แล้ว จึงไม่มีรูปทรงจริงที่พึ่งพากติกานี้
+ */
+function sweep(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  radius: number,
+  mode: "max" | "min"
+): Uint8Array {
+  const wanted = mode === "max" ? 1 : 0;
+  const outside = mode === "max" ? 0 : 1;
+  const horizontal = new Uint8Array(mask.length);
+  for (let y = 0; y < height; y += 1) {
+    const row = y * width;
+    for (let x = 0; x < width; x += 1) {
+      let found = false;
+      for (let dx = -radius; dx <= radius && !found; dx += 1) {
+        const nx = x + dx;
+        const value = nx < 0 || nx >= width ? outside : mask[row + nx];
+        if (value === wanted) found = true;
+      }
+      horizontal[row + x] = found ? wanted : 1 - wanted;
+    }
+  }
+
+  const vertical = new Uint8Array(mask.length);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      let found = false;
+      for (let dy = -radius; dy <= radius && !found; dy += 1) {
+        const ny = y + dy;
+        const value = ny < 0 || ny >= height ? outside : horizontal[ny * width + x];
+        if (value === wanted) found = true;
+      }
+      vertical[y * width + x] = found ? wanted : 1 - wanted;
+    }
+  }
+  return vertical;
 }
 
 /**

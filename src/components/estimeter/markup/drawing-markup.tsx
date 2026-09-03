@@ -5,10 +5,8 @@ import Link from "next/link";
 import { MeasurementRegister } from "@/components/estimeter/markup/measurement-register";
 import {
   hitTest,
-  isComplete,
   isMeasurementKind,
   measure,
-  measurementKindLabel,
   minimumPoints,
   outlinePoints,
   summarise,
@@ -32,7 +30,7 @@ import {
   type SnapHit,
   type SnapSettings
 } from "@/lib/drawing-snap";
-import { regionRejectionMessage, toGreyImage, traceRegion } from "@/lib/region-fill";
+import { regionRejectionMessage, SYMBOL_CLOSE_METRES, toGreyImage, traceRegion } from "@/lib/region-fill";
 import {
   calibrate,
   calibrateFromDimension,
@@ -42,7 +40,6 @@ import {
   formatScaleRatio,
   lockToAngle,
   lockToAxis,
-  polylineLengthPoints,
   POINTS_PER_METRE,
   SCALE_UNITS,
   scaleUnitLabel,
@@ -1166,7 +1163,19 @@ export function DrawingMarkup({
     }
     const { image, scale: analysisScale } = analysis;
     const grey = toGreyImage(image.data, image.width, image.height);
-    const result = traceRegion(grey, { x: point.x * analysisScale, y: point.y * analysisScale });
+    /**
+     * รัศมีการกลบเป็นพิกเซลของภาพวิเคราะห์ · ต้องมีสเกลของหน้าก่อนถึงจะรู้ว่าเมตรหนึ่ง
+     * กว้างกี่พิกเซล หน้าที่ยังไม่ตั้งสเกลจึงไม่กลบ ซึ่งไม่เป็นปัญหาเพราะเครื่องมือนี้
+     * ถูกล็อกไว้จนกว่าจะตั้งสเกลอยู่แล้ว (`toolNeedsScale`)
+     */
+    const closeRadiusPixels = pageScale
+      ? (SYMBOL_CLOSE_METRES / pageScale.metresPerPoint) * analysisScale
+      : 0;
+    const result = traceRegion(
+      grey,
+      { x: point.x * analysisScale, y: point.y * analysisScale },
+      { closeRadiusPixels }
+    );
     if (!result.ok) {
       setPendingRoom(null);
       setRegionError(regionRejectionMessage[result.reason]);
@@ -2284,11 +2293,17 @@ export function DrawingMarkup({
   );
 }
 
-/** ใช้ในสรุปท้ายหน้าเมื่อยังไม่มีรายการ เก็บไว้ที่นี่เพื่อไม่ให้คอมโพเนนต์อื่นคิดเลขเอง */
-export function draftLengthLabel(points: PagePoint[], scale: PageScale | null): string {
-  if (points.length < 2 || !scale) return "";
-  return `${formatMetres(polylineLengthPoints(points) * scale.metresPerPoint)} ม.`;
-}
-
-/** เผยไว้ให้เทสต์ระดับหน้าจอเรียกได้ โดยไม่ต้องส่งออกทั้งคอมโพเนนต์ */
-export const markupInternals = { MEASUREMENT_COLOURS, TOOLS, measure, isComplete, measurementKindLabel };
+/**
+ * **ไฟล์นี้ต้องส่งออกเฉพาะคอมโพเนนต์เท่านั้น**
+ *
+ * เคยมีสองอย่างส่งออกจากท้ายไฟล์นี้ คือ `draftLengthLabel` กับ `markupInternals` ซึ่งไม่มี
+ * ไฟล์ไหนนำเข้าไปใช้เลยสักที่ แต่มันมีราคาที่แพงกว่าที่คิด — Fast Refresh ของ Next ยอมเปลี่ยน
+ * โค้ดโดยไม่โหลดหน้าใหม่ได้ก็ต่อเมื่อโมดูลนั้นส่งออกแต่คอมโพเนนต์ React พอมีค่าอื่นปนออกไป
+ * มันยอมแพ้แล้วสั่งโหลดใหม่ทั้งหน้าทุกครั้งที่ไฟล์นี้ถูกแก้
+ *
+ * 2026-09-04 เจ้าของงานเจอผลของมันเต็ม ๆ หน้าที่เปิดค้างข้ามการโหลดใหม่ 172 รอบสุดท้าย
+ * หลุดจาก React ทั้งหน้า ปุ่มย้อนกลับ ปุ่มเครื่องมือ และคำอธิบายที่ควรเด้งตอนเอาเมาส์วาง
+ * เงียบหมด เหลือแต่ผืนวาดที่ยังทำงานเพราะมันฟังเหตุการณ์เอง — อาการนี้อ่านไม่ออกเลยว่า
+ * มาจากเรื่องนี้ ถ้าวันหน้าต้องเปิดค่าในนี้ให้เทสต์ระดับหน้าจอเรียก ให้ย้ายค่านั้นไปโมดูลของมันเอง
+ * แล้วให้ทั้งคอมโพเนนต์กับเทสต์นำเข้าจากที่นั่น ห้ามส่งออกเพิ่มจากไฟล์นี้
+ */
