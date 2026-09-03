@@ -530,7 +530,13 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     const { getDb } = await import("@/db");
     const { takeoffMeasurements } = await import("@/db/schema");
     const fixture = await measuredItem();
-    const base = { takeoffItemId: fixture.itemId, label: "ผ่านหลังบ้าน", count: 1, dimension1: "1" };
+    const base = {
+      takeoffItemId: fixture.itemId,
+      label: "ผ่านหลังบ้าน",
+      count: 1,
+      dimension1: "1",
+      method: "typed"
+    };
     const insert = (overrides: Record<string, unknown>) =>
       getDb()
         .insert(takeoffMeasurements)
@@ -541,6 +547,32 @@ describe.skipIf(!enabled)("manual take-off against PostgreSQL", () => {
     // A conversion factor with no provenance is an unexplained number inside the arithmetic.
     expect(await refusedBy(insert({ conversionFactor: "0.888" }))).toBe(
       "takeoff_measurements_conversion_needs_source"
+    );
+  });
+  it("refuses a quantity whose stated origin and its proposal trail disagree (IP-232)", async () => {
+    const { getDb } = await import("@/db");
+    const { takeoffMeasurements } = await import("@/db/schema");
+    const fixture = await measuredItem();
+    const base = {
+      takeoffItemId: fixture.itemId,
+      label: "ที่มาไม่ตรงกับร่องรอย",
+      count: 1,
+      dimension1: "1",
+      method: "typed"
+    };
+    const insert = (overrides: Record<string, unknown>) =>
+      getDb()
+        .insert(takeoffMeasurements)
+        .values({ ...base, id: randomUUID(), ...overrides });
+
+    // A model's number with nothing to trace it back to: no model id, nobody who pressed accept.
+    expect(await refusedBy(insert({ method: "model" }))).toBe(
+      "takeoff_measurements_model_pairs_proposal"
+    );
+    // And the mirror: a hand-measured number may not borrow a proposal it did not come from.
+    // Both directions matter — one alone would leave a way to launder an origin.
+    expect(await refusedBy(insert({ proposalId: fixture.itemId }))).toBe(
+      "takeoff_measurements_model_pairs_proposal"
     );
   });
   it("numbers headings from their position and renumbers when one is removed", async () => {

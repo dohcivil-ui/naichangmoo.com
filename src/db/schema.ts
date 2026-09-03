@@ -215,6 +215,74 @@ export const drawingDocuments = pgTable("drawing_documents", {
   updatedAt
 });
 
+/**
+ * The scale a person confirmed for one page of one drawing, and the grid they drafted on it.
+ *
+ * Until this table existed the scale lived in browser state, so closing the tab threw away the
+ * one number every quantity on the page is multiplied by. That is worse than losing the
+ * measurements: a re-drawn line is a minute of work, but a re-clicked calibration is a new
+ * chance to be 0.5% wrong on everything at once, which nobody can see by eye because it is
+ * wrong by the same proportion everywhere.
+ *
+ * `confirmed_by` is NOT NULL so that no path at all, including a hand-typed SQL statement, can
+ * put a scale in front of a person without saying who stood behind it. ADR 0019 and IP-052 stop
+ * being a rule somebody has to remember and become a thing the database refuses.
+ *
+ * The ratio a person reads as 1:125 is deliberately absent: it is `metres_per_point` times a
+ * constant, and a derived number stored beside its source is a stale value waiting to disagree.
+ * Grid intersections and auto-assigned axis names are absent for the same reason, one step
+ * further on — they are recomputed from `grid` every time, so editing one line cannot leave
+ * orphaned nodes nobody knows are old.
+ */
+export const drawingCalibrations = pgTable("drawing_calibrations", {
+  id: text("id").primaryKey(),
+  documentId: text("document_id").notNull().references(() => drawingDocuments.id, { onDelete: "cascade" }),
+  pageNumber: integer("page_number").notNull(),
+  metresPerPoint: numeric("metres_per_point", { precision: 18, scale: 12 }).notNull(),
+  /** How the scale was established. Valid values live in src/lib/drawing-calibration-method.ts. */
+  method: text("method").notNull(),
+  /** {version:1, points:[a,b], realDistance, unit} — what the person actually did. */
+  referenceGeometry: jsonb("reference_geometry").notNull(),
+  /** {version:1, lines:[…]} of drafted grid lines. Null means nobody drafted a grid yet. */
+  grid: jsonb("grid"),
+  /** {version:1, items:[…]} of the distances written on the drawing, always in metres. */
+  dimensions: jsonb("dimensions"),
+  confirmedBy: text("confirmed_by").notNull().references(() => users.id),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull(),
+  createdAt,
+  updatedAt
+}, (table) => [
+  uniqueIndex("drawing_calibrations_page_idx").on(table.documentId, table.pageNumber),
+  check("drawing_calibrations_metres_per_point_positive", sql`${table.metresPerPoint} > 0`),
+  check("drawing_calibrations_page_number_positive", sql`${table.pageNumber} > 0`)
+]);
+
+/**
+ * Where one person had scrolled to in one drawing, so reopening it resumes instead of restarting.
+ *
+ * Keyed by person as well as document because two people reading the same sheet are looking at
+ * different rooms, and a shared cursor would yank each of them to the other's page. This is the
+ * reason it is not a column on drawingCalibrations, which is the document's shared work.
+ *
+ * Nothing here is evidence of anything: it is a convenience that may be wrong or missing without
+ * any consequence for a quantity. It is therefore the one write in the estimeter path that does
+ * NOT raise an audit event — scrolling is not an act anybody needs to review, and recording it
+ * would bury the acts that are.
+ */
+export const drawingViewStates = pgTable("drawing_view_states", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  documentId: text("document_id").notNull().references(() => drawingDocuments.id, { onDelete: "cascade" }),
+  pageNumber: integer("page_number").notNull(),
+  /** {version:1, scale, offsetX, offsetY} — the camera, in the same units the canvas uses. */
+  view: jsonb("view").notNull(),
+  createdAt,
+  updatedAt
+}, (table) => [
+  uniqueIndex("drawing_view_states_person_idx").on(table.userId, table.documentId),
+  check("drawing_view_states_page_number_positive", sql`${table.pageNumber} > 0`)
+]);
+
 export const takeoffRuns = pgTable("takeoff_runs", {
   id: text("id").primaryKey(),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
@@ -305,6 +373,21 @@ export const takeoffMeasurements = pgTable("takeoff_measurements", {
   conversionFactor: numeric("conversion_factor", { precision: 18, scale: 6 }),
   conversionNote: text("conversion_note"),
   sortOrder: integer("sort_order").notNull().default(0),
+  /**
+   * How this number was produced. Valid values live in src/lib/quantity-provenance.ts (IP-232).
+   *
+   * Deliberately has no default: every write path has to say which method it used, so a row can
+   * never be labelled by accident. And deliberately records the method rather than a verdict on
+   * how trustworthy it is, because a verdict is a judgement made with today's criteria, and
+   * storing it would freeze today's opinion into every historical row. Whether a method needs
+   * its origin disclosed is answered by a function over this column, so the day a model earns
+   * more trust the criteria change in one file and no data moves.
+   */
+  method: text("method").notNull(),
+  /** The proposal a model's value came from. Required for `model`, forbidden otherwise. */
+  proposalId: text("proposal_id").references(() => assistantProposals.id, { onDelete: "restrict" }),
+  /** {version:1, pointerType?, calibrationId?} — facts about how it was captured, never opinions. */
+  methodContext: jsonb("method_context"),
   createdAt,
   updatedAt
 }, (table) => [
@@ -327,6 +410,14 @@ export const takeoffMeasurements = pgTable("takeoff_measurements", {
       OR (${table.conversionFactor} > 0
         AND ${table.conversionNote} IS NOT NULL
         AND length(btrim(${table.conversionNote})) > 0)`
+  ),
+  // A value a model proposed must always lead back to the proposal that carries the model it
+  // came from and the person who pressed accept, and a value a person measured must never
+  // pretend to. Both directions are enforced, so neither a missing trail nor a borrowed one is
+  // reachable — not through the repository, not through a hand-typed statement.
+  check(
+    "takeoff_measurements_model_pairs_proposal",
+    sql`(${table.method} = 'model') = (${table.proposalId} IS NOT NULL)`
   )
 ]);
 
@@ -731,6 +822,8 @@ export const schema = {
   enterpriseQuotationRequests,
   projects,
   drawingDocuments,
+  drawingCalibrations,
+  drawingViewStates,
   takeoffRuns,
   takeoffGroups,
   takeoffItems,

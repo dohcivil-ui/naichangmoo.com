@@ -16,6 +16,10 @@ import { describe, expect, it } from "vitest";
 const CLOSED_TABLES = [
   "projects",
   "drawingDocuments",
+  // IP-233: สเกลที่ลูกค้ายืนยันเอง แนวเสาที่เขาร่างเอง และจุดที่เขาค้างอยู่บนแบบ
+  // เป็นงานของเขาล้วน หลังบ้านไม่มีเหตุผลใดที่ต้องอ่าน — เหตุผลเดียวกับ takeoffItems
+  "drawingCalibrations",
+  "drawingViewStates",
   "takeoffRuns",
   "takeoffGroups",
   "takeoffItems",

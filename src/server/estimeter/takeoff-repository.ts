@@ -7,6 +7,7 @@ import { itemConfirmationBlocker } from "@/lib/takeoff-item";
 import type { MeasurementInput } from "@/lib/takeoff-measurement";
 import { grossQuantity, measurementMatchesUnit, measurementSubtotal, netQuantity } from "@/lib/takeoff-measurement";
 import { MAX_GROUP_DEPTH, type OutlineGroupInput } from "@/lib/takeoff-outline";
+import type { QuantityMethod } from "@/lib/quantity-provenance";
 
 export const MANUAL_RUNNER = "manual";
 
@@ -505,7 +506,11 @@ export async function addItemMeasurement(input: {
       dimension3,
       conversionFactor: input.measurement.conversionFactor,
       conversionNote: input.measurement.conversionNote,
-      sortOrder: Number(nextOrder[0]?.value ?? 0)
+      sortOrder: Number(nextOrder[0]?.value ?? 0),
+      // This path is the typed form: a person read the drawing and keyed the figures in. The
+      // method is written here rather than defaulted in the column so that a future path which
+      // forgets to say how it measured fails to compile instead of quietly claiming this one.
+      method: "typed" satisfies QuantityMethod
     });
 
     const totals = await recomputeItemQuantity(tx, input.itemId, locked.item.wastePercent);
