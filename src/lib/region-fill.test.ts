@@ -487,6 +487,43 @@ describe("เสาที่มุมห้อง", () => {
     expect(result.areaPixels).toBe(78 * 58);
   });
 
+  /**
+   * สัญลักษณ์ประตูหน้าต่างเป็นสามเหลี่ยมสองอันประกบผนัง มันเป็นรูปปิดจึงมีที่ว่างปิดสนิท
+   * อยู่ข้างในเหมือนเสา และอยู่ชิดผนังด้วย · 2026-09-04 กติกาเสารุ่นแรกถมมันเป็นเสาปลอม
+   * ทุกบาน ขอบห้องจึงโป่งเข้าไปในเนื้อผนังทุกจุดที่มีประตู เจ้าของงานจับได้จากรูปทันที
+   */
+  it("สามเหลี่ยมสัญลักษณ์ที่คร่อมผนัง ไม่ใช่เสา แม้ข้างในจะเป็นที่ว่างปิดสนิท", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    // สามเหลี่ยมชี้เข้าหาผนังซ้าย ปลายแหลมแตะผนังที่ x = 40
+    for (let step = 0; step <= 14; step += 1) {
+      set(26, 63 + step);
+      set(26 + step, 63 + step);
+      set(26 + step, 77 - step);
+    }
+    for (let y = 63; y <= 77; y += 1) set(40, y);
+    const result = traceRegion(image, { x: 80, y: 70 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  it("วงกลมเลขแนวเสาที่ชิดผนัง ไม่ใช่เสา", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    for (let step = 0; step < 360; step += 2) {
+      const angle = (step * Math.PI) / 180;
+      const x = Math.round(48 + 7 * Math.cos(angle));
+      const y = Math.round(70 + 7 * Math.sin(angle));
+      image.data[y * image.width + x] = 0;
+    }
+    const result = traceRegion(image, { x: 90, y: 90 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
   it("กรอบที่ใหญ่เกินช่วงของเสา ไม่ใช่เสา", () => {
     const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
     const set = (x: number, y: number) => {

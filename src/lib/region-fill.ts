@@ -378,8 +378,10 @@ function enclosedGaps(
     let maxX = -1;
     let minY = height;
     let maxY = -1;
+    let filled = 0;
     while (stack.length > 0) {
       const index = stack.pop() as number;
+      filled += 1;
       const x = index % width;
       const y = (index - x) / width;
       if (x < minX) minX = x;
@@ -401,6 +403,18 @@ function enclosedGaps(
     const boxHeight = maxY - minY + 1;
     if (boxWidth < rule.min || boxHeight < rule.min) continue;
     if (boxWidth > rule.max || boxHeight > rule.max) continue;
+    /**
+     * **ช่องต้องเต็มกรอบเกือบทั้งหมด ไม่งั้นมันไม่ใช่เสา**
+     *
+     * เนื้อในเสาเป็นสี่เหลี่ยม จึงเต็มกรอบล้อมของมันเกือบร้อยเปอร์เซ็นต์ ส่วนเนื้อใน
+     * สามเหลี่ยมสัญลักษณ์ประตูเต็มแค่ราวครึ่งเดียว และเนื้อในวงกลมเลขแนวเสาเต็มราว
+     * เจ็ดสิบแปดเปอร์เซ็นต์ ทั้งสองอย่างจึงตกด่านนี้
+     *
+     * ข้อนี้มีเพราะเมื่อ 2026-09-04 ผมลืมตรวจรูปร่างในทางนี้ ทั้งที่ตรวจในอีกทางแล้ว
+     * ผลคือสามเหลี่ยมสัญลักษณ์ที่คร่อมผนังทุกบานกลายเป็นเสาปลอม ขอบห้องจึงโป่งเข้าไป
+     * ในเนื้อผนังทุกจุดที่มีประตูหรือหน้าต่าง เจ้าของงานจับได้จากรูปทันที
+     */
+    if (filled / (boxWidth * boxHeight) < 0.85) continue;
     found.push({ minX, minY, maxX, maxY });
   }
   return found;
