@@ -5,6 +5,7 @@ import {
   removeJogs,
   simplify,
   snapOutlineToLines,
+  structuralBarrier,
   toGreyImage,
   traceRegion,
   type GreyImage,
@@ -904,6 +905,41 @@ describe("การยุบขั้นบันไดเล็ก", () => {
       { x: 0, y: 60 }
     ];
     expect(removeJogs(withColumn, 4)).toHaveLength(6);
+  });
+});
+
+describe("จำหน้ากากผนังไว้กับภาพ ไม่คำนวณซ้ำทุกคลิก", () => {
+  const options = { minRunPixels: 20, minStructurePixels: 40, bridgeGapPixels: 3, wallThicknessPixels: 6 };
+
+  it("ภาพเดิม เกณฑ์เดิม ได้หน้ากากอ็อบเจ็กต์เดิม ไม่ใช่คำนวณใหม่", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const first = structuralBarrier(image, options);
+    const second = structuralBarrier(image, options);
+    expect(second.barrier).toBe(first.barrier);
+    expect(second.drawn).toBe(first.drawn);
+  });
+
+  it("เกณฑ์เปลี่ยน ต้องคำนวณใหม่ ไม่เอาของเก่ามาให้", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const first = structuralBarrier(image, options);
+    const second = structuralBarrier(image, { ...options, bridgeGapPixels: 5 });
+    expect(second.barrier).not.toBe(first.barrier);
+  });
+
+  it("ภาพคนละใบ ไม่ปนกัน แม้ขนาดและเกณฑ์เท่ากัน", () => {
+    const a = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const b = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 }, gap: 10 });
+    structuralBarrier(a, options);
+    const mine = structuralBarrier(b, options);
+    expect(mine.barrier).not.toBe(structuralBarrier(a, options).barrier);
+  });
+
+  it("คลิกครั้งที่สองบนภาพเดิม ผ่านของที่จำไว้ ได้ขอบเท่ากันทุกจุด", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const first = traceRegion(image, { x: 80, y: 70 }, options);
+    const second = traceRegion(image, { x: 60, y: 50 }, options);
+    expect(first.ok).toBe(true);
+    expect(second).toEqual(first);
   });
 });
 

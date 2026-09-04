@@ -838,6 +838,43 @@ export const regionRejectionMessage: Record<RegionRejection, string> = {
 };
 
 /**
+ * หน้ากากผนังของหน้าหนึ่ง จำไว้กับภาพวิเคราะห์ ไม่คำนวณซ้ำทุกคลิก
+ *
+ * `structuralMask` กับการเชื่อมช่องประตูไม่ขึ้นกับจุดที่คลิกเลย ขึ้นกับภาพและเกณฑ์เท่านั้น
+ * แต่ก่อนหน้านี้ถูกคำนวณใหม่ทุกคลิก กินไปราวครึ่งวินาทีต่อคลิกบนหน้า A3 · จำผลไว้กับภาพ
+ * ด้วย WeakMap ภาพหายเมื่อไหร่ผลก็หายตาม ไม่ต้องล้างเอง · เกณฑ์เปลี่ยน (เช่น ตั้งสเกลใหม่)
+ * คีย์ไม่ตรงก็คำนวณใหม่ · ผู้เรียกต้องส่ง `GreyImage` อ็อบเจ็กต์เดิมมาทุกคลิกถึงจะได้ประโยชน์
+ */
+const barrierCache = new WeakMap<GreyImage, { key: string; drawn: Uint8Array; barrier: Uint8Array }>();
+
+export function structuralBarrier(
+  image: GreyImage,
+  options: RegionOptions = {}
+): { drawn: Uint8Array; barrier: Uint8Array } {
+  const threshold = options.lineThreshold ?? DEFAULT_LINE_THRESHOLD;
+  const minRun = Math.floor(options.minRunPixels ?? 0);
+  const minStructure = Math.floor(options.minStructurePixels ?? 0);
+  const column = options.column;
+  const wallThickness = options.wallThicknessPixels ?? DEFAULT_WALL_THICKNESS_PIXELS;
+  const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
+  const key = [
+    threshold,
+    minRun,
+    minStructure,
+    column ? `${column.min}/${column.max}/${column.touch}` : "-",
+    wallThickness,
+    bridgeRadius
+  ].join("|");
+  const cached = barrierCache.get(image);
+  if (cached && cached.key === key) return cached;
+  const drawn = structuralMask(image, threshold, minRun, minStructure, column, wallThickness);
+  const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;
+  const entry = { key, drawn, barrier };
+  barrierCache.set(image, entry);
+  return entry;
+}
+
+/**
  * ไล่บริเวณที่ปิดล้อมรอบจุดที่คลิก แล้วคืนรูปหลายเหลี่ยมของขอบ
  *
  * **ตรวจการรั่วเสมอ** ผู้พัฒนาเครื่องมือที่เจ้าของงานให้ดูเตือนเองว่าวิธีนี้ไม่แม่นทุกครั้ง
@@ -845,7 +882,6 @@ export const regionRejectionMessage: Record<RegionRejection, string> = {
  * ไม่ใช่คืนพื้นที่มั่ว ๆ ให้ไหลเข้าใบราคา
  */
 export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOptions = {}): RegionResult {
-  const threshold = options.lineThreshold ?? DEFAULT_LINE_THRESHOLD;
   const maxArea = (options.maxAreaFraction ?? DEFAULT_MAX_AREA_FRACTION) * image.width * image.height;
 
   const sx = Math.round(seed.x);
@@ -854,16 +890,7 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
     return { ok: false, reason: "seed_outside", areaPixels: 0 };
   }
 
-  const drawn = structuralMask(
-    image,
-    threshold,
-    Math.floor(options.minRunPixels ?? 0),
-    Math.floor(options.minStructurePixels ?? 0),
-    options.column,
-    options.wallThicknessPixels
-  );
-  const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
-  const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;
+  const { drawn, barrier } = structuralBarrier(image, options);
   const blocked = (x: number, y: number) => barrier[y * image.width + x] === 1;
 
   if (blocked(sx, sy)) {

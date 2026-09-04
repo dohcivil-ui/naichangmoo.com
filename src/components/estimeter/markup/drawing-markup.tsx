@@ -1160,6 +1160,17 @@ export function DrawingMarkup({
   }
 
   /**
+   * ภาพเทาของชั้นวิเคราะห์ แปลงครั้งเดียวต่อหน้า ไม่ใช่ทุกคลิก
+   *
+   * `traceRegion` จำหน้ากากผนังไว้กับอ็อบเจ็กต์ภาพตัวนี้ (WeakMap) ถ้าแปลงใหม่ทุกคลิก
+   * จะได้อ็อบเจ็กต์ใหม่ทุกครั้งและไม่เคยได้ใช้ของที่จำไว้ คลิกละครึ่งวินาทีเท่าเดิม
+   */
+  const analysisGrey = useMemo(
+    () => (analysis ? toGreyImage(analysis.image.data, analysis.image.width, analysis.image.height) : null),
+    [analysis]
+  );
+
+  /**
    * เลือกพื้นที่ห้องด้วยคลิกเดียว
    *
    * ผลที่ได้เป็นรูปหลายเหลี่ยมที่ผู้ใช้ลากแก้จุดต่อได้ ไม่ใช่ภาพระบายสีที่แก้ไม่ได้
@@ -1169,13 +1180,13 @@ export function DrawingMarkup({
    * เพราะการทะลุออกนอกห้องบางแบบเล็กเกินกว่าเพดานพื้นที่จะจับได้ แต่ตาคนเห็นทันที
    */
   function pickRoom(point: PagePoint) {
-    if (!analysis) {
+    if (!analysis || !analysisGrey) {
       setPendingRoom(null);
       setRegionError("กำลังเตรียมภาพวิเคราะห์ของหน้านี้ ลองอีกครั้ง");
       return;
     }
-    const { image, scale: analysisScale } = analysis;
-    const grey = toGreyImage(image.data, image.width, image.height);
+    const { scale: analysisScale } = analysis;
+    const grey = analysisGrey;
     /**
      * รัศมีการกลบเป็นพิกเซลของภาพวิเคราะห์ · ต้องมีสเกลของหน้าก่อนถึงจะรู้ว่าเมตรหนึ่ง
      * กว้างกี่พิกเซล หน้าที่ยังไม่ตั้งสเกลจึงไม่กลบ ซึ่งไม่เป็นปัญหาเพราะเครื่องมือนี้
