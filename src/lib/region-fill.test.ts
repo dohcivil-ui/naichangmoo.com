@@ -629,6 +629,67 @@ describe("ขอบเป็นเหลี่ยมล้วน ไม่มี
   });
 });
 
+/**
+ * ขอบต้องนั่งบนกึ่งกลางเส้นผนัง ไม่ใช่ถอยเข้ามาในห้อง
+ *
+ * เจ้าของงานขีดเส้นน้ำเงินให้ดูเมื่อ 2026-09-04 แล้วบอกว่า "ขีดเส้นสีน้ำเงินให้มัน
+ * ก็ยังไม่ทำตาม" · ระยะที่ต่างกันมีแค่หนึ่งถึงสองพิกเซล แต่มันผิดทุกด้านเท่ากันหมด
+ * จึงเห็นชัดทันทีที่ซูมเข้าไป และสะสมเป็นพื้นที่ที่ขาดไปทั้งห้อง
+ */
+describe("การดันขอบไปนั่งบนเส้นผนัง", () => {
+  /** ห้องที่กรอบผนังหนาสามพิกเซล ผิวจริงจึงอยู่กึ่งกลางเส้น */
+  function roomWithThickWall(): GreyImage {
+    const width = 200;
+    const height = 200;
+    const data = new Uint8ClampedArray(width * height).fill(255);
+    for (let y = 40; y < 100; y += 1) {
+      for (let x = 40; x < 120; x += 1) {
+        const onFrame = x < 43 || x >= 117 || y < 43 || y >= 97;
+        if (onFrame) data[y * width + x] = 0;
+      }
+    }
+    return { data, width, height };
+  }
+
+  it("ไม่ดัน ขอบหยุดที่ขอบในของเส้น", () => {
+    const result = traceRegion(roomWithThickWall(), { x: 80, y: 70 }, { minStepPixels: 3 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(Math.min(...result.polygon.map((point) => point.x))).toBe(43);
+    expect(Math.max(...result.polygon.map((point) => point.x))).toBe(117);
+  });
+
+  it("ดันแล้ว ขอบไปนั่งกึ่งกลางเส้นที่หนาสามพิกเซล คือขยับออกด้านละหนึ่งจุดห้า", () => {
+    const result = traceRegion(roomWithThickWall(), { x: 80, y: 70 }, {
+      minStepPixels: 3,
+      snapToLinePixels: 3
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(Math.min(...result.polygon.map((point) => point.x))).toBe(41.5);
+    expect(Math.max(...result.polygon.map((point) => point.x))).toBe(118.5);
+    expect(Math.min(...result.polygon.map((point) => point.y))).toBe(41.5);
+    expect(Math.max(...result.polygon.map((point) => point.y))).toBe(98.5);
+  });
+
+  it("ด้านที่ไม่มีเส้นอยู่ข้างนอกเลย อยู่ที่เดิม ไม่ถูกดันมั่ว", () => {
+    const image = roomWithThickWall();
+    // ลบผนังบนออกทั้งแนว แล้วเชื่อมช่องกลับด้วยการเชื่อมช่องประตู
+    for (let y = 40; y < 43; y += 1) {
+      for (let x = 60; x < 100; x += 1) image.data[y * image.width + x] = 255;
+    }
+    const result = traceRegion(image, { x: 80, y: 70 }, {
+      minStepPixels: 3,
+      snapToLinePixels: 3,
+      bridgeGapPixels: 22
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(Math.min(...result.polygon.map((point) => point.y))).toBeGreaterThanOrEqual(41);
+    expect(Math.min(...result.polygon.map((point) => point.y))).toBeLessThanOrEqual(43);
+  });
+});
+
 describe("การยุบขั้นบันไดเล็ก", () => {
   it("ขั้นหนึ่งพิกเซลถูกยุบ", () => {
     const stepped = [

@@ -39,6 +39,7 @@ import {
   MIN_WALL_RUN_METRES,
   OUTLINE_MIN_STEP_METRES,
   regionRejectionMessage,
+  WALL_SNAP_METRES,
   toGreyImage,
   traceRegion
 } from "@/lib/region-fill";
@@ -1196,7 +1197,9 @@ export function DrawingMarkup({
         // ปิดช่องได้กว้างสองเท่าของรัศมี จึงส่งครึ่งหนึ่งของความกว้างประตูที่ยอมเชื่อม
         bridgeGapPixels: (DOOR_BRIDGE_METRES / 2) * pixelsPerMetre,
         // ขอบเป็นแนวนอนกับแนวตั้งล้วน ค่านี้กวาดเฉพาะขั้นที่เกิดจากความหยาบของภาพ
-        minStepPixels: OUTLINE_MIN_STEP_METRES * pixelsPerMetre
+        minStepPixels: OUTLINE_MIN_STEP_METRES * pixelsPerMetre,
+        // ดันขอบออกไปนั่งบนกึ่งกลางเส้นผนัง ซึ่งคือผิวจริงของห้อง
+        snapToLinePixels: WALL_SNAP_METRES * pixelsPerMetre
         /**
          * **ไม่กลบรอยเว้าบนก้อนพื้นที่แล้ว** เคยเปิดไว้ตอน 2026-09-04 ต้นวัน แล้วเจ้าของงาน
          * จับได้จากรูปว่าขอบลอยห่างผนังและมุมมน เพราะการกลบทำงานกับก้อนพื้นที่ มันจึงมนมุมจริง

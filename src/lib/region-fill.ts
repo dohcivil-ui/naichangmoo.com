@@ -84,6 +84,13 @@ export type RegionOptions = {
    * กว่าขั้นที่หลบเสาซึ่งกว้างอย่างน้อย 0.20 เมตร มิฉะนั้นมุมเสาที่เป็นของจริงจะถูกยุบไปด้วย
    */
   minStepPixels?: number;
+  /**
+   * ระยะที่ยอมให้ดันขอบออกไปหากึ่งกลางเส้นผนัง หน่วยพิกเซล · ศูนย์แปลว่าไม่ดัน
+   *
+   * ต้องกว้างพอจะครอบความหนาเส้นผนังที่หนาที่สุดในแบบ แต่แคบพอจะไม่ไปเจอเส้นอื่น
+   * ที่อยู่ถัดออกไป เช่น ผิวนอกของผนังหรือเส้นบอกระยะ
+   */
+  snapToLinePixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -177,6 +184,19 @@ export const COLUMN_TOUCH_METRES = 0.1;
  * และยังเล็กกว่าขั้นที่หลบเสาซึ่งแคบที่สุดราว 0.20 เมตรอยู่สี่เท่า มุมเสาจึงไม่ถูกยุบไปด้วย
  */
 export const OUTLINE_MIN_STEP_METRES = 0.05;
+
+/**
+ * ระยะที่ยอมให้ดันขอบออกไปหากึ่งกลางเส้นผนัง วัดเป็นเมตรบนอาคารจริง
+ *
+ * **ทำไมต้องดัน** การไล่สีหยุดที่พิกเซลมืดตัวแรก ขอบจึงอยู่ข้างในเส้น ไม่ใช่บนเส้น
+ * แต่เส้นที่เขียนในแบบมีความหนา และมันแทนผิวผนังซึ่งไม่มีความหนา ผิวจริงอยู่ที่กึ่งกลางเส้น
+ * เจ้าของงานขีดเส้นไกด์ให้ดูเมื่อ 2026-09-04 ว่าขอบต้องอยู่ตรงนั้น ไม่ใช่ถอยเข้ามาในห้อง
+ *
+ * **ที่มาของ 0.07** เส้นในแบบหนาหนึ่งถึงสามพิกเซลที่ความละเอียดปัจจุบัน ซึ่งเท่ากับ
+ * 0.02 ถึง 0.07 เมตร · ค่านี้จึงพอดีกับเส้นที่หนาที่สุด และแคบพอที่จะไม่ข้ามเนื้อผนัง
+ * ไปเจอผิวนอกซึ่งอยู่ห่างออกไปอย่างน้อย 0.10 เมตร
+ */
+export const WALL_SNAP_METRES = 0.07;
 
 /**
  * คัดเฉพาะเส้นที่เป็นผนังหรือโครงสร้างออกมาจากทุกสิ่งที่ดำในแบบ
@@ -581,7 +601,106 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
 
   const outline = traceRectilinearOutline(shape, image.width, image.height);
   const step = Math.max(1, Math.round(options.minStepPixels ?? 0));
-  return { ok: true, polygon: removeJogs(outline, step), areaPixels: closedArea };
+  const tidied = removeJogs(outline, step);
+  const reach = Math.round(options.snapToLinePixels ?? 0);
+  const polygon = reach > 0 ? snapOutlineToLines(tidied, drawn, image.width, image.height, reach) : tidied;
+  return { ok: true, polygon, areaPixels: closedArea };
+}
+
+/**
+ * ดันแต่ละด้านของขอบออกไปนั่งบนกึ่งกลางเส้นผนังที่มันชนอยู่
+ *
+ * **ทำไมต้องดัน** การไล่สีหยุดที่พิกเซลมืดตัวแรก ขอบที่ได้จึงอยู่ **ข้างใน** เส้นผนัง
+ * ไม่ใช่บนตัวเส้น · แต่เส้นที่เขียนในแบบมีความหนา และมันแทนผิวผนังซึ่งไม่มีความหนา
+ * ผิวจริงจึงอยู่ที่กึ่งกลางเส้น เจ้าของงานขีดเส้นไกด์ให้ดูเมื่อ 2026-09-04 ว่าขอบต้องอยู่ตรงนั้น
+ *
+ * ระยะที่ห่างกันมีแค่หนึ่งถึงสองพิกเซล คือสองถึงสี่เซนติเมตรบนอาคารจริง แต่มันผิด
+ * **ทุกด้านเท่ากันหมด** จึงเห็นชัดทันทีเมื่อซูมเข้าไป และสะสมเป็นพื้นที่ที่ขาดไปทั้งห้อง
+ *
+ * ด้านที่ไม่เจอเส้นภายในระยะที่กำหนดจะอยู่ที่เดิม ซึ่งเกิดกับด้านที่พาดช่องประตูที่ถูกเชื่อม
+ * เพราะตรงนั้นไม่มีเส้นเขียนอยู่จริง จะไปหากึ่งกลางของอะไรไม่ได้
+ */
+export function snapOutlineToLines(
+  polygon: readonly Pixel[],
+  dark: Uint8Array,
+  width: number,
+  height: number,
+  reach: number
+): Pixel[] {
+  const count = polygon.length;
+  if (count < 4) return polygon.map((point) => ({ ...point }));
+  const on = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x < width && y < height && dark[y * width + x] === 1;
+
+  /** ตำแหน่งใหม่ของแนวเส้นที่แต่ละด้านนั่งอยู่ · null แปลว่าไม่เจอเส้น ให้อยู่ที่เดิม */
+  const lines: (number | null)[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const a = polygon[index];
+    const b = polygon[(index + 1) % count];
+    const stepX = Math.sign(b.x - a.x);
+    const stepY = Math.sign(b.y - a.y);
+    const length = Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
+    if (length === 0) {
+      lines.push(null);
+      continue;
+    }
+    // บริเวณอยู่ทางขวาของทิศเดินเสมอ ด้านนอกจึงอยู่ทางซ้าย
+    const outX = stepY;
+    const outY = -stepX;
+    const offsets: number[] = [];
+    const gap = Math.max(1, Math.floor(length / 12));
+    for (let along = 0; along < length; along += gap) {
+      /**
+       * แปลงจากพิกัดมุมเป็นพิกัดพิกเซล · ด้านตั้งที่มุม x คั่นระหว่างคอลัมน์ x-1 กับ x
+       * ด้านนอนที่มุม y คั่นระหว่างแถว y-1 กับ y · พิกเซลนอกตัวแรกคือฝั่งที่ทิศออกชี้ไป
+       */
+      let baseX: number;
+      let baseY: number;
+      if (stepX === 0) {
+        baseX = outX > 0 ? a.x : a.x - 1;
+        baseY = stepY > 0 ? a.y + along : a.y - 1 - along;
+      } else {
+        baseX = stepX > 0 ? a.x + along : a.x - 1 - along;
+        baseY = outY > 0 ? a.y : a.y - 1;
+      }
+      let found = -1;
+      for (let k = 0; k < reach; k += 1) {
+        if (on(baseX + outX * k, baseY + outY * k)) {
+          found = k;
+          break;
+        }
+      }
+      if (found < 0) continue;
+      // ความหนาของเส้นวัดได้ไม่เกินระยะที่ยอมให้ดัน ไม่งั้นเนื้อผนังทั้งแผงจะถูกนับเป็นเส้นเดียว
+      let run = 1;
+      while (run < reach && on(baseX + outX * (found + run), baseY + outY * (found + run))) run += 1;
+      offsets.push(found + run / 2);
+    }
+    if (offsets.length === 0) {
+      lines.push(null);
+      continue;
+    }
+    offsets.sort((one, two) => one - two);
+    const median = offsets[Math.floor(offsets.length / 2)];
+    const base = outX !== 0 ? a.x : a.y;
+    lines.push(base + (outX !== 0 ? outX : outY) * median);
+  }
+
+  /** มุมใหม่คือจุดตัดของสองด้านที่ประกบมัน ด้านหนึ่งนอนหนึ่งตั้งเสมอ */
+  return polygon.map((point, index) => {
+    const before = lines[(index - 1 + count) % count];
+    const here = lines[index];
+    const beforeVertical = polygon[(index - 1 + count) % count].x === point.x;
+    const moved = { ...point };
+    if (beforeVertical) {
+      if (before !== null) moved.x = before;
+      if (here !== null) moved.y = here;
+    } else {
+      if (before !== null) moved.y = before;
+      if (here !== null) moved.x = here;
+    }
+    return moved;
+  });
 }
 
 /**
