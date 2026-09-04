@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แนว ก — เงียบ โปร่ง ตัวใหญ่ (ตาม apple-DESIGN.md)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  แนว ก — เงียบ โปร่ง ตัวใหญ่ · ต้นแบบหน้าแรก ESTIMETR (IP-235)
+
+  โทเคนมาจาก apple-DESIGN.md ที่เจ้าของงานแนบมา ใช้ค่าจริงจากไฟล์นั้น
+  สี #1d1d1f เป็นหมึก · #0071e3 เป็นสีลิงก์และปุ่มหลัก · #f5f5f7 เป็นพื้นรอง
+  · #6e6e73 เป็นตัวหนังสือรอง · มุมมน 980px กับ 12px · ไม่มีเงา ใช้เส้นคั่นบางแทน
+  ตัวอักษรไล่จาก 12px ถึง 24px ตามที่ไฟล์นั้นสกัดได้ แต่หัวเรื่องใหญ่ขยายขึ้นเพราะ
+  หน้านี้เป็นหน้าเริ่มงาน ไม่ใช่หน้าอ่านข้อมูล
+
+  ฟอนต์ SF Pro ไม่มีบนเครื่องทั่วไปและไม่รองรับไทย จึงใช้ system stack แล้วตกไปที่
+  IBM Plex Sans Thai ซึ่งเป็นฟอนต์ไทยที่แอปใช้อยู่แล้ว
+
+  เนื้อหา ชื่อเมนู และคำทั้งหมดเป็นของเรา ไม่ได้ลอกมาจากไฟล์โทเคน
+-->
+<style>
+  :root {
+    --ink: #1d1d1f;
+    --ink-2: #6e6e73;
+    --link: #0071e3;
+    --link-strong: #0066cc;
+    --paper: #ffffff;
+    --wash: #f5f5f7;
+    --line: #d2d2d7;
+    --radius-pill: 980px;
+    --radius-card: 12px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "IBM Plex Sans Thai", sans-serif;
+    font-size: 17px;
+    line-height: 25px;
+    letter-spacing: -0.374px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 22px; }
+
+  .bar { border-bottom: 1px solid var(--line); background: rgba(255,255,255,.8); backdrop-filter: saturate(1.8) blur(20px); position: sticky; top: 0; z-index: 5; }
+  .bar__row { display: flex; align-items: center; justify-content: space-between; height: 44px; }
+  .bar__name { font-size: 12px; font-weight: 600; letter-spacing: -0.12px; }
+  .bar__who { font-size: 12px; color: var(--ink-2); letter-spacing: -0.12px; }
+
+  .lede { padding: 64px 0 44px; }
+  .lede h1 { margin: 0; font-size: 40px; line-height: 46px; font-weight: 600; letter-spacing: -0.6px; }
+  .lede p { margin: 12px 0 0; max-width: 640px; color: var(--ink-2); }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: var(--radius-pill);
+    padding: 11px 22px; background: var(--link); color: #fff; font: inherit; font-size: 17px; font-weight: 400;
+    letter-spacing: -0.374px; text-decoration: none; cursor: pointer; }
+  .btn--quiet { background: transparent; color: var(--link); padding-inline: 0; }
+  .btn--wash { background: var(--wash); color: var(--ink); }
+
+  .switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--radius-pill); background: var(--wash); margin-bottom: 28px; }
+  .switch button { border: 0; border-radius: var(--radius-pill); padding: 7px 16px; background: transparent; color: var(--ink-2); font: inherit; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; cursor: pointer; }
+  .switch button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 44px; align-items: start; padding-bottom: 88px; }
+
+  .steps { display: grid; gap: 0; margin: 0 0 44px; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+  .steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .steps b { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: -0.12px; }
+  .steps h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.374px; }
+  .steps p { margin: 2px 0 0; font-size: 12px; line-height: 16px; color: var(--ink-2); letter-spacing: -0.12px; }
+  .steps small { font-size: 12px; color: var(--ink-2); letter-spacing: -0.12px; white-space: nowrap; }
+  .steps li[data-here] h3 { color: var(--link-strong); }
+
+  .resume { border-radius: var(--radius-card); background: var(--wash); padding: 28px; }
+  .resume h2 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: 0.216px; }
+  .resume .where { margin: 8px 0 0; color: var(--ink-2); }
+  .resume .todo { margin: 4px 0 0; }
+  .resume .row { display: flex; align-items: center; gap: 20px; margin-top: 22px; flex-wrap: wrap; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { text-align: left; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 12px; line-height: 16px; letter-spacing: -0.12px; }
+  th { color: var(--ink-2); font-weight: 400; }
+  td b { font-size: 17px; font-weight: 400; letter-spacing: -0.374px; }
+
+  .section-h { margin: 44px 0 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: 0.216px; }
+
+  .bot { border: 1px solid var(--line); border-radius: var(--radius-card); overflow: hidden; position: sticky; top: 66px; }
+  .bot__top { padding: 20px; border-bottom: 1px solid var(--line); }
+  .bot__top strong { display: block; font-size: 17px; font-weight: 600; letter-spacing: -0.374px; }
+  .bot__top span { font-size: 12px; color: var(--ink-2); letter-spacing: -0.12px; }
+  .thread { display: grid; gap: 12px; padding: 20px; }
+  .say { font-size: 12px; line-height: 16px; letter-spacing: -0.12px; }
+  .say--bot { color: var(--ink); }
+  .say--me { justify-self: end; max-width: 88%; border-radius: 14px; padding: 8px 12px; background: var(--link); color: #fff; }
+  .chips { display: grid; gap: 8px; padding: 0 20px 20px; }
+  .chip { border: 0; border-radius: var(--radius-pill); padding: 9px 16px; background: var(--wash); color: var(--link); font: inherit; font-size: 12px; font-weight: 600; letter-spacing: -0.12px; text-align: left; cursor: pointer; }
+  .ask { display: flex; gap: 8px; padding: 0 20px 20px; }
+  .ask input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 11px; padding: 9px 12px; font: inherit; font-size: 12px; letter-spacing: -0.12px; }
+  .ask button { border: 0; border-radius: var(--radius-pill); padding: 9px 16px; background: var(--link); color: #fff; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .scope { padding: 16px 20px 20px; border-top: 1px solid var(--line); background: var(--wash); }
+  .scope strong { font-size: 12px; letter-spacing: -0.12px; }
+  .scope ul { margin: 6px 0 0; padding-left: 16px; font-size: 12px; line-height: 16px; color: var(--ink-2); letter-spacing: -0.12px; }
+
+  .first h2 { margin: 0; font-size: 24px; line-height: 28px; font-weight: 600; letter-spacing: 0.216px; }
+  .first p { margin: 8px 0 0; color: var(--ink-2); max-width: 560px; }
+  .first .row { margin-top: 22px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 900px) {
+    .board { grid-template-columns: 1fr; gap: 32px; }
+    .bot { position: static; }
+    .lede h1 { font-size: 32px; line-height: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="wrap"><div class="bar__row">
+  <span class="bar__name">ESTIMETR</span>
+  <span class="bar__who">Suriya Patchotchai</span>
+</div></div></div>
+
+<div class="wrap">
+
+  <div class="lede">
+    <h1>แอปผู้ช่วยประมาณราคาก่อสร้างงานอาคาร</h1>
+    <p>ถอดแบบ ถอดปริมาณ แล้วออก BOQ ที่ย้อนดูที่มาของทุกบรรทัดได้</p>
+  </div>
+
+  <div class="switch" role="group" aria-label="สลับสถานะที่จะดู">
+    <button type="button" aria-pressed="true" data-show="first">เปิดครั้งแรก ยังไม่มีโครงการ</button>
+    <button type="button" aria-pressed="false" data-show="working">มีงานค้างอยู่</button>
+  </div>
+
+  <div class="board">
+    <div>
+
+      <section class="first" data-state="first">
+        <h2>เริ่มโครงการแรก</h2>
+        <p>ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน แล้วเปิดไฟล์แบบ PDF เข้ามา จากนั้นผู้ช่วยจะพาไปทีละขั้นจนได้ BOQ</p>
+        <div class="row">
+          <a class="btn" href="#">ตั้งค่าโครงการ</a>
+          <a class="btn btn--quiet" href="#">ดูตัวอย่างการทำงานก่อน</a>
+        </div>
+      </section>
+
+      <section data-state="working" hidden>
+        <div class="resume">
+          <h2>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</h2>
+          <p class="where">ค้างที่ขั้น 2 จาก 4 · เปิดแบบและยืนยันสเกล</p>
+          <p class="todo">หน้า 7 ตั้งสเกล 1:125 แล้ว ที่เหลืออีก 31 หน้ายังไม่ได้ตั้ง</p>
+          <div class="row">
+            <a class="btn" href="#">เปิดหน้าแบบ ทำงานต่อ</a>
+            <a class="btn btn--quiet" href="#">ดูหน้าโครงการ</a>
+          </div>
+        </div>
+
+        <h2 class="section-h">โครงการทั้งหมด</h2>
+        <table>
+          <thead><tr><th>ชื่อโครงการ</th><th>ค้างที่ขั้น</th><th>แก้ไขล่าสุด</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</b></td>
+              <td>2 · เปิดแบบและยืนยันสเกล</td>
+              <td>วันนี้ 21:13 น.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <h2 class="section-h">ลำดับงานของทุกโครงการ</h2>
+      <ol class="steps">
+        <li><b>1</b><div><h3>ตั้งค่าโครงการ</h3><p>ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน</p></div><small data-state="working" hidden>เสร็จแล้ว</small><small data-state="first">เริ่มที่นี่</small></li>
+        <li data-here><b>2</b><div><h3>เปิดแบบและยืนยันสเกล</h3><p>เปิดไฟล์แบบ PDF แล้วตั้งสเกลของแต่ละหน้าที่จะวัด</p></div><small data-state="working" hidden>ค้างอยู่ที่ขั้นนี้</small><small data-state="first">ยังไม่เริ่ม</small></li>
+        <li><b>3</b><div><h3>ถอดปริมาณพร้อมหลักฐาน</h3><p>วัดบนแบบ ระบบจดที่มาของทุกตัวเลขให้เอง</p></div><small data-state="working" hidden>3 รายการ ยืนยันแล้ว 0</small><small data-state="first">ยังไม่เริ่ม</small></li>
+        <li><b>4</b><div><h3>ประมาณราคาและสรุป BOQ</h3><p>ดึงราคาจาก price set ที่รับมา แล้วออก BOQ</p></div><small data-state="working" hidden>รับมาแล้ว 1 บัญชี</small><small data-state="first">ยังไม่เริ่ม</small></li>
+      </ol>
+
+    </div>
+
+    <aside class="bot">
+      <div class="bot__top">
+        <strong>ผู้ช่วยประมาณราคา</strong>
+        <span>พาทำทีละขั้น ถามได้ตลอด</span>
+      </div>
+
+      <div class="thread" data-state="first">
+        <p class="say say--bot">สวัสดีครับคุณสุริยะ ยังไม่มีโครงการในระบบเลย เริ่มใบแรกกันเลยไหมครับ</p>
+        <p class="say say--bot">ผมจะถามแค่สามอย่าง ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน แล้วพาไปเปิดไฟล์แบบต่อเลยครับ</p>
+      </div>
+
+      <div class="thread" data-state="working" hidden>
+        <p class="say say--bot">สวัสดีครับคุณสุริยะ วันนี้กลับมาที่ อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง นะครับ</p>
+        <p class="say say--bot">ค้างอยู่ที่ขั้นเปิดแบบและยืนยันสเกล หน้า 7 ตั้งไว้ที่ 1:125 แล้ว หน้าอื่นยังไม่ได้ตั้ง ถ้ายังไม่ตั้ง เครื่องมือวัดบนหน้านั้นจะกดไม่ได้ครับ</p>
+        <p class="say say--me">พื้นที่ห้องน้ำที่ได้ 4.00 มันมาจากไหน</p>
+        <p class="say say--bot">มาจากการไล่ขอบตามผิวผนังด้านในครับ ได้ 2.27 × 1.76 = 4.01 ตร.ม. ส่วน 2.50 × 2.00 ที่แบบเขียนเป็นระยะแนวเสาถึงแนวเสา ได้ 5.00 ตร.ม. สองเลขนี้วัดคนละที่ ใช้กับงานคนละอย่างครับ</p>
+      </div>
+
+      <div class="chips" data-state="first">
+        <button class="chip" type="button">ตั้งค่าโครงการให้ผมเลย</button>
+        <button class="chip" type="button">สอนวิธีถอดปริมาณจากแบบ</button>
+        <button class="chip" type="button">ขอดูตัวอย่าง BOQ ที่ได้</button>
+      </div>
+
+      <div class="chips" data-state="working" hidden>
+        <button class="chip" type="button">พาไปตั้งสเกลหน้าที่เหลือ</button>
+        <button class="chip" type="button">ดูวิธีคิดพื้นที่ห้องแบบเต็ม</button>
+        <button class="chip" type="button">เริ่มโครงการใหม่</button>
+      </div>
+
+      <div class="ask">
+        <input type="text" placeholder="พิมพ์ถามได้ เช่น ผนัง 0.25 คิดยังไง">
+        <button type="button">ส่ง</button>
+      </div>
+
+      <div class="scope">
+        <strong>ผู้ช่วยตัวนี้ไม่ทำอะไร</strong>
+        <ul>
+          <li>ไม่ตัดสินตัวเลขแทนคุณ เสนอได้ แต่คนกดรับ</li>
+          <li>ไม่เดาระยะที่แบบไม่ได้เขียน อ่านไม่ได้จะบอกว่าอ่านไม่ได้</li>
+          <li>ไม่รับรอง BOQ หรือราคาทางวิชาชีพ</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll(".switch button");
+  function show(state) {
+    buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === state)));
+    document.querySelectorAll("[data-state]").forEach((el) => { el.hidden = el.dataset.state !== state; });
+  }
+  buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
+  show("first");
+</script>
+
+</body>
+</html>

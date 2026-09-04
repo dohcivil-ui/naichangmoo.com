@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แนว ข — แน่น เข้ม ปุ่มเด่น (ตาม changkid-DESIGN.md)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  แนว ข — แน่น เข้ม ปุ่มเด่น · ต้นแบบหน้าแรก ESTIMETR (IP-235)
+
+  โทเคนมาจาก changkid-DESIGN.md ที่เจ้าของงานแนบมา ใช้ค่าจริงจากไฟล์นั้น
+  หมึกน้ำเงินเข้ม #0E1A2E · ส้ม #F58220 เป็นปุ่มหลักปุ่มเดียวต่อหน้าจอ · ฟอนต์ Prompt
+  · ปุ่มกับป้ายเป็นแคปซูล 999px ส่วนกล่องใช้ 10 ถึง 20px · เงาการ์ดเป็นน้ำเงินจาง
+  · ปุ่มหลักมีเงาแข็งสีอำพันใต้ปุ่ม ทำให้กดแล้วรู้สึกเป็นของจริง ใช้ที่ปุ่มหลักที่เดียว
+  · ตัวอักษรไล่ 10.5 ถึง 17px ใช้น้ำหนักทำลำดับ ไม่ใช่ขนาด
+
+  **ไฟล์โทเคนนั้นสกัดมาจากเว็บของคู่แข่ง** ที่ยืมมาคือทิศทางการออกแบบ
+  คือความหนาแน่น รูปทรง และวิธีจัดลำดับความสำคัญ · เนื้อหา ชื่อเมนู และคำทั้งหมด
+  เป็นของเราเอง ไม่ได้ลอกของเขา ตามกฎในโปรเจกต์ที่ห้ามใช้ของคู่แข่ง
+-->
+<style>
+  :root {
+    --primary: #F58220;
+    --primary-focus: #B4530A;
+    --secondary: #1B4F8C;
+    --secondary-dark: #0F3666;
+    --success: #16A34A;
+    --success-dark: #15803D;
+    --success-surface: #DCFCE7;
+    --ink: #0E1A2E;
+    --ink-muted: #4B5C75;
+    --ink-faint: #94A3B8;
+    --surface: #FFFFFF;
+    --surface-alt: #EEF2F8;
+    --surface-warm: #FFF1E2;
+    --hairline: #E2E8F0;
+    --on-primary: #FFFFFF;
+    --full: 999px;
+    --xl: 20px;
+    --lg: 16px;
+    --md: 12px;
+    --sm: 10px;
+    --card-shadow: rgba(15, 54, 102, .06) 0 1px 2px 0, rgba(15, 54, 102, .04) 0 2px 8px 0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--surface-alt);
+    color: var(--ink);
+    font-family: Prompt, "IBM Plex Sans Thai", system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  .nav { background: rgba(255,255,255,.85); backdrop-filter: saturate(1.8) blur(14px); border-bottom: 1px solid var(--hairline); position: sticky; top: 0; z-index: 5; }
+  .nav__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+  .nav__brand { font-size: 16px; font-weight: 700; line-height: 1.35; }
+  .nav__links { display: flex; gap: 18px; }
+  .nav__links a { color: var(--ink-muted); font-size: 14px; font-weight: 500; text-decoration: none; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: var(--full); padding: 10px 16px;
+    font: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.2; text-decoration: none; cursor: pointer; }
+  .btn--primary { background: var(--primary); color: var(--on-primary);
+    box-shadow: rgb(185,74,5) 0 8px 0 0, rgba(245,130,32,.34) 0 17px 32px 0, rgba(255,255,255,.42) 0 1px 0 0 inset; }
+  .btn--primary:active { transform: translateY(4px); box-shadow: rgba(245,130,32,.3) 0 6px 16px 0; }
+  .btn--secondary { background: var(--surface); color: var(--secondary); border: 1px solid var(--hairline); }
+
+  .hero { padding: 22px 0 14px; }
+  .hero .over { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 1.4px; color: var(--ink-muted); text-transform: uppercase; }
+  .hero h1 { margin: 4px 0 0; font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.085px; }
+  .hero p { margin: 4px 0 0; color: var(--ink-muted); font-size: 12.8px; }
+
+  .switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: var(--full); background: var(--surface); border: 1px solid var(--hairline); margin: 14px 0 18px; }
+  .switch button { border: 0; border-radius: var(--full); padding: 6px 14px; background: transparent; color: var(--ink-muted); font: inherit; font-size: 11.5px; font-weight: 800; cursor: pointer; }
+  .switch button[aria-pressed="true"] { background: var(--secondary); color: #fff; }
+
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .steps article { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--lg); padding: 16px; box-shadow: var(--card-shadow); display: grid; gap: 6px; }
+  .steps .n { display: inline-flex; align-items: center; gap: 6px; }
+  .steps .n b { display: grid; place-items: center; width: 22px; height: 22px; border-radius: var(--full); background: var(--surface-alt); color: var(--secondary); font-size: 10.5px; font-weight: 800; }
+  .steps h3 { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.35; }
+  .steps p { margin: 0; color: var(--ink-muted); font-size: 11px; line-height: 1.5; }
+  .badge { justify-self: start; border-radius: var(--full); padding: 4px 10px; font-size: 11px; font-weight: 700; }
+  .badge--done { background: var(--success-surface); color: var(--success-dark); }
+  .badge--now { background: var(--surface-warm); color: var(--primary-focus); }
+  .badge--wait { background: var(--surface-alt); color: var(--ink-faint); }
+  .steps article[data-here] { border-color: var(--primary); }
+
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; padding-bottom: 40px; }
+  .card { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--lg); padding: 16px; box-shadow: var(--card-shadow); }
+  .card + .card { margin-top: 16px; }
+  .card__over { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 1.4px; color: var(--ink-muted); text-transform: uppercase; }
+  .card h2 { margin: 4px 0 0; font-size: 16px; font-weight: 700; line-height: 1.35; }
+
+  .resume { margin-top: 12px; border: 1px solid var(--hairline); border-radius: var(--md); padding: 14px; background: var(--surface-alt); }
+  .resume h3 { margin: 0; font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -.085px; }
+  .resume .where { margin: 4px 0 0; color: var(--ink-muted); font-size: 12.8px; }
+  .resume .todo { margin: 4px 0 0; color: var(--primary-focus); font-size: 12.8px; font-weight: 600; }
+  .resume .row { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--hairline); font-size: 12.5px; }
+  th { color: var(--ink-muted); font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .6px; }
+  td b { font-weight: 700; }
+
+  .first .row { display: flex; gap: 10px; align-items: center; margin-top: 18px; flex-wrap: wrap; }
+  .first p { color: var(--ink-muted); font-size: 12.8px; max-width: 620px; }
+
+  .bot { background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--lg); box-shadow: var(--card-shadow); overflow: hidden; position: sticky; top: 80px; }
+  .bot__top { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--hairline); background: var(--surface-alt); }
+  .bot__mark { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: var(--full); background: var(--secondary); color: #fff; font-size: 10.5px; font-weight: 800; }
+  .bot__top strong { display: block; font-size: 13px; font-weight: 700; }
+  .bot__top span { color: var(--ink-muted); font-size: 11px; }
+  .thread { display: grid; gap: 8px; padding: 14px 16px; }
+  .say { border-radius: var(--md); padding: 9px 12px; font-size: 12.5px; line-height: 1.55; }
+  .say--bot { background: var(--surface-alt); color: var(--ink); }
+  .say--me { justify-self: end; max-width: 90%; background: var(--secondary); color: #fff; }
+  .chips { display: grid; gap: 8px; padding: 0 16px 12px; }
+  .chip { border: 1px solid var(--hairline); border-radius: var(--full); padding: 9px 14px; background: var(--surface); color: var(--secondary); font: inherit; font-size: 12.5px; font-weight: 600; text-align: left; cursor: pointer; }
+  .chip:hover { border-color: var(--secondary); background: var(--surface-alt); }
+  .ask { display: flex; gap: 8px; padding: 0 16px 14px; }
+  .ask input { flex: 1; min-width: 0; border: 1px solid var(--hairline); border-radius: var(--md); padding: 9px 12px; font: inherit; font-size: 13px; }
+  .ask button { border: 0; border-radius: var(--full); padding: 9px 16px; background: var(--secondary); color: #fff; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .scope { padding: 12px 16px 16px; border-top: 1px solid var(--hairline); background: var(--surface-alt); }
+  .scope strong { font-size: 11.5px; font-weight: 800; }
+  .scope ul { margin: 6px 0 0; padding-left: 16px; color: var(--ink-muted); font-size: 11px; line-height: 1.5; }
+
+  [hidden] { display: none !important; }
+  @media (max-width: 980px) {
+    .board { grid-template-columns: 1fr; }
+    .bot { position: static; }
+    .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .nav__links { display: none; }
+  }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="nav"><div class="wrap"><div class="nav__row">
+  <span class="nav__brand">นายช่างหมู · ESTIMETR</span>
+  <nav class="nav__links"><a href="#">หน้าแรก</a><a href="#">แอปทั้งหมด</a><a href="#">ราคา</a></nav>
+  <a class="btn btn--secondary" href="#">Suriya Patchotchai</a>
+</div></div></div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <p class="over">ESTIMETR</p>
+    <h1>แอปผู้ช่วยประมาณราคาก่อสร้างงานอาคาร</h1>
+    <p>ถอดแบบ ถอดปริมาณ แล้วออก BOQ ที่ย้อนดูที่มาของทุกบรรทัดได้</p>
+  </div>
+
+  <div class="switch" role="group" aria-label="สลับสถานะที่จะดู">
+    <button type="button" aria-pressed="true" data-show="first">เปิดครั้งแรก ยังไม่มีโครงการ</button>
+    <button type="button" aria-pressed="false" data-show="working">มีงานค้างอยู่</button>
+  </div>
+
+  <div class="steps">
+    <article>
+      <span class="n"><b>1</b></span>
+      <h3>ตั้งค่าโครงการ</h3>
+      <p>ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน</p>
+      <span class="badge badge--done" data-state="working" hidden>เสร็จแล้ว</span>
+      <span class="badge badge--now" data-state="first">เริ่มที่นี่</span>
+    </article>
+    <article data-here>
+      <span class="n"><b>2</b></span>
+      <h3>เปิดแบบและยืนยันสเกล</h3>
+      <p>เปิดไฟล์แบบ PDF แล้วตั้งสเกลของแต่ละหน้าที่จะวัด</p>
+      <span class="badge badge--now" data-state="working" hidden>ค้างอยู่ที่ขั้นนี้</span>
+      <span class="badge badge--wait" data-state="first">ยังไม่เริ่ม</span>
+    </article>
+    <article>
+      <span class="n"><b>3</b></span>
+      <h3>ถอดปริมาณพร้อมหลักฐาน</h3>
+      <p>วัดบนแบบ ระบบจดที่มาของทุกตัวเลขให้เอง</p>
+      <span class="badge badge--wait" data-state="working" hidden>3 รายการ ยืนยันแล้ว 0</span>
+      <span class="badge badge--wait" data-state="first">ยังไม่เริ่ม</span>
+    </article>
+    <article>
+      <span class="n"><b>4</b></span>
+      <h3>ประมาณราคาและสรุป BOQ</h3>
+      <p>ดึงราคาจาก price set ที่รับมา แล้วออก BOQ</p>
+      <span class="badge badge--wait" data-state="working" hidden>รับมาแล้ว 1 บัญชี</span>
+      <span class="badge badge--wait" data-state="first">ยังไม่เริ่ม</span>
+    </article>
+  </div>
+
+  <div class="board">
+    <div>
+
+      <section class="card first" data-state="first">
+        <p class="card__over">เริ่มต้น</p>
+        <h2>เริ่มโครงการแรก</h2>
+        <p>ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน แล้วเปิดไฟล์แบบ PDF เข้ามา จากนั้นผู้ช่วยจะพาไปทีละขั้นจนได้ BOQ</p>
+        <div class="row">
+          <a class="btn btn--primary" href="#">ตั้งค่าโครงการ</a>
+          <a class="btn btn--secondary" href="#">ดูตัวอย่างการทำงานก่อน</a>
+        </div>
+      </section>
+
+      <section class="card" data-state="working" hidden>
+        <p class="card__over">ทำงานต่อ</p>
+        <h2>งานที่ค้างอยู่</h2>
+        <div class="resume">
+          <h3>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</h3>
+          <p class="where">ค้างที่ขั้น 2 จาก 4 · เปิดแบบและยืนยันสเกล · แก้ไขล่าสุดวันนี้ 21:13 น.</p>
+          <p class="todo">หน้า 7 ตั้งสเกล 1:125 แล้ว ที่เหลืออีก 31 หน้ายังไม่ได้ตั้ง</p>
+          <div class="row">
+            <a class="btn btn--primary" href="#">เปิดหน้าแบบ ทำงานต่อ</a>
+            <a class="btn btn--secondary" href="#">ดูหน้าโครงการ</a>
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>ชื่อโครงการ</th><th>ค้างที่ขั้น</th><th>แก้ไขล่าสุด</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</b></td>
+              <td><span class="badge badge--now">2 · เปิดแบบและยืนยันสเกล</span></td>
+              <td>วันนี้ 21:13 น.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <aside class="bot">
+      <div class="bot__top">
+        <span class="bot__mark">ผช</span>
+        <div>
+          <strong>ผู้ช่วยประมาณราคา</strong>
+          <span>พาทำทีละขั้น ถามได้ตลอด</span>
+        </div>
+      </div>
+
+      <div class="thread" data-state="first">
+        <p class="say say--bot">สวัสดีครับคุณสุริยะ ยังไม่มีโครงการในระบบเลย เริ่มใบแรกกันเลยไหมครับ</p>
+        <p class="say say--bot">ผมจะถามแค่สามอย่าง ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน แล้วพาไปเปิดไฟล์แบบต่อเลยครับ</p>
+      </div>
+
+      <div class="thread" data-state="working" hidden>
+        <p class="say say--bot">สวัสดีครับคุณสุริยะ วันนี้กลับมาที่ อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง นะครับ</p>
+        <p class="say say--bot">ค้างอยู่ที่ขั้นเปิดแบบและยืนยันสเกล หน้า 7 ตั้งไว้ที่ 1:125 แล้ว หน้าอื่นยังไม่ได้ตั้ง ถ้ายังไม่ตั้ง เครื่องมือวัดบนหน้านั้นจะกดไม่ได้ครับ</p>
+        <p class="say say--me">พื้นที่ห้องน้ำที่ได้ 4.00 มันมาจากไหน</p>
+        <p class="say say--bot">มาจากการไล่ขอบตามผิวผนังด้านในครับ ได้ 2.27 × 1.76 = 4.01 ตร.ม. ส่วน 2.50 × 2.00 ที่แบบเขียนเป็นระยะแนวเสาถึงแนวเสา ได้ 5.00 ตร.ม. สองเลขนี้วัดคนละที่ ใช้กับงานคนละอย่างครับ</p>
+      </div>
+
+      <div class="chips" data-state="first">
+        <button class="chip" type="button">ตั้งค่าโครงการให้ผมเลย</button>
+        <button class="chip" type="button">สอนวิธีถอดปริมาณจากแบบ</button>
+        <button class="chip" type="button">ขอดูตัวอย่าง BOQ ที่ได้</button>
+      </div>
+
+      <div class="chips" data-state="working" hidden>
+        <button class="chip" type="button">พาไปตั้งสเกลหน้าที่เหลือ</button>
+        <button class="chip" type="button">ดูวิธีคิดพื้นที่ห้องแบบเต็ม</button>
+        <button class="chip" type="button">เริ่มโครงการใหม่</button>
+      </div>
+
+      <div class="ask">
+        <input type="text" placeholder="พิมพ์ถามได้ เช่น ผนัง 0.25 คิดยังไง">
+        <button type="button">ส่ง</button>
+      </div>
+
+      <div class="scope">
+        <strong>ผู้ช่วยตัวนี้ไม่ทำอะไร</strong>
+        <ul>
+          <li>ไม่ตัดสินตัวเลขแทนคุณ เสนอได้ แต่คนกดรับ</li>
+          <li>ไม่เดาระยะที่แบบไม่ได้เขียน อ่านไม่ได้จะบอกว่าอ่านไม่ได้</li>
+          <li>ไม่รับรอง BOQ หรือราคาทางวิชาชีพ</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll(".switch button");
+  function show(state) {
+    buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.show === state)));
+    document.querySelectorAll("[data-state]").forEach((el) => { el.hidden = el.dataset.state !== state; });
+  }
+  buttons.forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
+  show("first");
+</script>
+
+</body>
+</html>
