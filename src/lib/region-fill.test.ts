@@ -11,12 +11,19 @@ import {
   type Pixel
 } from "@/lib/region-fill";
 
-/** สร้างหน้าแบบจำลอง พื้นขาว แล้ววาดกรอบห้องเป็นเส้นดำ */
+/**
+ * สร้างหน้าแบบจำลอง พื้นขาว แล้ววาดผนังห้องอย่างที่แบบจริงวาด
+ *
+ * ผนังคือเส้นผิวสองเส้น หนาเส้นละสองพิกเซล มีช่องสะอาดหนึ่งพิกเซลคั่น รวมหนาห้าพิกเซล
+ * งอกออกไปข้างนอกจากกรอบ `room` เนื้อที่ข้างในจึงเท่ากับกรอบลบขอบหนึ่งพิกเซลรอบด้าน
+ * เหมือนตอนที่ผนังยังเป็นเส้นเดียว · ต้องวาดเป็นสองเส้นเพราะ `structuralMask` รู้จักผนัง
+ * จากการมีเส้นคู่ขนาน เส้นเดี่ยวบาง ๆ คือสัญลักษณ์ (ดูคำอธิบายที่ฟังก์ชันนั้น)
+ */
 function pageWithRoom(options: {
   width: number;
   height: number;
   room: { x: number; y: number; w: number; h: number };
-  /** เว้นช่องบนเส้นบน เพื่อจำลองแบบที่เส้นไม่ปิดสนิท */
+  /** เว้นช่องบนผนังบน ทะลุทั้งสองผิว เพื่อจำลองประตูหรือแบบที่เส้นไม่ปิดสนิท */
   gap?: number;
 }): GreyImage {
   const { width, height, room, gap = 0 } = options;
@@ -24,14 +31,24 @@ function pageWithRoom(options: {
   const set = (x: number, y: number) => {
     if (x >= 0 && y >= 0 && x < width && y < height) data[y * width + x] = 0;
   };
-  for (let x = room.x; x < room.x + room.w; x += 1) {
+  const left = room.x;
+  const right = room.x + room.w - 1;
+  const top = room.y;
+  const bottom = room.y + room.h - 1;
+  // ระยะจากผิวในออกไปข้างนอก: 0 กับ 1 คือผิวใน · 2 คือช่องสะอาด · 3 กับ 4 คือผิวนอก
+  const layers = [0, 1, 3, 4];
+  for (let x = left - 4; x <= right + 4; x += 1) {
     const insideGap = gap > 0 && x >= room.x + Math.floor(room.w / 2) && x < room.x + Math.floor(room.w / 2) + gap;
-    if (!insideGap) set(x, room.y);
-    set(x, room.y + room.h - 1);
+    for (const layer of layers) {
+      if (!insideGap) set(x, top - layer);
+      set(x, bottom + layer);
+    }
   }
-  for (let y = room.y; y < room.y + room.h; y += 1) {
-    set(room.x, y);
-    set(room.x + room.w - 1, y);
+  for (let y = top - 4; y <= bottom + 4; y += 1) {
+    for (const layer of layers) {
+      set(left - layer, y);
+      set(right + layer, y);
+    }
   }
   return { data, width, height };
 }
@@ -369,22 +386,13 @@ describe("คัดเฉพาะเส้นที่เป็นผนัง"
   });
 
   it("ผนังบางที่คั่นห้องคู่ ยังกั้นอยู่หลังคัดเส้น", () => {
-    const width = 200;
-    const height = 200;
-    const data = new Uint8ClampedArray(width * height).fill(255);
-    const dark = (x: number, y: number) => {
-      data[y * width + x] = 0;
-    };
-    for (let x = 40; x < 120; x += 1) {
-      dark(x, 40);
-      dark(x, 99);
-    }
-    for (let y = 40; y < 100; y += 1) {
-      dark(40, y);
-      dark(119, y);
-      dark(79, y);
-    }
-    const clean = traceRegion({ data, width, height }, { x: 60, y: 70 }, filtered);
+    // ผนังเบาวาดเป็นเส้นคู่เปล่า ๆ ไม่มีลายอิฐ ผิวซ้ายที่ 79-80 ช่องสะอาดที่ 81 ผิวขวาที่ 82-83
+    const image = roomWith((set) => {
+      for (let y = 40; y < 100; y += 1) {
+        for (const x of [79, 80, 82, 83]) set(x, y);
+      }
+    });
+    const clean = traceRegion(image, { x: 60, y: 70 }, filtered);
     expect(clean.ok).toBe(true);
     if (!clean.ok) return;
     expect(clean.areaPixels).toBe(38 * 58);
@@ -843,23 +851,15 @@ describe("การยุบบันไดที่ต่อกันหลา�
 
   it("ไล่ขอบห้องจริง มุมเสาที่โดนสัญลักษณ์กัดแหว่งออกมาเป็นมุมฉากเดียว", () => {
     // หน้าใหญ่กว่าห้องมาก ไม่งั้นห้องจะเกินเพดานสัดส่วนพื้นที่แล้วถูกตีว่าสีทะลุ
-    const width = 400;
-    const height = 400;
-    const data = new Uint8ClampedArray(width * height).fill(255);
-    const ink = (x: number, y: number) => {
-      if (x >= 0 && y >= 0 && x < width && y < height) data[y * width + x] = 0;
-    };
-    // กรอบห้องหนาสองพิกเซล
-    for (let x = 40; x < 160; x += 1) for (let t = 0; t < 2; t += 1) { ink(x, 40 + t); ink(x, 158 + t); }
-    for (let y = 40; y < 160; y += 1) for (let t = 0; t < 2; t += 1) { ink(40 + t, y); ink(158 + t, y); }
-    // เสาทึบที่มุมล่างขวา กว้างสิบสองพิกเซล ต่อกับผนังทั้งสองด้าน
-    for (let y = 148; y < 160; y += 1) for (let x = 148; x < 160; x += 1) ink(x, y);
+    const image = pageWithRoom({ width: 400, height: 400, room: { x: 40, y: 40, w: 120, h: 120 } });
+    const { data, width } = image;
+    // เสาทึบที่มุมล่างขวา กว้างสิบสองพิกเซล ชิดผิวในของผนังทั้งสองด้าน
+    for (let y = 147; y < 159; y += 1) for (let x = 147; x < 159; x += 1) data[y * width + x] = 0;
     // มุมบนซ้ายของเสาแหว่งเป็นบันไดสี่ขั้น เหมือนโดนสัญลักษณ์กัด
     for (let step = 0; step < 4; step += 1) {
-      for (let x = 148; x < 148 + 4 - step; x += 1) data[(148 + step) * width + x] = 255;
+      for (let x = 147; x < 147 + 4 - step; x += 1) data[(147 + step) * width + x] = 255;
     }
-    // ด่านความยาวเส้นตั้งต่ำกว่าด้านของเสา เพื่อให้เสาทึบต้นนี้ผ่านด่านเป็นสิ่งกั้นได้เอง
-    const result = traceRegion({ data, width, height }, { x: 100, y: 100 }, {
+    const result = traceRegion(image, { x: 100, y: 100 }, {
       minRunPixels: 10,
       minStructurePixels: 60,
       column: { min: 7, max: 36, touch: 5 },
@@ -868,9 +868,9 @@ describe("การยุบบันไดที่ต่อกันหลา�
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    // มุมเสาต้องเป็นมุมฉากเดียวที่ (148, 148) ไม่มีจุดอื่นในบริเวณบันได
-    const nearCorner = result.polygon.filter((point) => point.x >= 146 && point.x <= 154 && point.y >= 146 && point.y <= 154);
-    expect(nearCorner).toEqual([{ x: 148, y: 148 }]);
+    // มุมเสาต้องเป็นมุมฉากเดียวที่ (147, 147) ไม่มีจุดอื่นในบริเวณบันได
+    const nearCorner = result.polygon.filter((point) => point.x >= 145 && point.x <= 153 && point.y >= 145 && point.y <= 153);
+    expect(nearCorner).toEqual([{ x: 147, y: 147 }]);
   });
 
 });

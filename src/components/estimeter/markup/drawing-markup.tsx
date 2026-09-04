@@ -38,6 +38,7 @@ import {
   MIN_STRUCTURE_METRES,
   MIN_WALL_RUN_METRES,
   OUTLINE_MIN_STEP_METRES,
+  WALL_THICKNESS_METRES,
   regionRejectionMessage,
   WALL_SNAP_METRES,
   toGreyImage,
@@ -1199,7 +1200,9 @@ export function DrawingMarkup({
         // ขอบเป็นแนวนอนกับแนวตั้งล้วน ค่านี้กวาดเฉพาะขั้นที่เกิดจากความหยาบของภาพ
         minStepPixels: OUTLINE_MIN_STEP_METRES * pixelsPerMetre,
         // ขอบไปชิดผิวในของเส้นผนัง ผนังหนาหรือบางก็ไม่กินเข้าไปในเนื้อผนัง
-        snapToLinePixels: WALL_SNAP_METRES * pixelsPerMetre
+        snapToLinePixels: WALL_SNAP_METRES * pixelsPerMetre,
+        // เส้นยาวเป็นผนังต่อเมื่อมีเส้นคู่ขนานในระยะนี้ เส้นกระเบื้องกับเส้นตัดจึงไม่กั้น
+        wallThicknessPixels: WALL_THICKNESS_METRES * pixelsPerMetre
         /**
          * **ไม่กลบรอยเว้าบนก้อนพื้นที่แล้ว** เคยเปิดไว้ตอน 2026-09-04 ต้นวัน แล้วเจ้าของงาน
          * จับได้จากรูปว่าขอบลอยห่างผนังและมุมมน เพราะการกลบทำงานกับก้อนพื้นที่ มันจึงมนมุมจริง

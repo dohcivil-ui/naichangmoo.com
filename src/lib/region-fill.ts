@@ -91,6 +91,14 @@ export type RegionOptions = {
    * แค่ว่าจะยอมเอื้อมไกลแค่ไหนเมื่อการไล่สีหยุดก่อนถึงผนัง แคบพอจะไม่ไปเกาะเส้นอื่น
    */
   snapToLinePixels?: number;
+  /**
+   * ระยะห่างสูงสุดระหว่างเส้นผิวสองข้างของผนัง หน่วยพิกเซล · เส้นตรงยาวจะนับเป็นผนัง
+   * ต่อเมื่อมีเส้นตรงยาวอีกเส้นขนานอยู่ภายในระยะนี้ (ดู `structuralMask`)
+   *
+   * ต้องกว้างพอสำหรับผนังหนาสุดในแบบ แต่แคบกว่าระยะระหว่างเส้นกระเบื้อง ไม่งั้นเส้นกระเบื้อง
+   * จับคู่กันเองแล้วกลายเป็นผนัง · ไม่ส่งมาใช้ค่าตั้งต้นสิบเอ็ดพิกเซล
+   */
+  wallThicknessPixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -199,17 +207,18 @@ export const OUTLINE_MIN_STEP_METRES = 0.05;
 export const WALL_SNAP_METRES = 0.07;
 
 /**
- * คัดเฉพาะเส้นที่เป็นผนังหรือโครงสร้างออกมาจากทุกสิ่งที่ดำในแบบ
+ * ระยะห่างสูงสุดระหว่างเส้นผิวสองข้างของผนัง วัดเป็นเมตรบนอาคารจริง
  *
- * **ทำไมต้องคัดก่อน ไม่ใช่ไล่สีแล้วค่อยแก้ทีหลัง** เจ้าของงานชี้เมื่อ 2026-09-04 ว่า
- * "ปัญหาหลักของคุณคือ ตีโจทย์ยังไม่แยก แยกเส้นขอบผนัง เส้นขอบเสาไม่ขาด และเส้นบอก
- * สัญลักษณ์คุณก็แยกไม่ออก เลยไม่ได้พื้นที่จริง" · ก่อนหน้านั้นเราลองแก้ด้วยการขยาย-หด
- * ก้อนพื้นที่ที่ไล่ได้ ซึ่งกลบสามเหลี่ยมเล็ก ๆ ได้ แต่เอากรอบป้ายที่กว้างสองเมตรกับวงสวิง
- * ประตูไม่อยู่ และยังมนมุมจริงของห้องจนขอบลอยห่างผนัง — ปัญหาของเส้นต้องแก้ที่เส้น
- *
- * **สองด่านต้องผ่านทั้งคู่** ยาวพอ และอยู่ในก้อนที่ใหญ่พอ · ด่านเดียวไม่พอเพราะขอบบน
- * ขอบล่างของกรอบป้ายเป็นเส้นตรงยาวพอจะผ่านด่านแรกได้ ส่วนวงสวิงประตูต่อกับผนังจึงอยู่
- * ในก้อนใหญ่และผ่านด่านที่สองได้ ต้องใช้คู่กันถึงจะคัดออกได้ทั้งสองอย่าง
+ * **ที่มาของ 0.25** ผนังในแบบทดสอบหนา 0.10 ถึง 0.20 เมตร ส่วนเส้นตารางกระเบื้องห่างกัน
+ * 0.28 ถึง 0.30 เมตร ค่านี้จึงครอบผนังทุกแบบที่เจอ และยังต่ำกว่าระยะกระเบื้องอยู่
+ * · ถ้าวันหน้าเจอกระเบื้อง 0.20 เมตร เส้นกระเบื้องจะจับคู่กันเองได้ ต้องแยกด้วยลายในช่อง
+ * (ช่องระหว่างเส้นกระเบื้องมีเส้นกระเบื้องตัดผ่าน ไม่สะอาดและไม่ใช่ลายผนัง) ซึ่งทำอยู่แล้ว
+ */
+export const WALL_THICKNESS_METRES = 0.25;
+
+/**
+ * กติกาของเสา หน่วยพิกเซล · เสาเป็นของเล็กที่ต้องกั้น ขอบห้องต้องหักเป็นขั้นอ้อมมัน
+ * (ดูวิธีรู้จักเสาที่ `structuralMask`)
  */
 export type ColumnRule = {
   /** ด้านของกรอบล้อมต้องอยู่ระหว่างสองค่านี้ หน่วยพิกเซล */
@@ -219,12 +228,56 @@ export type ColumnRule = {
   touch: number;
 };
 
+/**
+ * พิกเซลที่จางกว่าเส้นผนังแต่ยังเห็นเป็นเส้น ใช้เฉพาะตอนมองหาสัญลักษณ์เสา
+ *
+ * เสาที่มุมล่างขวาของห้องพักพยาบาลหน้า 7 ถูกเขียนด้วยปากกาจางเป็นสี่เหลี่ยมมีกากบาท
+ * ค่าความมืดราว 160 ซึ่งหลุดเกณฑ์ 140 ของเส้นผนัง แต่เจ้าของงานลากเส้นน้ำเงินอ้อมมัน
+ * เพราะเขาเห็นว่าเป็นเสา · เกณฑ์นี้จึงหลวมกว่า แล้วไปเข้มที่รูปทรงแทน
+ */
+export const COLUMN_SYMBOL_THRESHOLD = 200;
+
+/** ระยะห่างสูงสุดระหว่างเส้นผิวสองข้างของผนัง เมื่อผู้เรียกไม่ได้บอกเป็นพิกเซล */
+const DEFAULT_WALL_THICKNESS_PIXELS = 11;
+
+/**
+ * คัดเฉพาะผนังกับเสาออกมาจากทุกสิ่งที่ดำในแบบ ที่เหลือมองข้ามหมด
+ *
+ * **กติกามาจากเจ้าของงานโดยตรง** 2026-09-04 เขาสั่งเรื่องห้องน้ำที่พื้นเต็มไปด้วยเส้นตาราง
+ * กระเบื้องกับสุขภัณฑ์ว่า "ให้คิดว่ามันคือพื้นที่หนึ่ง ไม่ต้องสนใจลายเส้นต่าง ๆ ให้ยึดเสา
+ * กับเส้นผนัง แนวประตู เหมือนห้องปกติ มันก็แค่กว้างคูณยาว" · ของเดิมทำกลับด้าน คือถือว่า
+ * ทุกเส้นกั้นแล้วค่อยหาทางคัดสัญลักษณ์ออกทีละชนิด ซึ่งไม่มีวันครบ ตารางกระเบื้องผ่านด่าน
+ * ความยาวเพราะยาวเป็นเมตร และช่องกระเบื้องแต่ละช่องยังขนาดพอดีกับเกณฑ์เสาจนพื้นทั้งห้อง
+ * ถูกถมเป็นสีดำ · ของใหม่ถามว่า **อะไรคือผนัง** แล้วยอมรับเฉพาะสิ่งที่พิสูจน์ได้ว่าใช่
+ *
+ * **ผนัง** คือหนึ่งในสองอย่างนี้
+ * - เส้นตรงยาวที่มีเส้นตรงยาวอีกเส้นขนานอยู่ในระยะความหนาผนัง และช่องระหว่างคู่นั้น
+ *   เป็นลายผนัง (ลายอิฐ หรือทึบ) หรือไม่ก็สะอาดสนิท · เส้นกระเบื้องมีเส้นกระเบื้องตัดผ่าน
+ *   ช่องระหว่างมันเสมอ จึงไม่เข้าข่ายทั้งสองแบบ · เส้นตัดหน้าตัดกลางห้องน้ำมีเพื่อนบ้าน
+ *   เป็นเส้นประซึ่งไม่ยาวพอ · ขอบสุขภัณฑ์ที่ต่อจากปลายผนังหลุดออกเพราะจับคู่ไม่ได้
+ *   จึงถูกตัดทิ้งที่ปลาย
+ * - แถบทึบหนาตั้งแต่สามพิกเซลที่ยาวพอในตัวเอง เช่น ผนังที่วาดทึบ หรือแถบหน้าต่าง
+ *   ความยาววัดในแถบเท่านั้น ขอบสุขภัณฑ์หนา ๆ จึงยืมความยาวจากผนังที่มันชนไม่ได้
+ *
+ * เส้นที่ผ่านต้องหนาจริง (มัธยฐานความหนาอย่างน้อยสองพิกเซล) และอยู่ในก้อนหมึกใหญ่ของ
+ * อาคาร · ก้อนวัดจากหมึกทั้งหมด เพราะลายอิฐกับสัญลักษณ์คือสิ่งที่ร้อยผนังคนละท่อนเข้าด้วยกัน
+ *
+ * **เสา** คือหนึ่งในสองอย่างนี้ และต้องชิดผนังเสมอ
+ * - ช่องปิดสนิทขนาดเท่าเสา (สี่เหลี่ยมเดี่ยว หรือแบ่งครึ่ง หรือกากบาทเป็นสี่ช่อง) ที่ล้อมด้วย
+ *   เส้นทั้งสี่ด้าน และรอบนอกสะอาด · ถังชักโครกที่ชนผนังตกข้อรอบนอก เพราะโถต่ออยู่ข้างล่าง
+ *   · ช่องกระเบื้องตกเพราะเกาะกันเป็นตารางใหญ่กว่าเสา
+ * - ก้อนทึบขนาดเท่าเสา
+ *
+ * ทุกอย่างนอกจากนี้ — ตารางกระเบื้อง สุขภัณฑ์ ตัวอักษร กรอบป้าย สามเหลี่ยม เส้นบอกระยะ
+ * เส้นตัด — ไม่กั้น · ฟังก์ชันนี้รู้จักแต่พิกเซล ผู้เรียกแปลงเมตรเป็นพิกเซลมาให้
+ */
 export function structuralMask(
   image: GreyImage,
   threshold: number,
   minRun: number,
   minStructure: number,
-  column?: ColumnRule
+  column?: ColumnRule,
+  wallThickness: number = DEFAULT_WALL_THICKNESS_PIXELS
 ): Uint8Array {
   const { width, height } = image;
   const dark = new Uint8Array(width * height);
@@ -233,43 +286,75 @@ export function structuralMask(
   }
   if (minRun <= 1 && minStructure <= 1) return dark;
 
-  const longEnough = new Uint8Array(dark.length);
-  const markRuns = (outer: number, inner: number, at: (o: number, i: number) => number) => {
-    for (let o = 0; o < outer; o += 1) {
-      let start = -1;
-      for (let i = 0; i <= inner; i += 1) {
-        const on = i < inner && dark[at(o, i)] === 1;
-        if (on && start < 0) start = i;
-        if (!on && start >= 0) {
-          if (i - start >= minRun) {
-            for (let k = start; k < i; k += 1) longEnough[at(o, k)] = 1;
-          }
-          start = -1;
-        }
+  const runs = runLengths(dark, width, height);
+  const big = bigComponents(dark, width, height, minStructure);
+  const faces = wallFaces(dark, runs, width, height, minRun, wallThickness);
+  const bands = thickBands(dark, runs, width, height, minRun);
+  const walls = new Uint8Array(dark.length);
+  for (let index = 0; index < dark.length; index += 1) {
+    walls[index] = (faces[index] === 1 || bands[index] === 1) && big[index] === 1 ? 1 : 0;
+  }
+  if (!column) return walls;
+
+  const columns = columnMask(image, dark, runs, walls, width, height, column);
+  for (let index = 0; index < walls.length; index += 1) if (columns[index]) walls[index] = 1;
+  return walls;
+}
+
+type RunLengths = { horizontal: Uint16Array; vertical: Uint16Array };
+
+/** ความยาวของช่วงหมึกต่อเนื่องที่แต่ละพิกเซลอยู่ ทั้งแนวนอนและแนวตั้ง */
+function runLengths(dark: Uint8Array, width: number, height: number): RunLengths {
+  const horizontal = new Uint16Array(dark.length);
+  const vertical = new Uint16Array(dark.length);
+  for (let y = 0; y < height; y += 1) {
+    let start = -1;
+    for (let x = 0; x <= width; x += 1) {
+      const on = x < width && dark[y * width + x] === 1;
+      if (on && start < 0) start = x;
+      if (!on && start >= 0) {
+        const length = Math.min(65535, x - start);
+        for (let k = start; k < x; k += 1) horizontal[y * width + k] = length;
+        start = -1;
       }
     }
-  };
-  markRuns(height, width, (y, x) => y * width + x);
-  markRuns(width, height, (x, y) => y * width + x);
+  }
+  for (let x = 0; x < width; x += 1) {
+    let start = -1;
+    for (let y = 0; y <= height; y += 1) {
+      const on = y < height && dark[y * width + x] === 1;
+      if (on && start < 0) start = y;
+      if (!on && start >= 0) {
+        const length = Math.min(65535, y - start);
+        for (let k = start; k < y; k += 1) vertical[k * width + x] = length;
+        start = -1;
+      }
+    }
+  }
+  return { horizontal, vertical };
+}
 
-  if (minStructure <= 1) return longEnough;
-
-  /**
-   * ก้อนคำนวณจากพิกเซลดำทั้งหมด ไม่ใช่จากเส้นที่ผ่านด่านแรก เพราะลายขีดในเนื้อผนัง
-   * กับเส้นสั้น ๆ คือสิ่งที่เชื่อมผนังคนละท่อนให้เป็นโครงเดียวกัน ถ้าตัดทิ้งไปก่อนนับก้อน
-   * ผนังจะแตกเป็นชิ้นเล็กชิ้นน้อยแล้วตกด่านที่สองทั้งหมด
-   */
-  const component = new Int32Array(dark.length).fill(-1);
+/**
+ * ก้อนหมึกที่กรอบล้อมยาวอย่างน้อยเท่าที่กำหนด นับแบบแปดทิศบนหมึกทั้งหมด
+ *
+ * ลายอิฐในเนื้อผนังกับเส้นสั้น ๆ คือสิ่งที่เชื่อมผนังคนละท่อนให้เป็นโครงเดียวกัน ถ้านับก้อน
+ * จากเส้นที่คัดแล้ว ผนังท่อนระหว่างประตูกับเสาจะกลายเป็นก้อนเล็กแล้วตกด่านทั้งที่เป็นผนังจริง
+ * เจอเรื่องนี้ตอนทดลองกับผนังบนของห้องพักพยาบาลเมื่อ 2026-09-04
+ */
+function bigComponents(dark: Uint8Array, width: number, height: number, minStructure: number): Uint8Array {
   const keep = new Uint8Array(dark.length);
+  if (minStructure <= 1) {
+    keep.set(dark);
+    return keep;
+  }
+  const label = new Int32Array(dark.length).fill(-1);
   const stack: number[] = [];
-  /** ก้อนเล็กที่รูปร่างเข้าข่ายเสา เก็บไว้ตัดสินทีหลัง เพราะต้องรู้ก่อนว่าโครงผนังอยู่ตรงไหน */
-  const columnBoxes: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
-  let label = 0;
+  let next = 0;
   for (let seed = 0; seed < dark.length; seed += 1) {
-    if (dark[seed] === 0 || component[seed] >= 0) continue;
+    if (dark[seed] === 0 || label[seed] >= 0) continue;
     stack.length = 0;
     stack.push(seed);
-    component[seed] = label;
+    label[seed] = next;
     const members: number[] = [];
     let minX = width;
     let maxX = -1;
@@ -290,105 +375,244 @@ export function structuralMask(
           const nx = x + dx;
           const ny = y + dy;
           if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          const next = ny * width + nx;
-          if (dark[next] === 0 || component[next] >= 0) continue;
-          component[next] = label;
-          stack.push(next);
+          const candidate = ny * width + nx;
+          if (dark[candidate] === 0 || label[candidate] >= 0) continue;
+          label[candidate] = next;
+          stack.push(candidate);
         }
       }
     }
-    const boxWidth = maxX - minX + 1;
-    const boxHeight = maxY - minY + 1;
-    if (Math.max(boxWidth, boxHeight) >= minStructure) {
+    if (Math.max(maxX - minX + 1, maxY - minY + 1) >= minStructure) {
       for (const index of members) keep[index] = 1;
-    } else if (column && looksLikeColumn(members, minX, minY, boxWidth, boxHeight, width, column)) {
-      columnBoxes.push({ minX, minY, maxX, maxY });
     }
-    label += 1;
+    next += 1;
   }
-
-  const structural = new Uint8Array(dark.length);
-  for (let index = 0; index < dark.length; index += 1) {
-    structural[index] = longEnough[index] === 1 && keep[index] === 1 ? 1 : 0;
-  }
-
-  /**
-   * เสาถูกถมทั้งกรอบ ไม่ใช่เก็บแค่เส้นขอบ เพราะเนื้อในเสาไม่ใช่พื้นที่ห้อง
-   * ถ้าเก็บแค่ขอบ สีจะไหลเข้าไปข้างในแล้วขอบห้องจะมีรูตรงกลางเสา
-   */
-  if (column) {
-    for (const box of columnBoxes) {
-      if (!touchesStructure(structural, width, height, box, column.touch)) continue;
-      fillBox(structural, width, height, box, 0);
-    }
-    /**
-     * **เนื้อในเสาเล็กกว่าตัวเสาเสมอ เท่าความหนาเส้นกรอบสองข้าง**
-     *
-     * เกณฑ์ `COLUMN_MIN_METRES` วัดขนาดนอกของเสา ถ้าเอาไปใช้กับเนื้อในตรง ๆ เสาต้นเล็ก
-     * จะตกเกณฑ์ทั้งที่ตัวมันผ่าน · 2026-09-04 เจ้าของงานทักว่าเสาขวาล่างยังถูกกิน
-     * วัดแล้วพบว่ากรอบนอกกว้าง 8 พิกเซลซึ่งผ่านเกณฑ์ 7 แต่เนื้อในเหลือ 6 จึงตกไป
-     */
-    const gapRule = { ...column, min: Math.max(3, column.min - 4) };
-    for (const box of enclosedGaps(dark, width, height, gapRule)) {
-      if (!touchesStructure(structural, width, height, box, column.touch)) continue;
-      fillBox(structural, width, height, box, 0);
-      /**
-       * ขยายออกไปเก็บเส้นกรอบของเสาด้วย แต่**เฉพาะพิกเซลที่เป็นเส้นจริง**
-       * ถ้าถมทั้งวงแหวนรอบนอก สิ่งกั้นจะกินเนื้อห้องออกไปอีกด้านละสามพิกเซล
-       */
-      const left = Math.max(0, box.minX - 3);
-      const right = Math.min(width - 1, box.maxX + 3);
-      const top = Math.max(0, box.minY - 3);
-      const bottom = Math.min(height - 1, box.maxY + 3);
-      for (let y = top; y <= bottom; y += 1) {
-        for (let x = left; x <= right; x += 1) {
-          const index = y * width + x;
-          if (dark[index] === 1) structural[index] = 1;
-        }
-      }
-    }
-  }
-  return structural;
+  return keep;
 }
 
-function fillBox(
-  mask: Uint8Array,
-  width: number,
-  height: number,
-  box: { minX: number; minY: number; maxX: number; maxY: number },
-  grow: number
-): void {
-  const left = Math.max(0, box.minX - grow);
-  const right = Math.min(width - 1, box.maxX + grow);
-  const top = Math.max(0, box.minY - grow);
-  const bottom = Math.min(height - 1, box.maxY + grow);
-  for (let y = top; y <= bottom; y += 1) {
-    for (let x = left; x <= right; x += 1) mask[y * width + x] = 1;
-  }
-}
+/** สัดส่วนหมึกอย่างน้อยเท่านี้ในช่องระหว่างคู่เส้น ถือว่าเป็นลายผนัง (ลายอิฐ หรือทึบ) */
+const WALL_GAP_INKED = 0.15;
+/** สัดส่วนหมึกไม่เกินเท่านี้ในช่องระหว่างคู่เส้น ถือว่าสะอาด คือผนังเบาที่วาดเป็นเส้นคู่เปล่า */
+const WALL_GAP_CLEAN = 0.02;
+/** ระยะห่างขั้นต่ำระหว่างคู่เส้นผิว · ต่ำกว่านี้คือเส้นหนาเส้นเดียว ไม่ใช่ผนังสองผิว */
+const WALL_PAIR_MIN = 3;
+/** ระยะระหว่างจุดสุ่มบนเส้น หน่วยพิกเซล */
+const WALL_SAMPLE_STEP = 3;
+/** เส้นยาวต้องมีจุดสุ่มที่จับคู่ได้อย่างน้อยครึ่งหนึ่ง จึงนับว่าเป็นผิวผนัง */
+const WALL_PAIRED_FRACTION = 0.5;
+/** มัธยฐานความหนาของเส้นผิวผนังต้องไม่ต่ำกว่านี้ · เส้นกระเบื้องบางหนึ่งพิกเซล */
+const WALL_MIN_THICKNESS = 2;
 
 /**
- * ช่องว่างเล็ก ๆ ที่ถูกเส้นล้อมปิดสนิท ซึ่งคือเนื้อในของเสาที่วาดเป็นกรอบ
+ * เส้นผิวผนัง — เส้นตรงยาวที่มีคู่ขนานอยู่ในระยะความหนาผนัง และช่องระหว่างเป็นลายผนังหรือสะอาด
  *
- * **ทำไมต้องมีทางนี้เพิ่ม** เสาส่วนใหญ่ถูกเขียนให้ขอบชนกับเส้นผนัง มันจึงกลายเป็นส่วนหนึ่ง
- * ของก้อนผนังยักษ์ กติกา "ก้อนเล็กที่รูปร่างเหมือนเสา" จึงมองไม่เห็นมันเลย เรนเดอร์หน้ากาก
- * ออกมาดูที่กำลังขยายหกเท่าเมื่อ 2026-09-04 จึงเห็นว่าเสายังเป็นรูโหว่อยู่ทั้งที่ใส่กติกาไปแล้ว
- *
- * ที่ว่างปิดสนิทขนาดเท่าเสาคือลายเซ็นที่เชื่อถือได้ เพราะห้องจริงเปิดออกสู่ขอบกระดาษเสมอ
- * ส่วนช่องในกรอบป้ายชนิดพื้นก็ปิดสนิทเหมือนกัน แต่มันลอยอยู่กลางห้องไม่ติดโครงผนัง
- * จึงถูกด่านระยะชิดคัดออก
+ * ตัดสินทีละเส้น (ช่วงหมึกต่อเนื่องยาวอย่างน้อย `minRun`) โดยสุ่มจุดตามแนวเส้น แล้วเก็บเส้น
+ * ตั้งแต่จุดแรกที่จับคู่ได้ถึงจุดสุดท้ายที่จับคู่ได้ · ส่วนปลายที่จับคู่ไม่ได้ถูกตัดทิ้ง เพราะมัน
+ * คือขอบสุขภัณฑ์ที่วาดต่อจากปลายผนัง · ส่วนกลางที่จับคู่ไม่ได้ (ช่องประตูอีกฝั่ง หน้าต่าง)
+ * ยังคงไว้ เพราะเส้นผิวจริงวิ่งต่อเนื่องผ่านช่องพวกนั้น
  */
-function enclosedGaps(
+function wallFaces(
   dark: Uint8Array,
+  runs: RunLengths,
+  width: number,
+  height: number,
+  minRun: number,
+  wallThickness: number
+): Uint8Array {
+  const faces = new Uint8Array(dark.length);
+  const pairMax = Math.max(WALL_PAIR_MIN, Math.round(wallThickness));
+  const longAcross = (horizontal: boolean, index: number) =>
+    (horizontal ? runs.horizontal[index] : runs.vertical[index]) >= minRun;
+
+  /** สัดส่วนหมึกในช่องระหว่างเส้นที่ระยะ `fixed` กับคู่ที่ระยะ `partner` รอบตำแหน่ง `along` */
+  const gapInk = (horizontal: boolean, along: number, fixed: number, partner: number) => {
+    const low = Math.min(fixed, partner) + 1;
+    const high = Math.max(fixed, partner) - 1;
+    let total = 0;
+    let inked = 0;
+    for (let across = low; across <= high; across += 1) {
+      for (let offset = -3; offset <= 3; offset += 1) {
+        const p = along + offset;
+        const x = horizontal ? p : across;
+        const y = horizontal ? across : p;
+        if (x < 0 || y < 0 || x >= width || y >= height) continue;
+        total += 1;
+        inked += dark[y * width + x];
+      }
+    }
+    return total === 0 ? 0 : inked / total;
+  };
+
+  const judgeRun = (horizontal: boolean, fixed: number, start: number, end: number) => {
+    const paired: boolean[] = [];
+    const thickness: number[] = [];
+    for (let along = start; along < end; along += WALL_SAMPLE_STEP) {
+      const index = horizontal ? fixed * width + along : along * width + fixed;
+      thickness.push(horizontal ? runs.vertical[index] : runs.horizontal[index]);
+      let found = false;
+      for (let k = WALL_PAIR_MIN; k <= pairMax && !found; k += 1) {
+        for (const sign of [-1, 1]) {
+          const partner = fixed + sign * k;
+          if (partner < 0 || partner >= (horizontal ? height : width)) continue;
+          const partnerIndex = horizontal ? partner * width + along : along * width + partner;
+          if (dark[partnerIndex] === 0 || !longAcross(horizontal, partnerIndex)) continue;
+          const ink = gapInk(horizontal, along, fixed, partner);
+          if (ink >= WALL_GAP_INKED || ink <= WALL_GAP_CLEAN) {
+            found = true;
+            break;
+          }
+        }
+      }
+      paired.push(found);
+    }
+    thickness.sort((one, two) => one - two);
+    if (thickness[Math.floor(thickness.length / 2)] < WALL_MIN_THICKNESS) return;
+    const count = paired.filter(Boolean).length;
+    if (count < paired.length * WALL_PAIRED_FRACTION) return;
+    const first = paired.indexOf(true);
+    const last = paired.lastIndexOf(true);
+    const from = start + first * WALL_SAMPLE_STEP;
+    const to = Math.min(end, start + (last + 1) * WALL_SAMPLE_STEP);
+    for (let along = from; along < to; along += 1) {
+      faces[horizontal ? fixed * width + along : along * width + fixed] = 1;
+    }
+  };
+
+  for (let y = 0; y < height; y += 1) {
+    let start = -1;
+    for (let x = 0; x <= width; x += 1) {
+      const on = x < width && runs.horizontal[y * width + x] >= minRun;
+      if (on && start < 0) start = x;
+      if (!on && start >= 0) {
+        judgeRun(true, y, start, x);
+        start = -1;
+      }
+    }
+  }
+  for (let x = 0; x < width; x += 1) {
+    let start = -1;
+    for (let y = 0; y <= height; y += 1) {
+      const on = y < height && runs.vertical[y * width + x] >= minRun;
+      if (on && start < 0) start = y;
+      if (!on && start >= 0) {
+        judgeRun(false, x, start, y);
+        start = -1;
+      }
+    }
+  }
+  return faces;
+}
+
+/** แถบหมึกหนาตั้งแต่เท่านี้ถือว่าเป็นผนังทึบหรือแถบหน้าต่าง ไม่ใช่เส้น */
+const BAND_MIN_THICKNESS = 3;
+
+/**
+ * แถบทึบที่ยาวพอในตัวเอง — ความยาววัดเฉพาะบนพิกเซลที่หนา จึงยืมความยาวจากเส้นบางไม่ได้
+ *
+ * ขอบถังชักโครกในห้องน้ำพยาบาลหน้า 7 หนาสามพิกเซลยาว 0.88 เมตร ชนกับผนังบน ถ้าวัด
+ * ความยาวบนหมึกทั้งหมด มันจะบวกความหนาผนังเข้าไปจนยาวเกินหนึ่งเมตรแล้วกลายเป็นผนัง
+ */
+function thickBands(dark: Uint8Array, runs: RunLengths, width: number, height: number, minRun: number): Uint8Array {
+  const band = new Uint8Array(dark.length);
+  for (let index = 0; index < dark.length; index += 1) {
+    if (dark[index] === 1 && Math.min(runs.horizontal[index], runs.vertical[index]) >= BAND_MIN_THICKNESS) band[index] = 1;
+  }
+  const kept = new Uint8Array(dark.length);
+  for (let y = 0; y < height; y += 1) {
+    let start = -1;
+    for (let x = 0; x <= width; x += 1) {
+      const on = x < width && band[y * width + x] === 1;
+      if (on && start < 0) start = x;
+      if (!on && start >= 0) {
+        if (x - start >= minRun) for (let k = start; k < x; k += 1) kept[y * width + k] = 1;
+        start = -1;
+      }
+    }
+  }
+  for (let x = 0; x < width; x += 1) {
+    let start = -1;
+    for (let y = 0; y <= height; y += 1) {
+      const on = y < height && band[y * width + x] === 1;
+      if (on && start < 0) start = y;
+      if (!on && start >= 0) {
+        if (y - start >= minRun) for (let k = start; k < y; k += 1) kept[k * width + x] = 1;
+        start = -1;
+      }
+    }
+  }
+  return kept;
+}
+
+type Box = { minX: number; minY: number; maxX: number; maxY: number };
+
+/** ช่องปิดสนิทต้องเต็มกรอบล้อมอย่างน้อยเท่านี้ ไม่งั้นเป็นสามเหลี่ยมหรือวงกลม ไม่ใช่เสา */
+const COLUMN_CELL_FILL = 0.85;
+/** ก้อนทึบต้องเต็มกรอบล้อมอย่างน้อยเท่านี้ */
+const COLUMN_SOLID_FILL = 0.7;
+/** ด้านยาวของเสาต้องไม่เกินสองเท่าของด้านสั้น · ถังชักโครกกับกรอบป้ายยาวกว่านั้น */
+const COLUMN_MAX_ASPECT = 2;
+/** เส้นล้อมช่องต้องมืดอย่างน้อยเท่านี้ของความยาวรอบช่อง */
+const COLUMN_RING_DARK = 0.9;
+/** หมึกรอบนอกเสา (ห่างสองถึงหกพิกเซล ไม่นับผนัง) ต้องไม่เกินเท่านี้ ไม่งั้นมันคือชิ้นส่วนของสุขภัณฑ์ */
+const COLUMN_FRAME_CLUTTER = 0.3;
+/** ช่องที่ห่างกันไม่เกินเท่านี้ถือว่าเป็นช่องของเสาต้นเดียวกัน (กากบาทหรือเส้นแบ่งครึ่ง) */
+const COLUMN_CELL_GAP = 2;
+
+/**
+ * เสา — ช่องปิดสนิทขนาดเท่าเสาที่ล้อมด้วยเส้นครบสี่ด้านและรอบนอกสะอาด หรือก้อนทึบขนาดเท่าเสา
+ *
+ * **ทำไมมองด้วยเกณฑ์จางกว่าผนัง** เสาบางต้นเขียนด้วยปากกาจาง (ดู `COLUMN_SYMBOL_THRESHOLD`)
+ * **ทำไมต้องรวมช่องที่ติดกัน** เสาที่มีกากบาทเป็นสี่ช่องเล็ก ถ้าดูทีละช่องจะเล็กเกินและรอบนอก
+ * มีเส้นกากบาทของช่องข้าง ๆ ทำให้ตกข้อรอบนอกสะอาด · รวมเป็นก้อนเดียวก่อนแล้วค่อยตัดสิน
+ * **ทำไมช่องกระเบื้องไม่ผ่าน** มันเกาะกันเป็นตารางหลายสิบช่อง รวมแล้วใหญ่กว่าเสามาก
+ * **ทำไมถังชักโครกไม่ผ่าน** ตัวถังเป็นสี่เหลี่ยมชนผนังเหมือนเสาทุกอย่าง แต่โถต่ออยู่ข้างล่าง
+ * รอบนอกจึงไม่สะอาด · เจอทั้งสามกรณีนี้บนแบบหน้า 7 เมื่อ 2026-09-04
+ */
+function columnMask(
+  image: GreyImage,
+  dark: Uint8Array,
+  runs: RunLengths,
+  walls: Uint8Array,
   width: number,
   height: number,
   rule: ColumnRule
-): { minX: number; minY: number; maxX: number; maxY: number }[] {
-  const reached = new Uint8Array(dark.length);
+): Uint8Array {
+  const columns = new Uint8Array(dark.length);
+  const faint = new Uint8Array(dark.length);
+  for (let index = 0; index < faint.length; index += 1) {
+    faint[index] = image.data[index] <= COLUMN_SYMBOL_THRESHOLD ? 1 : 0;
+  }
+
+  const touchesWalls = (box: Box) => {
+    for (let y = Math.max(0, box.minY - rule.touch); y <= Math.min(height - 1, box.maxY + rule.touch); y += 1) {
+      for (let x = Math.max(0, box.minX - rule.touch); x <= Math.min(width - 1, box.maxX + rule.touch); x += 1) {
+        if (walls[y * width + x]) return true;
+      }
+    }
+    return false;
+  };
+  const sizeFits = (box: Box, minSide: number) => {
+    const w = box.maxX - box.minX + 1;
+    const h = box.maxY - box.minY + 1;
+    if (w < minSide || h < minSide || w > rule.max || h > rule.max) return false;
+    return Math.max(w, h) <= COLUMN_MAX_ASPECT * Math.min(w, h);
+  };
+  const stamp = (box: Box) => {
+    for (let y = Math.max(0, box.minY - 3); y <= Math.min(height - 1, box.maxY + 3); y += 1) {
+      for (let x = Math.max(0, box.minX - 3); x <= Math.min(width - 1, box.maxX + 3); x += 1) {
+        const inside = x >= box.minX && x <= box.maxX && y >= box.minY && y <= box.maxY;
+        // ถมทั้งกรอบ แล้วเก็บเฉพาะเส้นจริงในวงแหวนรอบนอก ไม่ถมวงแหวน ไม่งั้นกินเนื้อห้อง
+        if (inside || faint[y * width + x]) columns[y * width + x] = 1;
+      }
+    }
+  };
+
+  // ช่องขาวที่ปิดสนิท (ออกไปถึงขอบกระดาษไม่ได้) บนหมึกจาง
+  const reached = new Uint8Array(faint.length);
   const queue: number[] = [];
   const push = (x: number, y: number) => {
     const index = y * width + x;
-    if (dark[index] === 1 || reached[index] === 1) return;
+    if (faint[index] || reached[index]) return;
     reached[index] = 1;
     queue.push(index);
   };
@@ -410,19 +634,20 @@ function enclosedGaps(
     if (y < height - 1) push(x, y + 1);
   }
 
-  const seen = new Uint8Array(dark.length);
-  const found: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
+  const seen = new Uint8Array(faint.length);
+  const cells: Box[] = [];
   const stack: number[] = [];
-  for (let seed = 0; seed < dark.length; seed += 1) {
-    if (dark[seed] === 1 || reached[seed] === 1 || seen[seed] === 1) continue;
+  const cellMin = 3;
+  for (let seed = 0; seed < faint.length; seed += 1) {
+    if (faint[seed] || reached[seed] || seen[seed]) continue;
     stack.length = 0;
     stack.push(seed);
     seen[seed] = 1;
+    let filled = 0;
     let minX = width;
     let maxX = -1;
     let minY = height;
     let maxY = -1;
-    let filled = 0;
     while (stack.length > 0) {
       const index = stack.pop() as number;
       filled += 1;
@@ -433,88 +658,175 @@ function enclosedGaps(
       if (y < minY) minY = y;
       if (y > maxY) maxY = y;
       const step = (nx: number, ny: number) => {
-        const next = ny * width + nx;
-        if (dark[next] === 1 || seen[next] === 1) return;
-        seen[next] = 1;
-        stack.push(next);
+        const candidate = ny * width + nx;
+        if (faint[candidate] || seen[candidate]) return;
+        seen[candidate] = 1;
+        stack.push(candidate);
       };
       if (x > 0) step(x - 1, y);
       if (x < width - 1) step(x + 1, y);
       if (y > 0) step(x, y - 1);
       if (y < height - 1) step(x, y + 1);
     }
-    const boxWidth = maxX - minX + 1;
-    const boxHeight = maxY - minY + 1;
-    if (boxWidth < rule.min || boxHeight < rule.min) continue;
-    if (boxWidth > rule.max || boxHeight > rule.max) continue;
-    /**
-     * **ช่องต้องเต็มกรอบเกือบทั้งหมด ไม่งั้นมันไม่ใช่เสา**
-     *
-     * เนื้อในเสาเป็นสี่เหลี่ยม จึงเต็มกรอบล้อมของมันเกือบร้อยเปอร์เซ็นต์ ส่วนเนื้อใน
-     * สามเหลี่ยมสัญลักษณ์ประตูเต็มแค่ราวครึ่งเดียว และเนื้อในวงกลมเลขแนวเสาเต็มราว
-     * เจ็ดสิบแปดเปอร์เซ็นต์ ทั้งสองอย่างจึงตกด่านนี้
-     *
-     * ข้อนี้มีเพราะเมื่อ 2026-09-04 ผมลืมตรวจรูปร่างในทางนี้ ทั้งที่ตรวจในอีกทางแล้ว
-     * ผลคือสามเหลี่ยมสัญลักษณ์ที่คร่อมผนังทุกบานกลายเป็นเสาปลอม ขอบห้องจึงโป่งเข้าไป
-     * ในเนื้อผนังทุกจุดที่มีประตูหรือหน้าต่าง เจ้าของงานจับได้จากรูปทันที
-     */
-    if (filled / (boxWidth * boxHeight) < 0.85) continue;
-    found.push({ minX, minY, maxX, maxY });
+    const w = maxX - minX + 1;
+    const h = maxY - minY + 1;
+    if (w < cellMin || h < cellMin || w > rule.max || h > rule.max) continue;
+    if (filled / (w * h) < COLUMN_CELL_FILL) continue;
+    cells.push({ minX, minY, maxX, maxY });
   }
-  return found;
-}
 
-/**
- * ก้อนนี้หน้าตาเป็นเสาหรือไม่ — ดูจากขนาดและรูปร่าง ยังไม่ดูตำแหน่ง
- *
- * รับสองแบบที่ช่างเขียนแบบใช้จริง คือวาดเป็น**กรอบสี่เหลี่ยม**ซึ่งพิกเซลเกือบทั้งหมด
- * อยู่บนขอบกรอบ กับวาดเป็น**สี่เหลี่ยมทึบ**ซึ่งพิกเซลเต็มกรอบ · วงกลมเลขแนวเสาถูกคัดออก
- * เพราะเส้นรอบวงพาดกลางกรอบ ส่วนสามเหลี่ยมบอกระดับถูกคัดเพราะด้านเอียงสองด้านก็พาดกลางกรอบ
- */
-function looksLikeColumn(
-  members: readonly number[],
-  minX: number,
-  minY: number,
-  boxWidth: number,
-  boxHeight: number,
-  width: number,
-  rule: ColumnRule
-): boolean {
-  if (boxWidth < rule.min || boxHeight < rule.min) return false;
-  if (boxWidth > rule.max || boxHeight > rule.max) return false;
-  const edge = Math.max(2, Math.round(rule.min / 3));
-  let onBorder = 0;
-  for (const index of members) {
-    const x = index % width;
-    const y = (index - x) / width;
-    const fromLeft = x - minX;
-    const fromTop = y - minY;
-    const fromRight = boxWidth - 1 - fromLeft;
-    const fromBottom = boxHeight - 1 - fromTop;
-    if (Math.min(fromLeft, fromRight, fromTop, fromBottom) < edge) onBorder += 1;
-  }
-  const area = boxWidth * boxHeight;
-  return onBorder / members.length >= 0.9 || members.length / area >= 0.7;
-}
-
-/** มีสิ่งกั้นอยู่ในระยะรอบกรอบนี้หรือไม่ — เสาจริงต้องเกาะโครงผนัง ไม่ใช่ลอยกลางห้อง */
-function touchesStructure(
-  structural: Uint8Array,
-  width: number,
-  height: number,
-  box: { minX: number; minY: number; maxX: number; maxY: number },
-  reach: number
-): boolean {
-  const left = Math.max(0, box.minX - reach);
-  const right = Math.min(width - 1, box.maxX + reach);
-  const top = Math.max(0, box.minY - reach);
-  const bottom = Math.min(height - 1, box.maxY + reach);
-  for (let y = top; y <= bottom; y += 1) {
-    for (let x = left; x <= right; x += 1) {
-      if (structural[y * width + x] === 1) return true;
+  /**
+   * รวมช่องที่ติดกันและขนาดใกล้เคียงกันเป็นก้อนเดียว (กากบาทของเสา · ตารางกระเบื้องก็รวมกัน
+   * จนใหญ่เกินเสา) · ต้องดูขนาดด้วย ไม่งั้นช่องเล็กจิ๋วของวงกบประตูที่อยู่ห่างเสาสองพิกเซล
+   * จะถูกดูดเข้าก้อน ทำให้กรอบล้อมยื่นออกไปในที่ว่างแล้วตกข้อเส้นล้อมครบสี่ด้าน
+   * เจอกับเสามุมบนซ้ายของห้องพักพยาบาลหน้า 7 เมื่อ 2026-09-04
+   */
+  const parent = cells.map((_, index) => index);
+  const find = (index: number): number => (parent[index] === index ? index : (parent[index] = find(parent[index])));
+  const similar = (a: Box, b: Box) => {
+    const aw = a.maxX - a.minX + 1;
+    const ah = a.maxY - a.minY + 1;
+    const bw = b.maxX - b.minX + 1;
+    const bh = b.maxY - b.minY + 1;
+    return Math.max(aw, bw) <= 2 * Math.min(aw, bw) && Math.max(ah, bh) <= 2 * Math.min(ah, bh);
+  };
+  for (let a = 0; a < cells.length; a += 1) {
+    for (let b = a + 1; b < cells.length; b += 1) {
+      const gapX = Math.max(cells[b].minX - cells[a].maxX - 1, cells[a].minX - cells[b].maxX - 1, 0);
+      const gapY = Math.max(cells[b].minY - cells[a].maxY - 1, cells[a].minY - cells[b].maxY - 1, 0);
+      if (gapX <= COLUMN_CELL_GAP && gapY <= COLUMN_CELL_GAP && similar(cells[a], cells[b])) parent[find(a)] = find(b);
     }
   }
-  return false;
+  const clusters = new Map<number, Box>();
+  cells.forEach((cell, index) => {
+    const root = find(index);
+    const box = clusters.get(root);
+    if (!box) {
+      clusters.set(root, { ...cell });
+      return;
+    }
+    box.minX = Math.min(box.minX, cell.minX);
+    box.minY = Math.min(box.minY, cell.minY);
+    box.maxX = Math.max(box.maxX, cell.maxX);
+    box.maxY = Math.max(box.maxY, cell.maxY);
+  });
+
+  /**
+   * เนื้อในเสาเล็กกว่าตัวเสาเท่าความหนาเส้นกรอบสองข้าง เกณฑ์ขนาดของช่องจึงลดลงสี่พิกเซล
+   * 2026-09-04 เจ้าของงานทักว่าเสาขวาล่างยังถูกกิน วัดแล้วกรอบนอกกว้าง 8 ผ่านเกณฑ์ 7 แต่เนื้อใน 6
+   */
+  const cellSide = Math.max(cellMin, rule.min - 4);
+  const ringDark = (box: Box) => {
+    let total = 0;
+    let darkCount = 0;
+    const check = (x: number, y: number) => {
+      if (x < 0 || y < 0 || x >= width || y >= height) return;
+      total += 1;
+      darkCount += faint[y * width + x];
+    };
+    let weakest = 1;
+    const side = (points: [number, number][]) => {
+      total = 0;
+      darkCount = 0;
+      for (const [x, y] of points) check(x, y);
+      weakest = Math.min(weakest, total === 0 ? 0 : darkCount / total);
+    };
+    const top: [number, number][] = [];
+    const bottom: [number, number][] = [];
+    const left: [number, number][] = [];
+    const right: [number, number][] = [];
+    for (let x = box.minX; x <= box.maxX; x += 1) {
+      top.push([x, box.minY - 1]);
+      bottom.push([x, box.maxY + 1]);
+    }
+    for (let y = box.minY; y <= box.maxY; y += 1) {
+      left.push([box.minX - 1, y]);
+      right.push([box.maxX + 1, y]);
+    }
+    side(top);
+    side(bottom);
+    side(left);
+    side(right);
+    return weakest;
+  };
+  /** พิกเซลนี้อยู่ในเนื้อผนังหรือไม่ — ห่างจากเส้นผนังไม่เกินสามพิกเซล ลายอิฐระหว่างผิวจึงไม่นับเป็นความรก */
+  const insideWall = (x: number, y: number) => {
+    for (let dy = -3; dy <= 3; dy += 1) {
+      for (let dx = -3; dx <= 3; dx += 1) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (walls[ny * width + nx]) return true;
+      }
+    }
+    return false;
+  };
+  const frameClutter = (box: Box) => {
+    let total = 0;
+    let inked = 0;
+    for (let y = box.minY - 6; y <= box.maxY + 6; y += 1) {
+      for (let x = box.minX - 6; x <= box.maxX + 6; x += 1) {
+        if (x < 0 || y < 0 || x >= width || y >= height) continue;
+        if (x >= box.minX - 1 && x <= box.maxX + 1 && y >= box.minY - 1 && y <= box.maxY + 1) continue;
+        if (insideWall(x, y)) continue;
+        total += 1;
+        inked += dark[y * width + x];
+      }
+    }
+    return total === 0 ? 0 : inked / total;
+  };
+  for (const box of clusters.values()) {
+    if (!sizeFits(box, cellSide)) continue;
+    if (ringDark(box) < COLUMN_RING_DARK) continue;
+    if (!touchesWalls(box)) continue;
+    if (frameClutter(box) > COLUMN_FRAME_CLUTTER) continue;
+    stamp(box);
+  }
+
+  // ก้อนทึบขนาดเท่าเสา — นับแปดทิศบนพิกเซลหนา เส้นผิวผนังบาง ๆ จึงไม่พาก้อนไปรวมกับผนังทั้งแผง
+  const thick = new Uint8Array(dark.length);
+  for (let index = 0; index < dark.length; index += 1) {
+    if (dark[index] === 1 && Math.min(runs.horizontal[index], runs.vertical[index]) >= BAND_MIN_THICKNESS) thick[index] = 1;
+  }
+  const seenThick = new Uint8Array(dark.length);
+  for (let seed = 0; seed < thick.length; seed += 1) {
+    if (thick[seed] === 0 || seenThick[seed]) continue;
+    stack.length = 0;
+    stack.push(seed);
+    seenThick[seed] = 1;
+    let filled = 0;
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+    while (stack.length > 0) {
+      const index = stack.pop() as number;
+      filled += 1;
+      const x = index % width;
+      const y = (index - x) / width;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const candidate = ny * width + nx;
+          if (thick[candidate] === 0 || seenThick[candidate]) continue;
+          seenThick[candidate] = 1;
+          stack.push(candidate);
+        }
+      }
+    }
+    const box = { minX, minY, maxX, maxY };
+    if (!sizeFits(box, rule.min)) continue;
+    if (filled / ((maxX - minX + 1) * (maxY - minY + 1)) < COLUMN_SOLID_FILL) continue;
+    if (!touchesWalls(box)) continue;
+    stamp(box);
+  }
+  return columns;
 }
 
 export const regionRejectionMessage: Record<RegionRejection, string> = {
@@ -547,7 +859,8 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
     threshold,
     Math.floor(options.minRunPixels ?? 0),
     Math.floor(options.minStructurePixels ?? 0),
-    options.column
+    options.column,
+    options.wallThicknessPixels
   );
   const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
   const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;
@@ -610,7 +923,13 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
    * สองพิกเซล · เกาะก่อนแล้วค่อยยุบ ด้านยาวจึงนั่งบนผนังจริง และมุมใหม่มาจากปลายของด้านยาว
    */
   const feature = options.column?.min ?? 0;
-  const polygon = feature > 1 ? collapseStaircases(snapped, feature) : snapped;
+  /**
+   * ขั้นเดี่ยวที่แคบกว่าเสาต้นเล็กสุดก็ไม่ใช่ของจริงเช่นกัน · เจอบนห้องน้ำผู้ป่วยชายหน้า 7
+   * เมื่อ 2026-09-04 เป็นรอยหยักกว้างสามพิกเซลตรงเสามุมที่ยื่นเข้าห้องเจ็ดเซนติเมตร
+   * เจ้าของงานลากกรอบน้ำเงินเป็นสี่เหลี่ยมเกลี้ยง ๆ "มันก็แค่กว้างคูณยาว"
+   * · สิ่งที่แลกไปคือปลายผนังเบาที่ยื่นเข้าห้องไม่ถึงสิบห้าเซนติเมตรจะถูกเกลี่ยไปด้วย
+   */
+  const polygon = feature > 1 ? removeJogs(collapseStaircases(snapped, feature), feature) : snapped;
   return { ok: true, polygon, areaPixels: closedArea };
 }
 
@@ -761,10 +1080,20 @@ export function traceRectilinearOutline(
   const on = (x: number, y: number) =>
     x >= 0 && y >= 0 && x < width && y < height && filled[y * width + x] === 1;
 
-  /** ด้านของพิกเซลที่ติดกับข้างนอก เรียงทิศให้บริเวณอยู่ทางขวามือของทิศเดินเสมอ */
-  const next = new Map<string, Pixel>();
+  /**
+   * ด้านของพิกเซลที่ติดกับข้างนอก เรียงทิศให้บริเวณอยู่ทางขวามือของทิศเดินเสมอ
+   *
+   * มุมหนึ่งมีทางออกได้สองทาง เมื่อบริเวณแตะตัวเองแค่ที่มุม (สองพิกเซลเฉียงกัน) · ของเดิม
+   * เก็บทางออกได้ทางเดียว ทางที่ถูกทับหาย วงจึงเดินไม่ครบรอบแล้วปิดด้วยเส้นเฉียงข้ามห้อง
+   * เจอบนห้องน้ำผู้ป่วยชายหน้า 7 เมื่อ 2026-09-04
+   */
+  const next = new Map<string, Pixel[]>();
   const key = (p: Pixel) => `${p.x},${p.y}`;
-  const add = (from: Pixel, to: Pixel) => next.set(key(from), to);
+  const add = (from: Pixel, to: Pixel) => {
+    const list = next.get(key(from));
+    if (list) list.push(to);
+    else next.set(key(from), [to]);
+  };
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       if (!on(x, y)) continue;
@@ -789,10 +1118,29 @@ export function traceRectilinearOutline(
 
   const loop: Pixel[] = [];
   let at: Pixel = start;
-  for (let guard = 0; guard <= next.size; guard += 1) {
+  let heading = { x: 0, y: 0 };
+  for (let guard = 0; guard <= next.size * 2; guard += 1) {
     loop.push(at);
-    const step = next.get(key(at));
-    if (!step) break;
+    const choices = next.get(key(at));
+    if (!choices || choices.length === 0) break;
+    /**
+     * ที่มุมที่มีหลายทางออก เลี้ยวขวา (ตามเข็มนาฬิกาบนจอ) เพื่อเกาะบริเวณเดิมไว้
+     * ทางซ้ายจะกระโดดข้ามไปอีกฟากที่แตะกันแค่มุม · ผลคูณไขว้เป็นบวกคือเลี้ยวขวาเมื่อแกน y ชี้ลง
+     */
+    let step = choices[0];
+    if (choices.length > 1) {
+      let best = Number.NEGATIVE_INFINITY;
+      for (const candidate of choices) {
+        const dx = candidate.x - at.x;
+        const dy = candidate.y - at.y;
+        const turn = heading.x * dy - heading.y * dx;
+        if (turn > best) {
+          best = turn;
+          step = candidate;
+        }
+      }
+    }
+    heading = { x: step.x - at.x, y: step.y - at.y };
     at = step;
     if (at.x === start.x && at.y === start.y) break;
   }
