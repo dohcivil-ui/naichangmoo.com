@@ -57,6 +57,42 @@ describe("ชนิดของการวัด", () => {
 });
 
 describe("การคำนวณค่าของรายการวัด", () => {
+  it("ค่าที่ผู้เรียกส่งมาแทน ใช้แทนผลของการวัดจากพิกัด และไหลเข้ายอดรวมของหน้า", () => {
+    const scale: PageScale = { metresPerPoint: 0.01, ratio: 28.35 };
+    const mark = make({
+      kind: "rect",
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 100 }
+      ]
+    });
+    const plain = summarise([mark], () => scale);
+    expect(plain.pages[0].totalAreaSquareMetres).toBeCloseTo(1, 6);
+
+    const swapped = summarise([mark], () => scale, () => ({
+      lengthMetres: null,
+      perimeterMetres: null,
+      areaSquareMetres: 5,
+      count: null,
+      segmentsMetres: [2.5, 2],
+      blockedByScale: false
+    }));
+    expect(swapped.pages[0].rows[0].value.areaSquareMetres).toBe(5);
+    expect(swapped.pages[0].totalAreaSquareMetres).toBe(5);
+  });
+
+  it("ผู้เรียกคืน null แปลว่าไม่แทน ตารางรวมจึงเหมือนเดิมทุกช่อง", () => {
+    const scale: PageScale = { metresPerPoint: 0.01, ratio: 28.35 };
+    const mark = make({
+      kind: "rect",
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 100 }
+      ]
+    });
+    expect(summarise([mark], () => scale, () => null)).toEqual(summarise([mark], () => scale));
+  });
+
   it("ห้อง 4x5 เมตรได้พื้นที่ 20 ตารางเมตร และเส้นรอบรูป 18 เมตร", () => {
     const room = make({ kind: "rect", points: [{ x: 0, y: 0 }, { x: 4 * pt, y: 5 * pt }] });
     const value = measure(room, scale100);

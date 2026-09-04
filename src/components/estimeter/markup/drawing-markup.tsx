@@ -20,6 +20,7 @@ import {
   nameGridLines,
   type DraftedGridLine
 } from "@/lib/drawing-grid";
+import { bayExplanation, bayLabel, gridBayFromCorners, type GridBay } from "@/lib/grid-bay";
 import {
   collectSnapGeometry,
   DEFAULT_SNAP_SETTINGS,
@@ -746,6 +747,31 @@ export function DrawingMarkup({
     setFiling(null);
   }
 
+  /**
+   * ช่วงระหว่างแนวของรอยสี่เหลี่ยม ถ้าสองมุมที่ชี้พาดช่วงที่แบบเขียนระยะกำกับไว้
+   *
+   * **ทำไมต้องมี** เจ้าของงานสั่งเมื่อ 2026-09-04 ว่าอย่าไปคิดพื้นที่ห้องด้วยการวัดหมึกแล้ว
+   * หักความหนาผนัง เพราะ **แบบสถาปัตย์ไม่ได้บอกขนาดเสาหรือความหนาผนัง** สองค่านั้นอยู่ใน
+   * แบบโครงสร้าง การเดาจากพิกเซลจึงเป็นการเดาในสิ่งที่แบบตรงหน้าไม่ได้เขียน · คำพูดของเขาคือ
+   * "หา referent เช่นเส้นบอกระยะเอามาคูณกันเลยง่ายกว่า แต่ชัวร์ เพราะขนาดห้องมันมีเส้นบอกระยะ
+   * กำกับไว้ แค่คุณต้องอธิบายเหตุผลว่าทำไมใช้ค่านี้ และถือว่าเป็นการเผื่อไปในตัว"
+   *
+   * คืน null เมื่อไม่ใช่สี่เหลี่ยม ยังไม่มีสเกล หรือสองมุมทับกัน · ตัวมันไม่ต้องการแนวเสา
+   * ที่ร่างไว้ก็ทำงานได้ แค่จะไม่มีชื่อช่วงอย่าง "1-A ถึง 2-B" ให้แสดง
+   */
+  function bayFor(mark: StoredMark): GridBay | null {
+    if (mark.kind !== "rect" || mark.points.length < 2) return null;
+    const scale = scales[mark.page] ?? null;
+    if (!scale) return null;
+    return gridBayFromCorners(
+      mark.points[0],
+      mark.points[1],
+      nameGridLines(gridLines.filter((line) => line.page === mark.page)),
+      dimensions.filter((item) => item.page === mark.page),
+      scale
+    );
+  }
+
   /** บรรทัดวิธีคิดที่ผู้ใช้ต้องเห็นก่อนส่ง — ห้ามโชว์เลขโดยไม่บอกว่าวัดถึงไหน (สเปกพื้นที่ห้อง ข้อสาม) */
   function filingWorking(mark: StoredMark): { figure: string; how: string } {
     const scale = scales[mark.page] ?? null;
@@ -758,11 +784,24 @@ export function DrawingMarkup({
           figure: `${formatMetres(value.lengthMetres ?? 0)} ม.`,
           how: `ระยะระหว่างจุดที่ชี้ ${mark.points.length} จุด คูณสเกล ${ratio} ของหน้า ${mark.page}`
         };
-      case "rect":
+      case "rect": {
+        /**
+         * มีเลขที่แบบเขียนพาดช่วงนี้เมื่อไหร่ เลขนั้นมาก่อนเลขที่คำนวณจากพิกเซลเสมอ
+         *
+         * เหตุผลเดียวกับที่หน้านี้เอาสเกลจากระยะที่คนอ่านจากแบบ ไม่ใช่จากสเกลที่พิมพ์ใต้รูป
+         * คือแบบที่ถูกย่อขยายตอนพิมพ์ทำให้เลขที่คำนวณเพี้ยนทั้งหน้า ส่วนเลขที่เขียนกำกับไม่เพี้ยน
+         * · `bayExplanation` เขียนทั้งสองค่าไว้ในบรรทัดเดียว จึงตรวจย้อนได้ว่าห่างกันเท่าไหร่
+         */
+        const bay = bayFor(mark);
+        const stated = bay && (bay.across.statedMetres !== null || bay.down.statedMetres !== null);
+        if (bay && stated) {
+          return { figure: `${formatMetres(bay.areaSquareMetres)} ตร.ม.`, how: bayExplanation(bay) };
+        }
         return {
           figure: `${formatMetres(value.areaSquareMetres ?? 0)} ตร.ม.`,
           how: `กว้าง ${formatMetres(value.segmentsMetres[0] ?? 0)} × ยาว ${formatMetres(value.segmentsMetres[1] ?? 0)} ม. จากสองมุมที่ชี้ คูณสเกล ${ratio}`
         };
+      }
       case "area":
         return {
           figure: `${formatMetres(value.areaSquareMetres ?? 0)} ตร.ม.`,
@@ -927,6 +966,28 @@ export function DrawingMarkup({
     () => collectSnapGeometry(measurements, gridLines, dimensions, page),
     [dimensions, gridLines, measurements, page]
   );
+
+  /**
+   * ช่วงระหว่างแนวของรอยสี่เหลี่ยมที่กำลังเลือกอยู่ ถ้ามีเลขที่แบบเขียนพาดช่วงนั้น
+   *
+   * คำนวณจาก `selectedId` ไม่ใช่จากรอยที่เพิ่งสร้าง เพราะ `finish` เลือกรอยใหม่ให้เสมอ
+   * แถบจึงขึ้นทั้งตอนเพิ่งคลิกสองมุมเสร็จ และตอนกลับมาคลิกเลือกรอยเดิมทีหลัง
+   */
+  const selectedBay = useMemo(() => {
+    const mark = measurements.find((item) => item.id === selectedId);
+    if (!mark || mark.kind !== "rect" || mark.points.length < 2) return null;
+    const scale = scales[mark.page] ?? null;
+    if (!scale) return null;
+    const bay = gridBayFromCorners(
+      mark.points[0],
+      mark.points[1],
+      nameGridLines(gridLines.filter((line) => line.page === mark.page)),
+      dimensions.filter((item) => item.page === mark.page),
+      scale
+    );
+    if (!bay) return null;
+    return bay.across.statedMetres !== null || bay.down.statedMetres !== null ? bay : null;
+  }, [dimensions, gridLines, measurements, scales, selectedId]);
 
   /** เส้นแนวเสาของหน้านี้พร้อมชื่อที่ไล่ให้ตามตำแหน่ง คำนวณใหม่เสมอ ไม่เก็บลงที่ไหน */
   const namedGridLines = useMemo(
@@ -1415,10 +1476,37 @@ export function DrawingMarkup({
     };
   });
 
-  const summary = useMemo(
-    () => summarise(measurements, (target) => scales[target] ?? null),
-    [measurements, scales]
-  );
+  /**
+   * แผงรายการวัดต้องโชว์เลขเดียวกับแถบที่มาของช่วง ไม่ใช่คนละเลขบนจอเดียวกัน
+   *
+   * สี่เหลี่ยมที่พาดช่วงซึ่งมีเลขที่แบบเขียนกำกับ ใช้เลขนั้น ส่วนที่เหลือใช้ผลของ `measure`
+   * ตามเดิม · ยอดรวมจึงเดินตามเลขที่แบบเขียนไปด้วย ซึ่งเป็นเลขที่เจ้าของงานสั่งให้ใช้
+   * เพราะแบบสถาปัตย์ไม่ได้บอกขนาดเสาหรือความหนาผนัง การวัดหมึกแล้วหักผนังจึงเป็นการเดา
+   */
+  const summary = useMemo(() => {
+    const scaleForPage = (target: number) => scales[target] ?? null;
+    return summarise(measurements, scaleForPage, (mark) => {
+      if (mark.kind !== "rect" || mark.points.length < 2) return null;
+      const scale = scaleForPage(mark.page);
+      if (!scale) return null;
+      const bay = gridBayFromCorners(
+        mark.points[0],
+        mark.points[1],
+        nameGridLines(gridLines.filter((line) => line.page === mark.page)),
+        dimensions.filter((item) => item.page === mark.page),
+        scale
+      );
+      if (!bay || (bay.across.statedMetres === null && bay.down.statedMetres === null)) return null;
+      return {
+        lengthMetres: null,
+        perimeterMetres: null,
+        areaSquareMetres: bay.areaSquareMetres,
+        count: null,
+        segmentsMetres: [bay.across.metres, bay.down.metres],
+        blockedByScale: false
+      };
+    });
+  }, [dimensions, gridLines, measurements, scales]);
 
   const draftPreview = useMemo(() => {
     if (draft.length === 0) return null;
@@ -1767,6 +1855,25 @@ export function DrawingMarkup({
           <strong>ดูรูปบนแบบว่าตรงกับห้องจริงก่อนยืนยัน ถ้าสีทะลุออกนอกห้องให้ยกเลิกแล้วคลิกไล่มุมแทน</strong>
           <button type="button" onClick={confirmRoom}>ยืนยันพื้นที่นี้</button>
           <button type="button" onClick={() => setPendingRoom(null)}>ยกเลิก</button>
+        </div>
+      ) : null}
+
+      {/*
+        ช่วงระหว่างแนวของสี่เหลี่ยมที่เลือกอยู่ — ขึ้นเฉพาะเมื่อมีเลขที่แบบเขียนพาดช่วงนั้นจริง
+
+        ขึ้นตรงนี้เพราะเจ้าของงานต้องเห็น **ที่มาของเลข** ตอนที่ยังมองแบบอยู่ ไม่ใช่ไปเห็น
+        ตอนกดส่งเข้าถอดปริมาณแล้ว · ถ้าไม่มีเส้นบอกระยะพาดช่วงนี้ แถบนี้ไม่ขึ้น และตัวเลข
+        ในแผงรายการวัดยังเป็นเลขที่คำนวณจากพิกเซลตามเดิม ซึ่งบอกไว้ตรง ๆ ว่าคำนวณมา
+      */}
+      {selectedBay ? (
+        <div className="mk__confirm" role="status">
+          <span>
+            {bayLabel(selectedBay) ? `ช่วง ${bayLabel(selectedBay)} · ` : ""}
+            {formatMetres(selectedBay.across.metres)} × {formatMetres(selectedBay.down.metres)} ={" "}
+            {formatMetres(selectedBay.areaSquareMetres)} ตร.ม.
+            <small> ใช้เลขที่แบบเขียนบนเส้นบอกระยะ ไม่ใช่เลขที่วัดจากภาพ</small>
+          </span>
+          <strong>{bayExplanation(selectedBay)}</strong>
         </div>
       ) : null}
 

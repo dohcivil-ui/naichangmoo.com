@@ -263,13 +263,26 @@ export type MeasurementSummary = {
  */
 export function summarise(
   measurements: readonly Measurement[],
-  scaleForPage: (page: number) => PageScale | null
+  scaleForPage: (page: number) => PageScale | null,
+  /**
+   * ค่าที่มีที่มาดีกว่าการวัดจากพิกัด ใช้แทนผลของ `measure` ของรอยนั้น
+   *
+   * **ทำไมต้องเปิดช่องนี้ไว้** ไฟล์นี้รู้จักแต่พิกัดกับสเกล มันไม่รู้จักเส้นบอกระยะที่ผู้ออกแบบ
+   * เขียนกำกับไว้ และไม่ควรรู้จัก เพราะการจับคู่เส้นระยะกับช่วงเป็นเรื่องของ `grid-bay.ts`
+   * · แต่เลขที่แบบเขียนคือเลขที่เจ้าของงานสั่งให้ใช้เมื่อ 2026-09-04 ด้วยเหตุผลว่าแบบสถาปัตย์
+   * ไม่ได้บอกขนาดเสาหรือความหนาผนัง การวัดหมึกจึงเป็นการเดาในสิ่งที่แบบไม่ได้เขียน
+   * · ผู้เรียกที่รู้จักทั้งสองฝั่งเป็นคนส่งค่ามาแทน ไฟล์นี้แค่ยอมรับ
+   *
+   * ไม่ส่งมาหรือคืน null แปลว่าใช้ผลของ `measure` ตามเดิม ตารางรวมจึงไม่เปลี่ยนพฤติกรรม
+   * สำหรับหน้าที่ยังไม่มีเส้นบอกระยะ
+   */
+  overrideFor?: (measurement: Measurement) => MeasurementValue | null
 ): MeasurementSummary {
   const byPage = new Map<number, MeasurementRow[]>();
   let hasBlockedRows = false;
 
   for (const measurement of measurements) {
-    const value = measure(measurement, scaleForPage(measurement.page));
+    const value = overrideFor?.(measurement) ?? measure(measurement, scaleForPage(measurement.page));
     if (value.blockedByScale) hasBlockedRows = true;
     const rows = byPage.get(measurement.page) ?? [];
     rows.push({ measurement, value });
