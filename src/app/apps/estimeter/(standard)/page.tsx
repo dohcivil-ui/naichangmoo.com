@@ -1,6 +1,5 @@
 import { EntitlementStatus } from "@/components/estimeter/entitlement-status";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
-import { EstimationWorkspace } from "@/components/estimeter/estimation-workspace";
 import { ProjectList } from "@/components/estimeter/project-list";
 import { TrialActivation } from "@/components/estimeter/trial-activation";
 import { toAccessView } from "@/lib/estimeter-access-view";
@@ -60,7 +59,15 @@ export default async function EstimeterHomePage() {
           <ProjectList projects={projects} denial={projectCreationDenial(access)} quotaLabel={quotaLabel} />
         </div>
       </section>
-      <EstimationWorkspace access={toAccessView(access)} />
+      {/*
+       * พื้นที่สาธิต `EstimationWorkspace` ถูกถอดออกจากหน้าแรกเมื่อ 2026-09-04
+       *
+       * มันวางลำดับงาน 01 ถึง 04 ของตัวเองไว้ใต้รายการโครงการจริง พร้อมผู้ช่วยของตัวเอง
+       * และใช้ชื่อขั้นคนละชุดกับหน้าโครงการ คนเปิดแอปครั้งแรกจึงเห็นลำดับงานสองชุด
+       * และแยกไม่ออกว่าอันไหนของจริง · เจ้าของงานสั่งเอาออก
+       *
+       * ตัวคอมโพเนนต์ยังอยู่ ยังไม่ลบ เผื่อทำเป็นหน้า "ดูตัวอย่างการทำงาน" แยกทีหลัง
+       */}
     </>
   );
 }
