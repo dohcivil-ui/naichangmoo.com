@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fullPageScaleFor } from "@/lib/drawing-render";
-import { simplify, toGreyImage, traceRegion, type GreyImage } from "@/lib/region-fill";
+import { removeJogs, simplify, toGreyImage, traceRegion, type GreyImage } from "@/lib/region-fill";
 
 /** สร้างหน้าแบบจำลอง พื้นขาว แล้ววาดกรอบห้องเป็นเส้นดำ */
 function pageWithRoom(options: {
@@ -564,6 +564,100 @@ describe("เสาที่มุมห้อง", () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.areaPixels).toBe(78 * 58);
+  });
+});
+
+/**
+ * ขอบต้องเป็นแนวนอนกับแนวตั้งล้วน
+ *
+ * เจ้าของงานสั่งเมื่อ 2026-09-04 ว่า "ลักษณะของเส้นที่วิ่งตามขอบมักจะไม่มีโค้ง
+ * เพราะองค์อาคารส่วนใหญ่เป็นแบบเหลี่ยม" · ของเดิมลดจุดด้วยวิธีที่ยอมแทนบันไดพิกเซล
+ * ด้วยเส้นเฉียง มุมเสาจึงถูกตัดเฉียงเป็นสามเหลี่ยม
+ */
+describe("ขอบเป็นเหลี่ยมล้วน ไม่มีเส้นเฉียง", () => {
+  const axisAligned = (points: { x: number; y: number }[]) =>
+    points.every((point, index) => {
+      const next = points[(index + 1) % points.length];
+      return point.x === next.x || point.y === next.y;
+    });
+
+  it("ห้องสี่เหลี่ยมได้สี่มุมพอดี และทุกด้านตั้งฉาก", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const result = traceRegion(image, { x: 80, y: 70 }, { minStepPixels: 3 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.polygon).toHaveLength(4);
+    expect(axisAligned(result.polygon)).toBe(true);
+  });
+
+  /** เสาชนผนังเหมือนในแบบจริง รอยเว้าจึงเปิดออกสู่ขอบห้อง ไม่ใช่รูที่ถูกล้อมรอบ */
+  it("ห้องที่มีเสาที่มุม ได้มุมเพิ่มเป็นขั้น และยังไม่มีเส้นเฉียง", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    for (let step = 0; step < 12; step += 1) {
+      set(41 + step, 41);
+      set(41 + step, 52);
+      set(41, 41 + step);
+      set(52, 41 + step);
+    }
+    const result = traceRegion(image, { x: 100, y: 90 }, {
+      minRunPixels: 12,
+      minStructurePixels: 40,
+      column: { min: 6, max: 20, touch: 4 },
+      minStepPixels: 3
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.polygon.length).toBeGreaterThan(4);
+    expect(axisAligned(result.polygon)).toBe(true);
+  });
+
+  it("ขอบที่ได้อยู่บนรอยต่อพิกเซล ไม่เหลื่อมเข้าไปครึ่งพิกเซล", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const result = traceRegion(image, { x: 80, y: 70 }, { minStepPixels: 3 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const xs = result.polygon.map((point) => point.x);
+    const ys = result.polygon.map((point) => point.y);
+    // ภายในกรอบคือพิกเซล 41 ถึง 118 และ 41 ถึง 98 มุมจึงอยู่ที่ 41 กับ 119 และ 41 กับ 99
+    expect(Math.min(...xs)).toBe(41);
+    expect(Math.max(...xs)).toBe(119);
+    expect(Math.min(...ys)).toBe(41);
+    expect(Math.max(...ys)).toBe(99);
+  });
+});
+
+describe("การยุบขั้นบันไดเล็ก", () => {
+  it("ขั้นหนึ่งพิกเซลถูกยุบ", () => {
+    const stepped = [
+      { x: 0, y: 0 },
+      { x: 50, y: 0 },
+      { x: 50, y: 1 },
+      { x: 100, y: 1 },
+      { x: 100, y: 60 },
+      { x: 0, y: 60 }
+    ];
+    const cleaned = removeJogs(stepped, 4);
+    expect(cleaned).toHaveLength(4);
+    expect(cleaned.every((point, index) => {
+      const next = cleaned[(index + 1) % cleaned.length];
+      return point.x === next.x || point.y === next.y;
+    })).toBe(true);
+  });
+
+  /** ขั้นที่หลบเสากว้างอย่างน้อย 0.20 เมตร ซึ่งใหญ่กว่าค่ายุบมาก ห้ามหาย */
+  it("ขั้นที่หลบเสาไม่ถูกยุบ", () => {
+    const withColumn = [
+      { x: 0, y: 0 },
+      { x: 88, y: 0 },
+      { x: 88, y: 12 },
+      { x: 100, y: 12 },
+      { x: 100, y: 60 },
+      { x: 0, y: 60 }
+    ];
+    expect(removeJogs(withColumn, 4)).toHaveLength(6);
   });
 });
 

@@ -77,6 +77,13 @@ export type RegionOptions = {
    * แต่มันคือโครงสร้างที่ต้องกั้น ขอบห้องต้องหักเป็นขั้นอ้อมมัน ไม่ใช่ตัดผ่าน
    */
   column?: ColumnRule;
+  /**
+   * ขั้นบันไดที่สั้นกว่านี้ถือว่าเป็นความหยาบของภาพ ไม่ใช่รูปทรงของอาคาร หน่วยพิกเซล
+   *
+   * ขอบที่ไล่มาจากภาพย่อมมีขั้นเล็ก ๆ หนึ่งถึงสองพิกเซลตามความคมของเส้น · ค่านี้ต้องเล็ก
+   * กว่าขั้นที่หลบเสาซึ่งกว้างอย่างน้อย 0.20 เมตร มิฉะนั้นมุมเสาที่เป็นของจริงจะถูกยุบไปด้วย
+   */
+  minStepPixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -161,6 +168,15 @@ export const COLUMN_MAX_METRES = 0.8;
 
 /** เสาต้องอยู่ห่างจากโครงผนังไม่เกินนี้ กันสี่เหลี่ยมเล็กกลางห้องอย่างป้ายเตียงไม่ให้กลายเป็นเสา */
 export const COLUMN_TOUCH_METRES = 0.1;
+
+/**
+ * ขั้นบันไดบนขอบที่สั้นกว่านี้ถือว่าเป็นความหยาบของภาพ ไม่ใช่รูปทรงของอาคาร วัดเป็นเมตรจริง
+ *
+ * **ที่มาของ 0.05** ขอบที่ไล่จากภาพมีขั้นหนึ่งถึงสองพิกเซลตามความคมของเส้น ซึ่งเท่ากับ
+ * 0.02 ถึง 0.04 เมตรที่ความละเอียดปัจจุบัน · ค่านี้จึงกวาดความหยาบทิ้งได้หมด
+ * และยังเล็กกว่าขั้นที่หลบเสาซึ่งแคบที่สุดราว 0.20 เมตรอยู่สี่เท่า มุมเสาจึงไม่ถูกยุบไปด้วย
+ */
+export const OUTLINE_MIN_STEP_METRES = 0.05;
 
 /**
  * คัดเฉพาะเส้นที่เป็นผนังหรือโครงสร้างออกมาจากทุกสิ่งที่ดำในแบบ
@@ -563,8 +579,138 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
     for (let index = 0; index < shape.length; index += 1) if (shape[index]) closedArea += 1;
   }
 
-  const outline = traceOutline(shape, image.width, image.height);
-  return { ok: true, polygon: simplify(outline, 1.5), areaPixels: closedArea };
+  const outline = traceRectilinearOutline(shape, image.width, image.height);
+  const step = Math.max(1, Math.round(options.minStepPixels ?? 0));
+  return { ok: true, polygon: removeJogs(outline, step), areaPixels: closedArea };
+}
+
+/**
+ * ขอบของบริเวณที่เติม เดินตามรอยต่อระหว่างพิกเซล จึงเป็นแนวนอนกับแนวตั้งล้วน
+ *
+ * **ทำไมต้องเปลี่ยนจากของเดิม** ของเดิมเดินตามใจกลางพิกเซลทั้งแปดทิศ แล้วลดจุดด้วย
+ * Douglas–Peucker ซึ่งยอมแทนบันไดพิกเซลด้วยเส้นเฉียงได้ถ้าคลาดไม่เกินค่าที่ตั้งไว้
+ * ผลคือมุมเสาถูกตัดเฉียงเป็นสามเหลี่ยม เจ้าของงานทักเมื่อ 2026-09-04 ว่า
+ * "ลักษณะของเส้นที่วิ่งตามขอบมักจะไม่มีโค้ง เพราะองค์อาคารส่วนใหญ่เป็นแบบเหลี่ยม"
+ *
+ * วิธีนี้เก็บ**ด้านของพิกเซล**ที่ติดกับบริเวณนอก แล้วร้อยให้เป็นวง ทุกด้านยาวหนึ่งพิกเซล
+ * และตั้งฉากกันเสมอ เส้นเฉียงจึงเกิดขึ้นไม่ได้เลยโดยโครงสร้าง ไม่ใช่โดยการตั้งค่า
+ *
+ * พิกัดที่คืนเป็นมุมของพิกเซล ไม่ใช่ใจกลางพิกเซล ขอบจึงอยู่บนรอยต่อจริงระหว่าง
+ * พื้นที่ห้องกับเส้นผนัง ไม่เหลื่อมเข้าไปครึ่งพิกเซลอย่างวิธีเดิม
+ */
+export function traceRectilinearOutline(
+  filled: Uint8Array,
+  width: number,
+  height: number
+): Pixel[] {
+  const on = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x < width && y < height && filled[y * width + x] === 1;
+
+  /** ด้านของพิกเซลที่ติดกับข้างนอก เรียงทิศให้บริเวณอยู่ทางขวามือของทิศเดินเสมอ */
+  const next = new Map<string, Pixel>();
+  const key = (p: Pixel) => `${p.x},${p.y}`;
+  const add = (from: Pixel, to: Pixel) => next.set(key(from), to);
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (!on(x, y)) continue;
+      if (!on(x, y - 1)) add({ x, y }, { x: x + 1, y });
+      if (!on(x + 1, y)) add({ x: x + 1, y }, { x: x + 1, y: y + 1 });
+      if (!on(x, y + 1)) add({ x: x + 1, y: y + 1 }, { x, y: y + 1 });
+      if (!on(x - 1, y)) add({ x, y: y + 1 }, { x, y });
+    }
+  }
+  if (next.size === 0) return [];
+
+  let start: Pixel | null = null;
+  for (let y = 0; y < height && !start; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (on(x, y)) {
+        start = { x, y };
+        break;
+      }
+    }
+  }
+  if (!start) return [];
+
+  const loop: Pixel[] = [];
+  let at: Pixel = start;
+  for (let guard = 0; guard <= next.size; guard += 1) {
+    loop.push(at);
+    const step = next.get(key(at));
+    if (!step) break;
+    at = step;
+    if (at.x === start.x && at.y === start.y) break;
+  }
+  return mergeStraightRuns(loop);
+}
+
+/** ยุบจุดที่อยู่กลางเส้นตรงเดียวกันทิ้ง เหลือเฉพาะมุมจริง */
+function mergeStraightRuns(points: readonly Pixel[]): Pixel[] {
+  if (points.length < 3) return [...points];
+  const kept: Pixel[] = [];
+  for (let index = 0; index < points.length; index += 1) {
+    const before = points[(index - 1 + points.length) % points.length];
+    const here = points[index];
+    const after = points[(index + 1) % points.length];
+    const straight =
+      (before.x === here.x && here.x === after.x) ||
+      (before.y === here.y && here.y === after.y);
+    if (!straight) kept.push(here);
+  }
+  return kept.length >= 3 ? kept : [...points];
+}
+
+/**
+ * ยุบขั้นบันไดที่สั้นกว่าค่าที่กำหนด ให้เหลือแต่มุมที่เป็นของจริง
+ *
+ * ขอบของภาพที่มาจากการแปลงเป็นจุดภาพย่อมมีขั้นเล็ก ๆ ขนาดหนึ่งถึงสองพิกเซลตามความเอียง
+ * ของเส้นและความคมของภาพ ขั้นพวกนั้นไม่ใช่รูปทรงของอาคาร · **แต่ห้ามยุบแรงเกินไป**
+ * เพราะขั้นที่หลบเสากว้างเพียง 0.20 เมตรก็เป็นของจริงที่ต้องเห็น ค่าที่ใช้จึงต้องเล็กกว่านั้นมาก
+ *
+ * ยุบโดยเลื่อนขั้นสั้นไปชนแนวของด้านที่ยาวกว่า รูปจึงยังเป็นแนวนอนกับแนวตั้งล้วนหลังยุบ
+ */
+export function removeJogs(points: readonly Pixel[], minStep: number): Pixel[] {
+  let shape = points.map((point) => ({ ...point }));
+  if (minStep <= 1) return shape;
+
+  for (let pass = 0; pass < 40 && shape.length >= 6; pass += 1) {
+    const count = shape.length;
+    let target = -1;
+    let shortest = minStep;
+    for (let index = 0; index < count; index += 1) {
+      const b = shape[index];
+      const c = shape[(index + 1) % count];
+      const jog = Math.abs(b.x - c.x) + Math.abs(b.y - c.y);
+      if (jog === 0 || jog >= shortest) continue;
+      const a = shape[(index - 1 + count) % count];
+      const d = shape[(index + 2) % count];
+      // ยุบได้ต่อเมื่อด้านสองข้างยาวกว่าขั้นเอง ไม่งั้นจะไปกินมุมจริงที่อยู่ติดกัน
+      if (Math.abs(a.x - b.x) + Math.abs(a.y - b.y) <= jog) continue;
+      if (Math.abs(c.x - d.x) + Math.abs(c.y - d.y) <= jog) continue;
+      shortest = jog;
+      target = index;
+    }
+    if (target < 0) return shape;
+
+    const b = shape[target];
+    const c = shape[(target + 1) % count];
+    const a = shape[(target - 1 + count) % count];
+    const d = shape[(target + 2) % count];
+    const horizontal = b.y === c.y;
+    const keepBefore =
+      Math.abs(a.x - b.x) + Math.abs(a.y - b.y) >= Math.abs(c.x - d.x) + Math.abs(c.y - d.y);
+    const line = horizontal ? (keepBefore ? b.x : c.x) : keepBefore ? b.y : c.y;
+    if (horizontal) {
+      a.x = line;
+      d.x = line;
+    } else {
+      a.y = line;
+      d.y = line;
+    }
+    shape = shape.filter((_, at) => at !== target && at !== (target + 1) % count);
+    shape = mergeStraightRuns(shape);
+  }
+  return shape;
 }
 
 /**
@@ -657,65 +803,6 @@ function distanceToSet(
   return distance;
 }
 
-/**
- * ไล่ขอบนอกของบริเวณที่ถูกเติม โดยเดินตามขอบทีละพิกเซล
- *
- * เดินตามเข็มนาฬิกาจากพิกเซลบนสุดซ้ายสุด แล้ววนจนกลับมาจุดเริ่ม
- */
-function traceOutline(filled: Uint8Array, width: number, height: number): Pixel[] {
-  let start = -1;
-  for (let index = 0; index < filled.length; index += 1) {
-    if (filled[index]) {
-      start = index;
-      break;
-    }
-  }
-  if (start < 0) return [];
-
-  const inside = (x: number, y: number) =>
-    x >= 0 && y >= 0 && x < width && y < height && filled[y * width + x] === 1;
-
-  // แปดทิศรอบพิกเซล เรียงตามเข็มนาฬิกาเริ่มจากทิศตะวันตก
-  const directions = [
-    [-1, 0],
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [1, 0],
-    [1, 1],
-    [0, 1],
-    [-1, 1]
-  ];
-
-  const startX = start % width;
-  const startY = (start - startX) / width;
-  const outline: Pixel[] = [{ x: startX, y: startY }];
-
-  let current = { x: startX, y: startY };
-  let entry = 0;
-  const limit = width * height * 4;
-
-  for (let step = 0; step < limit; step += 1) {
-    let moved = false;
-    for (let turn = 0; turn < directions.length; turn += 1) {
-      const dirIndex = (entry + turn) % directions.length;
-      const [dx, dy] = directions[dirIndex];
-      const nx = current.x + dx;
-      const ny = current.y + dy;
-      if (!inside(nx, ny)) continue;
-      current = { x: nx, y: ny };
-      // เข้ามาจากทิศตรงข้าม แล้วถอยหนึ่งช่องเพื่อไม่ให้ข้ามขอบที่บาง
-      entry = (dirIndex + 5) % directions.length;
-      outline.push(current);
-      moved = true;
-      break;
-    }
-    if (!moved) break;
-    if (current.x === startX && current.y === startY && outline.length > 2) break;
-  }
-
-  return outline;
-}
 
 /**
  * ลดจำนวนจุดของเส้นขอบให้เหลือเท่าที่จำเป็น
