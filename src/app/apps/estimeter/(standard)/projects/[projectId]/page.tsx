@@ -59,7 +59,20 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
       : "ยังไม่เริ่ม";
 
   const stages = [
-    { id: 1, label: "ตั้งโครงการ", note: "ชื่อโครงการและประเภทงาน", status: "เสร็จแล้ว" },
+    /**
+     * ชื่อขั้นเป็นประโยคที่บอกว่าต้องทำอะไร ไม่ใช่คำนามสามคำต่อกัน (เจ้าของงานเคาะ 2026-09-04)
+     *
+     * กริยาคือ "ตั้งค่า" ไม่ใช่ "ตั้ง" เพราะ "ตั้งโครงการ" อ่านเหมือนก่อตั้งโครงการ ซึ่งไม่ใช่
+     * สิ่งที่คนทำตรงนี้ · ส่วนคำนามคงเป็น "โครงการ" ตามที่วิชาชีพใช้ ยืนยันจาก
+     * `km/Estimate1.pdf` เอกสารประกอบการสอนวิชาการประมาณราคาก่อสร้าง 1 ซึ่งใช้
+     * "โครงการ" "เจ้าของโครงการ" "ผู้ประมาณราคา" ตลอดเล่ม และตรงกับช่องบนแบบ ปร.
+     */
+    {
+      id: 1,
+      label: "ตั้งค่าโครงการ",
+      note: "ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน",
+      status: "เสร็จแล้ว"
+    },
     {
       /**
        * สถานะของขั้นนี้เคยเขียนตายไว้ว่า "ยังไม่เปิดใช้งาน" ตั้งแต่ยังไม่มีหน้าแบบ แล้วไม่มีใคร
@@ -100,7 +113,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           <div className="estimation-workspace__progress" aria-label="ความคืบหน้าของโครงการ">
             <span>WORKFLOW</span>
             <strong>{openRun || closedRuns.length > 0 ? "3 / 4" : "1 / 4"}</strong>
-            <small>{openRun || closedRuns.length > 0 ? "ถอดปริมาณ" : "ตั้งโครงการ"}</small>
+            <small>{openRun || closedRuns.length > 0 ? "ถอดปริมาณ" : "ตั้งค่าโครงการ"}</small>
           </div>
         </header>
 

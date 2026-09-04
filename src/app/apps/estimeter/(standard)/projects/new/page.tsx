@@ -18,7 +18,7 @@ export default async function NewEstimeterProjectPage() {
           <div className="workspace-panel__title">
             <div>
               <p className="eyebrow">01 · NEW PROJECT</p>
-              <h2>ตั้งโครงการประมาณราคา</h2>
+              <h2>ตั้งค่าโครงการประมาณราคา</h2>
             </div>
             <span className={denial ? "status-chip status-chip--attention" : "status-chip"}>
               {denial ? "สร้างไม่ได้" : "กรอกชื่อโครงการ"}

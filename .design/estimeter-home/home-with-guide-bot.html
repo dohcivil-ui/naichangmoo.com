@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ต้นแบบหน้าแรก ESTIMETR — งานซ้าย ผู้ช่วยขวา</title>
+<!--
+  ต้นแบบหน้าแรกของ ESTIMETR (IP-235) — ยังไม่ได้ต่อเข้าแอปจริง
+
+  เจ้าของงานเคาะสามข้อเมื่อ 2026-09-04
+  หนึ่ง วางสองคอลัมน์ งานอยู่ซ้าย ผู้ช่วยอยู่ขวา มองเห็นพร้อมกัน ไม่ต้องสลับหน้า
+  สอง ผู้ช่วยเริ่มด้วยปุ่มให้กด แล้วพิมพ์เองก็ได้ ส่วนที่พิมพ์เองค่อยส่งเข้าแบบจำลอง
+  สาม ถอดพื้นที่สาธิต GUIDED COST WORKSPACE ออกจากหน้าแรก (ทำในแอปจริงแล้ว a0de550)
+
+  เรื่องคำ เจ้าของงานทักว่าคำเดิมมั่วและแปลดิบ เช่น "สายงาน แบบ revision และสเกล"
+  แล้วให้ไปดูสไตล์จาก https://www.phayoo.com/ai-site-report-agent-proposal/details
+  สิ่งที่ยืมมาคือ ทุกขั้นมีชื่อแล้วตามด้วยประโยคบอกว่าต้องทำอะไร · ศัพท์ที่ช่างใช้ทับศัพท์อยู่แล้ว
+  (BOQ, price set, PDF, report) ไม่แปล · และมีหัวข้อบอกตรง ๆ ว่าระบบ ไม่ทำ อะไร
+-->
+<style>
+  :root {
+    --ink: #073047;
+    --ink-body: #3f545f;
+    --teal: #0d8282;
+    --teal-text: #0c7878;
+    --orange: #f47721;
+    --orange-text: #c25611;
+    --canvas: #f4f7f7;
+    --paper: #ffffff;
+    --mist: #d8e4e4;
+    --muted: #5f7178;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: "Sarabun", "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 1.4rem; }
+
+  /* แถบเปลือกแอป จำลองพอให้เห็นบริบท ของจริงใช้ app-shell กลาง */
+  .shell { border-bottom: 1px solid var(--mist); background: var(--paper); }
+  .shell__row { display: flex; align-items: center; gap: .75rem; padding: .8rem 0; }
+  .shell__brand { font-weight: 800; color: var(--ink); letter-spacing: .02em; }
+  .shell__crumb { color: var(--muted); font-size: .78rem; }
+  .shell__crumb b { color: var(--teal-text); font-weight: 700; }
+  .shell__title { padding: .9rem 0 1rem; border-top: 1px solid #eef4f4; }
+  .shell__title h1 { margin: 0; color: var(--ink); font-size: 1.32rem; }
+  .shell__title p { margin: .25rem 0 0; color: var(--muted); font-size: .84rem; }
+
+  /* ลำดับงานสี่ขั้น ชุดเดียวของทั้งแอป ชื่อต้องตรงกับหน้าโครงการเป๊ะ */
+  .steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .7rem; margin: 1.3rem 0; }
+  .steps article {
+    display: flex; gap: .6rem; align-items: flex-start;
+    border: 1px solid var(--mist); border-radius: 12px; padding: .8rem .85rem; background: var(--paper);
+  }
+  .steps article.is-here { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,130,130,.1); }
+  .steps b { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; flex: none;
+    border-radius: 50%; background: #e7f2f2; color: var(--teal-text); font-size: .74rem; }
+  .steps h3 { margin: 0; color: var(--ink); font-size: .88rem; }
+  .steps p { margin: .18rem 0 0; color: var(--muted); font-size: .76rem; line-height: 1.45; }
+  .steps small { display: block; margin-top: .3rem; color: var(--teal-text); font-size: .7rem; font-weight: 700; }
+
+  .board { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.2rem; padding-bottom: 2.5rem; align-items: start; }
+
+  .card { border: 1px solid var(--mist); border-radius: 14px; padding: 1.05rem 1.1rem; background: var(--paper); }
+  .card + .card { margin-top: 1rem; }
+  .card__eyebrow { margin: 0; color: var(--teal-text); font-size: .66rem; font-weight: 800; letter-spacing: .12em; }
+  .card h2 { margin: .25rem 0 0; color: var(--ink); font-size: 1.06rem; }
+
+  /* การ์ดงานที่ค้าง คือของชิ้นเดียวที่คนกลับมาเปิดแอปเพื่อมาหา จึงเด่นที่สุดบนหน้า */
+  .resume { border: 1px solid #cfe3e0; border-radius: 12px; padding: .95rem 1rem; margin-top: .85rem; background: linear-gradient(160deg, #f2faf8, #fbfdfd 70%); }
+  .resume__name { margin: 0; color: var(--ink); font-size: 1.02rem; font-weight: 750; }
+  .resume__where { margin: .3rem 0 0; color: var(--ink-body); font-size: .83rem; }
+  .resume__where b { color: var(--teal-text); }
+  .resume__todo { margin: .45rem 0 0; color: var(--orange-text); font-size: .82rem; font-weight: 650; }
+  .resume__row { display: flex; align-items: center; gap: .7rem; margin-top: .85rem; flex-wrap: wrap; }
+
+  .btn { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid transparent; border-radius: 9px;
+    padding: .52rem .95rem; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; text-decoration: none; }
+  .btn--go { background: var(--orange); color: #fff; }
+  .btn--line { border-color: var(--mist); background: var(--paper); color: var(--ink); }
+  .btn--quiet { border-color: transparent; background: transparent; color: var(--teal-text); padding-left: 0; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: .8rem; }
+  th, td { padding: .55rem .5rem; border-bottom: 1px solid #eef4f4; text-align: left; font-size: .82rem; }
+  th { color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  td b { color: var(--ink); font-weight: 650; }
+  .pill { display: inline-block; border-radius: 999px; padding: .1rem .5rem; background: #e7f2f2; color: var(--teal-text); font-size: .7rem; font-weight: 700; }
+
+  /* ผู้ช่วย — เกาะขอบบนไว้ เพราะคนจะเลื่อนดูรายการโครงการทางซ้ายแล้วยังต้องคุยได้ */
+  .bot { position: sticky; top: 1rem; border: 1px solid #a9d3cc; border-radius: 16px; background: var(--paper); overflow: hidden; }
+  .bot__head { display: flex; align-items: center; gap: .6rem; padding: .8rem .95rem; border-bottom: 1px solid #dcebe8; background: linear-gradient(150deg, #eff9f7, #f9fdfc); }
+  .bot__mark { display: grid; place-items: center; width: 2rem; height: 2rem; flex: none; border-radius: 50%; background: var(--teal); color: #fff; font-size: .78rem; font-weight: 800; }
+  .bot__head strong { display: block; color: var(--ink); font-size: .9rem; }
+  .bot__head span { color: var(--muted); font-size: .72rem; }
+  .bot__thread { display: grid; gap: .55rem; padding: .95rem; }
+  .say { max-width: 92%; border-radius: 12px; padding: .6rem .75rem; font-size: .84rem; line-height: 1.55; }
+  .say--bot { border: 1px solid #dcebe8; background: #f6fbfa; color: var(--ink-body); }
+  .say--me { justify-self: end; background: var(--teal); color: #fff; }
+  .say b { color: var(--ink); }
+  .say--me b { color: #fff; }
+  .chips { display: grid; gap: .4rem; padding: 0 .95rem .5rem; }
+  .chip { border: 1px solid #bcdcd6; border-radius: 9px; padding: .5rem .7rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 650; text-align: left; cursor: pointer; }
+  .chip:hover { border-color: var(--teal); background: #f2faf8; }
+  .bot__ask { display: flex; gap: .45rem; padding: .7rem .95rem; border-top: 1px solid #e6f1ee; }
+  .bot__ask input { flex: 1; min-width: 0; border: 1px solid var(--mist); border-radius: 9px; padding: .5rem .6rem; font: inherit; font-size: .82rem; }
+  .bot__ask button { border: 0; border-radius: 9px; padding: .5rem .8rem; background: var(--teal); color: #fff; font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+  .bot__scope { padding: .7rem .95rem .9rem; border-top: 1px solid #e6f1ee; background: #fbfdfd; }
+  .bot__scope strong { display: block; color: var(--ink); font-size: .76rem; }
+  .bot__scope ul { margin: .35rem 0 0; padding-left: 1.05rem; color: var(--muted); font-size: .75rem; line-height: 1.5; }
+
+  .words { margin: 1.6rem 0 2.5rem; }
+  .words table td { vertical-align: top; }
+  .words .was { color: #a4553f; text-decoration: line-through; }
+  .words .now { color: var(--ink); font-weight: 650; }
+  .note { margin: .5rem 0 0; color: var(--muted); font-size: .76rem; }
+
+  @media (max-width: 980px) {
+    .board { grid-template-columns: 1fr; }
+    .bot { position: static; }
+    .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="container">
+    <div class="shell__row">
+      <span class="shell__brand">นายช่างหมู</span>
+      <span class="shell__crumb">หน้าแรก / แอปทั้งหมด / <b>ESTIMETR</b></span>
+    </div>
+    <div class="shell__title">
+      <h1>แอปผู้ช่วยประมาณราคาก่อสร้างงานอาคาร</h1>
+      <p>ถอดแบบ ถอดปริมาณ แล้วออก BOQ ที่ย้อนดูที่มาของทุกบรรทัดได้</p>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="steps">
+    <article>
+      <b>1</b>
+      <div>
+        <h3>ตั้งค่าโครงการ</h3>
+        <p>ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน</p>
+        <small>เสร็จแล้ว</small>
+      </div>
+    </article>
+    <article class="is-here">
+      <b>2</b>
+      <div>
+        <h3>เปิดแบบและยืนยันสเกล</h3>
+        <p>เปิดไฟล์แบบ PDF แล้วตั้งสเกลของแต่ละหน้าที่จะวัด</p>
+        <small>ค้างอยู่ที่ขั้นนี้</small>
+      </div>
+    </article>
+    <article>
+      <b>3</b>
+      <div>
+        <h3>ถอดปริมาณพร้อมหลักฐาน</h3>
+        <p>วัดบนแบบ ระบบจดที่มาของทุกตัวเลขให้เอง</p>
+        <small>3 รายการ ยืนยันแล้ว 0</small>
+      </div>
+    </article>
+    <article>
+      <b>4</b>
+      <div>
+        <h3>ประมาณราคาและสรุป BOQ</h3>
+        <p>ดึงราคาจาก price set ที่รับมา แล้วออก BOQ</p>
+        <small>รับมาแล้ว 1 บัญชี</small>
+      </div>
+    </article>
+  </div>
+
+  <div class="board">
+
+    <div>
+      <section class="card">
+        <p class="card__eyebrow">ทำงานต่อ</p>
+        <h2>งานที่ค้างอยู่</h2>
+
+        <div class="resume">
+          <p class="resume__name">อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</p>
+          <p class="resume__where">ค้างที่ขั้น <b>2 จาก 4 · เปิดแบบและยืนยันสเกล</b> · แก้ไขล่าสุดวันนี้ 21:13 น.</p>
+          <p class="resume__todo">หน้า 7 ตั้งสเกล 1:125 แล้ว ที่เหลืออีก 31 หน้ายังไม่ได้ตั้ง</p>
+          <div class="resume__row">
+            <a class="btn btn--go" href="#">เปิดหน้าแบบ ทำงานต่อ</a>
+            <a class="btn btn--line" href="#">ดูหน้าโครงการ</a>
+            <a class="btn btn--quiet" href="#">ไปหน้าถอดปริมาณ</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <p class="card__eyebrow">โครงการ</p>
+        <h2>โครงการทั้งหมด</h2>
+        <table>
+          <thead>
+            <tr><th>ชื่อโครงการ</th><th>ค้างที่ขั้น</th><th>แก้ไขล่าสุด</th><th>เปิดโครงการ</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</b></td>
+              <td><span class="pill">2 · เปิดแบบและยืนยันสเกล</span></td>
+              <td>วันนี้ 21:13 น.</td>
+              <td><a class="btn btn--quiet" href="#">เปิด</a></td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          บัญชีทดลองสร้างได้ 1 โครงการ ใช้ครบแล้ว · ต้องการมากกว่านี้ให้ขอใบเสนอราคาสำหรับองค์กร
+        </p>
+      </section>
+    </div>
+
+    <aside class="bot">
+      <div class="bot__head">
+        <span class="bot__mark">ผช</span>
+        <div>
+          <strong>ผู้ช่วยประมาณราคา</strong>
+          <span>พาทำทีละขั้น ถามได้ตลอด</span>
+        </div>
+      </div>
+
+      <div class="bot__thread">
+        <div class="say say--bot">
+          สวัสดีครับคุณสุริยะ วันนี้กลับมาที่ <b>อาคารเรียน 4 ชั้น โรงเรียนบ้านหนองแวง</b> นะครับ
+        </div>
+        <div class="say say--bot">
+          โครงการนี้ค้างอยู่ที่ <b>ขั้นเปิดแบบและยืนยันสเกล</b> ครับ หน้า 7 ตั้งสเกลไว้ที่ 1:125 แล้ว
+          ส่วนหน้าอื่นยังไม่ได้ตั้ง ถ้ายังไม่ตั้งสเกล เครื่องมือวัดบนหน้านั้นจะกดไม่ได้
+        </div>
+        <div class="say say--me">พื้นที่ห้องน้ำที่ได้ 4.00 มันมาจากไหน</div>
+        <div class="say say--bot">
+          มาจากการไล่ขอบตาม <b>ผิวผนังด้านใน</b> ครับ ได้ 2.27 × 1.76 = 4.01 ตร.ม.
+          ส่วนเลข 2.50 × 2.00 ที่แบบเขียนเป็นระยะ <b>แนวเสาถึงแนวเสา</b> ได้ 5.00 ตร.ม.
+          สองเลขนี้วัดคนละที่ ใช้กับงานคนละอย่าง กดดูวิธีคิดเต็มได้ครับ
+        </div>
+      </div>
+
+      <div class="chips">
+        <button class="chip" type="button">พาไปตั้งสเกลหน้าที่เหลือ</button>
+        <button class="chip" type="button">ดูวิธีคิดพื้นที่ห้องแบบเต็ม</button>
+        <button class="chip" type="button">สอนวิธีถอดปริมาณจากแบบ</button>
+        <button class="chip" type="button">เริ่มโครงการใหม่</button>
+      </div>
+
+      <div class="bot__ask">
+        <input type="text" placeholder="พิมพ์ถามได้ เช่น ผนัง 0.25 คิดยังไง">
+        <button type="button">ส่ง</button>
+      </div>
+
+      <div class="bot__scope">
+        <strong>ผู้ช่วยตัวนี้ไม่ทำอะไร</strong>
+        <ul>
+          <li>ไม่ตัดสินตัวเลขแทนคุณ เสนอได้ แต่คนกดรับ</li>
+          <li>ไม่เดาระยะที่แบบไม่ได้เขียน ถ้าอ่านไม่ได้จะบอกว่าอ่านไม่ได้</li>
+          <li>ไม่รับรอง BOQ หรือราคาทางวิชาชีพ</li>
+        </ul>
+      </div>
+    </aside>
+
+  </div>
+
+  <section class="card words">
+    <p class="card__eyebrow">คำที่เปลี่ยน</p>
+    <h2>เทียบคำเดิมกับคำใหม่</h2>
+    <table>
+      <thead><tr><th>ที่</th><th>คำเดิม</th><th>คำใหม่</th><th>เหตุผล</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>ขั้นที่ 1</td>
+          <td class="was">ตั้งโครงการ · สายงาน แบบ revision และสเกล</td>
+          <td class="now">ตั้งค่าโครงการ · ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน</td>
+          <td>
+            “ตั้งโครงการ” อ่านเหมือนก่อตั้งโครงการ ซึ่งไม่ใช่สิ่งที่คนทำตรงนี้ กริยาจึงเป็น “ตั้งค่า” ·
+            “สายงาน” เป็นคำที่ประดิษฐ์เอง และคำนามสามคำต่อกันไม่ได้บอกว่าต้องทำอะไร ·
+            คำนามคง “โครงการ” ไว้ตามที่วิชาชีพใช้ ยืนยันจาก <code>km/Estimate1.pdf</code>
+            เอกสารประกอบการสอนวิชาการประมาณราคาก่อสร้าง 1 วิทยาลัยเทคนิคเชียงใหม่
+            ซึ่งใช้ “โครงการ” “เจ้าของโครงการ” “ผู้ประมาณราคา” ตลอดเล่ม
+          </td>
+        </tr>
+        <tr>
+          <td>ขั้นที่ 2</td>
+          <td class="was">PROJECT &amp; DRAWING REVIEW</td>
+          <td class="now">เปิดไฟล์แบบ PDF แล้วตั้งสเกลของแต่ละหน้าที่จะวัด</td>
+          <td>บรรทัดอังกฤษตัวใหญ่เป็นของประดับ ไม่ได้เพิ่มความหมายให้คนอ่าน</td>
+        </tr>
+        <tr>
+          <td>พาดหัว</td>
+          <td class="was">เลือกโครงการ หรือเริ่มโครงการใหม่</td>
+          <td class="now">งานที่ค้างอยู่</td>
+          <td>พาดหัวเดิมสั่งให้ทำสิ่งที่ทำไม่ได้ เพราะโควตาทดลองสร้างได้โครงการเดียว</td>
+        </tr>
+        <tr>
+          <td>ทั้งหน้า</td>
+          <td class="was">price set ที่อนุมัติ / ตรวจแบบ</td>
+          <td class="now">price set ที่รับมา / เปิดแบบและยืนยันสเกล</td>
+          <td>ชื่อขั้นต้องตรงกับหน้าโครงการเป๊ะ เดิมใช้คนละชื่อสำหรับงานเดียวกัน</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="note">
+      หลักที่ใช้ ศัพท์ที่ช่างพูดทับศัพท์อยู่แล้ว (BOQ, price set, PDF, report) ไม่แปล ·
+      ทุกขั้นมีชื่อแล้วตามด้วยประโยคบอกว่าต้องทำอะไร · และมีหัวข้อบอกตรง ๆ ว่าระบบไม่ทำอะไร
+    </p>
+  </section>
+
+</div>
+
+</body>
+</html>

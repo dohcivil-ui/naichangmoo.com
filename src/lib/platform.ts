@@ -73,7 +73,7 @@ export const platformApps: PlatformApp[] = [
     eyebrow: "ประมาณราคา",
     description: "ประมาณราคางานอาคาร",
     programName: "แอปผู้ช่วยประมาณราคาก่อสร้างงานอาคาร",
-    purpose: "สำหรับถอดแบบ ถอดปริมาณ และประมาณราคางานอาคาร ตั้งแต่ตั้งโครงการจนได้ BOQ",
+    purpose: "ถอดแบบ ถอดปริมาณ แล้วออก BOQ ที่ย้อนดูที่มาของทุกบรรทัดได้",
     iconSrc: visualAssetUrl("estimeter"),
     iconAlt: "หุ่นจำลองโครงอาคารคอนกรีตเสริมเหล็ก คลิปบอร์ดหนีบใบถอดปริมาณ แบบก่อสร้างที่ม้วนไว้ สเกลสามเหลี่ยมสีส้ม และเครื่องคิดเลข",
     seededAccess: "paid_trial",
@@ -82,7 +82,8 @@ export const platformApps: PlatformApp[] = [
     marketDetail: {
       outcome: "ถอดปริมาณและประมาณราคางานอาคาร จนได้ BOQ ที่ตรวจย้อนได้ทุกบรรทัด",
       preparation: ["ข้อมูลโครงการและประเภทงาน", "แบบและรายการประกอบแบบ", "ขอบเขตงานที่จะถอดปริมาณ"],
-      flow: ["ตั้งโครงการ", "ตรวจแบบ", "ถอดปริมาณ", "ประมาณราคา"],
+      // ชื่อสี่ขั้นต้องตรงกับการ์ดลำดับงานบนหน้าโครงการเป๊ะ เดิมใช้คนละชุดจนคนอ่านสับสน
+      flow: ["ตั้งค่าโครงการ", "เปิดแบบและยืนยันสเกล", "ถอดปริมาณพร้อมหลักฐาน", "ประมาณราคาและสรุป BOQ"],
       // ADR 0010 fixed this sentence; ADR 0018 moved its public copy into the registry. What is
       // written here is only the suggestion an administrator sees in the back office - the public
       // pages render the registry's sentence, or nothing at all.
