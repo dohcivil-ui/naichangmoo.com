@@ -241,10 +241,17 @@ const FIT_PADDING_PX = 24;
 /**
  * เพดานความละเอียดที่วาดหน้าแบบ ย้ายไปอยู่ที่ `src/lib/drawing-render.ts` แล้ว
  */
-const RAIL_MIN = 110;
-const RAIL_MAX = 320;
-const PANEL_MIN = 240;
-const PANEL_MAX = 560;
+/**
+ * ความกว้างของรางสองข้าง ตรึงไว้ ไม่ให้ผู้ใช้ลากปรับ (เจ้าของงานสั่ง 2026-09-05)
+ *
+ * เดิมมีที่จับลากสองอัน แล้วความกว้างเป็น state ที่ไม่ได้เก็บลงไหน ผลคือทุกครั้งที่เปิดหน้าใหม่
+ * มันเด้งกลับค่าตั้งต้น คนจึงต้องลากใหม่ทุกวัน · เจ้าของงานลากจนพอดีแล้วสั่งว่า "fix เลย
+ * ไม่ต้องให้เลื่อนขยับได้ กรอบซ้ายก็เหมือนกัน" · สองค่านี้คือความกว้างที่เขาลากไว้จริง
+ *
+ * ปุ่มเปิดปิดรางยังอยู่ครบ คนที่อยากได้พื้นที่แบบเต็มจอยังพับรางได้เหมือนเดิม
+ */
+const RAIL_WIDTH = 150;
+const PANEL_WIDTH = 440;
 
 type Camera = { scale: number; x: number; y: number };
 
@@ -368,8 +375,6 @@ export function DrawingMarkup({
   const [cursor, setCursor] = useState<PagePoint | null>(null);
   const [railOn, setRailOn] = useState(true);
   const [panelOn, setPanelOn] = useState(true);
-  const [railWidth, setRailWidth] = useState(150);
-  const [panelWidth, setPanelWidth] = useState(330);
   const [thumbs, setThumbs] = useState<Record<number, string>>({});
   const [tip, setTip] = useState<TipState>(null);
   const [tipLeft, setTipLeft] = useState(0);
@@ -407,7 +412,6 @@ export function DrawingMarkup({
    */
   const [pendingRoom, setPendingRoom] = useState<StoredMark | null>(null);
   const panRef = useRef<{ x: number; y: number; view: Camera; moved: boolean } | null>(null);
-  const splitRef = useRef<{ which: "rail" | "panel"; x: number; width: number } | null>(null);
 
   /** ตัวตนของแบบใบที่เปิดอยู่ในฐานข้อมูล — null แปลว่ายังลงทะเบียนไม่สำเร็จ จึงยังเซฟไม่ได้ */
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -1065,14 +1069,6 @@ export function DrawingMarkup({
   const activeAnchor = tool === "scale" ? calibrationPoints.at(-1) ?? null : draft.at(-1) ?? null;
 
   function handleMove(event: React.PointerEvent<HTMLDivElement>) {
-    const splitting = splitRef.current;
-    if (splitting) {
-      const delta = (event.clientX - splitting.x) * (splitting.which === "panel" ? -1 : 1);
-      const next = splitting.width + delta;
-      if (splitting.which === "rail") setRailWidth(Math.min(RAIL_MAX, Math.max(RAIL_MIN, next)));
-      else setPanelWidth(Math.min(PANEL_MAX, Math.max(PANEL_MIN, next)));
-      return;
-    }
     const panning = panRef.current;
     if (panning) {
       const dx = event.clientX - panning.x;
@@ -1185,10 +1181,6 @@ export function DrawingMarkup({
   }
 
   function handleUp(event: React.PointerEvent<HTMLDivElement>) {
-    if (splitRef.current) {
-      splitRef.current = null;
-      return;
-    }
     const panning = panRef.current;
     if (!panning) return;
     panRef.current = null;
@@ -1880,7 +1872,7 @@ export function DrawingMarkup({
       {/* แถวสาม — ราง ที่จับ แบบ ที่จับ แผงขวา */}
       <div
         className="mk__body"
-        style={{ ["--mk-rail" as string]: `${railOn ? railWidth : 0}px`, ["--mk-panel" as string]: `${panelOn ? panelWidth : 0}px` }}
+        style={{ ["--mk-rail" as string]: `${railOn ? RAIL_WIDTH : 0}px`, ["--mk-panel" as string]: `${panelOn ? PANEL_WIDTH : 0}px` }}
         data-rail={railOn ? "on" : "off"}
         data-panel={panelOn ? "on" : "off"}
       >
@@ -1908,25 +1900,6 @@ export function DrawingMarkup({
             </button>
           ))}
         </aside>
-
-        <div
-          className="mk__splitter mk__splitter--rail"
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="ปรับความกว้างรางหน้าแบบ"
-          tabIndex={0}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            splitRef.current = { which: "rail", x: event.clientX, width: railWidth };
-          }}
-          onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onKeyDown={(event) => {
-            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-            event.preventDefault();
-            setRailWidth((width) => Math.min(RAIL_MAX, Math.max(RAIL_MIN, width + (event.key === "ArrowRight" ? 12 : -12))));
-          }}
-        />
 
         <div
           className="mk__stage"
@@ -2202,25 +2175,6 @@ export function DrawingMarkup({
             ) : null}
           </div>
         </div>
-
-        <div
-          className="mk__splitter mk__splitter--panel"
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="ปรับความกว้างแผงรายการวัด"
-          tabIndex={0}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            splitRef.current = { which: "panel", x: event.clientX, width: panelWidth };
-          }}
-          onPointerMove={handleMove}
-          onPointerUp={handleUp}
-          onKeyDown={(event) => {
-            if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-            event.preventDefault();
-            setPanelWidth((width) => Math.min(PANEL_MAX, Math.max(PANEL_MIN, width + (event.key === "ArrowLeft" ? 12 : -12))));
-          }}
-        />
 
         <aside className="mk__panel" aria-label="รายการที่วัดแล้ว">
           <div className="mk__panel-head">

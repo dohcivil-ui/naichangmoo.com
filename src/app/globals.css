@@ -2557,20 +2557,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__snap-radius { border-block-start: 1px solid var(--line); margin-block-start: 4px; padding-block-start: 8px; }
 .mk__snap-radius input { width: 64px; min-height: 32px; border: 1px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink); padding: 0 6px; }
 
-.mk__body { display: grid; grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 5px var(--mk-panel); min-height: 0; }
-.mk__body[data-rail="off"] { grid-template-columns: 0 0 minmax(0, 1fr) 5px var(--mk-panel); }
-.mk__body[data-panel="off"] { grid-template-columns: var(--mk-rail) 5px minmax(0, 1fr) 0 0; }
-.mk__body[data-rail="off"][data-panel="off"] { grid-template-columns: 0 0 minmax(0, 1fr) 0 0; }
+/* สามคอลัมน์ ไม่มีที่จับลากคั่นแล้ว ความกว้างสองรางตรึงไว้ในโค้ด (เจ้าของงานสั่ง 2026-09-05) */
+.mk__body { display: grid; grid-template-columns: var(--mk-rail) minmax(0, 1fr) var(--mk-panel); min-height: 0; }
+.mk__body[data-rail="off"] { grid-template-columns: 0 minmax(0, 1fr) var(--mk-panel); }
+.mk__body[data-panel="off"] { grid-template-columns: var(--mk-rail) minmax(0, 1fr) 0; }
+.mk__body[data-rail="off"][data-panel="off"] { grid-template-columns: 0 minmax(0, 1fr) 0; }
 .mk__body[data-rail="off"] .mk__rail,
 .mk__body[data-panel="off"] .mk__panel { display: none; }
 /* กำหนดคอลัมน์ให้ทุกชิ้นตายตัว เพราะชิ้นที่ display:none หลุดออกจากการวางกริด
    ถ้าปล่อยให้วางอัตโนมัติ พอซ่อนรางแล้วลูกที่เหลือจะเลื่อนไปคนละคอลัมน์
    จนพื้นที่วาดกว้างศูนย์และแผงขวาถูกบีบเหลือ 21px (เจอเองตอนตรวจที่ 761px) */
 .mk__rail { grid-column: 1; }
-.mk__splitter--rail { grid-column: 2; }
-.mk__stage { grid-column: 3; }
-.mk__splitter--panel { grid-column: 4; }
-.mk__panel { grid-column: 5; }
+.mk__stage { grid-column: 2; }
+.mk__panel { grid-column: 3; }
 
 .mk__rail { background: var(--paper); border-inline-end: 1px solid var(--line); overflow-y: auto; padding: 8px; display: grid; gap: 8px; align-content: start; min-width: 0; }
 .mk__thumb { border: 1px solid var(--line); border-radius: 6px; background: var(--paper); padding: 5px; cursor: pointer; display: grid; gap: 3px; justify-items: center; font-size: .68rem; color: var(--muted); }
@@ -2578,11 +2577,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__thumb img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
 .mk__thumb-blank { display: block; width: 100%; aspect-ratio: 1.414; background: var(--canvas); border: 1px solid var(--line); }
 .mk__thumb b { font-weight: 600; color: var(--ink); font-size: .72rem; }
-
-.mk__splitter { background: transparent; cursor: col-resize; position: relative; }
-.mk__splitter::after { content: ""; position: absolute; inset: 0 2px; background: var(--line); opacity: 0; }
-.mk__splitter:hover::after,
-.mk__splitter:focus-visible::after { opacity: 1; }
 
 .mk__stage { position: relative; overflow: hidden; touch-action: none; min-width: 0; min-height: 0; background: var(--canvas); }
 .mk__stage[data-tool="pan"] { cursor: grab; }
@@ -2685,8 +2679,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .mk__body[data-rail="off"],
   .mk__body[data-panel="on"],
   .mk__body[data-panel="off"] { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .mk__splitter { display: none; }
-  /* คอลัมน์เดียว ต้องคืนค่าที่ตรึงไว้ตอนสามคอลัมน์ ไม่งั้นแผงขวาจะไปหาคอลัมน์ที่ห้าที่ไม่มีอยู่ */
+  /* คอลัมน์เดียว ต้องคืนค่าที่ตรึงไว้ตอนสามคอลัมน์ ไม่งั้นแผงขวาจะไปหาคอลัมน์ที่สามที่ไม่มีอยู่ */
   .mk__rail,
   .mk__stage,
   .mk__panel { grid-column: 1; }
