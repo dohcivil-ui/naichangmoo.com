@@ -31,6 +31,9 @@ import {
   type SnapSettings
 } from "@/lib/drawing-snap";
 import {
+  COLUMN_MAX_METRES,
+  COLUMN_MIN_METRES,
+  COLUMN_TOUCH_METRES,
   DOOR_BRIDGE_METRES,
   MIN_STRUCTURE_METRES,
   MIN_WALL_RUN_METRES,
@@ -1183,6 +1186,12 @@ export function DrawingMarkup({
         // คัดเส้นก่อนไล่สี ผนังกั้น สัญลักษณ์ไม่กั้น — ดู skill `drawing-geometry`
         minRunPixels: MIN_WALL_RUN_METRES * pixelsPerMetre,
         minStructurePixels: MIN_STRUCTURE_METRES * pixelsPerMetre,
+        // เสาเป็นก้อนอิสระที่เล็กเกินด่านขนาด แต่เป็นโครงสร้างที่ต้องกั้น ขอบห้องต้องหักอ้อมมัน
+        column: {
+          min: Math.round(COLUMN_MIN_METRES * pixelsPerMetre),
+          max: Math.round(COLUMN_MAX_METRES * pixelsPerMetre),
+          touch: Math.round(COLUMN_TOUCH_METRES * pixelsPerMetre)
+        },
         // ปิดช่องได้กว้างสองเท่าของรัศมี จึงส่งครึ่งหนึ่งของความกว้างประตูที่ยอมเชื่อม
         bridgeGapPixels: (DOOR_BRIDGE_METRES / 2) * pixelsPerMetre
         /**

@@ -70,6 +70,13 @@ export type RegionOptions = {
    * ทั้งที่ขอบบนขอบล่างของมันเป็นเส้นตรงยาวพอจะผ่านด่านแรก
    */
   minStructurePixels?: number;
+  /**
+   * กติกาของเสา หน่วยพิกเซลของภาพวิเคราะห์ · ไม่ส่งมาแปลว่าไม่รู้จักเสา
+   *
+   * เสาเป็นข้อยกเว้นของด่านขนาดก้อน เพราะมันเล็กและเป็นก้อนอิสระที่ไม่ต่อกับผนัง
+   * แต่มันคือโครงสร้างที่ต้องกั้น ขอบห้องต้องหักเป็นขั้นอ้อมมัน ไม่ใช่ตัดผ่าน
+   */
+  column?: ColumnRule;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -140,6 +147,22 @@ export const MIN_WALL_RUN_METRES = 1.0;
 export const MIN_STRUCTURE_METRES = 4.0;
 
 /**
+ * ช่วงขนาดของสิ่งที่ถือว่าเป็นเสา วัดเป็นเมตรบนอาคารจริง
+ *
+ * **ทำไมเสาต้องมีกติกาของตัวเอง** เสาถูกวาดเป็นสี่เหลี่ยมเล็ก ๆ กว้างราว 0.33 เมตร
+ * และเป็นก้อนอิสระที่ไม่ต่อกับผนัง มันจึงตกด่าน `MIN_STRUCTURE_METRES` ไปพร้อมกับป้าย
+ * และสัญลักษณ์ · เจ้าของงานทักเมื่อ 2026-09-04 ว่า "คุณไฮไลท์กินพื้นที่เสา ด้านล่าง
+ * และไม่หักตรงมุมเสา" ซึ่งตรงกับภาพหน้ากากที่เรนเดอร์ออกมาดู เสาเป็นรูโหว่ในสิ่งกั้นจริง
+ *
+ * 0.15 กันธรณีประตูกับจุดเล็ก ๆ ที่ไม่ใช่เสา · 0.80 กันกรอบป้ายชนิดพื้นซึ่งกว้างราวสองเมตร
+ */
+export const COLUMN_MIN_METRES = 0.15;
+export const COLUMN_MAX_METRES = 0.8;
+
+/** เสาต้องอยู่ห่างจากโครงผนังไม่เกินนี้ กันสี่เหลี่ยมเล็กกลางห้องอย่างป้ายเตียงไม่ให้กลายเป็นเสา */
+export const COLUMN_TOUCH_METRES = 0.1;
+
+/**
  * คัดเฉพาะเส้นที่เป็นผนังหรือโครงสร้างออกมาจากทุกสิ่งที่ดำในแบบ
  *
  * **ทำไมต้องคัดก่อน ไม่ใช่ไล่สีแล้วค่อยแก้ทีหลัง** เจ้าของงานชี้เมื่อ 2026-09-04 ว่า
@@ -152,11 +175,20 @@ export const MIN_STRUCTURE_METRES = 4.0;
  * ขอบล่างของกรอบป้ายเป็นเส้นตรงยาวพอจะผ่านด่านแรกได้ ส่วนวงสวิงประตูต่อกับผนังจึงอยู่
  * ในก้อนใหญ่และผ่านด่านที่สองได้ ต้องใช้คู่กันถึงจะคัดออกได้ทั้งสองอย่าง
  */
+export type ColumnRule = {
+  /** ด้านของกรอบล้อมต้องอยู่ระหว่างสองค่านี้ หน่วยพิกเซล */
+  min: number;
+  max: number;
+  /** ต้องมีสิ่งกั้นอยู่ห่างจากกรอบไม่เกินนี้ หน่วยพิกเซล */
+  touch: number;
+};
+
 export function structuralMask(
   image: GreyImage,
   threshold: number,
   minRun: number,
-  minStructure: number
+  minStructure: number,
+  column?: ColumnRule
 ): Uint8Array {
   const { width, height } = image;
   const dark = new Uint8Array(width * height);
@@ -194,6 +226,8 @@ export function structuralMask(
   const component = new Int32Array(dark.length).fill(-1);
   const keep = new Uint8Array(dark.length);
   const stack: number[] = [];
+  /** ก้อนเล็กที่รูปร่างเข้าข่ายเสา เก็บไว้ตัดสินทีหลัง เพราะต้องรู้ก่อนว่าโครงผนังอยู่ตรงไหน */
+  const columnBoxes: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
   let label = 0;
   for (let seed = 0; seed < dark.length; seed += 1) {
     if (dark[seed] === 0 || component[seed] >= 0) continue;
@@ -227,8 +261,12 @@ export function structuralMask(
         }
       }
     }
-    if (Math.max(maxX - minX + 1, maxY - minY + 1) >= minStructure) {
+    const boxWidth = maxX - minX + 1;
+    const boxHeight = maxY - minY + 1;
+    if (Math.max(boxWidth, boxHeight) >= minStructure) {
       for (const index of members) keep[index] = 1;
+    } else if (column && looksLikeColumn(members, minX, minY, boxWidth, boxHeight, width, column)) {
+      columnBoxes.push({ minX, minY, maxX, maxY });
     }
     label += 1;
   }
@@ -237,7 +275,188 @@ export function structuralMask(
   for (let index = 0; index < dark.length; index += 1) {
     structural[index] = longEnough[index] === 1 && keep[index] === 1 ? 1 : 0;
   }
+
+  /**
+   * เสาถูกถมทั้งกรอบ ไม่ใช่เก็บแค่เส้นขอบ เพราะเนื้อในเสาไม่ใช่พื้นที่ห้อง
+   * ถ้าเก็บแค่ขอบ สีจะไหลเข้าไปข้างในแล้วขอบห้องจะมีรูตรงกลางเสา
+   */
+  if (column) {
+    for (const box of columnBoxes) {
+      if (!touchesStructure(structural, width, height, box, column.touch)) continue;
+      fillBox(structural, width, height, box, 0);
+    }
+    for (const box of enclosedGaps(dark, width, height, column)) {
+      if (!touchesStructure(structural, width, height, box, column.touch)) continue;
+      fillBox(structural, width, height, box, 0);
+      /**
+       * ขยายออกไปเก็บเส้นกรอบของเสาด้วย แต่**เฉพาะพิกเซลที่เป็นเส้นจริง**
+       * ถ้าถมทั้งวงแหวนรอบนอก สิ่งกั้นจะกินเนื้อห้องออกไปอีกด้านละสามพิกเซล
+       */
+      const left = Math.max(0, box.minX - 3);
+      const right = Math.min(width - 1, box.maxX + 3);
+      const top = Math.max(0, box.minY - 3);
+      const bottom = Math.min(height - 1, box.maxY + 3);
+      for (let y = top; y <= bottom; y += 1) {
+        for (let x = left; x <= right; x += 1) {
+          const index = y * width + x;
+          if (dark[index] === 1) structural[index] = 1;
+        }
+      }
+    }
+  }
   return structural;
+}
+
+function fillBox(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  box: { minX: number; minY: number; maxX: number; maxY: number },
+  grow: number
+): void {
+  const left = Math.max(0, box.minX - grow);
+  const right = Math.min(width - 1, box.maxX + grow);
+  const top = Math.max(0, box.minY - grow);
+  const bottom = Math.min(height - 1, box.maxY + grow);
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = left; x <= right; x += 1) mask[y * width + x] = 1;
+  }
+}
+
+/**
+ * ช่องว่างเล็ก ๆ ที่ถูกเส้นล้อมปิดสนิท ซึ่งคือเนื้อในของเสาที่วาดเป็นกรอบ
+ *
+ * **ทำไมต้องมีทางนี้เพิ่ม** เสาส่วนใหญ่ถูกเขียนให้ขอบชนกับเส้นผนัง มันจึงกลายเป็นส่วนหนึ่ง
+ * ของก้อนผนังยักษ์ กติกา "ก้อนเล็กที่รูปร่างเหมือนเสา" จึงมองไม่เห็นมันเลย เรนเดอร์หน้ากาก
+ * ออกมาดูที่กำลังขยายหกเท่าเมื่อ 2026-09-04 จึงเห็นว่าเสายังเป็นรูโหว่อยู่ทั้งที่ใส่กติกาไปแล้ว
+ *
+ * ที่ว่างปิดสนิทขนาดเท่าเสาคือลายเซ็นที่เชื่อถือได้ เพราะห้องจริงเปิดออกสู่ขอบกระดาษเสมอ
+ * ส่วนช่องในกรอบป้ายชนิดพื้นก็ปิดสนิทเหมือนกัน แต่มันลอยอยู่กลางห้องไม่ติดโครงผนัง
+ * จึงถูกด่านระยะชิดคัดออก
+ */
+function enclosedGaps(
+  dark: Uint8Array,
+  width: number,
+  height: number,
+  rule: ColumnRule
+): { minX: number; minY: number; maxX: number; maxY: number }[] {
+  const reached = new Uint8Array(dark.length);
+  const queue: number[] = [];
+  const push = (x: number, y: number) => {
+    const index = y * width + x;
+    if (dark[index] === 1 || reached[index] === 1) return;
+    reached[index] = 1;
+    queue.push(index);
+  };
+  for (let x = 0; x < width; x += 1) {
+    push(x, 0);
+    push(x, height - 1);
+  }
+  for (let y = 0; y < height; y += 1) {
+    push(0, y);
+    push(width - 1, y);
+  }
+  while (queue.length > 0) {
+    const index = queue.pop() as number;
+    const x = index % width;
+    const y = (index - x) / width;
+    if (x > 0) push(x - 1, y);
+    if (x < width - 1) push(x + 1, y);
+    if (y > 0) push(x, y - 1);
+    if (y < height - 1) push(x, y + 1);
+  }
+
+  const seen = new Uint8Array(dark.length);
+  const found: { minX: number; minY: number; maxX: number; maxY: number }[] = [];
+  const stack: number[] = [];
+  for (let seed = 0; seed < dark.length; seed += 1) {
+    if (dark[seed] === 1 || reached[seed] === 1 || seen[seed] === 1) continue;
+    stack.length = 0;
+    stack.push(seed);
+    seen[seed] = 1;
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+    while (stack.length > 0) {
+      const index = stack.pop() as number;
+      const x = index % width;
+      const y = (index - x) / width;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      const step = (nx: number, ny: number) => {
+        const next = ny * width + nx;
+        if (dark[next] === 1 || seen[next] === 1) return;
+        seen[next] = 1;
+        stack.push(next);
+      };
+      if (x > 0) step(x - 1, y);
+      if (x < width - 1) step(x + 1, y);
+      if (y > 0) step(x, y - 1);
+      if (y < height - 1) step(x, y + 1);
+    }
+    const boxWidth = maxX - minX + 1;
+    const boxHeight = maxY - minY + 1;
+    if (boxWidth < rule.min || boxHeight < rule.min) continue;
+    if (boxWidth > rule.max || boxHeight > rule.max) continue;
+    found.push({ minX, minY, maxX, maxY });
+  }
+  return found;
+}
+
+/**
+ * ก้อนนี้หน้าตาเป็นเสาหรือไม่ — ดูจากขนาดและรูปร่าง ยังไม่ดูตำแหน่ง
+ *
+ * รับสองแบบที่ช่างเขียนแบบใช้จริง คือวาดเป็น**กรอบสี่เหลี่ยม**ซึ่งพิกเซลเกือบทั้งหมด
+ * อยู่บนขอบกรอบ กับวาดเป็น**สี่เหลี่ยมทึบ**ซึ่งพิกเซลเต็มกรอบ · วงกลมเลขแนวเสาถูกคัดออก
+ * เพราะเส้นรอบวงพาดกลางกรอบ ส่วนสามเหลี่ยมบอกระดับถูกคัดเพราะด้านเอียงสองด้านก็พาดกลางกรอบ
+ */
+function looksLikeColumn(
+  members: readonly number[],
+  minX: number,
+  minY: number,
+  boxWidth: number,
+  boxHeight: number,
+  width: number,
+  rule: ColumnRule
+): boolean {
+  if (boxWidth < rule.min || boxHeight < rule.min) return false;
+  if (boxWidth > rule.max || boxHeight > rule.max) return false;
+  const edge = Math.max(2, Math.round(rule.min / 3));
+  let onBorder = 0;
+  for (const index of members) {
+    const x = index % width;
+    const y = (index - x) / width;
+    const fromLeft = x - minX;
+    const fromTop = y - minY;
+    const fromRight = boxWidth - 1 - fromLeft;
+    const fromBottom = boxHeight - 1 - fromTop;
+    if (Math.min(fromLeft, fromRight, fromTop, fromBottom) < edge) onBorder += 1;
+  }
+  const area = boxWidth * boxHeight;
+  return onBorder / members.length >= 0.9 || members.length / area >= 0.7;
+}
+
+/** มีสิ่งกั้นอยู่ในระยะรอบกรอบนี้หรือไม่ — เสาจริงต้องเกาะโครงผนัง ไม่ใช่ลอยกลางห้อง */
+function touchesStructure(
+  structural: Uint8Array,
+  width: number,
+  height: number,
+  box: { minX: number; minY: number; maxX: number; maxY: number },
+  reach: number
+): boolean {
+  const left = Math.max(0, box.minX - reach);
+  const right = Math.min(width - 1, box.maxX + reach);
+  const top = Math.max(0, box.minY - reach);
+  const bottom = Math.min(height - 1, box.maxY + reach);
+  for (let y = top; y <= bottom; y += 1) {
+    for (let x = left; x <= right; x += 1) {
+      if (structural[y * width + x] === 1) return true;
+    }
+  }
+  return false;
 }
 
 export const regionRejectionMessage: Record<RegionRejection, string> = {
@@ -269,7 +488,8 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
     image,
     threshold,
     Math.floor(options.minRunPixels ?? 0),
-    Math.floor(options.minStructurePixels ?? 0)
+    Math.floor(options.minStructurePixels ?? 0),
+    options.column
   );
   const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
   const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;

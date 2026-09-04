@@ -400,6 +400,113 @@ describe("คัดเฉพาะเส้นที่เป็นผนัง"
   });
 });
 
+/**
+ * เสาต้องกั้น และขอบห้องต้องหักเป็นขั้นอ้อมมัน
+ *
+ * เจ้าของงานทักเมื่อ 2026-09-04 ว่า "คุณไฮไลท์กินพื้นที่เสา ด้านล่าง และไม่หักตรงมุมเสา"
+ * เรนเดอร์หน้ากากออกมาดูแล้วพบว่าเสาเป็นรูโหว่จริง เพราะมันถูกวาดเป็นสี่เหลี่ยมเล็กที่เป็น
+ * ก้อนอิสระ ไม่ต่อกับผนัง จึงตกด่านขนาดก้อนไปพร้อมกับป้ายและสัญลักษณ์
+ */
+describe("เสาที่มุมห้อง", () => {
+  const filtered = { minRunPixels: 12, minStructurePixels: 40 };
+  const withColumns = { ...filtered, column: { min: 6, max: 20, touch: 4 } };
+
+  /** ห้อง 80 x 60 ที่มีกรอบสี่เหลี่ยม 12 x 12 เป็นเสาเกาะอยู่ที่มุมบนซ้ายด้านใน */
+  function roomWithCornerColumn(): GreyImage {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    for (let step = 0; step < 12; step += 1) {
+      set(42 + step, 42);
+      set(42 + step, 53);
+      set(42, 42 + step);
+      set(53, 42 + step);
+    }
+    return image;
+  }
+
+  it("ไม่รู้จักเสา สีไหลเข้าไปในเสา ขอบไม่หักเป็นขั้น", () => {
+    const result = traceRegion(roomWithCornerColumn(), { x: 100, y: 90 }, filtered);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  it("รู้จักเสา พื้นที่หายไปเท่าขนาดเสาพอดี", () => {
+    const result = traceRegion(roomWithCornerColumn(), { x: 100, y: 90 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58 - 12 * 12);
+  });
+
+  it("สี่เหลี่ยมทึบก็นับเป็นเสา ไม่ใช่เฉพาะกรอบ", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    for (let y = 42; y < 54; y += 1) {
+      for (let x = 42; x < 54; x += 1) image.data[y * image.width + x] = 0;
+    }
+    const result = traceRegion(image, { x: 100, y: 90 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58 - 12 * 12);
+  });
+
+  /**
+   * ด้านกลับสามข้อ กติกาเสาต้องไม่เปิดทางให้ของอื่นกลับมากั้น ไม่งั้นเราก็แค่ย้ายปัญหา
+   */
+  it("สี่เหลี่ยมเล็กกลางห้องที่ไม่ติดผนัง ไม่ใช่เสา", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    for (let step = 0; step < 12; step += 1) {
+      set(75 + step, 65);
+      set(75 + step, 76);
+      set(75, 65 + step);
+      set(86, 65 + step);
+    }
+    const result = traceRegion(image, { x: 50, y: 50 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  it("สามเหลี่ยมบอกระดับที่เกาะผนัง ไม่ใช่เสา", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    for (let step = 0; step <= 10; step += 1) {
+      set(70 + step, 42);
+      set(70 + step, 42 + step);
+      set(80 - step, 42 + step);
+    }
+    const result = traceRegion(image, { x: 60, y: 80 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+
+  it("กรอบที่ใหญ่เกินช่วงของเสา ไม่ใช่เสา", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    for (let step = 0; step < 30; step += 1) {
+      set(45 + step, 42);
+      set(45 + step, 52);
+    }
+    for (let step = 0; step <= 10; step += 1) {
+      set(45, 42 + step);
+      set(74, 42 + step);
+    }
+    const result = traceRegion(image, { x: 60, y: 80 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBe(78 * 58);
+  });
+});
+
 describe("การลดจำนวนจุดของเส้นขอบ", () => {
   it("จุดที่อยู่บนเส้นตรงเดิมถูกตัดทิ้ง", () => {
     const line = [
