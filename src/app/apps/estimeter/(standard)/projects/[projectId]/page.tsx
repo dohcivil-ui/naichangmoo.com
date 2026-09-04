@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
-import { BoqAssistant } from "@/components/estimeter/boq-assistant";
 import { BoqPanel } from "@/components/estimeter/boq-panel";
 import { PriceSetPanel } from "@/components/estimeter/price-set-panel";
 import { RevisionPanel } from "@/components/estimeter/revision-panel";
 import { COSTING_METHOD_LABEL } from "@/lib/price-authority";
-import { listBoqLines, readMatchCandidates } from "@/server/estimeter/boq-repository";
+import { listBoqLines } from "@/server/estimeter/boq-repository";
 import { listPriceSetLines, listPriceSets, type PriceSetLineView } from "@/server/estimeter/price-set-repository";
 import { listRevisions } from "@/server/estimeter/revision-repository";
 import { formatQuantity } from "@/lib/takeoff-quantity";
@@ -45,12 +44,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   // ฉบับคำนวณที่ออกจากชุดราคาเหล่านั้น (IP-216)
   const revisions = await listRevisions(organizationId, project.id);
 
-  // ผู้ช่วยจับคู่ปริมาณกับราคา และบรรทัด BOQ ที่รับไว้แล้ว (IP-217)
-  //
-  // ฉบับที่ผู้ช่วยจะรับเข้าคือฉบับที่ออกล่าสุด เพราะเป็นฉบับที่กำลังทำอยู่จริง ฉบับก่อนหน้า
-  // ออกไปแล้วและไม่ควรมีบรรทัดงอกเพิ่มทีหลังโดยไม่มีใครสังเกต
+  // บรรทัด BOQ ที่รับไว้แล้วของฉบับล่าสุด ซึ่งเป็นฉบับที่กำลังทำอยู่จริง
   const newestRevision = [...revisions].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ?? null;
-  const candidates = await readMatchCandidates(organizationId, project.id);
   const boqLines = newestRevision ? await listBoqLines(organizationId, newestRevision.id) : [];
   const linesBySet: Record<string, PriceSetLineView[]> = {};
   priceSets.forEach((set, index) => {
@@ -66,10 +61,18 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
   const stages = [
     { id: 1, label: "ตั้งโครงการ", note: "ชื่อโครงการและประเภทงาน", status: "เสร็จแล้ว" },
     {
+      /**
+       * สถานะของขั้นนี้เคยเขียนตายไว้ว่า "ยังไม่เปิดใช้งาน" ตั้งแต่ยังไม่มีหน้าแบบ แล้วไม่มีใคร
+       * กลับมาแก้เมื่อ IP-227 ถึง IP-235 ทยอยเปิดใช้งานจริง เจ้าของงานจึงเห็นการ์ดบอกว่าปิดอยู่
+       * ทั้งที่เขากำลังวัดบนแบบอยู่ · ที่ยังไม่มีจริงคือ**การเก็บไฟล์แบบไว้ในระบบ** ผู้ใช้ต้อง
+       * เปิดไฟล์จากเครื่องใหม่ทุกครั้ง ส่วนสเกล แนวเสา และรอยวัด เก็บลงฐานแล้ว
+       */
       id: 2,
-      label: "อัปโหลดแบบและยืนยันสเกล",
-      note: "ผูกหลักฐานกับไฟล์แบบในระบบ",
-      status: "ยังไม่เปิดใช้งาน · ระหว่างนี้อ้างอิงแบบเป็นข้อความได้"
+      label: "เปิดแบบและยืนยันสเกล",
+      note: "ตั้งสเกลของหน้า แล้ววัดบนแบบพร้อมเก็บหลักฐาน",
+      status: "เปิดใช้งานแล้ว · สเกลและรอยวัดเก็บในระบบ แต่ไฟล์แบบยังต้องเปิดจากเครื่องทุกครั้ง",
+      href: `/apps/estimeter/projects/${project.id}/markup`,
+      linkLabel: "เปิดหน้าแบบ"
     },
     { id: 3, label: "ถอดปริมาณพร้อมหลักฐาน", note: "หน่วย ปริมาณ และที่มาของการวัด", status: takeoffStatus },
     {
@@ -126,6 +129,12 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
                   <h3>{stage.label}</h3>
                   <p>{stage.note}</p>
                   <small>{stage.status}</small>
+                  {/* ขั้นที่มีหน้าจอของตัวเองต้องเข้าถึงได้จากการ์ด ไม่ใช่ให้ผู้ใช้เดา URL เอง */}
+                  {stage.href ? (
+                    <Link className="button button--ghost micro-button" href={stage.href}>
+                      {stage.linkLabel} <span>→</span>
+                    </Link>
+                  ) : null}
                 </div>
               </article>
             ))}
@@ -198,17 +207,19 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
           }
         />
 
-        <BoqAssistant
-          projectId={project.id}
-          revisionId={newestRevision?.id ?? null}
-          revisionLabel={
-            newestRevision
-              ? `${COSTING_METHOD_LABEL[newestRevision.costingMethod]} ครั้งที่ ${newestRevision.revisionNumber}`
-              : null
-          }
-          canEdit={canEdit}
-          unitSatangByRef={Object.fromEntries(candidates?.unitSatangByRef ?? [])}
-        />
+        {/*
+         * ผู้ช่วยจับคู่ปริมาณกับบัญชีราคา (IP-217) ถูกถอดออกจากหน้านี้เมื่อ 2026-09-04
+         *
+         * เจ้าของงานสั่งเอาออก เหตุผลคือมันไม่ได้ลดงานคิดของคน มันขอให้คนอ่านคู่ที่เสนอ
+         * แล้วติ๊กรับทีละคู่ ซึ่งเป็นงานตรวจที่เพิ่มเข้ามา ไม่ใช่งานที่หายไป · และมันโผล่อยู่
+         * บนหน้าโครงการตั้งแต่ยังไม่ได้ถอดปริมาณ ทำให้ลำดับงานที่การ์ดข้างบนวางไว้เสียรูป
+         *
+         * ที่เขาต้องการคือผู้ช่วยที่อยู่ใน **หน้าแบบ** ซึ่งช่วยตรวจแบบ ช่วยถอดปริมาณวัสดุ
+         * และช่วยคิดพื้นที่ ให้คนคิดเองน้อยที่สุด · ยังไม่ได้ออกแบบ รอ grill ก่อนเขียนโค้ด
+         *
+         * โค้ดของผู้ช่วยเดิม `boq-assistant.tsx` กับที่มาของข้อมูล `readMatchCandidates`
+         * ยังอยู่ครบพร้อมเทสต์ ถอดแค่การแสดงผลบนหน้านี้ กลับมาเปิดใหม่ได้ถ้าเขาสั่ง
+         */}
 
         <div className="hero__actions">
           <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Link>
