@@ -285,7 +285,15 @@ export function structuralMask(
       if (!touchesStructure(structural, width, height, box, column.touch)) continue;
       fillBox(structural, width, height, box, 0);
     }
-    for (const box of enclosedGaps(dark, width, height, column)) {
+    /**
+     * **เนื้อในเสาเล็กกว่าตัวเสาเสมอ เท่าความหนาเส้นกรอบสองข้าง**
+     *
+     * เกณฑ์ `COLUMN_MIN_METRES` วัดขนาดนอกของเสา ถ้าเอาไปใช้กับเนื้อในตรง ๆ เสาต้นเล็ก
+     * จะตกเกณฑ์ทั้งที่ตัวมันผ่าน · 2026-09-04 เจ้าของงานทักว่าเสาขวาล่างยังถูกกิน
+     * วัดแล้วพบว่ากรอบนอกกว้าง 8 พิกเซลซึ่งผ่านเกณฑ์ 7 แต่เนื้อในเหลือ 6 จึงตกไป
+     */
+    const gapRule = { ...column, min: Math.max(3, column.min - 4) };
+    for (const box of enclosedGaps(dark, width, height, gapRule)) {
       if (!touchesStructure(structural, width, height, box, column.touch)) continue;
       fillBox(structural, width, height, box, 0);
       /**

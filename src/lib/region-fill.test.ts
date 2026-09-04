@@ -524,6 +524,29 @@ describe("เสาที่มุมห้อง", () => {
     expect(result.areaPixels).toBe(78 * 58);
   });
 
+  /**
+   * เสาต้นเล็กที่สุดในแบบทดสอบมีกรอบนอกแปดพิกเซล เนื้อในเหลือหก ซึ่งต่ำกว่าเกณฑ์ขนาด
+   * ที่ตั้งไว้เจ็ด · 2026-09-04 มันจึงยังถูกกินอยู่ทั้งที่เสาต้นอื่นถูกกันไว้หมดแล้ว
+   */
+  it("เสาต้นเล็กที่เนื้อในแคบกว่าเกณฑ์ ยังต้องกั้นได้", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const set = (x: number, y: number) => {
+      image.data[y * image.width + x] = 0;
+    };
+    // กรอบนอกแปดพิกเซล ชิดมุมล่างขวาด้านในของห้อง
+    for (let step = 0; step < 8; step += 1) {
+      set(110 + step, 90);
+      set(110 + step, 97);
+      set(110, 90 + step);
+      set(117, 90 + step);
+    }
+    const result = traceRegion(image, { x: 60, y: 60 }, withColumns);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.areaPixels).toBeLessThan(78 * 58);
+    expect(result.areaPixels).toBeGreaterThan(78 * 58 - 100);
+  });
+
   it("กรอบที่ใหญ่เกินช่วงของเสา ไม่ใช่เสา", () => {
     const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
     const set = (x: number, y: number) => {
