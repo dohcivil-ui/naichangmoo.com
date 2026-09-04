@@ -770,7 +770,7 @@ export function DrawingMarkup({
             (mark.origin === "region_trace"
               ? "พื้นที่ผิวในของห้อง ระบบไล่ตามผนังแล้วคนยืนยัน"
               : "พื้นที่ในรูปหลายเหลี่ยมที่ชี้เอง") +
-            ` ${mark.points.length} ด้าน เส้นรอบรูป ${formatMetres(value.perimeterMetres ?? 0)} ม. คูณสเกล ${ratio} — วัดถึงผิวผนัง ไม่ใช่กึ่งกลางเสา`
+            ` ${mark.points.length} ด้าน คูณสเกล ${ratio} — วัดถึงผิวผนัง ไม่ใช่กึ่งกลางเสา`
         };
       case "count":
         return { figure: `${value.count ?? mark.points.length} จุด`, how: "นับจุดที่แตะทีละจุด ไม่ใช้สเกล" };
@@ -1744,7 +1744,6 @@ export function DrawingMarkup({
         <div className="mk__confirm" role="status">
           <span>
             พื้นที่ห้องที่ไล่ได้ {formatMetres(pendingValue?.areaSquareMetres ?? 0)} ตร.ม.
-            เส้นรอบรูป {formatMetres(pendingValue?.perimeterMetres ?? 0)} ม.
             <small> วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</small>
           </span>
           <input

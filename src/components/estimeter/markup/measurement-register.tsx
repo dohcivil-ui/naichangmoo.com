@@ -114,11 +114,9 @@ export function MeasurementRegister({
                       ? "รอสเกล"
                       : value.lengthMetres !== null
                         ? formatMetres(value.lengthMetres)
-                        : value.perimeterMetres !== null
-                          ? `รอบรูป ${formatMetres(value.perimeterMetres)}`
-                          : value.count !== null
-                            ? `${value.count} จุด`
-                            : "—"}
+                        : value.count !== null
+                          ? `${value.count} จุด`
+                          : "—"}
                   </td>
                   <td>
                     {value.areaSquareMetres !== null ? formatMetres(value.areaSquareMetres) : "—"}
