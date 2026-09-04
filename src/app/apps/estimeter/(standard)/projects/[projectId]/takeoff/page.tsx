@@ -93,10 +93,17 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
       <div className="container">
         <header className="estimation-workspace__head">
           <div>
-            <p className="eyebrow">03 · MANUAL TAKE-OFF · {project.name}</p>
-            <h1>ถอดปริมาณด้วยมือ พร้อมหลักฐานอ้างอิง</h1>
+            {/*
+              คำเดิมคือ "ถอดปริมาณด้วยมือ" ซึ่งบอกผิดว่าแอปทำอะไร เจ้าของงานทักเมื่อ 2026-09-05
+              ว่า "เรามีระบบ AI Assistant แล้วยังมาคำนวณมืออีก แอปเราจะขายได้มั้ย"
+              · สิ่งที่แอปทำจริงคือวัดบนแบบให้ คลิกในห้องแล้วไล่ขอบผนังเอง คลิกสองมุมแล้วอ่านเลข
+              จากเส้นบอกระยะเอง ส่วนคนทำหน้าที่ตรวจแล้วกดยืนยัน · ที่ยังต้องเป็นคนกดยืนยันไม่ใช่
+              เพราะระบบทำแทนไม่ได้ แต่เพราะใบราคาต้องมีคนรับผิดชอบตัวเลข ตาม ADR 0024
+            */}
+            <p className="eyebrow">03 · ถอดปริมาณ · {project.name}</p>
+            <h1>ถอดปริมาณจากแบบ พร้อมที่มาของทุกตัวเลข</h1>
             <p className="estimation-workspace__lead">
-              ทุกปริมาณต้องบอกได้ทั้งว่าวัดมาจากไหนและคิดมาอย่างไร ปริมาณมาจากการรวมรายการคำนวณ ไม่ใช่ตัวเลขที่พิมพ์เข้าไป รายการจะยืนยันได้เมื่อมีทั้งรายการคำนวณและหลักฐานอ้างอิงแล้วเท่านั้น
+              ระบบวัดจากแบบให้แล้วติดที่มาไปกับตัวเลขทุกตัว คุณตรวจแล้วกดยืนยัน · ปริมาณมาจากการรวมรายการคำนวณ ไม่ใช่ตัวเลขที่พิมพ์เข้าไป รายการจะยืนยันได้เมื่อมีทั้งรายการคำนวณและหลักฐานอ้างอิงแล้วเท่านั้น
             </p>
           </div>
           <div className="estimation-workspace__progress" aria-label="ความคืบหน้า 3 จาก 4 ขั้นตอน">
@@ -375,7 +382,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
           ) : (
             <div className="workspace-callout">
               <div>
-                <strong>เปิดรอบการถอดปริมาณด้วยมือ</strong>
+                <strong>เปิดรอบถอดปริมาณ</strong>
                 <p>
                   รอบคือชุดปริมาณที่ถอดในคราวเดียวกัน เมื่อปิดรอบ ระบบจะบันทึกลายนิ้วมือของรายการที่ยืนยันแล้ว เพื่อให้ตรวจย้อนได้ว่าราคาที่คิดมาจากปริมาณชุดใด
                 </p>
@@ -416,7 +423,8 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                   {runs.map((run) => (
                     <tr key={run.id}>
                       <td>{formatThaiDateTime(run.createdAt)}</td>
-                      <td>{run.runner === "manual" ? "กรอกด้วยมือ" : run.runner}</td>
+                      {/* ช่องนี้บอกที่มาของรอบ ไม่ใช่คำโปรย จึงต้องแยกให้ออกว่าคนเปิดเองหรือผู้ช่วยเปิดให้ */}
+                      <td>{run.runner === "manual" ? "คนเปิดรอบเอง" : run.runner}</td>
                       <td>{runStateLabel[run.state] ?? run.state}</td>
                       <td><code>{run.outputHash ? run.outputHash.slice(0, 12) : "ยังไม่ปิดรอบ"}</code></td>
                     </tr>
