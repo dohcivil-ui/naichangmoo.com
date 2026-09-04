@@ -24,17 +24,19 @@ km/
 skill/
 
 # skill ของคนเขียนโค้ดที่ติดตั้งไว้ใช้เอง ไม่ใช่ส่วนหนึ่งของแอป
-# โปรเจกต์ปักไว้ห้าตัวเท่านั้น สามตัวที่ AGENTS.md ข้อ 1 บังคับให้เรียก และสองตัวที่เราเขียนเอง
+# โปรเจกต์ปักไว้หกตัวเท่านั้น สามตัวที่ AGENTS.md ข้อ 1 บังคับให้เรียก และสามตัวที่เราเขียนเอง
 # ตัวอื่นติดตั้งเพิ่มได้ตามใจ แต่ไม่เข้ารีโป เพราะไม่ได้ทำให้แอปดีขึ้นและทำให้มองไม่ออกว่าอะไรคือของเรา
 .claude/skills/*
 !.claude/skills/app-shell/
 !.claude/skills/thai-docx/
+!.claude/skills/drawing-geometry/
 !.claude/skills/domain-modeling/
 !.claude/skills/grill-with-docs/
 !.claude/skills/grilling/
 .agents/skills/*
 !.agents/skills/app-shell/
 !.agents/skills/thai-docx/
+!.agents/skills/drawing-geometry/
 !.agents/skills/domain-modeling/
 !.agents/skills/grill-with-docs/
 !.agents/skills/grilling/

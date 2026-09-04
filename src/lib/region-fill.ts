@@ -54,6 +54,22 @@ export type RegionOptions = {
    * แทนที่จะเป็นสีที่ไหลไปทั้งชั้นซึ่งดูแล้วก็ทำอะไรต่อไม่ได้
    */
   bridgeGapPixels?: number;
+  /**
+   * ความยาวขั้นต่ำของเส้นตรงที่จะนับว่าเป็นสิ่งกั้น หน่วยเป็นพิกเซลของภาพวิเคราะห์
+   *
+   * ด่านชั้นแรกของการคัดเส้น · วัดเป็นช่วงพิกเซลมืดที่ต่อกันในแนวนอนหรือแนวตั้ง
+   * ผิวผนังยาวหลายเมตรจึงผ่าน ส่วนวงโค้งบานสวิงประตู ตัวอักษร สามเหลี่ยมบอกระดับ
+   * และเส้นประของแนวเสา ให้ช่วงต่อเนื่องแค่ไม่กี่พิกเซลจึงตกด่านนี้
+   */
+  minRunPixels?: number;
+  /**
+   * ขนาดขั้นต่ำของก้อนที่จะนับว่าเป็นโครงสร้าง วัดจากด้านที่ยาวกว่าของกรอบล้อม
+   *
+   * ด่านชั้นสองของการคัดเส้น · โครงผนังของทั้งอาคารเชื่อมถึงกันเป็นก้อนเดียวยาวหลายสิบเมตร
+   * ส่วนกรอบป้ายชนิดพื้นและฝ้าอย่าง `F1+0.60 C1` เป็นก้อนอิสระกว้างราวสองเมตร ตกด่านนี้
+   * ทั้งที่ขอบบนขอบล่างของมันเป็นเส้นตรงยาวพอจะผ่านด่านแรก
+   */
+  minStructurePixels?: number;
 };
 
 export type RegionRejection = "seed_outside" | "seed_on_line" | "leaked" | "too_small";
@@ -76,20 +92,16 @@ const DEFAULT_MAX_AREA_FRACTION = 0.25;
 const MIN_AREA_PIXELS = 40;
 
 /**
- * ขนาดของสิ่งที่ถือว่าเป็นสัญลักษณ์ ไม่ใช่ผนัง วัดเป็นเมตรบนอาคารจริง
+ * **เคยมีค่าคงที่ `SYMBOL_CLOSE_METRES = 0.4` ตรงนี้ ถอดออกแล้ว อย่าใส่กลับ**
  *
- * ผู้เรียกแปลงค่านี้เป็นพิกเซลของภาพวิเคราะห์แล้วส่งเข้า `closeRadiusPixels` — อยู่ที่นี่
- * เพราะมันเป็นค่าปรับจูนของอัลกอริทึมนี้ ไม่ใช่ของหน้าจอ แต่ตัวฟังก์ชันรู้จักแต่พิกเซล
+ * มันเป็นรัศมีที่ส่งเข้า `closeRadiusPixels` เพื่อกลบรอยเว้าที่สัญลักษณ์ทิ้งไว้ ซึ่งกลบ
+ * สามเหลี่ยมบอกระดับได้จริง แต่เจ้าของงานดูรูปแล้วจับได้ทันทีเมื่อ 2026-09-04 ว่าขอบห้อง
+ * ลอยห่างผนังและมุมมน เพราะการกลบทำงานกับ**ก้อนพื้นที่** มันจึงมนมุมจริงของห้องไปด้วย
+ * และยังเอากรอบป้ายที่กว้างสองเมตรกับวงสวิงประตูไม่อยู่อยู่ดี
  *
- * **ที่มาของ 0.40** สัญลักษณ์บอกระดับบนแบบ A3 มาตราส่วน 1:125 สูงราวหกมิลลิเมตรบนกระดาษ
- * ซึ่งเท่ากับ 0.75 เมตรบนอาคารจริง รัศมีนี้กลบรอยเว้าที่กว้างไม่เกินสองเท่าคือ 0.80 เมตร
- * จึงครอบสัญลักษณ์พวกนั้นได้พอดี
- *
- * **สิ่งที่แลกไป** เสาหรือแป้นที่ยื่นเข้ามาในห้องแคบกว่า 0.80 เมตรจะถูกกลบทับไปด้วย
- * ซึ่งรับได้เพราะวิธีประมาณราคาที่เจ้าของงานใช้จริงคือวัดกึ่งกลางเสาถึงกึ่งกลางเสา
- * ซึ่งนับเสาเข้าไปในพื้นที่อยู่แล้ว การกลบนี้จึงเดินไปทางเดียวกับวิธีที่เขาใช้ ไม่ใช่สวนทาง
+ * ตอนนี้สัญลักษณ์ถูกคัดออกตั้งแต่ชั้นเส้นด้วย `structuralMask` จึงไม่มีรอยเว้าให้กลบ
+ * ถ้าวันหน้าเจอรอยเว้าที่คัดไม่ออก ให้ไปแก้เกณฑ์การคัดเส้น ไม่ใช่กลับมาเปิดการกลบ
  */
-export const SYMBOL_CLOSE_METRES = 0.4;
 
 /**
  * ช่องเปิดที่แคบกว่าค่านี้ถือว่าเป็นประตู ไม่ใช่ทางเชื่อมห้อง วัดเป็นเมตรบนอาคารจริง
@@ -106,6 +118,127 @@ export const SYMBOL_CLOSE_METRES = 0.4;
  * ไปด้วย ซึ่งรับได้เพราะที่ว่างขนาดนั้นไม่ใช่ห้องที่ใครถอดปริมาณพื้นแยกเป็นรายการ
  */
 export const DOOR_BRIDGE_METRES = 1.0;
+
+/**
+ * เส้นที่สั้นกว่านี้ไม่ใช่ผนัง วัดเป็นเมตรบนอาคารจริง
+ *
+ * **ที่มาของ 1.00** บานประตูภายในยาว 0.80 ถึง 0.90 เมตร วงโค้งบานสวิงให้ช่วงต่อเนื่อง
+ * แค่ไม่กี่พิกเซลต่อแถวอยู่แล้ว ค่านี้จึงคัดทั้งบานและวงออกได้ ส่วนผิวผนังของห้องที่เล็กที่สุด
+ * ในแบบทดสอบยังยาวเกินหนึ่งเมตร · ผนังท่อนที่สั้นกว่านี้จะหลุดออกไปด้วย แต่ช่องที่มันทิ้งไว้
+ * แคบกว่า `DOOR_BRIDGE_METRES` จึงถูกเชื่อมกลับในขั้นถัดไป
+ */
+export const MIN_WALL_RUN_METRES = 1.0;
+
+/**
+ * ก้อนที่เล็กกว่านี้ไม่ใช่โครงสร้าง วัดจากด้านที่ยาวกว่าของกรอบล้อม เป็นเมตรบนอาคารจริง
+ *
+ * **ที่มาของ 4.00** กรอบป้ายชนิดพื้นและฝ้าอย่าง `F1+0.60 C1` กว้างราวสองเมตร และรูป
+ * สุขภัณฑ์กว้างไม่ถึงหนึ่งเมตร ทั้งคู่จึงตกด่านนี้ ส่วนโครงผนังของอาคารทั้งหลังเชื่อมถึงกัน
+ * เป็นก้อนเดียวกว้าง 28 เมตรในแบบทดสอบ · เสาลอยที่ไม่ติดผนังจะตกด่านนี้ด้วย
+ * ซึ่งยังไม่เจอในแบบที่ทดสอบ ถ้าเจอเมื่อไหร่ต้องเพิ่มด่านที่รู้จักเสาโดยเฉพาะ ไม่ใช่ลดค่านี้
+ */
+export const MIN_STRUCTURE_METRES = 4.0;
+
+/**
+ * คัดเฉพาะเส้นที่เป็นผนังหรือโครงสร้างออกมาจากทุกสิ่งที่ดำในแบบ
+ *
+ * **ทำไมต้องคัดก่อน ไม่ใช่ไล่สีแล้วค่อยแก้ทีหลัง** เจ้าของงานชี้เมื่อ 2026-09-04 ว่า
+ * "ปัญหาหลักของคุณคือ ตีโจทย์ยังไม่แยก แยกเส้นขอบผนัง เส้นขอบเสาไม่ขาด และเส้นบอก
+ * สัญลักษณ์คุณก็แยกไม่ออก เลยไม่ได้พื้นที่จริง" · ก่อนหน้านั้นเราลองแก้ด้วยการขยาย-หด
+ * ก้อนพื้นที่ที่ไล่ได้ ซึ่งกลบสามเหลี่ยมเล็ก ๆ ได้ แต่เอากรอบป้ายที่กว้างสองเมตรกับวงสวิง
+ * ประตูไม่อยู่ และยังมนมุมจริงของห้องจนขอบลอยห่างผนัง — ปัญหาของเส้นต้องแก้ที่เส้น
+ *
+ * **สองด่านต้องผ่านทั้งคู่** ยาวพอ และอยู่ในก้อนที่ใหญ่พอ · ด่านเดียวไม่พอเพราะขอบบน
+ * ขอบล่างของกรอบป้ายเป็นเส้นตรงยาวพอจะผ่านด่านแรกได้ ส่วนวงสวิงประตูต่อกับผนังจึงอยู่
+ * ในก้อนใหญ่และผ่านด่านที่สองได้ ต้องใช้คู่กันถึงจะคัดออกได้ทั้งสองอย่าง
+ */
+export function structuralMask(
+  image: GreyImage,
+  threshold: number,
+  minRun: number,
+  minStructure: number
+): Uint8Array {
+  const { width, height } = image;
+  const dark = new Uint8Array(width * height);
+  for (let index = 0; index < dark.length; index += 1) {
+    dark[index] = image.data[index] <= threshold ? 1 : 0;
+  }
+  if (minRun <= 1 && minStructure <= 1) return dark;
+
+  const longEnough = new Uint8Array(dark.length);
+  const markRuns = (outer: number, inner: number, at: (o: number, i: number) => number) => {
+    for (let o = 0; o < outer; o += 1) {
+      let start = -1;
+      for (let i = 0; i <= inner; i += 1) {
+        const on = i < inner && dark[at(o, i)] === 1;
+        if (on && start < 0) start = i;
+        if (!on && start >= 0) {
+          if (i - start >= minRun) {
+            for (let k = start; k < i; k += 1) longEnough[at(o, k)] = 1;
+          }
+          start = -1;
+        }
+      }
+    }
+  };
+  markRuns(height, width, (y, x) => y * width + x);
+  markRuns(width, height, (x, y) => y * width + x);
+
+  if (minStructure <= 1) return longEnough;
+
+  /**
+   * ก้อนคำนวณจากพิกเซลดำทั้งหมด ไม่ใช่จากเส้นที่ผ่านด่านแรก เพราะลายขีดในเนื้อผนัง
+   * กับเส้นสั้น ๆ คือสิ่งที่เชื่อมผนังคนละท่อนให้เป็นโครงเดียวกัน ถ้าตัดทิ้งไปก่อนนับก้อน
+   * ผนังจะแตกเป็นชิ้นเล็กชิ้นน้อยแล้วตกด่านที่สองทั้งหมด
+   */
+  const component = new Int32Array(dark.length).fill(-1);
+  const keep = new Uint8Array(dark.length);
+  const stack: number[] = [];
+  let label = 0;
+  for (let seed = 0; seed < dark.length; seed += 1) {
+    if (dark[seed] === 0 || component[seed] >= 0) continue;
+    stack.length = 0;
+    stack.push(seed);
+    component[seed] = label;
+    const members: number[] = [];
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+    while (stack.length > 0) {
+      const index = stack.pop() as number;
+      members.push(index);
+      const x = index % width;
+      const y = (index - x) / width;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      for (let dy = -1; dy <= 1; dy += 1) {
+        for (let dx = -1; dx <= 1; dx += 1) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const next = ny * width + nx;
+          if (dark[next] === 0 || component[next] >= 0) continue;
+          component[next] = label;
+          stack.push(next);
+        }
+      }
+    }
+    if (Math.max(maxX - minX + 1, maxY - minY + 1) >= minStructure) {
+      for (const index of members) keep[index] = 1;
+    }
+    label += 1;
+  }
+
+  const structural = new Uint8Array(dark.length);
+  for (let index = 0; index < dark.length; index += 1) {
+    structural[index] = longEnough[index] === 1 && keep[index] === 1 ? 1 : 0;
+  }
+  return structural;
+}
 
 export const regionRejectionMessage: Record<RegionRejection, string> = {
   seed_outside: "คลิกนอกขอบหน้าแบบ",
@@ -132,10 +265,12 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
     return { ok: false, reason: "seed_outside", areaPixels: 0 };
   }
 
-  const drawn = new Uint8Array(image.width * image.height);
-  for (let index = 0; index < drawn.length; index += 1) {
-    drawn[index] = image.data[index] <= threshold ? 1 : 0;
-  }
+  const drawn = structuralMask(
+    image,
+    threshold,
+    Math.floor(options.minRunPixels ?? 0),
+    Math.floor(options.minStructurePixels ?? 0)
+  );
   const bridgeRadius = Math.floor(options.bridgeGapPixels ?? 0);
   const barrier = bridgeRadius > 0 ? closeMask(drawn, image.width, image.height, bridgeRadius) : drawn;
   const blocked = (x: number, y: number) => barrier[y * image.width + x] === 1;

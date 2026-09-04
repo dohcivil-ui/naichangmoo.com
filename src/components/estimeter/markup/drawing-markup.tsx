@@ -32,8 +32,9 @@ import {
 } from "@/lib/drawing-snap";
 import {
   DOOR_BRIDGE_METRES,
+  MIN_STRUCTURE_METRES,
+  MIN_WALL_RUN_METRES,
   regionRejectionMessage,
-  SYMBOL_CLOSE_METRES,
   toGreyImage,
   traceRegion
 } from "@/lib/region-fill";
@@ -1179,9 +1180,17 @@ export function DrawingMarkup({
       grey,
       { x: point.x * analysisScale, y: point.y * analysisScale },
       {
-        closeRadiusPixels: SYMBOL_CLOSE_METRES * pixelsPerMetre,
+        // คัดเส้นก่อนไล่สี ผนังกั้น สัญลักษณ์ไม่กั้น — ดู skill `drawing-geometry`
+        minRunPixels: MIN_WALL_RUN_METRES * pixelsPerMetre,
+        minStructurePixels: MIN_STRUCTURE_METRES * pixelsPerMetre,
         // ปิดช่องได้กว้างสองเท่าของรัศมี จึงส่งครึ่งหนึ่งของความกว้างประตูที่ยอมเชื่อม
         bridgeGapPixels: (DOOR_BRIDGE_METRES / 2) * pixelsPerMetre
+        /**
+         * **ไม่กลบรอยเว้าบนก้อนพื้นที่แล้ว** เคยเปิดไว้ตอน 2026-09-04 ต้นวัน แล้วเจ้าของงาน
+         * จับได้จากรูปว่าขอบลอยห่างผนังและมุมมน เพราะการกลบทำงานกับก้อนพื้นที่ มันจึงมนมุมจริง
+         * ของห้องด้วยรัศมีเดียวกับที่ใช้กลบสัญลักษณ์ · ตอนนี้สัญลักษณ์ถูกคัดออกตั้งแต่ชั้นเส้นแล้ว
+         * จึงไม่มีรอยเว้าให้กลบ และมุมกลับมาคมตามผนังจริง
+         */
       }
     );
     if (!result.ok) {

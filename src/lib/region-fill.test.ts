@@ -290,6 +290,116 @@ describe("การเชื่อมช่องประตูก่อนไ�
   });
 });
 
+/**
+ * คัดเส้นก่อนไล่สี — ผนังกั้น สัญลักษณ์ไม่กั้น
+ *
+ * เจ้าของงานชี้เมื่อ 2026-09-04 ว่าต้นเหตุที่ได้พื้นที่ไม่จริงคือเราแยกไม่ออกว่าเส้นไหน
+ * เป็นผิวผนัง เส้นไหนเป็นขอบเสา และเส้นไหนเป็นแค่สัญลักษณ์ · ภาพที่เขาทำมาให้ดูระบายแดง
+ * ทับส่วนที่ขาดหายไป ซึ่งตรงกับตำแหน่งของกรอบป้ายชนิดพื้นและวงโค้งบานสวิงประตูพอดี
+ */
+describe("คัดเฉพาะเส้นที่เป็นผนัง", () => {
+  /** ห้องกว้าง 80 x 60 ที่มีของอื่นอยู่ข้างในตามที่โจทย์กำหนด */
+  function roomWith(extras: (set: (x: number, y: number) => void) => void): GreyImage {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    extras((x, y) => {
+      if (x >= 0 && y >= 0 && x < image.width && y < image.height) {
+        image.data[y * image.width + x] = 0;
+      }
+    });
+    return image;
+  }
+
+  const filtered = { minRunPixels: 12, minStructurePixels: 40 };
+
+  it("กรอบป้ายชนิดพื้นกลางห้อง ไม่กั้นและไม่กินพื้นที่", () => {
+    // กรอบสี่เหลี่ยม 30 x 10 ลอยกลางห้อง ขอบบนล่างยาว 30 ผ่านด่านความยาว แต่ก้อนกว้างแค่ 30
+    const image = roomWith((set) => {
+      for (let x = 60; x < 90; x += 1) {
+        set(x, 60);
+        set(x, 70);
+      }
+      for (let y = 60; y <= 70; y += 1) {
+        set(60, y);
+        set(89, y);
+      }
+    });
+    const raw = traceRegion(image, { x: 50, y: 50 });
+    const clean = traceRegion(image, { x: 50, y: 50 }, filtered);
+    expect(raw.ok && clean.ok).toBe(true);
+    if (!raw.ok || !clean.ok) return;
+    expect(raw.areaPixels).toBeLessThan(78 * 58);
+    expect(clean.areaPixels).toBe(78 * 58);
+  });
+
+  it("วงโค้งบานสวิงประตูที่ต่อกับผนัง ไม่กั้น", () => {
+    const image = roomWith((set) => {
+      // เสี้ยววงกลมรัศมี 20 จากมุมบนซ้ายของห้อง ต่อกับผนังจึงอยู่ในก้อนใหญ่
+      for (let step = 0; step <= 90; step += 1) {
+        const angle = (step * Math.PI) / 180;
+        set(Math.round(41 + 20 * Math.cos(angle)), Math.round(41 + 20 * Math.sin(angle)));
+      }
+    });
+    const raw = traceRegion(image, { x: 100, y: 90 });
+    const clean = traceRegion(image, { x: 100, y: 90 }, filtered);
+    expect(raw.ok && clean.ok).toBe(true);
+    if (!raw.ok || !clean.ok) return;
+    expect(raw.areaPixels).toBeLessThan(78 * 58);
+    expect(clean.areaPixels).toBe(78 * 58);
+  });
+
+  /**
+   * ด้านกลับที่สำคัญที่สุด การคัดต้องไม่ทำให้ผนังหายจนสีทะลุ ถ้าผนังตกด่านไปด้วย
+   * เราก็แค่เปลี่ยนจากพื้นที่ขาดเป็นพื้นที่เกิน ซึ่งแย่กว่าเดิม
+   */
+  it("ผนังยังกั้นอยู่ครบ ไม่ทะลุออกนอกห้อง", () => {
+    const image = pageWithRoom({ width: 200, height: 200, room: { x: 40, y: 40, w: 80, h: 60 } });
+    const clean = traceRegion(image, { x: 80, y: 70 }, filtered);
+    expect(clean.ok).toBe(true);
+    if (!clean.ok) return;
+    expect(clean.areaPixels).toBe(78 * 58);
+  });
+
+  it("ผนังบางที่คั่นห้องคู่ ยังกั้นอยู่หลังคัดเส้น", () => {
+    const width = 200;
+    const height = 200;
+    const data = new Uint8ClampedArray(width * height).fill(255);
+    const dark = (x: number, y: number) => {
+      data[y * width + x] = 0;
+    };
+    for (let x = 40; x < 120; x += 1) {
+      dark(x, 40);
+      dark(x, 99);
+    }
+    for (let y = 40; y < 100; y += 1) {
+      dark(40, y);
+      dark(119, y);
+      dark(79, y);
+    }
+    const clean = traceRegion({ data, width, height }, { x: 60, y: 70 }, filtered);
+    expect(clean.ok).toBe(true);
+    if (!clean.ok) return;
+    expect(clean.areaPixels).toBe(38 * 58);
+  });
+
+  it("ตัวอักษรและสามเหลี่ยมบอกระดับ ไม่กั้น", () => {
+    const image = roomWith((set) => {
+      for (let step = 0; step < 12; step += 1) {
+        set(70 + step, 55 + (step % 3));
+        set(75, 50 + step);
+      }
+      for (let step = 0; step <= 8; step += 1) {
+        set(100 - step, 80 + step);
+        set(100 + step, 80 + step);
+        set(92 + step * 2, 88);
+      }
+    });
+    const clean = traceRegion(image, { x: 50, y: 50 }, filtered);
+    expect(clean.ok).toBe(true);
+    if (!clean.ok) return;
+    expect(clean.areaPixels).toBe(78 * 58);
+  });
+});
+
 describe("การลดจำนวนจุดของเส้นขอบ", () => {
   it("จุดที่อยู่บนเส้นตรงเดิมถูกตัดทิ้ง", () => {
     const line = [
