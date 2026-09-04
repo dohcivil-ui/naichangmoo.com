@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { fullPageScaleFor } from "@/lib/drawing-render";
-import { removeJogs, simplify, toGreyImage, traceRegion, type GreyImage } from "@/lib/region-fill";
+import {
+  collapseStaircases,
+  removeJogs,
+  simplify,
+  snapOutlineToLines,
+  toGreyImage,
+  traceRegion,
+  type GreyImage,
+  type Pixel
+} from "@/lib/region-fill";
 
 /** สร้างหน้าแบบจำลอง พื้นขาว แล้ววาดกรอบห้องเป็นเส้นดำ */
 function pageWithRoom(options: {
@@ -636,20 +645,25 @@ describe("ขอบเป็นเหลี่ยมล้วน ไม่มี
  * ก็ยังไม่ทำตาม" · ระยะที่ต่างกันมีแค่หนึ่งถึงสองพิกเซล แต่มันผิดทุกด้านเท่ากันหมด
  * จึงเห็นชัดทันทีที่ซูมเข้าไป และสะสมเป็นพื้นที่ที่ขาดไปทั้งห้อง
  */
-describe("การดันขอบไปนั่งบนเส้นผนัง", () => {
-  /** ห้องที่กรอบผนังหนาสามพิกเซล ผิวจริงจึงอยู่กึ่งกลางเส้น */
-  function roomWithThickWall(): GreyImage {
+describe("การดันขอบไปชิดผิวในของเส้นผนัง", () => {
+  /**
+   * ห้องที่กรอบผนังหนาตามที่สั่ง · ผิวในของห้องอยู่ที่ 43 กับ 117 เสมอ ไม่ว่าผนังหนาเท่าไร
+   * เพราะความหนางอกออกไปข้างนอก ซึ่งเป็นเนื้อผนัง ไม่ใช่พื้นที่ใช้สอย
+   */
+  function roomWithWall(thickness: number): GreyImage {
     const width = 200;
     const height = 200;
     const data = new Uint8ClampedArray(width * height).fill(255);
-    for (let y = 40; y < 100; y += 1) {
-      for (let x = 40; x < 120; x += 1) {
+    for (let y = 43 - thickness; y < 97 + thickness; y += 1) {
+      for (let x = 43 - thickness; x < 117 + thickness; x += 1) {
         const onFrame = x < 43 || x >= 117 || y < 43 || y >= 97;
         if (onFrame) data[y * width + x] = 0;
       }
     }
     return { data, width, height };
   }
+
+  const roomWithThickWall = () => roomWithWall(3);
 
   it("ไม่ดัน ขอบหยุดที่ขอบในของเส้น", () => {
     const result = traceRegion(roomWithThickWall(), { x: 80, y: 70 }, { minStepPixels: 3 });
@@ -659,17 +673,79 @@ describe("การดันขอบไปนั่งบนเส้นผน�
     expect(Math.max(...result.polygon.map((point) => point.x))).toBe(117);
   });
 
-  it("ดันแล้ว ขอบไปนั่งกึ่งกลางเส้นที่หนาสามพิกเซล คือขยับออกด้านละหนึ่งจุดห้า", () => {
-    const result = traceRegion(roomWithThickWall(), { x: 80, y: 70 }, {
+  /**
+   * คำตัดสินของเจ้าของงาน 2026-09-04 — "หนาหรือบางก็เอาชิดด้านในห้อง"
+   * เทสต์นี้คือด่านที่กันไม่ให้ใครกลับไปใช้กึ่งกลางเส้นอีก เพราะกึ่งกลางจะให้ค่า
+   * 42.5 กับ 41.5 กับ 38.5 ตามความหนา ซึ่งกินเข้าไปในเนื้อผนังลึกขึ้นเรื่อย ๆ
+   */
+  it.each([1, 3, 9])("ผนังหนา %i พิกเซล ขอบก็ยังชิดผิวในเท่าเดิม ไม่กินเข้าเนื้อผนัง", (thickness) => {
+    const result = traceRegion(roomWithWall(thickness), { x: 80, y: 70 }, {
       minStepPixels: 3,
       snapToLinePixels: 3
     });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(Math.min(...result.polygon.map((point) => point.x))).toBe(41.5);
-    expect(Math.max(...result.polygon.map((point) => point.x))).toBe(118.5);
-    expect(Math.min(...result.polygon.map((point) => point.y))).toBe(41.5);
-    expect(Math.max(...result.polygon.map((point) => point.y))).toBe(98.5);
+    expect(Math.min(...result.polygon.map((point) => point.x))).toBe(43);
+    expect(Math.max(...result.polygon.map((point) => point.x))).toBe(117);
+    expect(Math.min(...result.polygon.map((point) => point.y))).toBe(43);
+    expect(Math.max(...result.polygon.map((point) => point.y))).toBe(97);
+  });
+
+  /**
+   * เหตุผลที่ขั้นนี้ยังต้องมีอยู่ ทั้งที่การไล่สีก็หยุดที่ผิวในเองในกรณีปกติ
+   *
+   * การไล่สีหยุดที่ **หน้ากากที่เชื่อมช่องประตูแล้ว** ซึ่งอ้วนกว่าหมึกจริงตรงที่มีรอยเว้า
+   * ขอบจึงลอยห่างผนังอยู่ไม่กี่พิกเซลโดยมีที่ว่างคั่น · ขั้นนี้เอื้อมออกไปเกาะผิวในของหมึกจริง
+   * แล้วหยุดตรงนั้นพอดี ไม่เลยเข้าไปในเนื้อผนัง
+   */
+  it("ด้านที่ลอยห่างผนัง ถูกเอื้อมออกไปเกาะผิวในของหมึก แล้วหยุดตรงนั้น", () => {
+    const width = 40;
+    const height = 40;
+    const dark = new Uint8Array(width * height);
+    // ผนังซ้ายเป็นแถบหมึกหนาห้าพิกเซล กินคอลัมน์ 5 ถึง 9 ผิวในจึงอยู่ที่ขอบมุม 10
+    for (let y = 0; y < height; y += 1) {
+      for (let x = 5; x < 10; x += 1) dark[y * width + x] = 1;
+    }
+    // ขอบเริ่มต้นลอยอยู่ที่ 12 ห่างผิวในสองพิกเซล โดยมีที่ว่างคั่นจริง
+    const floating: Pixel[] = [
+      { x: 12, y: 8 },
+      { x: 30, y: 8 },
+      { x: 30, y: 32 },
+      { x: 12, y: 32 }
+    ];
+    const snapped = snapOutlineToLines(floating, dark, width, height, 3);
+    expect(snapped[0].x).toBe(10);
+    expect(snapped[3].x).toBe(10);
+  });
+
+  /**
+   * เจ้าของงานเลือกเมื่อ 2026-09-04 จากภาพขยาย 14 เท่าของผนังบนห้องพักพยาบาล ว่าขอบต้อง
+   * อยู่ใต้เส้นผิวบางที่วิ่งตลอดแนว (ตัวเลือก B) ไม่ใช่ใต้หมึกที่เกาะอยู่แค่บางช่วง (ตัวเลือก C)
+   */
+  it("หมึกที่เกาะใต้ผิวผนังแค่บางช่วง ไม่ใช่ผนัง ขอบทับมันขึ้นไปชิดเส้นผิวที่วิ่งตลอดแนว", () => {
+    const width = 120;
+    const height = 40;
+    const dark = new Uint8Array(width * height);
+    // เส้นผิวผนังบนหนาสองพิกเซล วิ่งตลอดความกว้าง ที่แถว 10 กับ 11
+    for (let x = 0; x < width; x += 1) {
+      dark[10 * width + x] = 1;
+      dark[11 * width + x] = 1;
+    }
+    // หมึกอีกสองแถวเกาะอยู่ใต้ผิว แต่วิ่งแค่ครึ่งด้าน ตั้งแต่ x 20 ถึง 70 จากด้านที่กว้าง 100
+    for (let x = 20; x < 70; x += 1) {
+      dark[12 * width + x] = 1;
+      dark[13 * width + x] = 1;
+    }
+    // ขอบเริ่มต้นหยุดใต้หมึกก้อนนั้น คือแถว 14 ทั้งด้าน
+    const stopped: Pixel[] = [
+      { x: 10, y: 14 },
+      { x: 110, y: 14 },
+      { x: 110, y: 34 },
+      { x: 10, y: 34 }
+    ];
+    const snapped = snapOutlineToLines(stopped, dark, width, height, 3);
+    expect(snapped[0].y).toBe(12);
+    expect(snapped[1].y).toBe(12);
   });
 
   it("ด้านที่ไม่มีเส้นอยู่ข้างนอกเลย อยู่ที่เดิม ไม่ถูกดันมั่ว", () => {
@@ -688,6 +764,115 @@ describe("การดันขอบไปนั่งบนเส้นผน�
     expect(Math.min(...result.polygon.map((point) => point.y))).toBeGreaterThanOrEqual(41);
     expect(Math.min(...result.polygon.map((point) => point.y))).toBeLessThanOrEqual(43);
   });
+});
+
+describe("การยุบบันไดที่ต่อกันหลายขั้น", () => {
+  /** สี่เหลี่ยม 100 × 100 ที่มุมล่างขวาแหว่งเป็นบันไดหกขั้น ขั้นละหนึ่งถึงสามพิกเซล */
+  function boxWithRaggedCorner(): Pixel[] {
+    return [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 90 },
+      { x: 97, y: 90 },
+      { x: 97, y: 92 },
+      { x: 95, y: 92 },
+      { x: 95, y: 93 },
+      { x: 94, y: 93 },
+      { x: 94, y: 94 },
+      { x: 92, y: 94 },
+      { x: 92, y: 100 },
+      { x: 0, y: 100 }
+    ];
+  }
+
+  /** หมุนวงให้เริ่มที่จุดซ้ายบนสุด เพราะการยุบอาจคืนวงเดิมที่เริ่มคนละจุด */
+  function fromTopLeft(points: readonly Pixel[]): Pixel[] {
+    let start = 0;
+    points.forEach((point, index) => {
+      const best = points[start];
+      if (point.y < best.y || (point.y === best.y && point.x < best.x)) start = index;
+    });
+    return [...points.slice(start), ...points.slice(0, start)];
+  }
+
+  it("บันไดหกขั้นที่มุมยุบเป็นมุมฉากเดียว โดยไม่นับเศษบันไดเป็นพื้นห้อง", () => {
+    const squared = fromTopLeft(collapseStaircases(boxWithRaggedCorner(), 7));
+    expect(squared).toEqual([
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 90 },
+      { x: 92, y: 90 },
+      { x: 92, y: 100 },
+      { x: 0, y: 100 }
+    ]);
+  });
+
+  it("ขั้นที่ใหญ่เท่าเสาไม่ถูกยุบ เพราะมันคือขอบที่หักอ้อมเสาจริง", () => {
+    const withColumn: Pixel[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 7 },
+      { x: 91, y: 7 },
+      { x: 91, y: 100 },
+      { x: 0, y: 100 }
+    ];
+    expect(collapseStaircases(withColumn, 7)).toEqual(withColumn);
+  });
+
+  it("ขั้นเดี่ยวที่มีด้านยาวขนาบสองข้างไม่ใช่บันได ปล่อยไว้ให้กติกาของขั้นเดี่ยวตัดสิน", () => {
+    const stub: Pixel[] = [
+      { x: 0, y: 0 },
+      { x: 100, y: 0 },
+      { x: 100, y: 40 },
+      { x: 96, y: 40 },
+      { x: 96, y: 100 },
+      { x: 0, y: 100 }
+    ];
+    expect(collapseStaircases(stub, 7)).toEqual(stub);
+  });
+
+  it("บันไดที่คร่อมรอยต่อของอาร์เรย์ก็ยุบได้", () => {
+    const box = boxWithRaggedCorner();
+    // หมุนอาร์เรย์ให้บันไดคร่อมจุดเริ่มต้น
+    const rotated = [...box.slice(6), ...box.slice(0, 6)];
+    const squared = collapseStaircases(rotated, 7);
+    expect(squared.length).toBe(6);
+    expect(squared).toContainEqual({ x: 92, y: 90 });
+    expect(squared).not.toContainEqual({ x: 94, y: 94 });
+  });
+
+  it("ไล่ขอบห้องจริง มุมเสาที่โดนสัญลักษณ์กัดแหว่งออกมาเป็นมุมฉากเดียว", () => {
+    // หน้าใหญ่กว่าห้องมาก ไม่งั้นห้องจะเกินเพดานสัดส่วนพื้นที่แล้วถูกตีว่าสีทะลุ
+    const width = 400;
+    const height = 400;
+    const data = new Uint8ClampedArray(width * height).fill(255);
+    const ink = (x: number, y: number) => {
+      if (x >= 0 && y >= 0 && x < width && y < height) data[y * width + x] = 0;
+    };
+    // กรอบห้องหนาสองพิกเซล
+    for (let x = 40; x < 160; x += 1) for (let t = 0; t < 2; t += 1) { ink(x, 40 + t); ink(x, 158 + t); }
+    for (let y = 40; y < 160; y += 1) for (let t = 0; t < 2; t += 1) { ink(40 + t, y); ink(158 + t, y); }
+    // เสาทึบที่มุมล่างขวา กว้างสิบสองพิกเซล ต่อกับผนังทั้งสองด้าน
+    for (let y = 148; y < 160; y += 1) for (let x = 148; x < 160; x += 1) ink(x, y);
+    // มุมบนซ้ายของเสาแหว่งเป็นบันไดสี่ขั้น เหมือนโดนสัญลักษณ์กัด
+    for (let step = 0; step < 4; step += 1) {
+      for (let x = 148; x < 148 + 4 - step; x += 1) data[(148 + step) * width + x] = 255;
+    }
+    // ด่านความยาวเส้นตั้งต่ำกว่าด้านของเสา เพื่อให้เสาทึบต้นนี้ผ่านด่านเป็นสิ่งกั้นได้เอง
+    const result = traceRegion({ data, width, height }, { x: 100, y: 100 }, {
+      minRunPixels: 10,
+      minStructurePixels: 60,
+      column: { min: 7, max: 36, touch: 5 },
+      minStepPixels: 2,
+      snapToLinePixels: 3
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // มุมเสาต้องเป็นมุมฉากเดียวที่ (148, 148) ไม่มีจุดอื่นในบริเวณบันได
+    const nearCorner = result.polygon.filter((point) => point.x >= 146 && point.x <= 154 && point.y >= 146 && point.y <= 154);
+    expect(nearCorner).toEqual([{ x: 148, y: 148 }]);
+  });
+
 });
 
 describe("การยุบขั้นบันไดเล็ก", () => {

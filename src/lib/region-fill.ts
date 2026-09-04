@@ -85,10 +85,10 @@ export type RegionOptions = {
    */
   minStepPixels?: number;
   /**
-   * ระยะที่ยอมให้ดันขอบออกไปหากึ่งกลางเส้นผนัง หน่วยพิกเซล · ศูนย์แปลว่าไม่ดัน
+   * ระยะที่ยอมให้เอื้อมออกไปหาผิวในของเส้นผนัง หน่วยพิกเซล · ศูนย์แปลว่าไม่เอื้อม
    *
-   * ต้องกว้างพอจะครอบความหนาเส้นผนังที่หนาที่สุดในแบบ แต่แคบพอจะไม่ไปเจอเส้นอื่น
-   * ที่อยู่ถัดออกไป เช่น ผิวนอกของผนังหรือเส้นบอกระยะ
+   * ขอบไปชิดผิวในของหมึกเสมอ ไม่เข้าไปในเนื้อผนังไม่ว่าผนังจะหนาแค่ไหน ค่านี้จึงคุม
+   * แค่ว่าจะยอมเอื้อมไกลแค่ไหนเมื่อการไล่สีหยุดก่อนถึงผนัง แคบพอจะไม่ไปเกาะเส้นอื่น
    */
   snapToLinePixels?: number;
 };
@@ -186,15 +186,15 @@ export const COLUMN_TOUCH_METRES = 0.1;
 export const OUTLINE_MIN_STEP_METRES = 0.05;
 
 /**
- * ระยะที่ยอมให้ดันขอบออกไปหากึ่งกลางเส้นผนัง วัดเป็นเมตรบนอาคารจริง
+ * ระยะที่ยอมให้เอื้อมออกไปหาผิวในของเส้นผนัง วัดเป็นเมตรบนอาคารจริง
  *
- * **ทำไมต้องดัน** การไล่สีหยุดที่พิกเซลมืดตัวแรก ขอบจึงอยู่ข้างในเส้น ไม่ใช่บนเส้น
- * แต่เส้นที่เขียนในแบบมีความหนา และมันแทนผิวผนังซึ่งไม่มีความหนา ผิวจริงอยู่ที่กึ่งกลางเส้น
- * เจ้าของงานขีดเส้นไกด์ให้ดูเมื่อ 2026-09-04 ว่าขอบต้องอยู่ตรงนั้น ไม่ใช่ถอยเข้ามาในห้อง
+ * **ขอบไปหยุดที่ผิวในของหมึก ไม่เข้าไปในเนื้อผนัง** เจ้าของงานเคาะเมื่อ 2026-09-04 ว่า
+ * "เส้นผนังเอาตามที่ผมลากเลย หนาหรือบางก็เอาชิดด้านในห้อง" · ค่านี้จึงไม่ใช่ระยะที่ดัน
+ * เข้าไปในผนัง แต่เป็นระยะที่ยอมเอื้อมออกไป**หา**ผนัง เมื่อการไล่สีหยุดก่อนถึงมัน
  *
- * **ที่มาของ 0.07** เส้นในแบบหนาหนึ่งถึงสามพิกเซลที่ความละเอียดปัจจุบัน ซึ่งเท่ากับ
- * 0.02 ถึง 0.07 เมตร · ค่านี้จึงพอดีกับเส้นที่หนาที่สุด และแคบพอที่จะไม่ข้ามเนื้อผนัง
- * ไปเจอผิวนอกซึ่งอยู่ห่างออกไปอย่างน้อย 0.10 เมตร
+ * **ที่มาของ 0.07** การไล่สีหยุดทีละพิกเซลตามรอยหยักของภาพ จึงคลาดจากผิวจริงได้
+ * หนึ่งถึงสามพิกเซล ซึ่งเท่ากับ 0.02 ถึง 0.07 เมตรที่ความละเอียดปัจจุบัน · กว้างกว่านี้
+ * จะเริ่มเอื้อมข้ามที่ว่างไปเกาะเส้นอื่นที่ไม่ใช่ผนังของห้องนี้
  */
 export const WALL_SNAP_METRES = 0.07;
 
@@ -603,22 +603,41 @@ export function traceRegion(image: GreyImage, seed: Pixel, options: RegionOption
   const step = Math.max(1, Math.round(options.minStepPixels ?? 0));
   const tidied = removeJogs(outline, step);
   const reach = Math.round(options.snapToLinePixels ?? 0);
-  const polygon = reach > 0 ? snapOutlineToLines(tidied, drawn, image.width, image.height, reach) : tidied;
+  const snapped = reach > 0 ? snapOutlineToLines(tidied, drawn, image.width, image.height, reach) : tidied;
+  /**
+   * ยุบบันได**หลัง**เกาะเส้นผนัง ไม่ใช่ก่อน · ถ้ายุบก่อน มุมฉากใหม่จะพาดทับบริเวณที่เสาแหว่ง
+   * แล้วขั้นเกาะเส้นจะเห็นว่าด้านนั้นไม่มีหมึกรองรับตลอดแนว จึงดันมันลึกเข้าไปในเสาอีก
+   * สองพิกเซล · เกาะก่อนแล้วค่อยยุบ ด้านยาวจึงนั่งบนผนังจริง และมุมใหม่มาจากปลายของด้านยาว
+   */
+  const feature = options.column?.min ?? 0;
+  const polygon = feature > 1 ? collapseStaircases(snapped, feature) : snapped;
   return { ok: true, polygon, areaPixels: closedArea };
 }
 
 /**
- * ดันแต่ละด้านของขอบออกไปนั่งบนกึ่งกลางเส้นผนังที่มันชนอยู่
+ * ดันแต่ละด้านของขอบไปชิดผิวด้านในของเส้นผนังที่มันหันหน้าเข้าหา
  *
- * **ทำไมต้องดัน** การไล่สีหยุดที่พิกเซลมืดตัวแรก ขอบที่ได้จึงอยู่ **ข้างใน** เส้นผนัง
- * ไม่ใช่บนตัวเส้น · แต่เส้นที่เขียนในแบบมีความหนา และมันแทนผิวผนังซึ่งไม่มีความหนา
- * ผิวจริงจึงอยู่ที่กึ่งกลางเส้น เจ้าของงานขีดเส้นไกด์ให้ดูเมื่อ 2026-09-04 ว่าขอบต้องอยู่ตรงนั้น
+ * **ผิวห้องคือขอบในของหมึก ไม่ใช่กึ่งกลางหมึก** เจ้าของงานเคาะเมื่อ 2026-09-04 ว่า
+ * "เส้นผนังเอาตามที่ผมลากเลย หนาหรือบางก็เอาชิดด้านในห้อง" ซึ่งตรงกับที่บันทึกไว้ตั้งแต่
+ * `docs/plans/2026-09-03-room-area-explained-and-materials.md` ว่าไล่ขอบตามเส้นผิวผนังด้านใน
  *
- * ระยะที่ห่างกันมีแค่หนึ่งถึงสองพิกเซล คือสองถึงสี่เซนติเมตรบนอาคารจริง แต่มันผิด
- * **ทุกด้านเท่ากันหมด** จึงเห็นชัดทันทีเมื่อซูมเข้าไป และสะสมเป็นพื้นที่ที่ขาดไปทั้งห้อง
+ * **อย่าเขียนคำว่ากึ่งกลางกับเส้นผนังอีก** 2026-09-04 มีเซสชันหนึ่งเปลี่ยนขั้นนี้ไปเล็งกึ่งกลาง
+ * ความหนาหมึก แล้วอ้างในคำอธิบายว่าเป็นคำสั่งของเจ้าของงาน · เขาทักเองว่าไม่เคยพูด
+ * ในคำพูดของเขา "กึ่งกลาง" เป็นของเสาเท่านั้น คือจุดตัดเส้นกริดที่ `grid-bay.ts` คำนวณ
+ * ซึ่งเป็นคนละเลขกับพื้นที่ห้อง · การเล็งกึ่งกลางหมึกทำให้ขอบกินเข้าไปในเนื้อผนัง
+ * และยิ่งผนังหนา ยิ่งกินลึก ซึ่งไม่ใช่พื้นที่ใช้สอยของห้อง
+ *
+ * **แล้วยังต้องมีขั้นนี้ไปทำไม ในเมื่อการไล่สีก็หยุดที่หมึกอยู่แล้ว** เพราะหมึกตัวแรกที่การไล่สี
+ * ชนไม่ใช่ผนังเสมอไป · บนแบบหน้า 7 มีหมึกหนาสองพิกเซลเกาะอยู่ใต้เส้นผิวผนังบนของห้อง
+ * พักพยาบาล ตั้งแต่กรอบหน้าต่างไปจนถึงปลายสามเหลี่ยมบอกระดับแล้วหายไป เจ้าของงานลาก
+ * เส้นน้ำเงินให้ดูว่าขอบต้องอยู่ใต้เส้นผิวบางที่วิ่งตลอดแนว ไม่ใช่ใต้หมึกก้อนนั้น
+ * และการเชื่อมช่องประตูก็ทำให้หน้ากากอ้วนกว่าหมึกจริงได้อีกหนึ่งถึงสองพิกเซลตรงรอยเว้าแคบ
+ *
+ * ขั้นนี้จึงถามทั้งด้านพร้อมกันว่า **แถวหมึกแถวไหนวิ่งตลอดด้าน** แล้วยกทั้งด้านไปชิดแถวนั้น
+ * ด้านจึงเป็นเส้นตรงเส้นเดียวที่นั่งบนผิวผนังจริง มองข้ามหมึกที่โผล่มาแค่บางช่วง
  *
  * ด้านที่ไม่เจอเส้นภายในระยะที่กำหนดจะอยู่ที่เดิม ซึ่งเกิดกับด้านที่พาดช่องประตูที่ถูกเชื่อม
- * เพราะตรงนั้นไม่มีเส้นเขียนอยู่จริง จะไปหากึ่งกลางของอะไรไม่ได้
+ * เพราะตรงนั้นไม่มีเส้นเขียนอยู่จริง จะไปชิดผิวของอะไรไม่ได้
  */
 export function snapOutlineToLines(
   polygon: readonly Pixel[],
@@ -647,7 +666,12 @@ export function snapOutlineToLines(
     // บริเวณอยู่ทางขวาของทิศเดินเสมอ ด้านนอกจึงอยู่ทางซ้าย
     const outX = stepY;
     const outY = -stepX;
-    const offsets: number[] = [];
+    /**
+     * นับว่าที่ระยะออกไป k พิกเซล มีจุดสุ่มกี่จุดที่เจอหมึก · จุดที่ไม่เจอหมึกเลยในระยะ
+     * ที่กำหนดไม่มีสิทธิ์ออกเสียง เพราะมันอยู่ในช่องประตูที่ถูกเชื่อม ไม่มีเส้นให้เกาะ
+     */
+    const votes = new Array<number>(reach).fill(0);
+    let voters = 0;
     const gap = Math.max(1, Math.floor(length / 12));
     for (let along = 0; along < length; along += gap) {
       /**
@@ -663,27 +687,39 @@ export function snapOutlineToLines(
         baseX = stepX > 0 ? a.x + along : a.x - 1 - along;
         baseY = outY > 0 ? a.y : a.y - 1;
       }
-      let found = -1;
+      let sawInk = false;
       for (let k = 0; k < reach; k += 1) {
         if (on(baseX + outX * k, baseY + outY * k)) {
-          found = k;
-          break;
+          votes[k] += 1;
+          sawInk = true;
         }
       }
-      if (found < 0) continue;
-      // ความหนาของเส้นวัดได้ไม่เกินระยะที่ยอมให้ดัน ไม่งั้นเนื้อผนังทั้งแผงจะถูกนับเป็นเส้นเดียว
-      let run = 1;
-      while (run < reach && on(baseX + outX * (found + run), baseY + outY * (found + run))) run += 1;
-      offsets.push(found + run / 2);
+      if (sawInk) voters += 1;
     }
-    if (offsets.length === 0) {
+    if (voters === 0) {
       lines.push(null);
       continue;
     }
-    offsets.sort((one, two) => one - two);
-    const median = offsets[Math.floor(offsets.length / 2)];
+    /**
+     * **ผนังคือแถวหมึกที่วิ่งตลอดด้าน** เอาแถวแรก (นับจากในห้องออกไป) ที่จุดสุ่มเกือบทุกจุด
+     * เห็นหมึก · แถวที่มีหมึกแค่บางช่วงคือสัญลักษณ์ที่เกาะอยู่ใต้ผิวผนัง ให้มองข้าม
+     *
+     * เกณฑ์เก้าในสิบ ไม่ใช่สิบในสิบ เพราะขอบเส้นที่เรนเดอร์มามีจุดจาง ๆ หลุดเกณฑ์ความมืด
+     * ได้บ้าง · และไม่ต่ำกว่านี้ เพราะสัญลักษณ์ที่เจอจริงบนแบบหน้า 7 กินไปแปดในสิบของด้าน
+     */
+    let face = -1;
+    for (let k = 0; k < reach; k += 1) {
+      if (votes[k] >= voters * 0.9) {
+        face = k;
+        break;
+      }
+    }
+    if (face < 0) {
+      lines.push(null);
+      continue;
+    }
     const base = outX !== 0 ? a.x : a.y;
-    lines.push(base + (outX !== 0 ? outX : outY) * median);
+    lines.push(base + (outX !== 0 ? outX : outY) * face);
   }
 
   /** มุมใหม่คือจุดตัดของสองด้านที่ประกบมัน ด้านหนึ่งนอนหนึ่งตั้งเสมอ */
@@ -830,6 +866,107 @@ export function removeJogs(points: readonly Pixel[], minStep: number): Pixel[] {
     shape = mergeStraightRuns(shape);
   }
   return shape;
+}
+
+/**
+ * ยุบบันไดที่ต่อกันหลายขั้น ซึ่งทุกขั้นเล็กกว่าของจริงที่เล็กที่สุดในอาคาร ให้เหลือมุมฉากเดียว
+ *
+ * **ทำไม `removeJogs` ทำไม่ได้** ตัวนั้นยุบทีละขั้น และยอมยุบต่อเมื่อด้านสองข้างยาวกว่าขั้นนั้น
+ * แต่ในบันไดที่ต่อกัน ทุกขั้นมีเพื่อนบ้านเป็นขั้นเล็กเท่ากัน จึงไม่มีขั้นไหนเข้าเกณฑ์เลย
+ * 2026-09-04 เจ้าของงานชี้มุมเสาล่างขวาของห้องพักพยาบาลที่เป็นบันไดหกขั้น ขั้นละหนึ่งถึงสาม
+ * พิกเซล ทั้งที่เขาลากเส้นน้ำเงินให้ดูว่าต้องเป็นมุมฉากเดียว · บันไดนั้นเกิดจากสัญลักษณ์
+ * สามเหลี่ยมที่วางทับมุมเสาพอดี พอคัดสัญลักษณ์ออก มุมเสาที่เหลือจึงแหว่ง
+ *
+ * **เกณฑ์ว่าขั้นไหนเล็ก** ใช้ขนาดเสาต้นเล็กสุด (`ColumnRule.min`) เพราะของจริงที่ขอบห้อง
+ * ต้องหักอ้อมไม่มีอะไรเล็กกว่าเสา · ขั้นเดี่ยว ๆ ที่มีด้านยาวขนาบสองข้างไม่ใช่บันได
+ * ปล่อยให้ `removeJogs` ตัดสินตามเกณฑ์ของมันเอง เพราะมันอาจเป็นปลายผนังเบาที่ยื่นเข้าห้องจริง
+ *
+ * **มุมใหม่อยู่ตรงไหน** ถ้าด้านยาวสองข้างตั้งฉากกัน มุมคือจุดตัดของมัน ซึ่งมีที่เดียว
+ * ถ้าขนานกัน ต้องเลือกว่าจะวางด้านสั้นที่ต้นหรือปลายบันได เลือกทางที่พื้นที่**เล็กลง**
+ * เพราะพิกเซลในบันไดเป็นเศษของเสาหรือผนังที่แหว่ง ไม่ใช่พื้นห้อง เอามาเป็นพื้นที่ไม่ได้
+ */
+export function collapseStaircases(points: readonly Pixel[], maxStep: number): Pixel[] {
+  let shape = mergeStraightRuns(points.map((point) => ({ ...point })));
+  if (maxStep <= 1) return shape;
+  const segment = (from: Pixel, to: Pixel) => Math.abs(from.x - to.x) + Math.abs(from.y - to.y);
+
+  for (let pass = 0; pass < 100 && shape.length >= 6; pass += 1) {
+    const count = shape.length;
+    const short = shape.map((point, index) => segment(point, shape[(index + 1) % count]) < maxStep);
+    // เริ่มเดินจากด้านยาวด้านหนึ่ง เพื่อไม่ให้บันไดถูกตัดขาดตรงรอยต่อของอาร์เรย์
+    const origin = short.indexOf(false);
+    if (origin < 0) return shape;
+
+    let chainStart = -1;
+    let chainLength = 0;
+    let found: { start: number; end: number } | null = null;
+    for (let offset = 1; offset <= count; offset += 1) {
+      const index = (origin + offset) % count;
+      if (short[index]) {
+        if (chainStart < 0) chainStart = index;
+        chainLength += 1;
+        continue;
+      }
+      if (chainLength >= 2) {
+        found = { start: chainStart, end: index };
+        break;
+      }
+      chainStart = -1;
+      chainLength = 0;
+    }
+    if (!found) return shape;
+
+    /**
+     * บันไดเริ่มที่จุด start และจบที่จุด end · มุมฉากที่แทนมันได้มีสองแบบเสมอ คือหักที่
+     * (x ของปลาย, y ของต้น) หรือ (x ของต้น, y ของปลาย) · แบบหนึ่งกินบริเวณบันไดเข้ามาเป็น
+     * พื้นห้อง อีกแบบยกให้เป็นเสา เลือกแบบที่พื้นที่เล็กลง ตามเหตุผลในคำอธิบายข้างบน
+     */
+    const first = shape[found.start];
+    const last = shape[found.end];
+    const options: Pixel[][] = [
+      [first, { x: last.x, y: first.y }, last],
+      [first, { x: first.x, y: last.y }, last]
+    ];
+    const rebuilt = options.map((middle) => tidyLoop(spliceChain(shape, found.start, found.end, middle)));
+    shape = Math.abs(signedArea(rebuilt[0])) <= Math.abs(signedArea(rebuilt[1])) ? rebuilt[0] : rebuilt[1];
+  }
+  return shape;
+}
+
+/** ตัดจุดซ้ำที่ติดกันออก แล้วยุบจุดที่อยู่กลางเส้นตรงเดียวกัน */
+function tidyLoop(points: readonly Pixel[]): Pixel[] {
+  const distinct: Pixel[] = [];
+  for (const point of points) {
+    const previous = distinct[distinct.length - 1];
+    if (previous && previous.x === point.x && previous.y === point.y) continue;
+    distinct.push(point);
+  }
+  const head = distinct[0];
+  const tail = distinct[distinct.length - 1];
+  if (distinct.length > 1 && head.x === tail.x && head.y === tail.y) distinct.pop();
+  return mergeStraightRuns(distinct);
+}
+
+/** แทนช่วงจุดตั้งแต่ start ถึง end (รวมทั้งคู่ วนรอบอาร์เรย์ได้) ด้วยจุดชุดใหม่ */
+function spliceChain(shape: readonly Pixel[], start: number, end: number, middle: Pixel[]): Pixel[] {
+  const count = shape.length;
+  const kept: Pixel[] = [];
+  for (let offset = 1; offset < count; offset += 1) {
+    const index = (end + offset) % count;
+    if (index === start) break;
+    kept.push(shape[index]);
+  }
+  return [...middle, ...kept];
+}
+
+function signedArea(shape: readonly Pixel[]): number {
+  let total = 0;
+  for (let index = 0; index < shape.length; index += 1) {
+    const a = shape[index];
+    const b = shape[(index + 1) % shape.length];
+    total += a.x * b.y - b.x * a.y;
+  }
+  return total / 2;
 }
 
 /**

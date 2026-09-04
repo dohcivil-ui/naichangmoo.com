@@ -1198,7 +1198,7 @@ export function DrawingMarkup({
         bridgeGapPixels: (DOOR_BRIDGE_METRES / 2) * pixelsPerMetre,
         // ขอบเป็นแนวนอนกับแนวตั้งล้วน ค่านี้กวาดเฉพาะขั้นที่เกิดจากความหยาบของภาพ
         minStepPixels: OUTLINE_MIN_STEP_METRES * pixelsPerMetre,
-        // ดันขอบออกไปนั่งบนกึ่งกลางเส้นผนัง ซึ่งคือผิวจริงของห้อง
+        // ขอบไปชิดผิวในของเส้นผนัง ผนังหนาหรือบางก็ไม่กินเข้าไปในเนื้อผนัง
         snapToLinePixels: WALL_SNAP_METRES * pixelsPerMetre
         /**
          * **ไม่กลบรอยเว้าบนก้อนพื้นที่แล้ว** เคยเปิดไว้ตอน 2026-09-04 ต้นวัน แล้วเจ้าของงาน
