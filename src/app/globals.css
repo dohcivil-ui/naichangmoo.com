@@ -215,7 +215,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-panel__signout:disabled { color: var(--muted); cursor: progress; background: transparent; }
 /* Clears the sticky bar, which is 84px plus a little air. Moves when that height moves. */
 #apps, #why, #hermes, #enterprise { scroll-margin-top: 92px; }
-.button { border: 1px solid transparent; border-radius: 8px; padding: .72rem 1rem; cursor: pointer; font-weight: 600; transition: transform 160ms var(--ease-out), background 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
+/* `display: inline-block` ไม่ใช่ของประดับ — มันคือสิ่งที่ทำให้ padding บนล่างของปุ่มมีผลกับเลย์เอาต์
+ *
+ * `<a class="button">` เป็น inline ตามค่าตั้งต้น และ **padding บนล่างของกล่อง inline ไม่ดันอะไรเลย**
+ * มันล้นทับบรรทัดข้างบนเงียบ ๆ · เจ้าของงานเจอของจริงเมื่อ 2026-09-05 บนการ์ดขั้นสองของหน้าโครงการ
+ * ปุ่ม "เปิดหน้าแบบ" ทับตัวหนังสือสถานะที่อยู่เหนือมัน **13 พิกเซล** วัดด้วย getBoundingClientRect
+ *
+ * ที่ผ่านมาไม่มีใครเห็น เพราะปุ่มส่วนใหญ่นั่งอยู่ในกล่อง flex ซึ่งเปลี่ยน inline เป็น block ให้เอง
+ * เหลือเฉพาะปุ่มที่อยู่ในสายไหลปกติร่วมกับข้อความที่ยังพัง
+ *
+ * **ทำไม inline-block ไม่ใช่ inline-flex** วัดทั้งสองแบบแล้วแก้การทับได้เท่ากัน แต่ inline-flex
+ * เปลี่ยนลูกในปุ่มเป็น flex item ทำให้ปุ่มที่ข้อความยาวเลิกตัดบรรทัดแล้วล้นกล่องบนจอแคบ
+ * และกินช่องว่างหน้าลูกศรหายไป · inline-block แก้เฉพาะเรื่อง padding โดยไม่แตะข้างในเลย
+ */
+.button { display: inline-block; border: 1px solid transparent; border-radius: 8px; padding: .72rem 1rem; cursor: pointer; font-weight: 600; transition: transform 160ms var(--ease-out), background 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
 .button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(7,48,71,.16); }
 .button:active { transform: scale(.97); }
 .button--primary { background: var(--ink); color: white; }
