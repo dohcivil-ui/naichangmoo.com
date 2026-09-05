@@ -830,15 +830,23 @@ export function DrawingMarkup({
           how: `กว้าง ${formatMetres(value.segmentsMetres[0] ?? 0)} × ยาว ${formatMetres(value.segmentsMetres[1] ?? 0)} ม. จากสองมุมที่ชี้ คูณสเกล ${ratio}`
         };
       }
-      case "area":
+      case "area": {
+        /**
+         * ที่มาของพื้นที่บอกเป็น กว้าง × ยาว ไม่ใช่จำนวนด้านกับเส้นรอบรูป
+         *
+         * เจ้าของงานสั่งเองเมื่อ 2026-09-05 ว่า "พวกเส้นรอบรูปผมไม่เอา มันไม่ได้ใช้
+         * ไม่ต้องเอาข้อมูลมาโชว์มันทุกอย่าง อยากรู้แค่ห้องกว้าง × ยาว ตัวเลขมีที่มายังไง"
+         * · จำนวนด้านกับเส้นรอบรูปเป็นของที่ระบบรู้ ไม่ใช่ของที่คนตรวจตัวเลขต้องใช้
+         * สองเลขที่เขาเอาไปเทียบกับเส้นบอกระยะบนแบบได้จริงคือกว้างกับยาวเท่านั้น
+         */
+        const box = explainRoomArea(mark.points, scale, value.areaSquareMetres);
         return {
           figure: `${formatMetres(value.areaSquareMetres ?? 0)} ตร.ม.`,
-          how:
-            (mark.origin === "region_trace"
-              ? "พื้นที่ผิวในของห้อง ระบบไล่ตามผนังแล้วคนยืนยัน"
-              : "พื้นที่ในรูปหลายเหลี่ยมที่ชี้เอง") +
-            ` ${mark.points.length} ด้าน คูณสเกล ${ratio} — วัดถึงผิวผนัง ไม่ใช่กึ่งกลางเสา`
+          how: box
+            ? `กว้าง ${formatMetres(box.widthMetres)} × ยาว ${formatMetres(box.depthMetres)} ม. คูณสเกล ${ratio} — วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา`
+            : `คูณสเกล ${ratio} — วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา`
         };
+      }
       case "count":
         return { figure: `${value.count ?? mark.points.length} จุด`, how: "นับจุดที่แตะทีละจุด ไม่ใช้สเกล" };
     }
@@ -2117,7 +2125,7 @@ export function DrawingMarkup({
           */}
           <span className="mk__confirm-lead">
             พื้นที่ห้องที่ไล่ได้ <b className="mk__num">{formatMetres(pendingValue?.areaSquareMetres ?? 0)}</b> ตร.ม.
-            <em>วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา · เส้นบอกระยะบนแบบบอกว่ากว้างยาวเท่าไหร่</em>
+            <em>วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</em>
           </span>
           <input
             className="mk__confirm-name"
