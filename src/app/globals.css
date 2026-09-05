@@ -53,6 +53,15 @@
      ย้ายเข้ากระปุกตามรั้วสี ADR 0021: สีทุกค่าประกาศที่นี่ที่เดียว */
   --teal-soft: #3aa8a8;
   --teal-wash: #e6f3f3;
+  /* พื้นจางของส้มและเขียว คู่กับ --teal-wash ที่มีอยู่แล้ว (IP-235)
+     ใช้กับป้ายสถานะที่ต้องแยกออกจากกันด้วยสี ไม่ใช่ด้วยคำ · จับคู่ตายตัวคือ
+     --orange-wash ใช้กับ --orange-text และ --success-wash ใช้กับ --success
+     ห้ามสลับคู่ เพราะค่าคอนทราสต์วัดมาเป็นคู่ ไม่ได้วัดทีละสี */
+  --orange-wash: #fdeee2;
+  --success-wash: #e3f2ec;
+  /* ส้มเข้มสำหรับเงาแข็งใต้ปุ่มหลัก ไม่ใช่สีตัวหนังสือและไม่ใช่สีพื้น
+     มีเพราะเงาต้องเข้มกว่าตัวปุ่มพอให้อ่านเป็นความหนา ถ้าใช้ --orange เองจะแบนหายไป */
+  --orange-deep: #b4530a;
 }
 
 * { box-sizing: border-box; }
@@ -2687,3 +2696,71 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .mk__file { max-width: 18ch; }
   .mk__dialog { inset-block-start: auto; inset-block-end: 12px; inset-inline: 12px; inline-size: auto; }
 }
+
+/* ===== ต้นแบบหน้าแรก ESTIMETR (IP-235) — ลบทั้งบล็อกได้เมื่อยกเข้าหน้าจริงแล้ว =====
+   คลาสขึ้นต้น .eh- ทั้งหมด เพื่อไม่ให้ชนกับของที่มีอยู่
+   แนวทางมาจาก .design/estimeter-home/variant-b-ours-dense.html ที่เจ้าของงานเลือก
+   แถบบน กล่องชื่อแอป และท้ายเว็บไม่อยู่ในนี้ เพราะ AppShell วางให้แล้ว */
+.eh { padding-block: 1rem 2.5rem; }
+.eh__switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--paper); border: 1px solid var(--mist); margin-block-end: 1rem; }
+.eh__switch button { border: 0; border-radius: 999px; padding: .34rem .9rem; background: transparent; color: var(--muted); font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer; }
+.eh__switch button[aria-pressed="true"] { background: var(--teal); color: var(--paper); }
+
+.eh__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-block-end: 1rem; }
+.eh__steps article { display: grid; gap: 6px; align-content: start; background: var(--paper); border: 1px solid var(--mist); border-radius: 16px; padding: 15px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); }
+.eh__steps article[data-here="true"] { border-color: var(--orange); }
+.eh__n { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 999px; background: var(--teal-wash); color: var(--teal-text); font-family: var(--font-numeric); font-size: .7rem; font-weight: 700; }
+.eh__steps h3 { margin: 0; color: var(--ink); font-size: .9rem; font-weight: 700; line-height: 1.35; }
+.eh__steps p { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+
+.eh__badge { justify-self: start; border-radius: 999px; padding: .18rem .6rem; font-size: .7rem; font-weight: 700; }
+.eh__badge--done { background: var(--success-wash); color: var(--success); }
+.eh__badge--now { background: var(--orange-wash); color: var(--orange-text); }
+.eh__badge--wait { background: var(--canvas); color: var(--muted); }
+
+.eh__board { display: grid; grid-template-columns: minmax(0, 1fr) 366px; gap: 16px; align-items: start; }
+.eh__card { background: var(--paper); border: 1px solid var(--mist); border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); }
+.eh__over { margin: 0; color: var(--teal-text); font-size: .68rem; font-weight: 800; letter-spacing: .14em; }
+.eh__card h2 { margin: .18rem 0 0; color: var(--ink); font-size: 1rem; font-weight: 700; }
+.eh__card > p { color: var(--muted); font-size: .84rem; max-width: 62ch; }
+
+.eh__resume { margin-block-start: .75rem; border: 1px solid var(--mist); border-radius: 12px; padding: 14px; background: linear-gradient(160deg, var(--teal-wash), var(--paper) 72%); }
+.eh__resume h3 { margin: 0; color: var(--ink); font-size: 1.05rem; font-weight: 700; line-height: 1.3; }
+.eh__where { margin: .25rem 0 0; color: var(--ink-body); font-size: .82rem; }
+.eh__todo { margin: .25rem 0 0; color: var(--orange-text); font-size: .82rem; font-weight: 700; }
+.eh__row { display: flex; gap: 10px; align-items: center; margin-block-start: 1rem; flex-wrap: wrap; }
+
+.eh__go { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 999px; padding: .6rem 1.05rem; background: var(--orange); color: var(--paper); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 5px 0 0 var(--orange-deep), 0 12px 24px rgba(244, 119, 33, .3), inset 0 1px 0 rgba(255, 255, 255, .4); }
+.eh__go:active { transform: translateY(3px); box-shadow: 0 5px 14px rgba(244, 119, 33, .28); }
+.eh__line { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 999px; padding: .6rem 1.05rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+
+.eh__table { width: 100%; border-collapse: collapse; margin-block-start: .75rem; }
+.eh__table th, .eh__table td { text-align: start; padding: .55rem .5rem; border-block-end: 1px solid var(--mist); font-size: .82rem; }
+.eh__table th { color: var(--muted); font-size: .68rem; font-weight: 800; letter-spacing: .06em; }
+.eh__table td b { color: var(--ink); font-weight: 700; }
+.eh__num { font-family: var(--font-numeric); }
+
+.eh__bot { background: var(--paper); border: 1px solid var(--teal-soft); border-radius: 16px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); overflow: hidden; position: sticky; inset-block-start: 1rem; }
+.eh__bot-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-block-end: 1px solid var(--mist); background: var(--teal-wash); }
+.eh__mark { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 999px; background: var(--teal); color: var(--paper); font-size: .72rem; font-weight: 800; }
+.eh__bot-head strong { display: block; color: var(--ink); font-size: .9rem; font-weight: 700; }
+.eh__bot-head span { color: var(--muted); font-size: .74rem; }
+.eh__thread { display: grid; gap: 8px; padding: 14px 15px; }
+.eh__say { margin: 0; border-radius: 12px; padding: .55rem .72rem; background: var(--canvas); color: var(--ink-body); font-size: .82rem; line-height: 1.55; }
+.eh__say--me { justify-self: end; max-width: 90%; background: var(--teal); color: var(--paper); }
+.eh__chips { display: grid; gap: 7px; padding: 0 15px 12px; }
+.eh__chip { border: 1px solid var(--teal-soft); border-radius: 999px; padding: .52rem .85rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-align: start; cursor: pointer; }
+.eh__chip:hover { border-color: var(--teal); background: var(--teal-wash); }
+.eh__ask { display: flex; gap: 7px; padding: 0 15px 13px; }
+.eh__ask input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: .5rem .65rem; font: inherit; font-size: .82rem; }
+.eh__ask button { border: 0; border-radius: 999px; padding: .5rem 1rem; background: var(--teal); color: var(--paper); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+.eh__scope { padding: 12px 15px 15px; border-block-start: 1px solid var(--mist); background: var(--canvas); }
+.eh__scope strong { color: var(--ink); font-size: .76rem; font-weight: 800; }
+.eh__scope ul { margin: .35rem 0 0; padding-inline-start: 1rem; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+
+@media (max-width: 1000px) {
+  .eh__board { grid-template-columns: 1fr; }
+  .eh__bot { position: static; }
+  .eh__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) { .eh__steps { grid-template-columns: 1fr; } }
