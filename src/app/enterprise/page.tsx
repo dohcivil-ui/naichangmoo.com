@@ -11,7 +11,7 @@ export default function EnterpriseQuotationPage() {
         <div className="container quote-grid">
           <div className="quote-intro">
             <QuoteIcon title="ขอใบเสนอราคาสำหรับองค์กร" />
-            <div className="eyebrow" style={{ color: "var(--teal)" }}>ORGANIZATION / AGENCY</div>
+            <div className="eyebrow" style={{ color: "var(--teal-text)" }}>ORGANIZATION / AGENCY</div>
             <h1>ขอใบเสนอราคาสำหรับองค์กรหรือหน่วยงาน</h1>
             <p>แจ้งจำนวนผู้ใช้ แอปที่สนใจ และข้อกำหนดจัดซื้อ เพื่อให้ทีมงานจัดทำข้อเสนอที่ตรงกับบริบทการใช้งานของคุณ</p>
             <p>แบบฟอร์มนี้เป็นเพียงการรับ requirement ยังไม่ถือเป็นใบเสนอราคา สัญญา หรือการชำระเงิน</p>

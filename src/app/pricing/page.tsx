@@ -45,7 +45,7 @@ export default async function PricingPage() {
         <div className="container">
           <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
-              <div className="eyebrow" style={{ color: "var(--teal)" }}>การเข้าใช้งาน</div>
+              <div className="eyebrow" style={{ color: "var(--teal-text)" }}>การเข้าใช้งาน</div>
               <h1>เลือกตามสิทธิ์ที่ตรงกับงานของคุณ</h1>
               <p className="access-intro">
                 เริ่มจากทดลองใช้ฟรีก่อนได้ ถ้าใช้ทำงานจริงทุกวันก็ข้ามไปสมาชิก VIP ที่ใช้ได้ทุกแอป
@@ -65,7 +65,7 @@ export default async function PricingPage() {
 
           <div className="capability-table" data-reveal>
             <header>
-              <div className="eyebrow" style={{ color: "var(--teal)" }}>สิ่งที่ทำได้ในแต่ละสิทธิ์</div>
+              <div className="eyebrow" style={{ color: "var(--teal-text)" }}>สิ่งที่ทำได้ในแต่ละสิทธิ์</div>
               <h2>ตารางนี้อ่านจากนโยบายที่ระบบบังคับใช้จริง</h2>
               <p>
                 ทุกช่องในตารางมาจากฟังก์ชันเดียวกับที่เซิร์ฟเวอร์ใช้ตัดสินว่าอนุญาตหรือไม่

@@ -604,7 +604,7 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
       <div className="container">
         <header className="estimation-workspace__head">
           <div>
-            <p className="eyebrow" style={{ color: "var(--teal)" }}>ต้นแบบ · หมวดการบริหารงานโครงการ</p>
+            <p className="eyebrow" style={{ color: "var(--teal-text)" }}>ต้นแบบ · หมวดการบริหารงานโครงการ</p>
             <h1>
               แอปผู้ช่วยสร้างแผนงาน<span className="work-plan__title-tail">และ S-Curve</span>
             </h1>

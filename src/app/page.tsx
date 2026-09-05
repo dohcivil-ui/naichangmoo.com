@@ -95,7 +95,7 @@ export default async function LandingPage() {
 
       <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
         <div className="container">
-          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — นับจากชุดข้อมูลจริงในระบบ</div>
+          <div className="eyebrow stat-band__eyebrow" data-reveal style={{ color: "var(--teal-text)" } as CSSProperties}>แพลตฟอร์ม ในตัวเลข — นับจากชุดข้อมูลจริงในระบบ</div>
           <div data-reveal data-delay="120"><StatStrip stats={platformStats} /></div>
         </div>
       </section>
@@ -104,7 +104,7 @@ export default async function LandingPage() {
         <div className="container">
           <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}>
             <div>
-              <div className="eyebrow" style={{ color: "var(--teal)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
+              <div className="eyebrow" style={{ color: "var(--teal-text)" }}>ปัญหาที่เครื่องมือนี้แก้</div>
               {/* IP-226: ประโยคเดิมเป็นรูปคติพจน์ที่ docs/rules/copy-th.md หมวดสี่ยกเป็นตัวอย่างข้อห้ามข้อแรก
                   เปลี่ยนเป็นการบอกสิ่งที่ระบบทำ ด้วยคำของสามการ์ดที่อยู่ใต้หัวข้อนี้ */}
               <h2>ปริมาณ ค่าเผื่อ และตัวคูณ ต้องชี้เอกสารต้นทางได้ทุกตัว</h2>
@@ -171,7 +171,7 @@ export default async function LandingPage() {
 
       <section className="section" id="apps">
         <div className="container">
-          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
+          <div className="section-heading" data-reveal style={{ "--fy": "-12px" } as CSSProperties}><div><div className="eyebrow" style={{ color: "var(--teal-text)" }}>แอปงานโยธา</div><h2>เลือกแอปตามหมวดงาน</h2></div></div>
           <div className="market-category-stack">
             {marketCategories.map((category, index) => {
               const apps = platformApps.filter((app) => app.categoryId === category.id);
@@ -194,7 +194,7 @@ export default async function LandingPage() {
               design record. The panel introduces the service and routes the request into the
               enterprise quotation intake (ADR 0005) - it claims no price and no readiness, so it
               stays on the introduction side of ADR 0015. */}
-          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตาม use case ที่ส่งเข้ามา</p></div><a className="button button--primary micro-button" href={hermesRequestHref}>ส่ง use case ให้ออกแบบ</a></div>
+          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal-text)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตาม use case ที่ส่งเข้ามา</p></div><a className="button button--primary micro-button" href={hermesRequestHref}>ส่ง use case ให้ออกแบบ</a></div>
         </div>
       </section>
 

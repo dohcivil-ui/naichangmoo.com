@@ -25,7 +25,7 @@ export default function CookiePolicyPage() {
       <SiteHeader />
       <section className="section policy-page">
         <div className="container">
-          <div className="eyebrow" style={{ color: "var(--teal)" }}>ความเป็นส่วนตัว</div>
+          <div className="eyebrow" style={{ color: "var(--teal-text)" }}>ความเป็นส่วนตัว</div>
           <h1>นโยบายการใช้คุกกี้</h1>
           <p className="policy-page__lead">
             หน้านี้บอกว่าเว็บไซต์นายช่างหมูเก็บอะไรไว้ในเบราว์เซอร์ของคุณบ้าง เพื่ออะไร และนานเท่าไร

@@ -67,6 +67,15 @@
      เขียนเป็นเลขดิบตรงกฎเดียว · ขาวบนส้มวัดได้ 2.80:1 ซึ่งตกเกณฑ์ AA และเป็นคู่สีที่กลืนกัน
      ส่วนหมึกเข้มบนส้มวัดได้ 8.9:1 · เจ้าของงานเคาะหลักการนี้เอง 2026-09-05 ว่าคู่สีต้องตรงข้ามกัน */
   --on-orange: #17120d;
+  /* ความหนาใต้ปุ่มอีกสองระดับ คู่กับ --orange-deep ที่มีอยู่แล้ว (IP-235)
+     เจ้าของงานเลือกแนว "กดได้" เมื่อ 2026-09-05 ปุ่มจึงมีเงาแข็งใต้ตัวเป็นความหนาจริง
+     และกดแล้วยุบลงมาทับเงานั้น · เงาต้องเข้มกว่าตัวปุ่มถึงจะอ่านเป็นความหนา ไม่ใช่เส้นใต้ */
+  --teal-deep: #0a6a6a;
+  --edge: #dde7e7;
+  /* ปุ่มที่กดไม่ได้ใช้สีทึบของตัวเอง ไม่ใช่ opacity — opacity กดคอนทราสต์ของตัวหนังสือ
+     ลงไปพร้อมกับพื้น จนอ่านยากกว่าที่ควร ซึ่งเป็นวิธีที่โค้ดเดิมใช้อยู่ */
+  --off: #e9eff0;
+  --off-line: #d3dedf;
 }
 
 * { box-sizing: border-box; }
@@ -215,26 +224,40 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .account-panel__signout:disabled { color: var(--muted); cursor: progress; background: transparent; }
 /* Clears the sticky bar, which is 84px plus a little air. Moves when that height moves. */
 #apps, #why, #hermes, #enterprise { scroll-margin-top: 92px; }
-/* `display: inline-block` ไม่ใช่ของประดับ — มันคือสิ่งที่ทำให้ padding บนล่างของปุ่มมีผลกับเลย์เอาต์
+/* ปุ่มของทั้งเว็บ — แนว "กดได้" ที่เจ้าของงานเลือกเมื่อ 2026-09-05 จากสี่แนวที่เสนอ
  *
- * `<a class="button">` เป็น inline ตามค่าตั้งต้น และ **padding บนล่างของกล่อง inline ไม่ดันอะไรเลย**
- * มันล้นทับบรรทัดข้างบนเงียบ ๆ · เจ้าของงานเจอของจริงเมื่อ 2026-09-05 บนการ์ดขั้นสองของหน้าโครงการ
- * ปุ่ม "เปิดหน้าแบบ" ทับตัวหนังสือสถานะที่อยู่เหนือมัน **13 พิกเซล** วัดด้วย getBoundingClientRect
+ * **ขนาดเดียวทั้งเว็บ สูง 48px ไม่มีข้อยกเว้น** เขาสั่งเองว่าห้ามมีปุ่มหลายขนาด
+ * ค่านี้สูงกว่าระยะนิ้วขั้นต่ำ 44px อยู่แล้ว จึงใช้ได้ทั้งเมาส์และนิ้วบนแท็บเล็ต
  *
- * ที่ผ่านมาไม่มีใครเห็น เพราะปุ่มส่วนใหญ่นั่งอยู่ในกล่อง flex ซึ่งเปลี่ยน inline เป็น block ให้เอง
- * เหลือเฉพาะปุ่มที่อยู่ในสายไหลปกติร่วมกับข้อความที่ยังพัง
+ * **เงาแข็งใต้ปุ่มคือความหนา ไม่ใช่เงาตกกระทบ** กดแล้วปุ่มยุบลง 4px มาทับความหนานั้นพอดี
+ * จึงรู้สึกว่ากดจริง · เป็นภาษาเดียวกับหน้าแรกที่เขาเลือกไว้ก่อนหน้านี้ ทั้งเว็บจึงพูดเหมือนกัน
  *
- * **ทำไม inline-block ไม่ใช่ inline-flex** วัดทั้งสองแบบแล้วแก้การทับได้เท่ากัน แต่ inline-flex
- * เปลี่ยนลูกในปุ่มเป็น flex item ทำให้ปุ่มที่ข้อความยาวเลิกตัดบรรทัดแล้วล้นกล่องบนจอแคบ
- * และกินช่องว่างหน้าลูกศรหายไป · inline-block แก้เฉพาะเรื่อง padding โดยไม่แตะข้างในเลย
+ * **inline-flex ไม่ใช่ inline-block** สองเหตุผล หนึ่ง `<a class="button">` เป็น inline
+ * ตามค่าตั้งต้น และ padding บนล่างของกล่อง inline ไม่ดันอะไรเลย มันล้นทับบรรทัดข้างบนเงียบ ๆ
+ * เจ้าของงานเจอของจริงบนการ์ดขั้นสองของหน้าโครงการ ทับกัน 13 พิกเซล
+ * สอง มีอย่างน้อยเจ็ดที่ในไฟล์นี้สั่ง `width: 100%; justify-content: center;` กับปุ่ม
+ * ซึ่ง `justify-content` ไม่ทำงานกับ inline-block **ตัวหนังสือในปุ่มเต็มความกว้างบนมือถือ
+ * จึงชิดซ้ายมาตลอด** โดยที่ CSS อ่านเหมือนสั่งให้อยู่กลางแล้ว
+ *
+ * ที่ inline-flex เคยมีปัญหาคือคำยาวเลิกตัดบรรทัดแล้วล้น — `white-space: nowrap` บวกกับ
+ * กติกาที่ให้ปุ่มยืดเต็มกล่องแม่บนจอแคบ ปิดช่องนั้นแล้ว และเป็นสิ่งที่ทำให้ทุกปุ่มสูงเท่ากันจริง
+ *
+ * ขนาดตัวอักษรตั้งไว้ที่นี่ ไม่ปล่อยให้รับมาจากกล่องแม่ ไม่งั้นปุ่มเดียวกันจะตัวโตไม่เท่ากัน
+ * ตามที่มันไปยืนอยู่ ซึ่งเป็นอีกทางที่ปุ่มเพี้ยนโดยไม่มีใครสั่ง
  */
-.button { display: inline-block; border: 1px solid transparent; border-radius: 8px; padding: .72rem 1rem; cursor: pointer; font-weight: 600; transition: transform 160ms var(--ease-out), background 160ms var(--ease-out), box-shadow 160ms var(--ease-out); }
-.button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(7,48,71,.16); }
-.button:active { transform: scale(.97); }
-.button--primary { background: var(--ink); color: white; }
-.button--primary:hover { background: var(--teal); }
-.button--orange { background: var(--orange); color: #17120d; }
-.button--orange:hover { background: #ff964f; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: 999px; font-size: .95rem; font-weight: 700; line-height: 1.2; white-space: nowrap; text-decoration: none; cursor: pointer; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
+.button:active { transform: translateY(4px); }
+.button--primary { background: var(--ink); color: var(--paper); box-shadow: var(--ink-deep) 0 4px 0 0, rgba(7, 48, 71, .3) 0 12px 22px -8px; }
+.button--primary:hover { background: var(--teal); transform: translateY(-1px); box-shadow: var(--teal-deep) 0 5px 0 0, rgba(13, 130, 130, .32) 0 14px 24px -8px; }
+.button--primary:active { box-shadow: rgba(7, 48, 71, .26) 0 4px 12px 0; }
+.button--orange { background: var(--orange); color: var(--on-orange); box-shadow: var(--orange-deep) 0 4px 0 0, rgba(244, 119, 33, .34) 0 12px 22px -8px, rgba(255, 255, 255, .38) 0 1px 0 0 inset; }
+.button--orange:hover { background: #ff8c37; transform: translateY(-1px); box-shadow: var(--orange-deep) 0 5px 0 0, rgba(244, 119, 33, .4) 0 14px 24px -8px, rgba(255, 255, 255, .42) 0 1px 0 0 inset; }
+.button--orange:active { box-shadow: rgba(244, 119, 33, .28) 0 4px 12px 0; }
+/* ปุ่มที่กดไม่ได้ — สีทึบของตัวเอง ไม่ใช่ opacity ทับสีเดิม
+   ครอบทั้ง `disabled` ของ <button> และ `aria-disabled` ของลิงก์ ซึ่งปิดด้วย attribute จริงไม่ได้ */
+.button:disabled, .button[aria-disabled="true"] { background: var(--off); border-color: var(--off-line); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+.button:disabled:hover, .button[aria-disabled="true"]:hover { background: var(--off); transform: none; box-shadow: none; }
+.button:disabled:active, .button[aria-disabled="true"]:active { transform: none; }
 .sign-in-preview { position: relative; display: inline-flex; align-items: center; }.sign-in-preview > span { position: absolute; z-index: 30; top: calc(100% + 9px); right: 0; width: min(290px, 78vw); padding: 9px 11px; border-radius: 8px; background: var(--ink-deep); color: white; font-size: .76rem; line-height: 1.45; box-shadow: 0 12px 24px rgba(5,31,47,.22); }
 
 .hero { padding: 30px 0 26px; background: linear-gradient(132deg, var(--ink) 0%, var(--ink) 62%, #0a4f59 100%); color: white; position: relative; overflow: clip; }
@@ -526,7 +549,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .doc-stage[data-state="playing"] .doc-compare__row:not(.is-stamped) .doc-compare__stamp{opacity:0;transform:scale(1.3) rotate(-2deg)}
 .doc-compare__row.is-stamped .doc-compare__stamp{opacity:1;transform:none;transition:opacity 240ms cubic-bezier(.2,1.4,.4,1),transform 240ms cubic-bezier(.2,1.4,.4,1)}
 .doc-stage[data-state="done"] .doc-compare__stamp{opacity:1;transform:none;transition:none}
-.doc-compare__stamp--seal{border:2.5px solid var(--teal);color:var(--teal);border-radius:6px;padding:4px 12px;font-weight:800;letter-spacing:.08em;rotate:-6deg}
+.doc-compare__stamp--seal{border:2.5px solid var(--teal);color:var(--teal-text);border-radius:6px;padding:4px 12px;font-weight:800;letter-spacing:.08em;rotate:-6deg}
 .doc-compare__row.is-stamped .doc-compare__stamp--seal{animation:doc-seal-slam 380ms cubic-bezier(.2,1.6,.36,1) 1}
 @keyframes doc-seal-slam{from{scale:1.7;rotate:-14deg;opacity:0}to{scale:1;rotate:-6deg;opacity:1}}
 .doc-compare__row.is-stamped{animation:doc-stamp-glow 700ms var(--ease-out) 1}
@@ -653,7 +676,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* บัญชีของฉัน. Same card language as the rest of the site; nothing here is a new pattern. */
 .account-page { padding: 34px 0 64px; display: grid; gap: 16px; align-content: start; }
-.account-page__head .eyebrow { color: var(--teal); }
+.account-page__head .eyebrow { color: var(--teal-text); }
 .account-page__head h1 { margin: 6px 0 0; font-size: clamp(1.5rem, 3vw, 2rem); letter-spacing: -.005em; line-height: 1.35; }
 .account-page__card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; display: grid; gap: 12px; align-content: start; }
 .account-page__card h1 { margin: 0; font-size: 1.3rem; letter-spacing: -.03em; }
@@ -805,6 +828,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* ปล่อยให้ฉากหลังของ body โผล่ขึ้นมา — ของเดิมเป็นไล่สีแนวตั้งทึบที่ปิดฉากหลังทั้งผืน */
 .estimation-workspace { background: transparent; }
 
+/* **แก้ต่อ 2026-09-05** — บันทึกข้างล่างนี้พูดถูกว่าหน้าอื่นที่ใช้ var(--teal) เปล่า ๆ
+   ยังไม่ถึงเกณฑ์ แต่ตอนนั้นแก้ไปแค่หน้าเดียว วัดของจริงบนหน้าแรกวันนี้ได้ 4.30:1
+   ที่คำนำหัวหมวดงาน และ 4.27:1 ที่ตราประทับ "ตรวจย้อนได้" · ทั้งสองจุดเปลี่ยนเป็น
+   var(--teal-text) ซึ่งเป็นตัวแปรที่มีอยู่แล้วเพื่อการนี้ ได้ 4.65:1 และ 4.62:1 */
+
 /* คำนำหัวการ์ดอ่านไม่ออกมาตั้งแต่ก่อนธีมนี้ วัดได้ 1.31:1 บนพื้นการ์ด (เกณฑ์ 4.5:1)
    เพราะสีพื้นฐานของ .eyebrow คือมิ้นต์อ่อน #aee6dd ที่ออกแบบมาสำหรับพื้นเข้มของ hero
    หน้าอื่นที่วางมันบนพื้นสว่างทับเป็น var(--teal) กันหมดแล้ว (บัญชี ตลาด การ์ดรายละเอียด)
@@ -846,7 +874,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* --fy and --fx are per element: a heading can come down while the card under it rises, which
    is what stops a long page from reading as one repeated gesture. Positive --fy rises. */
 [data-reveal] { opacity: 0; transform: translateY(var(--fy, 18px)) translateX(var(--fx, 0)); transition: opacity 800ms var(--ease-reveal), transform 800ms var(--ease-reveal); transition-delay: calc(var(--reveal-delay, 0) * 70ms); }[data-revealed="true"] { opacity: 1; transform: none; }.app-card[data-revealed="true"] { animation: app-reveal 420ms var(--ease-out) both; }
-@media (hover: none), (pointer: coarse) { .hermes-panel:hover, .button:hover { transform: none; box-shadow: none; }.app-card::before { display: none; } }
+/* บนเครื่องที่ไม่มีเมาส์ ยกเลิกเฉพาะการขยับตอน hover ไม่ใช่เงาแข็งใต้ปุ่ม
+   กฎเดิมสั่ง `box-shadow: none` ซึ่งจะลบความหนาของปุ่มทิ้งทั้งแอปบนแท็บเล็ต
+   ที่เป็นเครื่องที่เจ้าของงานใช้วัดแบบจริง (IP-235) */
+@media (hover: none), (pointer: coarse) { .hermes-panel:hover { transform: none; box-shadow: none; }.button:hover { transform: none; }.app-card::before { display: none; } }
 
 /* IP-197: ภาพลายเส้นสะพาน (hero-art-*) เกษียณพร้อม HeroEngineeringArt — หน้าต่างสาธิตถือ
    การเคลื่อนไหวของตัวเองแล้ว เหลือเพียงไฟเดิน 01→04 ของแถบเริ่มใช้งานแนวนอน */
@@ -872,7 +903,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .market-category { background: linear-gradient(118deg, #ffffff, #f7fbfb); border: 1px solid rgba(7, 48, 71, .12); border-radius: 26px; padding: 22px; box-shadow: 0 10px 24px rgba(7, 48, 71, .05); }
 .market-category__header { display: grid; grid-template-columns: 54px minmax(0, 1fr); gap: 14px; align-items: start; padding: 0 2px 18px; }
 .market-category__index { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--teal-text); background: color-mix(in srgb, var(--teal) 10%, white); border: 1px solid color-mix(in srgb, var(--teal) 26%, white); font-size: .75rem; font-weight: 800; letter-spacing: .09em; }
-.market-category__header .eyebrow { color: var(--teal); margin: 0 0 4px; font-size: .64rem; }
+.market-category__header .eyebrow { color: var(--teal-text); margin: 0 0 4px; font-size: .64rem; }
 .market-category__header h3 { margin: 0; color: var(--ink); font-size: 1.18rem; letter-spacing: -.025em; }
 .market-category__header p:not(.eyebrow) { margin: 5px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.55; }
 /* IP-116: the gap was missing entirely, so two cards in one category touched and read as a single
@@ -908,14 +939,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .market-detail__lead { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 36px; align-items: center; }
 .market-detail__lead .eyebrow { color: #8ce5dc; }.market-detail__lead h1 { margin: 8px 0 12px; font-size: clamp(2.15rem, 5vw, 4.3rem); letter-spacing: -.005em; line-height: 1.28; }.market-detail__lead p { max-width: 680px; margin: 0; color: rgba(255,255,255,.82); font-size: 1.03rem; line-height: 1.72; }
 .market-detail__badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }.market-detail__art { width: 190px; height: 190px; display: grid; place-items: center; justify-self: end; overflow: hidden; border-radius: 34px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.24); }.market-detail__art img { width: 202px; height: 202px; object-fit: cover; }
-.market-detail__body { padding-top: 52px; }.market-detail__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }.market-detail__card { padding: 27px; border: 1px solid rgba(7,48,71,.12); background: #fff; border-radius: 22px; }.market-detail__card .eyebrow { color: var(--teal); }.market-detail__card h2 { margin: 8px 0 18px; color: var(--ink); font-size: 1.3rem; }.market-detail__card ul, .market-detail__card ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }.market-detail__card li { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); line-height: 1.55; }.market-detail__card ul li span { flex: 0 0 auto; color: var(--teal); font-size: .7rem; font-weight: 800; padding-top: 3px; }.market-detail__card ol { counter-reset: market-flow; }.market-detail__card ol li { counter-increment: market-flow; }.market-detail__card ol li::before { content: counter(market-flow); width: 22px; height: 22px; flex: 0 0 22px; display: grid; place-items: center; border-radius: 50%; background: #eff7f6; color: var(--teal); font-size: .7rem; font-weight: 800; }
+.market-detail__body { padding-top: 52px; }.market-detail__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }.market-detail__card { padding: 27px; border: 1px solid rgba(7,48,71,.12); background: #fff; border-radius: 22px; }.market-detail__card .eyebrow { color: var(--teal-text); }.market-detail__card h2 { margin: 8px 0 18px; color: var(--ink); font-size: 1.3rem; }.market-detail__card ul, .market-detail__card ol { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }.market-detail__card li { display: flex; align-items: flex-start; gap: 10px; color: var(--muted); line-height: 1.55; }.market-detail__card ul li span { flex: 0 0 auto; color: var(--teal); font-size: .7rem; font-weight: 800; padding-top: 3px; }.market-detail__card ol { counter-reset: market-flow; }.market-detail__card ol li { counter-increment: market-flow; }.market-detail__card ol li::before { content: counter(market-flow); width: 22px; height: 22px; flex: 0 0 22px; display: grid; place-items: center; border-radius: 50%; background: #eff7f6; color: var(--teal); font-size: .7rem; font-weight: 800; }
 .market-entry-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; margin-top: 18px; padding: 30px; border-radius: 22px; color: #fff; background: linear-gradient(115deg, var(--ink), #0b5162); }.market-entry-panel .eyebrow { color: #8ce5dc; }.market-entry-panel h2 { margin: 8px 0; font-size: 1.35rem; }.market-entry-panel p { max-width: 760px; margin: 0; color: rgba(255,255,255,.78); line-height: 1.65; }.market-entry-panel__locked { display: grid; gap: 5px; max-width: 245px; padding: 14px 16px; border: 1px solid rgba(255,255,255,.22); border-radius: 14px; background: rgba(255,255,255,.08); }.market-entry-panel__locked strong { font-size: .84rem; }.market-entry-panel__locked span { color: rgba(255,255,255,.7); font-size: .78rem; line-height: 1.45; }
 @media (max-width: 760px) { .market-category { padding: 16px; border-radius: 20px; }.market-category__apps .app-card { grid-template-columns: 78px minmax(0, 1fr); gap: 14px; padding: 17px; }.market-category__apps .app-card__icon-wrap { width: 70px; height: 70px; border-radius: 18px; }.market-category__apps .app-card__icon { width: 78px; height: 78px; }.market-category__apps .app-card__actions { grid-column: 1 / -1; grid-template-columns: 1fr auto; align-items: center; justify-items: start; border-top: 1px solid rgba(7,48,71,.09); padding-top: 13px; }.market-detail__hero { padding: 100px 0 44px; }.market-detail__lead { grid-template-columns: 1fr; gap: 26px; }.market-detail__art { justify-self: start; width: 136px; height: 136px; border-radius: 26px; }.market-detail__art img { width: 148px; height: 148px; }.market-detail__grid, .market-entry-panel { grid-template-columns: 1fr; }.market-entry-panel { gap: 20px; padding: 24px; }.market-entry-panel .button { width: 100%; justify-content: center; }.market-entry-panel__locked { max-width: none; } }
 .estimation-board--guided { grid-template-columns: minmax(0, 1fr) 310px; }
 .project-path-control { display: flex; justify-content: space-between; gap: 1rem; align-items: center; margin: 1.2rem 0; border: 1px solid #dce9e7; border-radius: 13px; padding: 1rem; background: #f8fbfb; }.project-path-control > span { color: #315664; font-size: .8rem; font-weight: 750; }.project-path-control > div { display: flex; gap: .45rem; }.project-path-control button, .assistant-mode button { border: 1px solid #d3e1df; border-radius: 8px; padding: .46rem .58rem; background: #fff; color: #59747b; cursor: pointer; font-size: .77rem; font-weight: 700; transition: background 160ms var(--ease-out), color 160ms var(--ease-out), border-color 160ms var(--ease-out), transform 160ms var(--ease-out); }.project-path-control button:hover, .project-path-control button:focus-visible, .assistant-mode button:hover, .assistant-mode button:focus-visible { border-color: #62aaa2; color: #0a6e6f; outline: none; transform: translateY(-1px); }.project-path-control button.is-selected, .assistant-mode button.is-active { border-color: #0d8282; background: #eaf7f4; color: #075f60; box-shadow: inset 0 0 0 1px rgba(13,130,130,.1); }.project-path-control small { display: block; margin-top: .12rem; color: inherit; font-size: .62rem; font-weight: 600; }
-.preflight-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0 1.3rem; }.preflight-grid article { display: flex; gap: .72rem; border: 1px solid #e2eceb; border-radius: 12px; padding: .9rem; background: #fcfdfd; }.preflight-grid h3, .preflight-grid p { margin: 0; }.preflight-grid h3 { color: #153f4f; font-size: .9rem; }.preflight-grid p { margin-top: .26rem; color: #71878c; font-size: .76rem; line-height: 1.45; }.preflight-grid small { display: block; margin-top: .5rem; color: #0b7777; font-size: .65rem; font-weight: 700; }.preflight-grid .button { margin-top: .55rem; }.calibration-check { margin-top: .6rem; border: 1px dashed #5fa9a1; border-radius: 7px; padding: .38rem .45rem; background: #fff; color: #0b7273; cursor: pointer; font-size: .69rem; font-weight: 700; }.calibration-check.is-confirmed { border-style: solid; background: #e9f7f3; color: #12634e; }
+.preflight-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0 1.3rem; }.preflight-grid article { display: flex; gap: .72rem; border: 1px solid #e2eceb; border-radius: 12px; padding: .9rem; background: #fcfdfd; }.preflight-grid h3, .preflight-grid p { margin: 0; }.preflight-grid h3 { color: #153f4f; font-size: .9rem; }/* #71878c บนพื้น #fcfdfd วัดได้ 3.72:1 ซึ่งตกเกณฑ์ AA 4.5 — เจอตอนไล่ตรวจ 2026-09-05
+   --muted บนพื้นเดียวกันได้ 4.62 และเป็นสีที่ทั้งเว็บใช้กับคำอธิบายอยู่แล้ว */
+.preflight-grid p { margin-top: .26rem; color: var(--muted); font-size: .76rem; line-height: 1.45; }.preflight-grid small { display: block; margin-top: .5rem; color: #0b7777; font-size: .65rem; font-weight: 700; }.preflight-grid .button { margin-top: .55rem; }.calibration-check { margin-top: .6rem; border: 1px dashed #5fa9a1; border-radius: 7px; padding: .38rem .45rem; background: #fff; color: #0b7273; cursor: pointer; font-size: .69rem; font-weight: 700; }.calibration-check.is-confirmed { border-style: solid; background: #e9f7f3; color: #12634e; }
 .prelim-boq-note, .price-set-gate { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border: 1px solid #e9d2a9; border-radius: 11px; padding: .85rem .95rem; background: #fffaf2; }.prelim-boq-note strong, .price-set-gate strong { color: #7c541f; font-size: .8rem; }.prelim-boq-note p, .price-set-gate p { margin: .18rem 0 0; color: #7b6f60; font-size: .74rem; line-height: 1.45; }.price-set-gate { margin: 1rem 0; border-color: #bedbd7; background: #f4fbf9; }.price-set-gate strong { color: #145b5e; }.price-set-gate p { color: #638086; }
-.estimation-workspace .button:disabled { cursor: not-allowed; opacity: .48; filter: saturate(.25); box-shadow: none; }.estimation-workspace .button:disabled:hover { transform: none; box-shadow: none; }
+/* กฎ opacity .48 กับ saturate .25 ของเดิมถูกถอดออก 2026-09-05 — มันกดคอนทราสต์ของตัวหนังสือ
+   ลงไปพร้อมกับพื้น สภาพ "กดไม่ได้" ของปุ่มย้ายไปอยู่ในกฎกลางข้างบนซึ่งใช้สีทึบแทน */
 .document-readiness--locked { border-color: #e6c898; background: #fffaf3; }.document-readiness--locked .eyebrow { color: #a3641d; }.guidance-assistant { position: sticky; top: 98px; border: 1px solid #a9d3cc; border-radius: 17px; padding: 1.15rem; background: linear-gradient(155deg, #effaf7, #f8fcfb 72%); box-shadow: 0 16px 35px rgba(8,58,80,.055); transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out); }.guidance-assistant__head { display: flex; align-items: flex-start; justify-content: space-between; gap: .7rem; }.guidance-assistant__head h2 { margin: .25rem 0 0; color: #0c414e; font-size: 1.1rem; }.assistant-toggle { border: 1px solid #b7d5d0; border-radius: 7px; padding: .32rem .5rem; background: #fff; color: #177170; cursor: pointer; font-size: .68rem; font-weight: 750; }.assistant-mode { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin: 1rem 0; }.assistant-mode button { padding: .42rem .35rem; font-size: .68rem; }.assistant-next { border-top: 1px solid #d7e8e4; border-bottom: 1px solid #d7e8e4; padding: .9rem 0; }.assistant-next span { color: #0b7777; font-size: .64rem; font-weight: 800; letter-spacing: .1em; }.assistant-next h3 { margin: .3rem 0; color: #0a4652; font-size: .95rem; line-height: 1.35; }.assistant-next p { margin: 0; color: #58757c; font-size: .77rem; line-height: 1.55; }.assistant-checks { display: grid; gap: .65rem; margin: 1rem 0; padding: 0; list-style: none; }.assistant-checks li { display: grid; grid-template-columns: 1.3rem 1fr; gap: .55rem; align-items: start; color: #315963; font-size: .74rem; font-weight: 600; line-height: 1.4; }.assistant-checks span { display: grid; width: 1.3rem; height: 1.3rem; place-items: center; border-radius: 50%; background: #d9eee9; color: #087373; font-size: .58rem; font-weight: 800; }.assistant-boundary { border-top: 1px solid #d6e8e3; padding-top: .8rem; }.assistant-boundary strong { color: #0b5e60; font-size: .74rem; }.assistant-boundary p { margin: .25rem 0 0; color: #678188; font-size: .7rem; line-height: 1.45; }.guidance-assistant--collapsed { padding-bottom: .85rem; }
 @media (max-width: 960px) { .estimation-board--guided { grid-template-columns: 1fr; }.guidance-assistant { position: static; }.project-path-control { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 720px) { .preflight-grid { grid-template-columns: 1fr; }.project-path-control > div, .prelim-boq-note, .price-set-gate { width: 100%; }.project-path-control button { flex: 1; }.prelim-boq-note, .price-set-gate { align-items: flex-start; flex-direction: column; }.prelim-boq-note .button, .price-set-gate .button { width: 100%; } }
@@ -982,7 +1016,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Access and pricing page. The layout borrows the shape of a plan comparison, but the right-hand
    column holds an account state rather than an order total, because no numeric price exists. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.button--ghost { background: transparent; border-color: var(--line); color: var(--ink); }.button--ghost:hover { border-color: var(--teal); color: var(--teal); }
+.button--ghost { background: var(--paper); border-color: var(--line); color: var(--teal-text); box-shadow: var(--edge) 0 4px 0 0; }.button--ghost:hover { border-color: var(--teal); color: var(--teal); transform: translateY(-1px); box-shadow: var(--edge) 0 5px 0 0; }.button--ghost:active { box-shadow: none; }
 .section-heading h1 { font-size: clamp(1.9rem, 3.4vw, 2.9rem); letter-spacing: -.005em; line-height: 1.3; margin: 10px 0 0; }
 .access-intro { color: var(--muted); line-height: 1.75; max-width: 730px; margin: 16px 0 0; }
 .access-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(282px,338px); gap: 26px; align-items: start; margin-top: 34px; }

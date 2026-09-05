@@ -85,7 +85,7 @@ export function EntitlementStatus({ access }: { access: EstimeterAccessView }) {
   return (
     <section className="policy-preview" aria-label="สิทธิ์การใช้งาน ESTIMETR ของบัญชีนี้">
       <div>
-        <div className="eyebrow" style={{ color: "var(--teal)" }}>สิทธิ์การใช้งานของบัญชีนี้</div>
+        <div className="eyebrow" style={{ color: "var(--teal-text)" }}>สิทธิ์การใช้งานของบัญชีนี้</div>
         <h3>{headline[access.state]}</h3>
         <p>{describe(access)}</p>
       </div>
