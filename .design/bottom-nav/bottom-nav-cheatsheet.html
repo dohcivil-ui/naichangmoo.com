@@ -1,0 +1,328 @@
+<title>ชีตแถบล่างนายช่างหมู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap">
+<style>
+  /* -----------------------------------------------------------------
+     สีทุกค่าคัดลอกจาก src/app/globals.css ของเว็บจริง ไม่มีสีคิดใหม่
+     ธีมสว่างอย่างเดียวโดยตั้งใจ เพราะแอปจริงมีธีมเดียว ถ้าปล่อยให้พลิก
+     ตามเครื่องที่เปิด สีที่เห็นบนชีตจะไม่ใช่สีที่ผู้ใช้เห็น
+     ----------------------------------------------------------------- */
+  :root {
+    --ink: #073047;
+    --ink-deep: #051f2f;
+    --ink-body: #3f545f;
+    --teal: #0d8282;
+    --teal-text: #0c7878;
+    --teal-deep: #0a6a6a;
+    --teal-soft: #3aa8a8;
+    --teal-wash: #e6f3f3;
+    --orange: #f47721;
+    --orange-text: #a34f14;
+    --orange-wash: #fdeee2;
+    --orange-deep: #b4530a;
+    --on-orange: #17120d;
+    --canvas: #f4f7f7;
+    --paper: #ffffff;
+    --mist: #d8e4e4;
+    --line: #c9d8d9;
+    --off: #e9eff0;
+    --muted: #5f7178;
+    --dimension-red: #c0392b;
+    --focus: rgba(244, 119, 33, .72);
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  header.top { display: grid; gap: 8px; text-align: center; padding-block-end: 26px; }
+  .kicker { display: inline-flex; align-self: center; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; background: var(--teal-wash); color: var(--teal-text); font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  h1 { margin: 0; font-size: clamp(1.9rem, 6vw, 3.1rem); font-weight: 700; line-height: 1.05; color: var(--ink); letter-spacing: -.02em; }
+  h1 em { font-style: normal; color: var(--teal); }
+  .lede { margin: 6px auto 0; max-width: 60ch; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; margin-block-start: 12px; }
+  @media (max-width: 780px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+  .item > .cap { display: flex; align-items: center; gap: 10px; margin-block-end: 10px; }
+  .item .n { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); color: var(--teal-text); font-family: "IBM Plex Sans Thai", Arial, sans-serif; font-size: .8rem; font-weight: 700; }
+  .item h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--ink); }
+  .item .note { margin: 8px 2px 0; font-size: .8rem; color: var(--muted); }
+
+  /* กรอบจอมือถือ กว้าง 375 เท่าจริง ย่อลงพอดีคอลัมน์ */
+  .phone { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px 12px 10px; box-shadow: 0 10px 24px -18px rgba(7, 48, 71, .5); }
+  .screen { background: var(--canvas); border-radius: 10px; height: 74px; margin-block-end: 10px; display: grid; place-items: center; color: var(--muted); font-size: .74rem; }
+  .home-line { width: 108px; height: 4px; border-radius: 999px; background: var(--ink); opacity: .8; margin: 10px auto 0; }
+
+  /* ---------- แถบร่วม ---------- */
+  .bar { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; align-items: end; }
+  /* 12px คือขนาดที่ชีตต้นแบบใช้ (Satoshi 12 Med) และเป็นขนาดต่ำสุดที่ตัวไทยยังอ่านออกบนจอมือถือ
+     ต่ำกว่านี้สระบนล่างของไทยจะเริ่มติดกันจนแยกไม่ออก ซึ่งเป็นปัญหาที่ฟอนต์ละตินไม่มี */
+  .tab { display: grid; justify-items: center; gap: 4px; padding: 6px 2px; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .75rem; font-weight: 600; cursor: pointer; border-radius: 10px; transition: color 150ms var(--ease-out), background 150ms var(--ease-out); }
+  .tab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .tab:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .tab[aria-current="page"] { color: var(--teal-text); }
+
+  /* 1 คลาสสิก */
+  .v1 .bar { border-block-start: 1px solid var(--line); padding-block-start: 4px; }
+  .v1 .tab[aria-current="page"] svg { stroke-width: 2.2; }
+
+  /* 2 ปุ่มวงกลมกลาง */
+  .v2 .bar { border-block-start: 1px solid var(--line); padding-block-start: 4px; align-items: end; }
+  .cta-round { justify-self: center; display: grid; place-items: center; width: 50px; height: 50px; margin-block-end: 6px; border: 0; border-radius: 999px; background: var(--orange); color: var(--on-orange); cursor: pointer; box-shadow: 0 8px 18px -8px rgba(244, 119, 33, .8); }
+  .cta-round svg { width: 23px; height: 23px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cta-round:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  /* 3 ปุ่มข้าวหลามตัดกลาง */
+  .v3 .bar { border-block-start: 1px solid var(--line); padding-block-start: 4px; }
+  .cta-diamond { justify-self: center; display: grid; place-items: center; width: 46px; height: 46px; margin-block-end: 8px; border: 0; border-radius: 12px; background: var(--teal); color: var(--paper); cursor: pointer; transform: rotate(45deg); box-shadow: 0 8px 18px -9px rgba(13, 130, 130, .9); }
+  .cta-diamond svg { width: 21px; height: 21px; transform: rotate(-45deg); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cta-diamond:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+  /* 4 ลอย */
+  .v4 .bar { background: var(--ink); border-radius: 999px; padding: 6px; }
+  .v4 .tab { color: #a8c4cd; border-radius: 999px; padding: 8px 2px; }
+  .v4 .tab[aria-current="page"] { background: rgba(255, 255, 255, .12); color: #ffffff; }
+
+  /* 5 ข้อความเฉพาะตัวที่เลือก */
+  .v5 .bar { border-block-start: 1px solid var(--line); padding-block-start: 6px; align-items: center; }
+  .v5 .tab { grid-auto-flow: column; align-items: center; gap: 7px; padding: 8px 4px; }
+  .v5 .tab .txt { display: none; }
+  .v5 .tab[aria-current="page"] { background: var(--orange-wash); color: var(--orange-text); padding-inline: 12px; }
+  .v5 .tab[aria-current="page"] .txt { display: inline; font-size: .74rem; font-weight: 700; }
+  .v5 .tab .cap-txt { display: none; }
+
+  /* 6 ฟอง */
+  .v6 .bar { border-block-start: 1px solid var(--line); padding-block-start: 4px; }
+  .v6 .tab { position: relative; padding-block-start: 12px; }
+  .v6 .tab[aria-current="page"] { color: var(--teal-text); }
+  .v6 .tab[aria-current="page"] svg { position: relative; z-index: 2; }
+  .v6 .tab[aria-current="page"]::before { content: ""; position: absolute; inset-block-start: 0; inset-inline-start: 50%; translate: -50% 0; width: 42px; height: 42px; border-radius: 999px; background: var(--teal-wash); }
+  .v6 .tab[aria-current="page"]::after { content: ""; position: absolute; inset-block-start: -5px; inset-inline-start: 50%; translate: -50% 0; width: 7px; height: 7px; border-radius: 999px; background: var(--teal); }
+
+  /* ---------- บล็อกเส้นบอกระยะ ---------- */
+  .redline { margin-block-start: 40px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .redline > header { padding: 18px 22px 14px; border-block-end: 1px solid var(--line); }
+  .redline h2 { margin: 0 0 4px; font-size: 1.1rem; color: var(--ink); }
+  .redline p { margin: 0; max-width: 74ch; font-size: .86rem; }
+  .measure-stage { position: relative; padding: 46px 30px 40px; background: var(--canvas); }
+  .measure-frame { position: relative; width: min(375px, 100%); margin: 0 auto; background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 6px 8px 8px; }
+  .dim { position: absolute; color: var(--dimension-red); font-family: "IBM Plex Sans Thai", Arial, sans-serif; font-size: .68rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .dim::before { content: ""; position: absolute; background: var(--dimension-red); }
+  .dim.top { inset-block-start: -26px; }
+  .dim.top::before { inset-block-start: 15px; inset-inline: 0; height: 1px; }
+  .dim.side { inset-inline-end: -8px; }
+  .guide { position: absolute; background: rgba(192, 57, 43, .35); }
+  .readout { display: grid; gap: 4px 20px; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); padding: 16px 22px 20px; border-block-start: 1px solid var(--line); font-size: .8rem; }
+  .readout div { display: flex; justify-content: space-between; gap: 10px; padding-block: 3px; border-block-end: 1px dotted var(--mist); }
+  .readout span { color: var(--muted); }
+  .readout b { color: var(--ink); font-family: "IBM Plex Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; }
+
+  .verdict { margin-block-start: 30px; padding: 20px 22px; background: var(--paper); border: 1px solid var(--line); border-inline-start: 4px solid var(--orange); border-radius: 12px; }
+  .verdict h2 { margin: 0 0 8px; font-size: 1.05rem; color: var(--ink); }
+  .verdict ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 7px; }
+  .verdict li { max-width: 72ch; }
+  .verdict b { color: var(--ink); }
+
+  footer.foot { margin-block-start: 26px; font-size: .78rem; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) { .tab { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="kicker">ชีตชิ้นส่วน · นายช่างหมู</span>
+    <h1>แถบล่าง <em>หกแบบ</em></h1>
+    <p class="lede">
+      แถบนำทางล่างจอมือถือของเว็บเรา ทั้งหกแบบใช้สีจาก <span class="num">globals.css</span> ตัวจริง
+      ไม่มีสีคิดใหม่ · เขตกดของทุกแบบสูงอย่างน้อย <span class="num">44px</span> ตามเกณฑ์นิ้วมือ
+      และบล็อกเส้นบอกระยะข้างล่าง <b>วัดจากของที่เรนเดอร์อยู่บนหน้านี้จริง</b> ไม่ใช่ตัวเลขที่พิมพ์ไว้
+    </p>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="redline">
+    <header>
+      <h2>เส้นบอกระยะของแบบที่ 1</h2>
+      <p>
+        ตัวเลขสีแดงทุกตัวมาจาก <span class="num">getBoundingClientRect</span> ของชิ้นส่วนจริงบนหน้านี้
+        ถ้าผมแก้ CSS แล้วลืมแก้ตัวเลข ตัวเลขจะขยับตามเอง ไม่มีทางค้างเป็นค่าเก่าให้หลงเชื่อ
+      </p>
+    </header>
+    <div class="measure-stage">
+      <div class="measure-frame" id="frame"></div>
+    </div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="verdict">
+    <h2>ถ้าให้ผมเลือกให้เว็บเรา</h2>
+    <ul>
+      <li><b>แบบ 1 คลาสสิก</b> คือแบบที่ปลอดภัยที่สุด ทุกช่องมีทั้งรูปและคำ คนที่เพิ่งเข้าเว็บครั้งแรกไม่ต้องเดาความหมายของไอคอนเลย</li>
+      <li><b>แบบ 2 กับ 3 ที่มีปุ่มกลาง</b> เหมาะเมื่อมีงานเดียวที่สำคัญกว่าเพื่อนจริง ๆ ของเราคือ "เปิดแบบแล้วเริ่มวัด" ถ้าเลือกแบบนี้ ปุ่มกลางต้องเป็นงานนั้นงานเดียว ไม่ใช่เมนูรวม</li>
+      <li><b>แบบ 4 ลอย</b> สวยที่สุดแต่เป็นไอคอนล้วน · <b>เว็บเราเป็นเครื่องมือวิศวกรรม ไม่ใช่แอปโซเชียล</b> คนใช้ไม่ได้เข้ามาทุกวันจนจำไอคอนได้ การถอดคำออกจึงแลกความชัดเจนไปมาก</li>
+      <li><b>แบบ 5 ข้อความเฉพาะตัวที่เลือก</b> ประหยัดที่และยังบอกได้ว่าอยู่ตรงไหน แต่ช่องที่ไม่ได้เลือกกลับกลายเป็นไอคอนล้วนเหมือนแบบ 4</li>
+      <li><b>แบบ 6 ฟอง</b> จุดที่ลอยขึ้นบอกตำแหน่งได้ไวที่สุดในหกแบบ และยังเหลือคำครบทุกช่อง เป็นแบบที่ผมคิดว่าคุ้มที่สุดถ้าอยากได้อะไรที่ไม่ใช่แบบ 1 เฉย ๆ</li>
+    </ul>
+  </section>
+
+  <footer class="foot">
+    เลือกหมายเลขมาได้เลย ผมจะทำเป็นชิ้นส่วนกลางตัวเดียวเหมือน <span class="num">&lt;Button&gt;</span>
+    แล้วให้ทุกหน้าบนมือถือใช้ตัวเดียวกัน ไม่ใช่ต่างคนต่างวาด
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var ICONS = {
+      home: '<path d="M4 11l8-7 8 7"/><path d="M6.5 9.5V20h11V9.5"/>',
+      apps: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+      folder: '<path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h4l2 2.5h7A1.5 1.5 0 0 1 19 9v8.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 3 17.5z"/>',
+      price: '<path d="M5 4h10l4 4v12H5z"/><path d="M9 11h6M9 15h6"/>',
+      user: '<circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/>',
+      ruler: '<path d="M3 13l10-10 8 8-10 10z"/><path d="M8 8l2 2M11 5l2 2M5 11l2 2"/>'
+    };
+    function svg(n) { return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICONS[n] + '</svg>'; }
+
+    var TABS = [
+      { icon: 'home', label: 'หน้าแรก' },
+      { icon: 'apps', label: 'แอปทั้งหมด' },
+      { icon: 'folder', label: 'โครงการ' },
+      { icon: 'price', label: 'ใบราคา' },
+      { icon: 'user', label: 'บัญชี' }
+    ];
+
+    function tab(t, active, showText) {
+      var current = active ? ' aria-current="page"' : '';
+      var text = showText === false ? '<span class="txt">' + t.label + '</span>' : t.label;
+      return '<button type="button" class="tab"' + current + '>' + svg(t.icon) + text + '</button>';
+    }
+
+    function classic(activeIndex, showText) {
+      return TABS.map(function (t, i) { return tab(t, i === activeIndex, showText); }).join('');
+    }
+
+    /* แบบที่มีปุ่มกลาง ใช้สี่ช่องแล้วแทรกปุ่มไว้ตรงกลางเป็นช่องที่ห้า */
+    function withCta(kind) {
+      var four = [TABS[0], TABS[2], TABS[3], TABS[4]];
+      var left = four.slice(0, 2).map(function (t, i) { return tab(t, i === 0, true); }).join('');
+      var right = four.slice(2).map(function (t) { return tab(t, false, true); }).join('');
+      var cls = kind === 'diamond' ? 'cta-diamond' : 'cta-round';
+      var cta = '<button type="button" class="' + cls + '" aria-label="เปิดแบบแล้วเริ่มวัด">' + svg('ruler') + '</button>';
+      return left + cta + right;
+    }
+
+    var ITEMS = [
+      { id: 'v1', n: 1, name: 'คลาสสิก', note: 'รูปกับคำครบทุกช่อง ช่องที่อยู่เปลี่ยนเป็นสีเขียวของระบบและเส้นหนาขึ้น', bar: classic(0, true) },
+      { id: 'v2', n: 2, name: 'มีปุ่มวงกลมกลาง', note: 'ปุ่มส้มกลางคือ "เปิดแบบแล้วเริ่มวัด" งานเดียวที่สำคัญที่สุดของแอป', bar: withCta('round') },
+      { id: 'v3', n: 3, name: 'มีปุ่มข้าวหลามตัดกลาง', note: 'เหมือนแบบ 2 แต่ปุ่มกลางเป็นเขียวของระบบ ไม่แย่งสีส้มไปจากปุ่มหลักในหน้า', bar: withCta('diamond') },
+      { id: 'v4', n: 4, name: 'ลอย', note: 'แถบลอยพื้นหมึกเข้ม ไอคอนล้วน ช่องที่อยู่เป็นพื้นจางบนหมึก', bar: classic(0, false) },
+      { id: 'v5', n: 5, name: 'ข้อความเฉพาะช่องที่อยู่', note: 'เห็นคำเฉพาะช่องที่กำลังอยู่ ช่องอื่นเหลือแต่รูป ประหยัดที่บนจอแคบ', bar: classic(0, false) },
+      { id: 'v6', n: 6, name: 'ฟอง', note: 'ช่องที่อยู่ลอยขึ้นเป็นฟองพร้อมจุดเหนือหัว บอกตำแหน่งได้ไวโดยไม่ต้องถอดคำออก', bar: classic(1, true) }
+    ];
+
+    document.getElementById('grid').innerHTML = ITEMS.map(function (it) {
+      return '' +
+      '<article class="item ' + it.id + '" id="' + it.id + '">' +
+        '<div class="cap"><span class="n">' + it.n + '</span><h2>' + it.name + '</h2></div>' +
+        '<div class="phone">' +
+          '<div class="screen">พื้นที่เนื้อหา</div>' +
+          '<nav class="bar" aria-label="แถบนำทางล่าง แบบ ' + it.n + '">' + it.bar + '</nav>' +
+          '<div class="home-line"></div>' +
+        '</div>' +
+        '<p class="note">' + it.note + '</p>' +
+      '</article>';
+    }).join('');
+
+    /* ---- บล็อกเส้นบอกระยะ วาดจากของจริงที่เรนเดอร์แล้ว ---- */
+    var frame = document.getElementById('frame');
+    frame.innerHTML = '<nav class="bar" id="mbar" aria-label="แถบล่างสำหรับวัดระยะ">' + classic(0, true) + '</nav>';
+    frame.parentElement.classList.add('v1');
+
+    function px(n) { return Math.round(n * 10) / 10; }
+
+    /* คอนทราสต์วัดจากสีที่เรนเดอร์จริง ไม่ใช่จากค่าที่พิมพ์ไว้ในสไตล์ชีต
+       ถ้าหาพื้นทึบไม่เจอ ให้ตอบว่าวัดไม่ได้ ห้ามเดา */
+    function luminance(rgb) {
+      var p = rgb.match(/[\d.]+/g);
+      if (!p || p.length < 3) return null;
+      var c = p.slice(0, 3).map(function (v) {
+        var s = Number(v) / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+
+    function contrast(el) {
+      var fg = luminance(getComputedStyle(el).color);
+      var node = el, bg = null;
+      while (node && node !== document.documentElement) {
+        var col = getComputedStyle(node).backgroundColor;
+        var p = col.match(/[\d.]+/g);
+        if (p && col !== 'rgba(0, 0, 0, 0)' && (p.length < 4 || Number(p[3]) === 1)) { bg = luminance(col); break; }
+        node = node.parentElement;
+      }
+      if (fg === null || bg === null) return 'วัดไม่ได้';
+      var hi = Math.max(fg, bg), lo = Math.min(fg, bg);
+      return ((hi + 0.05) / (lo + 0.05)).toFixed(2);
+    }
+
+    requestAnimationFrame(function () {
+      var bar = document.getElementById('mbar');
+      var tabs = [].slice.call(bar.querySelectorAll('.tab'));
+      var barBox = bar.getBoundingClientRect();
+      var first = tabs[0].getBoundingClientRect();
+      var second = tabs[1].getBoundingClientRect();
+      var icon = tabs[0].querySelector('svg').getBoundingClientRect();
+      var label = getComputedStyle(tabs[0]);
+      var gap = second.left - first.right;
+
+      /* เส้นบอกระยะแนวนอน กว้างของช่องแรก และช่องว่างระหว่างช่อง */
+      var stage = frame;
+      var dims = [
+        { cls: 'dim top', left: first.left - barBox.left, width: first.width, text: px(first.width) + ' กว้างช่อง' },
+        { cls: 'dim top', left: second.left - barBox.left, width: second.width, text: px(second.width) }
+      ];
+      dims.forEach(function (d) {
+        var el = document.createElement('span');
+        el.className = d.cls;
+        el.style.insetInlineStart = (d.left + 8) + 'px';
+        el.style.width = d.width + 'px';
+        el.style.textAlign = 'center';
+        el.textContent = d.text;
+        stage.appendChild(el);
+      });
+
+      var rows = [
+        ['ความสูงของแถบทั้งแถบ', px(barBox.height) + ' px'],
+        ['ความสูงเขตกดของหนึ่งช่อง', px(first.height) + ' px'],
+        ['ความกว้างเขตกดของหนึ่งช่อง', px(first.width) + ' px'],
+        ['ช่องว่างระหว่างสองช่อง', px(gap) + ' px'],
+        ['ขนาดไอคอน', px(icon.width) + ' × ' + px(icon.height) + ' px'],
+        ['ขนาดตัวหนังสือใต้ไอคอน', label.fontSize + ' หนัก ' + label.fontWeight],
+        ['จำนวนช่อง', tabs.length + ' ช่อง'],
+        ['เขตกดผ่านเกณฑ์ 44px', (first.height >= 44 ? 'ผ่าน' : 'ยังไม่ผ่าน ต้องเพิ่ม ' + px(44 - first.height) + ' px')],
+        ['คอนทราสต์ ช่องที่อยู่', contrast(tabs[0]) + ':1'],
+        ['คอนทราสต์ ช่องที่ไม่ได้อยู่', contrast(tabs[1]) + ':1']
+      ];
+      document.getElementById('readout').innerHTML = rows.map(function (r) {
+        return '<div><span>' + r[0] + '</span><b>' + r[1] + '</b></div>';
+      }).join('');
+    });
+  })();
+</script>

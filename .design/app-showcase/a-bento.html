@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบ ก — ตารางบล็อกไม่เท่ากัน (กรอบหนาแบบสิ่งพิมพ์)</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* บุคลิกของแบบนี้คือกรอบหนา พื้นแบน ไม่มีเงา ตัวอักษรใหญ่ และมีบล็อกสีเข้มกับสีส้ม
+     คั่นจังหวะ เพื่อไม่ให้เป็นการ์ดสีขาวหน้าตาเดียวกันทั้งตาราง */
+  .bento { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); }
+
+  .tile {
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 22px; border: 2px solid var(--ink); border-radius: 6px;
+    background: var(--paper); box-shadow: none;
+    transition: transform 140ms var(--ease-out);
+  }
+  .tile:hover { transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--ink); }
+
+  .tile__code {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  }
+  .tile__code::before { content: ""; width: 18px; height: 2px; background: var(--orange); }
+  .tile__name { color: var(--ink); font-size: 1.34rem; font-weight: 700; letter-spacing: -.02em; line-height: 1.2; }
+  .tile__line { color: var(--ink-body); font-size: .94rem; }
+  .tile__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; border-top: 1px solid var(--line); }
+  .tile__list li { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: .88rem; color: var(--ink-body); }
+  .tile__foot { margin-top: auto; padding-top: 4px; }
+
+  .tile--flag { grid-column: span 2; grid-row: span 2; }
+  .tile--flag .tile__name { font-size: clamp(1.7rem, 2.6vw, 2.2rem); }
+  .tile--flag .shot { aspect-ratio: 16 / 9; border-color: var(--ink); }
+  .tile--wide { grid-column: span 2; }
+
+  /* บล็อกสีเข้มกับบล็อกสีส้ม ทำหน้าที่คั่นจังหวะสายตา ไม่ให้ตารางแบนราบทั้งผืน */
+  .tile--ink { background: var(--ink); border-color: var(--ink); }
+  .tile--ink .tile__name { color: #fff; }
+  .tile--ink .tile__line { color: #b7cdd0; }
+  .tile--ink .tile__code { color: #7fd6cf; }
+  .tile--ink:hover { box-shadow: 4px 4px 0 var(--teal); }
+
+  .tile--orange { background: var(--orange); border-color: var(--ink); }
+  .tile--orange .tile__name, .tile--orange .tile__line { color: #21150c; }
+  .tile--orange .tile__code { color: #5c3410; }
+  .tile--orange .tile__code::before { background: var(--ink); }
+
+  .tile__cta { color: var(--ink); font-weight: 700; text-decoration: none; border-bottom: 2px solid var(--orange); }
+  .tile--ink .tile__cta { color: #fff; }
+
+  @media (max-width: 1080px) {
+    .bento { grid-template-columns: repeat(2, 1fr); }
+    .tile--flag, .tile--wide { grid-column: span 2; }
+    .tile--flag { grid-row: auto; }
+  }
+  @media (max-width: 640px) {
+    .bento { grid-template-columns: 1fr; }
+    .tile--flag, .tile--wide { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container mock-head">
+  <div class="mock-head__bar">
+    <span class="mock-head__name">แบบ ก — ตารางบล็อกไม่เท่ากัน</span>
+    <a class="mock-head__back" href="index.html">← กลับไปดูทั้งห้าแบบ</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">แอปของเรา</p>
+      <h2>แต่ละแอปทำอะไรให้คุณได้บ้าง</h2>
+      <p>แอปเรือธงได้บล็อกใหญ่ที่สุด ที่เหลือลดหลั่นลงมา สลับว่าใบไหนใหญ่ได้ทุกเดือนโดยไม่ต้องรื้อโครง</p>
+    </div>
+
+    <div class="bento">
+      <article class="tile tile--flag">
+        <span class="tile__code">แอปหลัก · ประมาณราคา</span>
+        <span class="tile__name">ESTIMETR</span>
+        <p class="tile__line">ถอดปริมาณจากแบบ แล้วให้ผู้ช่วยร่าง BOQ ให้ทั้งใบ คุณตรวจแล้วกดรับทีละรายการ</p>
+        <div class="shot">ที่วางภาพหน้าจอ — ใบ BOQ แยกกลุ่มงาน</div>
+        <ul class="tile__list">
+          <li>ผู้ช่วยจับคู่ปริมาณกับบัญชีราคาให้ทั้งใบ</li>
+          <li>ทุกบรรทัดชี้กลับไปหาแบบและที่มาของราคาได้</li>
+          <li>ออกได้ทั้งราคากลางด้วย Factor F และต้นทุนผู้รับเหมา</li>
+        </ul>
+        <div class="tile__foot"><a class="tile__cta" href="#">ทดลองใช้ฟรี 7 วัน</a></div>
+      </article>
+
+      <article class="tile tile--ink tile--wide">
+        <span class="tile__code">ราคาวัสดุและค่าแรง</span>
+        <span class="tile__name">PRICEMETR</span>
+        <p class="tile__line">ค้นราคาวัสดุรายจังหวัดและค่าแรงตามบัญชีราชการ แล้วหยิบรายการส่งเข้าโครงการได้เลย</p>
+        <div class="tile__foot"><a class="tile__cta" href="#">ดูรายละเอียด</a></div>
+      </article>
+
+      <article class="tile">
+        <span class="tile__code">ปรับราคาสัญญา</span>
+        <span class="tile__name">ESCALATION K</span>
+        <p class="tile__line">ค่า K และเงินชดเชยรายงวดตามสัญญาแบบปรับราคาได้</p>
+      </article>
+
+      <article class="tile tile--orange">
+        <span class="tile__code">แผนงานก่อสร้าง</span>
+        <span class="tile__name">ผู้ช่วยสร้างแผนงาน</span>
+        <p class="tile__line">แผนงาน งวดงาน และ S-Curve ที่พิมพ์แนบสัญญาได้</p>
+      </article>
+
+      <article class="tile">
+        <span class="tile__code">อุปกรณ์ความปลอดภัย</span>
+        <span class="tile__name">TRAFFIC SIGN</span>
+        <p class="tile__line">คำนวณวัสดุป้ายจราจรจนได้ BOQ</p>
+      </article>
+
+      <article class="tile">
+        <span class="tile__code">ออกแบบโครงสร้าง</span>
+        <span class="tile__name">กำแพงกันดิน</span>
+        <p class="tile__line">หาหน้าตัดที่ผ่านเกณฑ์และประหยัดที่สุด</p>
+      </article>
+
+      <!-- ใบปิดท้ายกินสองคอลัมน์ ทำให้แถวสุดท้ายเต็มพอดีและมีทางไปต่อ -->
+      <article class="tile tile--wide">
+        <span class="tile__code">ทั้งหมด</span>
+        <span class="tile__name">ยังมีอีกหลายแอปในทะเบียน</span>
+        <p class="tile__line">งานจัดกรรมสิทธิ์ที่ดิน และแอปที่กำลังทยอยเปิด ดูรายการเต็มได้ที่หน้าแอปทั้งหมด</p>
+        <div class="tile__foot"><a class="tile__cta" href="#">ดูแอปทั้งหมด</a></div>
+      </article>
+    </div>
+
+    <p class="slotnote">
+      <strong>ช่องที่สลับได้</strong> — จำนวนใบ ขนาดของแต่ละใบ (เรือธง / สองคอลัมน์ / คอลัมน์เดียว)
+      สีของใบ (ขาว เข้ม ส้ม) ภาพหน้าจอ และรายการข้อดีในใบเรือธง · เพิ่มแอปใหม่คือเพิ่มหนึ่งบล็อก
+    </p>
+  </div>
+</section>
+
+</body>
+</html>

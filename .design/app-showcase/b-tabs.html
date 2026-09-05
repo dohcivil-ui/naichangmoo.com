@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบ ข — แท็บสลับแอป</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+  .tab {
+    flex: 0 0 auto; min-height: 42px; padding: 0 18px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--paper); color: var(--muted);
+    font: inherit; font-weight: 700; font-size: .88rem; white-space: nowrap; cursor: pointer;
+    transition: color 140ms var(--ease-out), background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+  }
+  .tab:hover { color: var(--teal-text); border-color: rgba(13, 130, 130, .5); }
+  .tab[aria-selected="true"] { color: #fff; background: var(--ink); border-color: var(--ink); }
+
+  .panel { display: none; margin-top: 22px; }
+  .panel[data-open="true"] { display: block; animation: fade 260ms var(--ease-out); }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .panel__grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px); align-items: center; }
+  .panel__copy { display: grid; gap: 14px; align-content: start; }
+  .panel__lead { color: var(--ink-body); font-size: 1.02rem; }
+  .panel__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .panel__list li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start; font-size: .92rem; }
+  .panel__num { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: rgba(13, 130, 130, .12); color: var(--teal-text); font-size: .74rem; font-weight: 700; }
+  .panel__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+
+  @media (max-width: 900px) {
+    .panel__grid { grid-template-columns: 1fr; }
+    .panel__shot { order: -1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container mock-head">
+  <div class="mock-head__bar">
+    <span class="mock-head__name">แบบ ข — แท็บสลับแอป</span>
+    <a class="mock-head__back" href="index.html">← กลับไปดูทั้งห้าแบบ</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">แอปของเรา</p>
+      <h2>เลือกแอปที่ตรงกับงานตรงหน้า</h2>
+      <p>กดชื่อแอปแล้วดูว่ามันทำอะไรให้ได้ ที่จอแคบแท็บเลื่อนแนวนอน ไม่ต้องยุบเป็นเมนู</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="เลือกแอป">
+      <button class="tab" role="tab" aria-selected="true" data-tab="estimetr">ESTIMETR</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="pricemetr">PRICEMETR</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="k">ESCALATION K</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="plan">ผู้ช่วยสร้างแผนงาน</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="sign">TRAFFIC SIGN</button>
+    </div>
+
+    <div class="panel" data-panel="estimetr" data-open="true">
+      <div class="panel__grid">
+        <div class="panel__copy">
+          <span class="pill">ทดลองใช้ฟรี 7 วัน</span>
+          <h3>ถอดปริมาณจากแบบ จนได้ BOQ ทั้งใบ</h3>
+          <p class="panel__lead">ผู้ช่วยจับคู่รายการปริมาณกับบัญชีราคาให้ก่อน คุณตรวจแล้วกดรับทีละคู่ ทุกบรรทัดชี้กลับไปหาแบบและที่มาของราคาได้</p>
+          <ul class="panel__list">
+            <li><span class="panel__num">01</span><span>ถอดปริมาณพร้อมบันทึกที่มาของการวัด</span></li>
+            <li><span class="panel__num">02</span><span>ผู้ช่วยร่าง BOQ แยกตามกลุ่มงานเหมือนใบ ปร.4</span></li>
+            <li><span class="panel__num">03</span><span>ออกได้ทั้งราคากลางด้วย Factor F และต้นทุนผู้รับเหมา</span></li>
+          </ul>
+          <div class="panel__actions"><a class="button" href="#">เริ่มทดลองใช้ฟรี</a><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="panel__shot"><div class="shot">ที่วางภาพหน้าจอ — ใบ BOQ แยกกลุ่มงาน</div></div>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="pricemetr">
+      <div class="panel__grid">
+        <div class="panel__copy">
+          <span class="pill">ราคาวัสดุและค่าแรง</span>
+          <h3>ราคาวัสดุรายจังหวัดและค่าแรงตามบัญชีราชการ</h3>
+          <p class="panel__lead">ค้นราคาตามจังหวัดและเดือนที่ต้องการ หยิบรายการที่ใช้เก็บไว้ แล้วส่งเข้าโครงการเป็นบัญชีราคาที่แก้ไม่ได้</p>
+          <ul class="panel__list">
+            <li><span class="panel__num">01</span><span>ราคาผูกกับจังหวัด เดือน และรหัสของผู้ประกาศ</span></li>
+            <li><span class="panel__num">02</span><span>เทียบราคาย้อนหลังได้ว่าขยับขึ้นลงเท่าไร</span></li>
+            <li><span class="panel__num">03</span><span>ส่งเข้าโครงการแล้วตัวเลขนิ่ง ไม่ขยับตามต้นทาง</span></li>
+          </ul>
+          <div class="panel__actions"><a class="button" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="panel__shot"><div class="shot">ที่วางภาพหน้าจอ — ตารางราคารายจังหวัด</div></div>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="k">
+      <div class="panel__grid">
+        <div class="panel__copy">
+          <h3>ค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้</h3>
+          <p class="panel__lead">เลือกสูตรที่ตรงกับประเภทงาน ใส่ดัชนีราคาของเดือนฐานและเดือนที่ส่งมอบ แล้วได้เงินชดเชยรายงวดพร้อมที่มาของทุกตัวเลข</p>
+          <div class="panel__actions"><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="panel__shot"><div class="shot">ที่วางภาพหน้าจอ — ตารางค่า K รายงวด</div></div>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="plan">
+      <div class="panel__grid">
+        <div class="panel__copy">
+          <h3>แผนงานก่อสร้างที่พิมพ์แนบสัญญาได้</h3>
+          <p class="panel__lead">กรอกข้อมูลโครงการแล้วให้ผู้ช่วยร่างแผนงาน งวดงาน และกำลังคน ปรับได้ทุกช่อง ก่อนส่งออกเป็นเอกสารแนบสัญญา</p>
+          <div class="panel__actions"><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="panel__shot"><div class="shot">ที่วางภาพหน้าจอ — กราฟ S-Curve และงวดงาน</div></div>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="sign">
+      <div class="panel__grid">
+        <div class="panel__copy">
+          <h3>รายการวัสดุป้ายจราจรจนถึง BOQ</h3>
+          <p class="panel__lead">ระบุชนิดป้ายและตำแหน่งติดตั้ง ระบบคิดวัสดุและอุปกรณ์ประกอบให้ครบจนออกเป็นรายการราคา</p>
+          <div class="panel__actions"><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="panel__shot"><div class="shot">ที่วางภาพหน้าจอ — รายการวัสดุป้าย</div></div>
+      </div>
+    </div>
+
+    <p class="slotnote">
+      <strong>ช่องที่สลับได้</strong> — ชื่อแท็บ ภาพหน้าจอ หัวข้อ คำโปรย และรายการข้อดีของแต่ละแอป
+      · เพิ่มแอปใหม่คือเพิ่มหนึ่งแท็บกับหนึ่งแผง · แท็บที่ยาวเกินจอจะเลื่อนแนวนอนเอง
+    </p>
+  </div>
+</section>
+
+<script>
+  const tabs = [...document.querySelectorAll('.tab')];
+  const panels = [...document.querySelectorAll('.panel')];
+  tabs.forEach((tab) => tab.addEventListener('click', () => {
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t === tab)));
+    panels.forEach((p) => p.dataset.open = String(p.dataset.panel === tab.dataset.tab));
+  }));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงโชว์ความสามารถของแอป — ห้าแบบให้เลือก</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+  .pick {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 22px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    text-decoration: none; color: inherit;
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  }
+  .pick:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(7,48,71,.13); }
+  .pick__key { color: var(--orange-text); font-size: .78rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+  .pick__name { color: var(--ink); font-size: 1.14rem; font-weight: 700; letter-spacing: -.01em; }
+  .pick__lead { color: var(--muted); font-size: .9rem; }
+  .pick__tags { margin-top: auto; padding-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { padding: 4px 10px; border-radius: 999px; background: rgba(13,130,130,.1); color: var(--teal-text); font-size: .74rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">ต้นแบบหน้าจอ</p>
+      <h2>โครงโชว์ความสามารถของแอป — ห้าแบบ</h2>
+      <p>ทั้งห้าแบบแทนที่แถบตัวเลขกับการ์ดปัญหาสามใบบนหน้าแรก ทุกแบบออกแบบให้สลับเนื้อหาได้บ่อยโดยไม่ต้องรื้อโครง และรองรับจอตั้งแต่มือถือถึงจอกว้าง</p>
+    </div>
+
+    <div class="picks">
+      <a class="pick" href="a-bento.html">
+        <span class="pick__key">แบบ ก</span>
+        <span class="pick__name">ตารางบล็อกไม่เท่ากัน</span>
+        <span class="pick__lead">แอปเรือธงได้บล็อกใหญ่สุด ที่เหลือลดหลั่นลงมา กรอบหนาแบบสิ่งพิมพ์ ไม่ใช้เงา</span>
+        <span class="pick__tags"><span class="tag">เห็นหลายแอปพร้อมกัน</span><span class="tag">จัดลำดับความสำคัญได้</span></span>
+      </a>
+
+      <a class="pick" href="b-tabs.html">
+        <span class="pick__key">แบบ ข</span>
+        <span class="pick__name">แท็บสลับแอป</span>
+        <span class="pick__lead">กดชื่อแอปแล้วเปลี่ยนแผงทั้งชุด พื้นที่ต่อแอปเยอะที่สุด หน้าไม่ยาว</span>
+        <span class="pick__tags"><span class="tag">หน้าสั้น</span><span class="tag">เล่าได้ลึกต่อแอป</span></span>
+      </a>
+
+      <a class="pick" href="c-sticky.html">
+        <span class="pick__key">แบบ ค</span>
+        <span class="pick__name">เลื่อนแล้วภาพเปลี่ยนตาม</span>
+        <span class="pick__lead">แผ่นแบบตรึงอยู่ทางซ้าย เนื้อหาเลื่อนทางขวา เล่าเรียงลำดับการทำงานได้</span>
+        <span class="pick__tags"><span class="tag">เล่าเป็นลำดับ</span><span class="tag">กลิ่นแผ่นแบบ</span></span>
+      </a>
+
+      <a class="pick" href="d-rows.html">
+        <span class="pick__key">แบบ ง</span>
+        <span class="pick__name">แถวสลับซ้ายขวา</span>
+        <span class="pick__lead">แต่ละแอปได้เต็มแถว เลขกำกับตัวใหญ่แบบนิตยสาร แก้เนื้อหาง่ายที่สุด</span>
+        <span class="pick__tags"><span class="tag">แก้ง่าย</span><span class="tag">ภาพใหญ่</span></span>
+      </a>
+
+      <a class="pick" href="e-rail.html">
+        <span class="pick__key">แบบ จ</span>
+        <span class="pick__name">รางเลื่อนแนวนอน</span>
+        <span class="pick__lead">การ์ดเลื่อนได้ ใบถัดไปโผล่ครึ่งใบ รองรับตอนที่แอปเยอะขึ้นเรื่อย ๆ</span>
+        <span class="pick__tags"><span class="tag">แอปเยอะ</span><span class="tag">ไม่กินความสูง</span></span>
+      </a>
+    </div>
+
+    <p class="slotnote">
+      ทุกแบบใช้จานสีเดียวกับเว็บจริง ไม่มีสีใหม่ ไม่มีอีโมจิ และภาพหน้าจอยังเป็นที่ว่างรอใส่ของจริง
+      · เลือกแบบไหนแล้วบอกได้เลย ผมจะเอาไปทำเป็นของจริงบนหน้าแรก
+    </p>
+  </div>
+</section>
+
+</body>
+</html>

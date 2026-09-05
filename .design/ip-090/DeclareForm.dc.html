@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; color: #073047; background: #f4f7f7; }
+    a { color: #0d8282; text-decoration: none; }
+    a:hover { color: #073047; }
+    h2, h3 { font-weight: 600; margin: 0; }
+  </style>
+</helmet>
+
+<div style="padding: 26px; display: grid; gap: 16px;">
+
+  <div style="background: #ffffff; border: 1px solid #c9d8d9; border-radius: 12px; overflow: hidden;">
+    <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #c9d8d9;">
+      <div>
+        <h2 style="margin: 0; font-size: 1.04rem; letter-spacing: -.02em;">แก้คำประกาศ · TRAFFIC SIGN</h2>
+        <p style="margin: 6px 0 0; color: #5f7178; font-size: .84rem; line-height: 1.7; max-width: 62ch;">คำประกาศคือสิ่งที่หน้าเว็บสาธารณะจะพูดถึงแอปนี้ ไม่ใช่สิทธิ์ที่สมาชิกได้รับ การเปลี่ยนตรงนี้ไม่ได้เพิ่มหรือถอนสิทธิ์ของใครทั้งสิ้น</p>
+      </div>
+    </div>
+
+    <div style="padding: 16px; display: grid; gap: 12px;">
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px;">
+        <label style="display: grid; gap: 5px; font-size: .82rem; font-weight: 700; color: #073047;">
+          <span style="font-size: .78rem;">สิทธิ์ที่ประกาศ</span>
+          <div style="padding: .55rem .65rem; border: 1px solid #c9d8d9; border-radius: 8px; background: #ffffff; font-weight: 400; display: flex; align-items: center; justify-content: space-between; font-size: .88rem;">
+            เฉพาะบุคลากรกรมทางหลวง
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f7178" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <small style="color: #5f7178; font-size: .72rem; font-weight: 400; line-height: 1.6;">ค่าตั้งต้นในโค้ดคือ “สมาชิกใช้ฟรี” — ทะเบียนเป็นฝ่ายถูกเมื่อสองอย่างขัดกัน</small>
+        </label>
+
+        <label style="display: grid; gap: 5px; font-size: .82rem; font-weight: 700; color: #073047;">
+          <span style="font-size: .78rem;">การเปิดใช้</span>
+          <div style="padding: .55rem .65rem; border: 1px solid #c9d8d9; border-radius: 8px; background: #ffffff; font-weight: 400; display: flex; align-items: center; justify-content: space-between; font-size: .88rem;">
+            เปิดใช้แล้ว
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f7178" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </div>
+          <small style="color: #5f7178; font-size: .72rem; font-weight: 400; line-height: 1.6;">แอปที่ประกาศเป็น “สมาชิกใช้ฟรี” ตั้งเป็นเปิดใช้แล้วไม่ได้ จนกว่าจะมีเส้นทางออกสิทธิ์จริง</small>
+        </label>
+      </div>
+
+      <!-- conflict warning -->
+      <div style="display: flex; gap: 10px; align-items: start; background: #fdf6f0; border: 1px solid #f0d3bb; border-radius: 10px; padding: 12px 14px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a4402f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+        <p style="margin: 0; color: #073047; font-size: .82rem; line-height: 1.7;">
+          <strong style="font-weight: 700;">คำประกาศนี้ขัดกับค่าตั้งต้นในโค้ด</strong><br>
+          ค่าตั้งต้นของ TRAFFIC SIGN คือ “สมาชิกใช้ฟรี” แต่คุณกำลังประกาศเป็น “เฉพาะบุคลากรกรมทางหลวง” ทำได้ และทะเบียนจะเป็นฝ่ายถูก แต่เหตุผลที่พิมพ์ไว้ข้างล่างคือสิ่งเดียวที่จะอธิบายเรื่องนี้ให้คนอ่านทีหลังเข้าใจ
+        </p>
+      </div>
+
+      <label style="display: grid; gap: 5px; font-size: .82rem; font-weight: 700; color: #073047;">
+        <span style="font-size: .78rem;">เหตุผล <span style="color: #a4402f;">(ต้องระบุ)</span></span>
+        <div style="padding: .55rem .65rem; border: 1px solid #c9d8d9; border-radius: 8px; background: #ffffff; font-weight: 400; min-height: 74px; font-size: .88rem; color: #073047; line-height: 1.7;">หน่วยงานยืนยันเป็นหนังสือว่าเปิดเฉพาะบุคลากรที่ได้รับสิทธิ์ จึงไม่ประกาศเป็นแอปฟรีสำหรับสมาชิกทั่วไป</div>
+        <small style="color: #5f7178; font-size: .72rem; font-weight: 400; line-height: 1.6;">อย่างน้อย 4 ตัวอักษร ตรวจที่เซิร์ฟเวอร์ก่อนแตะฐานข้อมูล เหตุผลนี้จะถูกเก็บไว้ในบันทึกการเปลี่ยนแปลงพร้อมชื่อผู้ทำและเวลา</small>
+      </label>
+
+      <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-top: 2px;">
+        <span style="display: inline-block; background: #f47721; border: 1px solid transparent; border-radius: 8px; padding: .72rem 1rem; font-weight: 700; color: #17120d; font-size: .9rem;">บันทึกคำประกาศ</span>
+        <span style="display: inline-block; background: transparent; border: 1px solid #c9d8d9; border-radius: 8px; padding: .72rem 1rem; font-weight: 700; color: #073047; font-size: .9rem;">ถอนคำประกาศ</span>
+        <p style="margin: 0; color: #32765d; font-size: .82rem; font-weight: 700;">บันทึกแล้ว และเขียนบันทึกการเปลี่ยนแปลงไว้เรียบร้อย</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- error state of the same form -->
+  <div style="background: #ffffff; border: 1px solid #c9d8d9; border-left: 3px solid #f47721; border-radius: 12px; overflow: hidden;">
+    <div style="padding: 18px 20px; border-bottom: 1px solid #c9d8d9;">
+      <h2 style="margin: 0; font-size: 1.04rem; letter-spacing: -.02em;">สถานะที่ฟอร์มปฏิเสธ</h2>
+      <p style="margin: 6px 0 0; color: #5f7178; font-size: .84rem; line-height: 1.7; max-width: 62ch;">ทั้งสามข้อความนี้มาจากเซิร์ฟเวอร์ ไม่ใช่จากการตรวจในเบราว์เซอร์ ฟอร์มที่ตรวจแค่ฝั่งหน้าจอคือฟอร์มที่ข้ามได้ด้วยการ post ตรง</p>
+    </div>
+    <div style="padding: 16px; display: grid; gap: 9px;">
+      <p style="margin: 0; color: #a4402f; font-size: .82rem; font-weight: 700;">ต้องระบุเหตุผลอย่างน้อย 4 ตัวอักษร</p>
+      <p style="margin: 0; color: #a4402f; font-size: .82rem; font-weight: 700;">แอปที่ประกาศเป็นสมาชิกใช้ฟรี ยังตั้งเป็นเปิดใช้แล้วไม่ได้</p>
+      <p style="margin: 0; color: #a4402f; font-size: .82rem; font-weight: 700;">ไม่มีสิทธิ์ดำเนินการนี้</p>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

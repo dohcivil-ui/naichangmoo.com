@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบ จ — รางเลื่อนแนวนอน</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .railhead { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+  .railnav { display: flex; gap: 8px; }
+  .railnav button {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+    font-size: 1.1rem; cursor: pointer;
+    transition: background 140ms var(--ease-out), border-color 140ms var(--ease-out);
+  }
+  .railnav button:hover { background: #eaf6f4; border-color: rgba(13, 130, 130, .5); }
+
+  .rail {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(300px, 27%);
+    gap: 18px; margin-top: 22px; padding: 4px 0 18px;
+    overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: thin;
+    overscroll-behavior-x: contain;
+  }
+  .card {
+    scroll-snap-align: start;
+    display: flex; flex-direction: column; gap: 12px;
+    padding: 20px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--paper); box-shadow: var(--shadow);
+    transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(7, 48, 71, .13); }
+  .card__top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .card__name { color: var(--ink); font-weight: 700; letter-spacing: .02em; }
+  .card__title { color: var(--ink); font-size: 1.02rem; line-height: 1.45; }
+  .card__lead { color: var(--muted); font-size: .89rem; }
+  .card__foot { margin-top: auto; }
+  .card__link { color: var(--teal-text); font-weight: 700; font-size: .88rem; text-decoration: none; }
+  .card__link:hover { text-decoration: underline; }
+  .card .shot { aspect-ratio: 16 / 10; }
+
+  /* จอแคบ การ์ดกว้างเกือบเต็มจอและยังเลื่อนได้ด้วยนิ้ว ไม่ต้องมีปุ่ม */
+  @media (max-width: 900px) { .rail { grid-auto-columns: minmax(260px, 78%); } .railnav { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="container mock-head">
+  <div class="mock-head__bar">
+    <span class="mock-head__name">แบบ จ — รางเลื่อนแนวนอน</span>
+    <a class="mock-head__back" href="index.html">← กลับไปดูทั้งห้าแบบ</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="railhead">
+      <div class="section-head" style="margin-bottom:0">
+        <p class="eyebrow">แอปของเรา</p>
+        <h2>เลื่อนดูแอปทั้งหมด</h2>
+        <p>การ์ดใบถัดไปโผล่ให้เห็นครึ่งใบ คนจึงรู้ว่ายังมีต่อ เหมาะกับตอนที่แอปเยอะขึ้นเรื่อย ๆ</p>
+      </div>
+      <div class="railnav">
+        <button type="button" data-dir="-1" aria-label="เลื่อนไปทางซ้าย">←</button>
+        <button type="button" data-dir="1" aria-label="เลื่อนไปทางขวา">→</button>
+      </div>
+    </div>
+
+    <div class="rail" id="rail">
+      <article class="card">
+        <div class="card__top"><span class="card__name">ESTIMETR</span><span class="pill">ทดลองใช้ฟรี 7 วัน</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — ใบ BOQ</div>
+        <p class="card__title">ถอดปริมาณจากแบบ จนได้ BOQ ทั้งใบ</p>
+        <p class="card__lead">ผู้ช่วยร่างให้ก่อน คุณตรวจแล้วกดรับทีละรายการ ทุกบรรทัดชี้กลับไปหาแบบได้</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+
+      <article class="card">
+        <div class="card__top"><span class="card__name">PRICEMETR</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — ตารางราคา</div>
+        <p class="card__title">ราคาวัสดุรายจังหวัดและค่าแรงราชการ</p>
+        <p class="card__lead">หยิบรายการที่ใช้ แล้วส่งเข้าโครงการเป็นบัญชีราคาที่ตัวเลขนิ่ง</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+
+      <article class="card">
+        <div class="card__top"><span class="card__name">ESCALATION K</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — ตารางค่า K</div>
+        <p class="card__title">ค่า K และเงินชดเชยรายงวด</p>
+        <p class="card__lead">เลือกสูตรที่ตรงกับประเภทงาน ใส่ดัชนีราคา แล้วได้เงินชดเชยพร้อมที่มา</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+
+      <article class="card">
+        <div class="card__top"><span class="card__name">ผู้ช่วยสร้างแผนงาน</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — S-Curve</div>
+        <p class="card__title">แผนงานและงวดงานแนบสัญญา</p>
+        <p class="card__lead">ร่างจากวงเงินและระยะเวลาสัญญา ปรับได้ทุกช่อง พิมพ์ลง A4 ได้จริง</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+
+      <article class="card">
+        <div class="card__top"><span class="card__name">TRAFFIC SIGN</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — รายการวัสดุป้าย</div>
+        <p class="card__title">วัสดุป้ายจราจรจนถึง BOQ</p>
+        <p class="card__lead">ระบุชนิดป้ายและตำแหน่งติดตั้ง ระบบคิดวัสดุและอุปกรณ์ประกอบให้ครบ</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+
+      <article class="card">
+        <div class="card__top"><span class="card__name">กำแพงกันดิน</span></div>
+        <div class="shot">ที่วางภาพหน้าจอ — หน้าตัดกำแพง</div>
+        <p class="card__title">หาหน้าตัดที่ผ่านเกณฑ์และประหยัดที่สุด</p>
+        <p class="card__lead">พร้อมผลตรวจเสถียรภาพและที่มาของทุกตัวเลขก่อนยืนยัน</p>
+        <div class="card__foot"><a class="card__link" href="#">ดูรายละเอียด →</a></div>
+      </article>
+    </div>
+
+    <p class="slotnote">
+      <strong>ช่องที่สลับได้</strong> — ลำดับการ์ด จำนวนการ์ด ภาพ หัวข้อ และคำโปรย
+      · เพิ่มแอปใหม่คือเพิ่มหนึ่งใบ ไม่กระทบความสูงของหน้า · จอแคบเลื่อนด้วยนิ้วและซ่อนปุ่ม
+    </p>
+  </div>
+</section>
+
+<script>
+  const rail = document.getElementById('rail');
+  document.querySelectorAll('.railnav button').forEach((b) => b.addEventListener('click', () => {
+    rail.scrollBy({ left: Number(b.dataset.dir) * (rail.clientWidth * 0.6), behavior: 'smooth' });
+  }));
+</script>
+
+</body>
+</html>

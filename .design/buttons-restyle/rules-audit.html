@@ -1,0 +1,420 @@
+<title>ใบตรวจปุ่มจากสองบทความ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap">
+<style>
+  /* สีทุกค่าคัดลอกจาก src/app/globals.css ของเว็บจริง ไม่มีสีคิดใหม่
+     ธีมสว่างอย่างเดียวโดยตั้งใจ เพราะแอปจริงมีธีมเดียว */
+  :root {
+    --ink: #073047;
+    --ink-deep: #051f2f;
+    --ink-body: #3f545f;
+    --teal: #0d8282;
+    --teal-text: #0c7878;
+    --teal-deep: #0a6a6a;
+    --teal-wash: #e6f3f3;
+    --orange: #f47721;
+    --orange-text: #a34f14;
+    --orange-wash: #fdeee2;
+    --orange-deep: #b4530a;
+    --on-orange: #17120d;
+    --canvas: #f4f7f7;
+    --paper: #ffffff;
+    --mist: #d8e4e4;
+    --line: #c9d8d9;
+    --off: #e9eff0;
+    --off-line: #d5e0e1;
+    --muted: #5f7178;
+    --success: #32765d;
+    --success-wash: #e3f2ec;
+    --dimension-red: #c0392b;
+    --focus: rgba(244, 119, 33, .72);
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1020px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  header.top { display: grid; gap: 10px; padding-block-end: 20px; border-block-end: 2px solid var(--ink); }
+  .eyebrow { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--teal-text); }
+  h1 { margin: 0; font-size: clamp(1.6rem, 4.6vw, 2.15rem); font-weight: 700; line-height: 1.18; color: var(--ink); }
+  .lede { margin: 0; max-width: 66ch; }
+  .sources { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 6px; }
+  .sources a { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--ink); font-size: .78rem; font-weight: 600; text-decoration: none; }
+  .sources a:hover { border-color: var(--teal); color: var(--teal-deep); }
+  .sources a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+
+  h2.sec { margin: 38px 0 4px; font-size: 1.2rem; font-weight: 700; color: var(--ink); }
+  p.secnote { margin: 0 0 14px; max-width: 70ch; font-size: .88rem; }
+
+  /* ---- ใบตรวจ ---- */
+  .ledger { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .lrow { display: grid; grid-template-columns: 30px minmax(0, 1.05fr) 78px minmax(0, 1.15fr); gap: 14px; align-items: start; padding: 14px 16px; background: var(--paper); }
+  .lrow.head { background: var(--canvas); font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); align-items: center; }
+  @media (max-width: 720px) {
+    .lrow { grid-template-columns: 30px minmax(0, 1fr); }
+    .lrow .verdict { grid-column: 1 / -1; justify-self: start; }
+    .lrow .proof { grid-column: 1 / -1; }
+    .lrow.head { display: none; }
+  }
+  .lrow .idx { font-family: "IBM Plex Sans Thai", Arial, sans-serif; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .lrow .rule b { display: block; color: var(--ink); font-size: .95rem; }
+  .lrow .rule span { font-size: .78rem; color: var(--muted); }
+  .lrow .proof { font-size: .84rem; }
+  .pill { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+  .pill.ok { background: var(--success-wash); color: var(--success); }
+  .pill.no { background: var(--orange-wash); color: var(--orange-text); }
+  .pill.part { background: var(--teal-wash); color: var(--teal-text); }
+
+  /* ---- เทียบก่อนหลัง ---- */
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  @media (max-width: 780px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; display: grid; grid-template-rows: auto auto 1fr; }
+  .panel > h3 { margin: 0; padding: 13px 16px; border-block-end: 1px solid var(--line); font-size: .95rem; color: var(--ink); }
+  .panel > h3 small { display: block; font-size: .75rem; font-weight: 500; color: var(--muted); }
+  .panel .bay { padding: 14px 16px; }
+  .panel .out { padding: 0 16px 16px; min-height: 94px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 5px 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+  .toolbar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 4px; }
+  .t { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 8px; cursor: pointer; transition: background 150ms var(--ease-out), color 150ms var(--ease-out); }
+  .t svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .t:hover:not(:disabled) { background: var(--canvas); }
+  .t:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+  .t[aria-checked="true"] { background: var(--teal-wash); color: var(--teal-text); box-shadow: inset 0 0 0 1.5px var(--teal); }
+  .t:disabled { opacity: .35; cursor: not-allowed; }
+  /* ล็อกแบบใหม่ ยังกดได้จริง จึงไม่ใช้ opacity ที่กดคอนทราสต์ลงทั้งก้อน */
+  .t[aria-disabled="true"] { color: var(--muted); box-shadow: inset 0 0 0 1px var(--off-line); }
+  .t[aria-disabled="true"]:hover { background: var(--orange-wash); color: var(--orange-text); box-shadow: inset 0 0 0 1px var(--orange); }
+
+  .answer { display: grid; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--orange-wash); border-inline-start: 3px solid var(--orange); }
+  .answer strong { color: var(--ink); font-size: .9rem; }
+  .answer p { margin: 0; font-size: .84rem; color: var(--ink-body); }
+  .answer .go { justify-self: start; display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 16px; border: 1px solid var(--orange); border-radius: 8px; background: var(--paper); color: var(--orange-text); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+  .answer .go:hover { background: #fbe0cb; }
+  .answer .go:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  /* ตัวหนังสือบนพื้น --off ใช้ --ink-body ไม่ใช่ --muted · --muted บนพื้นนี้วัดได้ 4.39 ตกเกณฑ์ 4.5
+     เป็นคู่สีเดียวกับที่แอปเคยตกแล้วแก้ไปแล้วเมื่อ 2026-09-05 */
+  .silent { display: grid; gap: 6px; padding: 12px 14px; border-radius: 10px; background: var(--off); color: var(--ink-body); font-size: .84rem; }
+
+  /* ---- ตารางของจริงในโค้ด ---- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+  table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: .86rem; }
+  th { padding: 11px 14px; background: var(--canvas); color: var(--muted); font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-align: start; }
+  td { padding: 11px 14px; border-block-start: 1px solid var(--line); vertical-align: top; }
+  td b { color: var(--ink); }
+  td.n { font-family: "IBM Plex Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; text-align: end; color: var(--ink); font-weight: 700; }
+
+  .callout { margin-block-start: 30px; padding: 20px 22px; background: var(--paper); border: 1px solid var(--line); border-inline-start: 4px solid var(--teal); border-radius: 12px; }
+  .callout h2 { margin: 0 0 8px; font-size: 1.05rem; color: var(--ink); }
+  .callout ol { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; }
+  .callout li { max-width: 72ch; }
+  .callout b { color: var(--ink); }
+
+  footer.foot { margin-block-start: 26px; font-size: .78rem; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) { .t { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">ESTIMETR · ใบตรวจปุ่ม</p>
+    <h1>สิบสามข้อจากสองบทความ เอามาวัดกับปุ่มของเราทีละข้อ</h1>
+    <p class="lede">
+      ข้อไหนที่เราทำแล้วก็บอกว่าทำแล้วพร้อมหลักฐาน ข้อไหนที่ยังตกก็บอกว่าตกตรงไหนและกี่จุด
+      ตัวเลขจำนวนจุดมาจากการค้นในซอร์สโค้ดจริงเมื่อ <span class="num">5 กันยายน 2026</span> ไม่ใช่การประมาณ
+    </p>
+    <div class="sources">
+      <a href="https://www.designil.com/button-design-ui-ux/" target="_blank" rel="noopener">designil · 12 เทคนิคดีไซน์ปุ่ม</a>
+      <a href="https://www.borntodev.com/2022/01/12/button-design/" target="_blank" rel="noopener">borntodev · Button Design</a>
+    </div>
+  </header>
+
+  <h2 class="sec">ใบตรวจ</h2>
+  <p class="secnote">
+    รวมข้อจากทั้งสองบทความแล้วตัดข้อที่ซ้ำกันออก เหลือสิบสามข้อ · เรียงจากข้อที่เรายังตกไว้บนสุด
+  </p>
+  <div class="ledger" id="ledger"></div>
+
+  <h2 class="sec">ข้อที่ตกหนักที่สุด ลองกดเทียบดูเอง</h2>
+  <p class="secnote">
+    borntodev เขียนไว้ว่า <b>“หลีกเลี่ยง Disable ควรให้ผู้ใช้กดได้ แล้วแสดงข้อความแจ้งหากมีข้อผิดพลาด”</b>
+    แถบเครื่องมือหน้าแบบของเราทำตรงข้าม คือดับเครื่องมือทิ้งไว้เงียบ ๆ
+    ทั้งสองแผงข้างล่างนี้กดได้จริง ลองกดปุ่มที่จาง ๆ ดู
+  </p>
+  <div class="compare">
+    <section class="panel">
+      <h3>แบบที่แอปทำอยู่ตอนนี้<small>ยังไม่ได้ตั้งสเกลของหน้า เครื่องมือวัดห้าตัวถูกดับ</small></h3>
+      <div class="bay"><div class="toolbar" id="barOld"></div></div>
+      <div class="out" id="outOld"></div>
+    </section>
+    <section class="panel">
+      <h3>แบบที่บทความแนะนำ<small>ปุ่มเดิม สถานะเดิม แต่กดแล้วมันตอบ และพาไปทำขั้นที่ขาด</small></h3>
+      <div class="bay"><div class="toolbar" id="barNew"></div></div>
+      <div class="out" id="outNew"></div>
+    </section>
+  </div>
+
+  <h2 class="sec">ของจริงในโค้ดตอนนี้</h2>
+  <p class="secnote">
+    ไม่ใช่ทุก <span class="num">disabled</span> ที่ควรเอาออก · ปุ่มที่ดับเพราะ “กำลังส่งอยู่” ต้องดับต่อไป
+    เพราะกดซ้ำแปลว่าส่งซ้ำ ซึ่งเป็นคนละเรื่องกับปุ่มที่ดับเพราะ “ยังไม่ได้ทำขั้นก่อนหน้า”
+  </p>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>ชนิดของการล็อก</th><th>ตัวอย่างในแอป</th><th style="text-align:end">จุด</th><th>ควรทำอย่างไร</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>ล็อกเพราะยังขาดขั้นก่อนหน้า</b></td>
+          <td>เครื่องมือวัดห้าตัวรอสเกลของหน้า · เครื่องมือทั้งสิบตัวรอไฟล์แบบ · ปุ่มพอดีกรอบรอไฟล์แบบ</td>
+          <td class="n">12</td>
+          <td><b>เปลี่ยนเป็นกดได้</b> กดแล้วบอกว่าขาดอะไร แล้วมีปุ่มพาไปทำขั้นนั้นทันที</td>
+        </tr>
+        <tr>
+          <td><b>ล็อกเพราะกำลังทำงานอยู่</b></td>
+          <td>ปุ่มส่งฟอร์มขณะรอเซิร์ฟเวอร์ตอบ · ปุ่มยกเลิกระหว่างส่ง</td>
+          <td class="n">~40</td>
+          <td><b>คงไว้</b> กดซ้ำคือส่งซ้ำ · เรามีสถานะ <span class="num">pending</span> ที่หน้าตาต่างจากกดไม่ได้อยู่แล้ว</td>
+        </tr>
+        <tr>
+          <td><b>ล็อกเพราะไม่มีข้อมูลให้ทำ</b></td>
+          <td>ย้อนกลับตอนยังไม่ได้ทำอะไร · ทำซ้ำตอนไม่มีอะไรให้ทำซ้ำ · ล้างสเกลตอนหน้ายังไม่มีสเกล</td>
+          <td class="n">3</td>
+          <td><b>คงไว้ได้</b> แต่ตอนชี้ต้องบอกเหตุผล ไม่ใช่เงียบ · ของเรามีป้ายลอยบอกอยู่แล้ว</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="text-align:end"><b>รวมทั้งเว็บ</b></td>
+          <td class="n">67</td>
+          <td>กระจายอยู่ใน <span class="num">25</span> ไฟล์</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <section class="callout">
+    <h2>ผมเสนอให้ทำสามอย่างนี้ ตามลำดับ</h2>
+    <ol>
+      <li>
+        <b>สิบสองจุดที่ล็อกเพราะขาดขั้นก่อนหน้า เปลี่ยนเป็นกดได้</b>
+        ใช้ <span class="num">aria-disabled</span> แทน <span class="num">disabled</span> ปุ่มจึงยังโฟกัสด้วยแป้นพิมพ์ได้
+        และโปรแกรมอ่านหน้าจอยังรู้ว่ากดไปก็ยังไม่ได้ผล · กดแล้วขึ้นคำตอบพร้อมปุ่มพาไปทำขั้นที่ขาด
+      </li>
+      <li>
+        <b>ถอดความจางออกจากปุ่มที่ยังกดได้</b> ตอนนี้ปุ่มล็อกใช้ <span class="num">opacity .35</span>
+        ซึ่งกดคอนทราสต์ของทั้งปุ่มลงพร้อมกัน ปุ่มที่ยังกดได้ต้องอ่านออกตามปกติ
+        จึงเปลี่ยนไปบอกด้วยเส้นขอบจาง ๆ แทน
+      </li>
+      <li>
+        <b>แถบพาทัวร์อาจไม่ต้องมีอีกต่อไป</b> มันเกิดมาเพื่อชดเชยว่าเครื่องมือดับแล้วไม่บอกเหตุผล (IP-236)
+        ถ้าปุ่มตอบเองได้ แถบนั้นก็ซ้ำซ้อน และ <b>คืนความสูงให้ผืนวาดอีก <span class="num">65px</span></b>
+        · ข้อนี้ต้องให้คุณเคาะ เพราะแถบทัวร์เป็นของที่คุณสั่งให้ทำเองเมื่อวานนี้
+      </li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    ยังไม่ได้แตะโค้ดจริงสักบรรทัด · ทั้งสามข้อข้างบนแตะปุ่มหลายสิบจุดและเปลี่ยนพฤติกรรมของแอป
+    จึงต้องให้คุณเคาะก่อนตามกฎข้อสองของโปรเจกต์
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var ICONS = {
+      select: '<path d="M4 3l5 12 2-5 5-2z"/>',
+      scale: '<path d="M3 12l9-9 5 5-9 9z"/><path d="M7 8l1.5 1.5M9.5 5.5L11 7"/>',
+      length: '<path d="M3 10h14"/><path d="M3 7v6M17 7v6"/>',
+      rect: '<path d="M4 5h12v10H4z"/>',
+      room: '<path d="M4 5h12v10H4z"/><path d="M7 8h6v4H7z"/>',
+      count: '<path d="M5 5h4v4H5zM11 5h4v4h-4zM5 11h4v4H5zM11 11h4v4h-4z"/>'
+    };
+    function svg(n) { return '<svg viewBox="0 0 20 20" aria-hidden="true">' + ICONS[n] + '</svg>'; }
+
+    var TOOLS = [
+      { id: 'select', label: 'เลือก', needsScale: false },
+      { id: 'scale', label: 'ตั้งสเกล', needsScale: false },
+      { id: 'length', label: 'ระยะสองจุด', needsScale: true },
+      { id: 'rect', label: 'พื้นที่สี่เหลี่ยม', needsScale: true },
+      { id: 'room', label: 'เลือกพื้นที่ห้อง', needsScale: true },
+      { id: 'count', label: 'นับจำนวน', needsScale: false }
+    ];
+
+    function build(host, mode) {
+      host.innerHTML = TOOLS.map(function (t, i) {
+        var locked = t.needsScale;
+        var checked = i === 0 ? ' aria-checked="true"' : ' aria-checked="false"';
+        var lock = locked
+          ? (mode === 'old' ? ' disabled' : ' aria-disabled="true"')
+          : '';
+        return '<button type="button" class="t" role="radio"' + checked + lock +
+          ' data-id="' + t.id + '" data-label="' + t.label + '" data-locked="' + locked + '"' +
+          ' aria-label="' + t.label + '">' + svg(t.id) + '</button>';
+      }).join('') + '<span class="sep"></span>';
+    }
+
+    var barOld = document.getElementById('barOld');
+    var barNew = document.getElementById('barNew');
+    build(barOld, 'old');
+    build(barNew, 'new');
+
+    var outOld = document.getElementById('outOld');
+    var outNew = document.getElementById('outNew');
+
+    outOld.innerHTML = '<div class="silent">กดปุ่มที่จางแล้วไม่มีอะไรเกิดขึ้น หน้าเว็บเงียบสนิท ' +
+      'คนที่เพิ่งเปิดแอปครั้งแรกจึงไม่รู้ว่าตัวเองพลาดขั้นไหนไป</div>';
+    outNew.innerHTML = '<div class="silent">ลองกดเครื่องมือที่มีขอบจาง ๆ ดู</div>';
+
+    function pick(host, out, mode) {
+      host.addEventListener('click', function (event) {
+        var btn = event.target.closest('.t');
+        if (!btn) return;
+        var locked = btn.dataset.locked === 'true';
+        if (mode === 'old') {
+          if (locked) return; /* ปุ่ม disabled ไม่ส่ง event อยู่แล้ว บรรทัดนี้จึงไม่มีวันทำงาน */
+          host.querySelectorAll('.t').forEach(function (b) { b.setAttribute('aria-checked', String(b === btn)); });
+          out.innerHTML = '<div class="silent">เลือกเครื่องมือ <b>' + btn.dataset.label + '</b> แล้ว</div>';
+          return;
+        }
+        if (locked) {
+          out.innerHTML = '<div class="answer">' +
+            '<strong>ยังใช้ ' + btn.dataset.label + ' ไม่ได้ เพราะหน้านี้ยังไม่ได้ตั้งสเกล</strong>' +
+            '<p>เครื่องมือนี้ตอบเป็นเมตร ระบบจึงต้องรู้ก่อนว่าหนึ่งเซนติเมตรบนกระดาษเท่ากับกี่เมตรของจริง ' +
+            'ตั้งครั้งเดียวต่อหน้า แล้วเครื่องมือวัดทุกตัวของหน้านี้เปิดพร้อมกัน</p>' +
+            '<button type="button" class="go">ไปตั้งสเกลของหน้านี้</button>' +
+            '</div>';
+          var go = out.querySelector('.go');
+          go.addEventListener('click', function () {
+            host.querySelectorAll('.t').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.id === 'scale')); });
+            out.innerHTML = '<div class="answer"><strong>เปลี่ยนมาที่เครื่องมือตั้งสเกลให้แล้ว</strong>' +
+              '<p>ลากทับเส้นบอกระยะที่แบบเขียนไว้ แล้วพิมพ์ตัวเลขนั้นลงไป · นี่คือสิ่งที่ปุ่มควรทำ ' +
+              'แทนที่จะดับตัวเองแล้วปล่อยให้คนเดา</p></div>';
+          });
+          return;
+        }
+        host.querySelectorAll('.t').forEach(function (b) { b.setAttribute('aria-checked', String(b === btn)); });
+        out.innerHTML = '<div class="silent">เลือกเครื่องมือ <b>' + btn.dataset.label + '</b> แล้ว</div>';
+      });
+    }
+
+    pick(barOld, outOld, 'old');
+    pick(barNew, outNew, 'new');
+
+    /* ---- ใบตรวจ ---- */
+    var RULES = [
+      {
+        rule: 'หลีกเลี่ยงปุ่มที่กดไม่ได้ ให้กดได้แล้วค่อยบอกว่าติดตรงไหน',
+        from: 'borntodev',
+        verdict: 'no',
+        proof: 'แถบเครื่องมือหน้าแบบดับเครื่องมือ <b class="num">12</b> จุดโดยไม่บอกเหตุผลตอนกด ' +
+          'จนต้องสร้างแถบพาทัวร์ขึ้นมาชดเชยทีหลัง (IP-236)'
+      },
+      {
+        rule: 'บรรทัดเดียว สั้น กระชับ ไม่ล้นกล่อง',
+        from: 'designil ข้อ 2',
+        verdict: 'no',
+        proof: 'ปุ่มคำยาวกว้าง <b class="num">405px</b> ในกล่องแม่ <b class="num">200px</b> ' +
+          'ตัว <span class="num">.button</span> ตั้ง <span class="num">white-space: nowrap</span> ไว้ มันจึงดันกล่องแทนที่จะตัดคำ'
+      },
+      {
+        rule: 'ใช้รูปแบบเดียวกันทั้งระบบ',
+        from: 'designil ข้อ 12 · borntodev',
+        verdict: 'part',
+        proof: 'ปุ่มที่มีคำมาจาก <span class="num">&lt;Button&gt;</span> ครบแล้วและมีด่านเฝ้า ' +
+          'แต่ปุ่มไอคอนบนแถบเครื่องมือยังเป็นคลาส <span class="num">.mk__icon</span> ที่พิมพ์เอง'
+      },
+      {
+        rule: 'เตรียมเวอร์ชันสลับสีสำหรับพื้นหลังคนละสี',
+        from: 'designil ข้อ 3',
+        verdict: 'part',
+        proof: 'มีระดับ <span class="num">quiet</span> ที่พื้นขาวใช้บนพื้นเข้มได้ ' +
+          'แต่ยังไม่มีกฎว่าพื้นแบบไหนต้องใช้ระดับไหน จึงเลือกกันเองทีละหน้า'
+      },
+      {
+        rule: 'ปุ่มต้องดูกดได้ตั้งแต่แรกเห็น',
+        from: 'borntodev',
+        verdict: 'ok',
+        proof: 'ทุกปุ่มมีพื้นสีทึบหรือเส้นขอบ และเปลี่ยนหน้าตาตอนชี้ทุกตัว'
+      },
+      {
+        rule: 'ห้าสถานะ ปกติ ชี้ กด กดไม่ได้ กำลังทำงาน',
+        from: 'ทั้งสองบทความ',
+        verdict: 'ok',
+        proof: 'ครบห้าสถานะแล้วเมื่อวานนี้ · สถานะกำลังทำงานเคยหน้าตาเหมือนกดไม่ได้เป๊ะ แก้แล้วด้วยวงหมุน'
+      },
+      {
+        rule: 'สามลำดับ หลัก รอง ตัวหนังสือ',
+        from: 'designil ข้อ 4 ข้อ 7',
+        verdict: 'ok',
+        proof: 'มีสามระดับครบ และหนึ่งหน้ามีปุ่มหลักตัวเดียว'
+      },
+      {
+        rule: 'ชื่อปุ่มบอกว่ากดแล้วเกิดอะไร ไม่ใช่ “คลิกที่นี่”',
+        from: 'ทั้งสองบทความ',
+        verdict: 'ok',
+        proof: 'เช่น “บันทึกและตั้งสเกลหน้านี้จากระยะนี้” ไม่ใช่ “ตกลง”'
+      },
+      {
+        rule: 'ไอคอนสื่อความเดียวกับคำบนปุ่ม',
+        from: 'designil ข้อ 6',
+        verdict: 'ok',
+        proof: 'ส่งไอคอนผ่าน <span class="num">&lt;Button icon={...}&gt;</span> ที่รับสีจากปุ่มด้วย <span class="num">currentColor</span>'
+      },
+      {
+        rule: 'คอนทราสต์ตัวหนังสือกับพื้นผ่าน 4.5:1',
+        from: 'ทั้งสองบทความ',
+        verdict: 'ok',
+        proof: 'วัดครบทุกคู่แล้ว · ปุ่มกดไม่ได้เคยได้ <b class="num">4.39</b> ตกเกณฑ์ แก้เป็น <b class="num">6.83</b> แล้ว'
+      },
+      {
+        rule: 'เลี่ยงปุ่มที่มีแต่เส้นขอบ เพราะคนไม่แน่ใจว่ากดได้',
+        from: 'designil ข้อ 8',
+        verdict: 'part',
+        proof: 'สไตล์ที่ <b class="num">3</b> และ <b class="num">10</b> ในผืนเทียบเป็นแบบเส้นขอบล้วน ' +
+          'ถ้าคุณเลือกสองแบบนั้น ต้องแลกกับข้อนี้ · ผมยกมาให้เห็นเพราะเป็นทางแลก ไม่ใช่ข้อห้ามตายตัว'
+      },
+      {
+        rule: 'ออกแบบหลายขนาด เล็ก กลาง ใหญ่',
+        from: 'designil ข้อ 9',
+        verdict: 'no',
+        proof: '<b>เราตั้งใจไม่ทำตามข้อนี้</b> คุณเคาะเองว่าสูง <b class="num">48px</b> ขนาดเดียวทั้งเว็บ ' +
+          'แล้วเพิ่งอนุญาตให้แถบเครื่องมือเป็น <b class="num">36px</b> เป็นระดับที่สอง'
+      },
+      {
+        rule: 'แยกปุ่มออกจากลิงก์ให้ชัด',
+        from: 'designil ข้อ 10',
+        verdict: 'part',
+        proof: '<span class="num">.mk__back</span> เป็นลิงก์ที่มีไอคอนกับคำ หน้าตาก้ำกึ่งปุ่ม ยังไม่ได้ตัดสินว่าจะให้เป็นอะไร'
+      }
+    ];
+
+    var LABEL = { ok: 'ทำแล้ว', no: 'ยังตก', part: 'ทำครึ่งเดียว' };
+    var ORDER = { no: 0, part: 1, ok: 2 };
+    RULES.sort(function (a, b) { return ORDER[a.verdict] - ORDER[b.verdict]; });
+
+    document.getElementById('ledger').innerHTML =
+      '<div class="lrow head"><span></span><span>ข้อ</span><span>ผล</span><span>หลักฐาน</span></div>' +
+      RULES.map(function (r, i) {
+        return '<div class="lrow">' +
+          '<span class="idx">' + (i + 1) + '</span>' +
+          '<span class="rule"><b>' + r.rule + '</b><span>' + r.from + '</span></span>' +
+          '<span class="verdict"><span class="pill ' + r.verdict + '">' + LABEL[r.verdict] + '</span></span>' +
+          '<span class="proof">' + r.proof + '</span>' +
+        '</div>';
+      }).join('');
+  })();
+</script>

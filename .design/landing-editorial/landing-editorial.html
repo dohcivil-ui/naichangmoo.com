@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- PROTOTYPE, wipe me: throwaway mockup answering "should the landing move to this dark
+     editorial, animation-heavy style?" Numbers and copy are illustrative. Palette from DESIGN.md
+     (ink-deep / teal / orange). Reference: GLM FERRUM sample provided by the owner 2026-08-27.
+     Deliberately breaks the one-orange-per-screen rule so the owner can judge the direction. -->
+<title>นายช่างหมู — LANDING MOCKUP (แนว EDITORIAL)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;800;900&family=Chakra+Petch:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens: DESIGN.md palette on a dark ground ---------- */
+:root{
+  --bg:#051f2f; --bg2:#062538; --panel:#073047; --panel2:#0a3a52;
+  --line:#12435c; --line-soft:#0c3549;
+  --txt:#f4f7f7; --silver:#c7dcdf; --dim:#6f8891;
+  --orange:#f47721; --orange-soft:rgba(244,119,33,.12);
+  --teal:#0d8282; --teal-hi:#8ce5dc;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:86px}
+body{background:var(--bg);color:var(--txt);font-family:Kanit,'Chakra Petch',sans-serif;font-weight:400;font-size:17px;line-height:1.55;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;background:none;border:none;color:inherit;cursor:pointer}
+ul{list-style:none}
+::selection{background:var(--orange);color:#051f2f}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:#041926}
+::-webkit-scrollbar-thumb{background:#12435c}
+::-webkit-scrollbar-thumb:hover{background:var(--orange)}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.container{max-width:1380px;margin:0 auto;padding:0 clamp(18px,4vw,52px)}
+.mono{font-family:'Chakra Petch','IBM Plex Mono',monospace}
+.dot{color:var(--orange);font-style:normal}
+.eyebrow{font-family:'Chakra Petch',monospace;font-size:11.5px;font-weight:500;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"";width:8px;height:8px;background:var(--orange);flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;font-weight:600;font-size:15.5px;letter-spacing:.1em;padding:16px 28px;border:1px solid transparent;cursor:pointer;white-space:nowrap;transition:background .18s,color .18s,border-color .18s,transform .18s}
+.btn .arw{transition:transform .18s;font-family:'IBM Plex Mono',monospace}
+.btn:hover .arw{transform:translateX(5px)}
+.btn-primary{background:var(--orange);color:#051f2f}
+.btn-primary:hover{background:#fff;transform:translateY(-2px)}
+.btn-ghost{border-color:#1c5a77;color:var(--silver)}
+.btn-ghost:hover{border-color:var(--teal-hi);color:#fff}
+.btn-sm{padding:10px 17px;font-size:13.5px}
+/* grain + progress + ticks */
+.grain{position:fixed;inset:-100%;z-index:250;pointer-events:none;opacity:.05;
+background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+animation:grain 7s steps(8) infinite}
+@keyframes grain{0%,100%{transform:translate(0,0)}25%{transform:translate(2%,-4%)}50%{transform:translate(3%,3%)}75%{transform:translate(-4%,-2%)}}
+.ticks{height:12px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 16px);margin-bottom:24px}
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--orange);width:0;z-index:310}
+/* header */
+header{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 clamp(18px,3vw,40px);height:68px;border-bottom:1px solid var(--line-soft);transition:background .25s,border-color .25s}
+header.scrolled{background:rgba(5,31,47,.93);backdrop-filter:blur(10px);border-color:var(--line)}
+.logo{display:flex;align-items:baseline;gap:10px;flex:none}
+.logo-main{font-weight:900;font-size:23px;letter-spacing:.01em}
+.logo-main::after{content:"";display:inline-block;width:7px;height:7px;background:var(--orange);margin-left:7px}
+.logo-sub{font-family:'Chakra Petch',monospace;font-size:9px;letter-spacing:.3em;color:var(--dim)}
+.nav-links{display:flex;gap:clamp(18px,2.4vw,38px)}
+.nav-links a{font-weight:500;font-size:14.5px;letter-spacing:.08em;color:var(--silver);position:relative;padding:6px 0;transition:color .15s}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--orange);transition:width .2s}
+.nav-links a:hover,.nav-links a.active{color:#fff}
+.nav-links a.active::after{width:100%}
+.nav-right{display:flex;align-items:center;gap:20px}
+#nav-clock{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--dim)}
+#menu-btn{display:none;flex-direction:column;gap:5px;padding:8px}
+#menu-btn span{width:22px;height:2px;background:var(--txt);transition:transform .2s}
+#menu-btn.x span:first-child{transform:translateY(3.5px) rotate(45deg)}
+#menu-btn.x span:last-child{transform:translateY(-3.5px) rotate(-45deg)}
+#mobile-menu{position:fixed;inset:0;background:var(--bg);z-index:290;display:flex;flex-direction:column;justify-content:center;padding:80px clamp(24px,8vw,60px) 40px;transform:translateY(-100%);transition:transform .35s cubic-bezier(.7,0,.2,1)}
+#mobile-menu.open{transform:translateY(0)}
+#mobile-menu .mm-link{font-weight:900;font-size:clamp(34px,8.5vw,56px);color:var(--txt);border-bottom:1px solid var(--line-soft);padding:12px 0;display:flex;justify-content:space-between;align-items:center;gap:16px}
+#mobile-menu .mm-link .mono{font-size:11px;color:var(--dim)}
+/* hero */
+#hero{position:relative;padding-top:68px}
+.hero-grid{display:grid;grid-template-columns:1.12fr .88fr;gap:clamp(28px,4vw,70px);align-items:center;min-height:calc(100vh - 175px);padding-top:40px;padding-bottom:48px}
+h1{font-weight:900;font-size:clamp(56px,9.5vw,138px);line-height:1.02;letter-spacing:.005em;margin:22px 0 26px}
+h1 .outline{color:transparent;-webkit-text-stroke:2.5px #6f97a8}
+.h1-line{display:block;overflow:hidden}
+.h1-line>span{display:block;transform:translateY(112%);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+.h1-line:nth-child(2)>span{animation-delay:.09s}
+.h1-line:nth-child(3)>span{animation-delay:.18s}
+@keyframes rise{to{transform:none}}
+.fade-up{opacity:0;animation:fadeUp .7s ease forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.d1{animation-delay:.35s}.d2{animation-delay:.45s}.d3{animation-delay:.55s}
+.lede{font-size:clamp(17px,1.45vw,20.5px);color:var(--silver);max-width:600px;line-height:1.6;font-weight:400}
+.lede strong{color:#fff;font-weight:600}
+.cta-row{display:flex;gap:14px;margin-top:32px;flex-wrap:wrap}
+.hero-meta{margin-top:34px;padding-top:18px;border-top:1px solid var(--line-soft);font-family:'Chakra Petch',monospace;font-size:11.5px;letter-spacing:.1em;color:var(--dim);display:flex;flex-wrap:wrap}
+.hero-meta span+span::before{content:"·";margin:0 10px;color:#1c5a77}
+/* hero figure: inline SVG blueprint */
+.hero-fig .frame{position:relative;border:1px solid var(--line);padding:10px;background:var(--bg2)}
+.hero-fig .frame::before,.hero-fig .frame::after{content:"";position:absolute;width:18px;height:18px}
+.hero-fig .frame::before{top:-1px;left:-1px;border-top:2px solid var(--orange);border-left:2px solid var(--orange)}
+.hero-fig .frame::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--orange);border-right:2px solid var(--orange)}
+.bp{width:100%;aspect-ratio:4/4.6;display:block;background:
+  radial-gradient(rgba(140,229,220,.06) 1px,transparent 1.4px);background-size:11px 11px}
+.bp path,.bp circle,.bp rect,.bp line{vector-effect:non-scaling-stroke}
+.bp .draw{stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 1.8s ease forwards}
+.bp .draw.dl1{animation-delay:.4s}.bp .draw.dl2{animation-delay:.8s}.bp .draw.dl3{animation-delay:1.2s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.bp .sweep{animation:sweep 8s linear 2s infinite}
+@keyframes sweep{0%{transform:translateX(0);opacity:0}6%{opacity:.9}90%{opacity:.9}100%{transform:translateX(320px);opacity:0}}
+.hero-fig figcaption{display:flex;justify-content:space-between;gap:12px;padding-top:12px;font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+#live-cap{color:var(--teal-hi);display:flex;align-items:center;gap:8px}
+.pulse-dot{display:inline-block;width:7px;height:7px;background:var(--orange);border-radius:50%;animation:pulse 1.6s infinite;flex:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+/* app band */
+.staff-band{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--bg2)}
+.staff-inner{display:flex;align-items:center;gap:clamp(14px,2vw,26px);padding-top:15px;padding-bottom:15px;overflow-x:auto;scrollbar-width:thin}
+.staff-label{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.2em;color:var(--dim);flex:none}
+.staff-thumbs{display:flex;gap:8px;flex:none}
+.staff-thumbs a{width:46px;height:46px;border:1px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-family:'Chakra Petch',monospace;font-weight:600;font-size:15px;color:var(--silver);background:var(--panel);transition:border-color .15s,transform .15s,color .15s}
+.staff-thumbs a:hover{border-color:var(--orange);transform:translateY(-3px);color:var(--orange)}
+.staff-link{flex:none;font-weight:600;font-size:13.5px;letter-spacing:.08em;color:var(--orange)}
+.staff-link:hover{color:#fff}
+.staff-note{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim);flex:none;margin-left:auto}
+/* marquee */
+.marquee{overflow:hidden;border-bottom:1px solid var(--line);background:#041926;padding:13px 0;user-select:none}
+.mq-track{display:flex;width:max-content;animation:mq 36s linear infinite}
+.marquee:hover .mq-track{animation-play-state:paused}
+.mq-half{display:flex;align-items:center;gap:30px;padding-right:30px;flex:none}
+.mq-half span{font-weight:600;font-size:16px;letter-spacing:.04em;color:#5f8496;white-space:nowrap}
+.mq-half i{width:6px;height:6px;background:var(--orange);flex:none}
+@keyframes mq{to{transform:translateX(-50%)}}
+/* sections */
+section.sec{padding:clamp(54px,7vw,90px) 0}
+.sec-head{display:grid;grid-template-columns:auto 1fr minmax(240px,340px);gap:clamp(20px,3vw,44px);align-items:end;border-bottom:1px solid var(--line);padding-bottom:26px;margin-bottom:clamp(28px,3vw,44px)}
+.sec-no{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;color:var(--orange);border:1px solid var(--line);padding:9px 11px;letter-spacing:.1em;align-self:start}
+h2{font-weight:900;font-size:clamp(34px,4.8vw,64px);line-height:1.05;letter-spacing:.005em}
+.sec-head .eyebrow{margin-bottom:12px}
+.sec-note{font-size:15px;color:var(--dim);line-height:1.6;border-left:2px solid var(--orange);padding-left:16px}
+/* stats */
+.club-label{margin-bottom:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.stat{background:var(--bg);padding:26px 22px}
+.stat .num{font-weight:900;font-size:clamp(32px,3.4vw,52px);line-height:1;color:#fff}
+.stat .lbl{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim);margin-top:10px}
+/* programs (master-detail) */
+.prog-wrap{display:grid;grid-template-columns:400px 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.prog-rail{background:var(--bg);display:flex;flex-direction:column}
+.prog-tab{flex:1;text-align:left;padding:24px 26px;border-bottom:1px solid var(--line);position:relative;transition:background .15s;display:flex;flex-direction:column;gap:8px}
+.prog-tab:last-child{border-bottom:0}
+.prog-tab .t-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.prog-tab .t-no{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.prog-tab .t-name{font-weight:800;font-size:clamp(22px,2vw,29px);color:var(--silver);transition:color .15s;line-height:1.1}
+.prog-tab .t-goal{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim)}
+.prog-tab:hover{background:var(--bg2)}
+.prog-tab[aria-selected="true"]{background:var(--panel2)}
+.prog-tab[aria-selected="true"]::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange)}
+.prog-tab[aria-selected="true"] .t-name{color:#fff}
+.prog-tab[aria-selected="true"] .t-no{color:var(--orange)}
+.prog-detail{background-color:var(--panel);background-image:radial-gradient(rgba(140,229,220,.05) 1px,transparent 1.4px);background-size:9px 9px;padding:clamp(26px,3vw,44px);overflow:hidden}
+.enter{animation:detailIn .38s cubic-bezier(.2,.7,.2,1)}
+@keyframes detailIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.pd-top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.goal-tag{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--orange);border:1px solid rgba(244,119,33,.45);padding:7px 11px;white-space:nowrap;flex:none}
+h3{font-weight:800;font-size:clamp(28px,3vw,42px);line-height:1.05}
+.pd-sub{display:block;font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.16em;color:var(--dim);margin-top:9px}
+.pd-desc{color:var(--silver);max-width:640px;margin:18px 0 26px;font-size:16.5px}
+.pd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:26px}
+.pd-cell{background:var(--panel);padding:14px 16px}
+.k{font-family:'Chakra Petch',monospace;font-size:10px;letter-spacing:.14em;color:var(--dim)}
+.pd-cell .k{margin-bottom:7px;display:block}
+.pd-cell .v{font-weight:600;font-size:18px;color:#fff}
+.pd-cell .v.hot{color:var(--orange)}
+.pd-load{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,2.5vw,34px);margin-bottom:26px}
+.k-line{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.k-line .val{color:var(--orange);font-family:'Chakra Petch',monospace;font-size:12px}
+.meter{display:flex;gap:5px;margin-top:10px}
+.meter span{height:12px;flex:1;background:#0b415c}
+.meter span.on{background:var(--orange)}
+.split-bar{display:flex;height:12px;margin-top:10px}
+.split-bar .s1{background:var(--orange)}
+.split-bar .s2{background:var(--teal)}
+.pd-week{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:26px}
+.pd-day{background:var(--panel);padding:12px 8px;text-align:center;min-height:62px}
+.pd-day .d{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--orange);letter-spacing:.12em}
+.pd-day .f{font-weight:500;font-size:14px;color:#fff;margin-top:7px}
+.pd-inc{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px;margin-bottom:30px}
+.pd-inc li{font-size:15.5px;color:var(--silver);display:flex;gap:10px;align-items:baseline}
+.pd-inc li::before{content:"+";font-family:'IBM Plex Mono',monospace;color:var(--orange);font-weight:600}
+.pd-cta{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:24px}
+.pd-cta .note{font-family:'Chakra Petch',monospace;font-size:11px;color:var(--dim);letter-spacing:.08em}
+.pd-cta .note b{color:var(--orange);font-weight:500}
+/* app index (editorial) */
+.coach-wrap{display:grid;grid-template-columns:1fr 1.45fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.coach-index{background:var(--bg);display:flex;flex-direction:column}
+.coach-row{flex:1;text-align:left;padding:17px 24px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:34px 1fr auto;gap:14px;align-items:center;transition:background .15s;position:relative}
+.coach-row:last-child{border-bottom:0}
+.coach-row .c-no{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.coach-row .c-name{font-weight:800;font-size:clamp(17px,1.6vw,22px);color:var(--silver);transition:color .15s;line-height:1.1}
+.coach-row .c-role{font-family:'Chakra Petch',monospace;font-size:10px;letter-spacing:.1em;color:var(--dim);text-align:right}
+.coach-row:hover{background:var(--bg2)}
+.coach-row[aria-selected="true"]{background:var(--panel2)}
+.coach-row[aria-selected="true"]::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--orange)}
+.coach-row[aria-selected="true"] .c-name{color:#fff}
+.coach-row[aria-selected="true"] .c-no{color:var(--orange)}
+.coach-detail{background-color:var(--panel);background-image:radial-gradient(rgba(140,229,220,.04) 1px,transparent 1.4px);background-size:9px 9px;padding:clamp(24px,3vw,42px);display:grid;grid-template-columns:minmax(200px,270px) 1fr;gap:clamp(22px,3vw,40px)}
+.cd-photo{position:relative;border:1px solid var(--line);background:var(--bg2);aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.cd-photo .big{font-weight:900;font-size:clamp(90px,9vw,150px);color:#0f4a66;line-height:1;user-select:none;transition:color .3s,transform .3s}
+.cd-photo::after{content:"";position:absolute;inset:0;background:var(--orange);mix-blend-mode:color;opacity:0;transition:opacity .35s}
+.cd-photo:hover::after{opacity:.5}
+.cd-photo:hover .big{transform:scale(1.06)}
+.cd-tag{position:absolute;left:10px;bottom:10px;background:var(--bg);color:var(--orange);font-family:'Chakra Petch',monospace;font-size:10px;letter-spacing:.14em;padding:5px 9px;border:1px solid var(--line);z-index:2}
+.cd-info{display:flex;flex-direction:column;min-width:0}
+.cd-role{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.18em;color:var(--orange);margin-bottom:10px}
+.cd-name{font-weight:800;font-size:clamp(26px,2.8vw,38px);line-height:1.05;margin-bottom:14px}
+.cd-bio{color:var(--silver);font-size:16.5px;max-width:520px;margin-bottom:22px}
+.cd-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:22px}
+.cd-stats .cell{background:var(--panel);padding:12px 14px}
+.cd-stats .v{font-weight:800;font-size:18px;color:#fff}
+.cd-stats .k{margin-top:5px;display:block}
+.tags{display:flex;flex-wrap:wrap;gap:8px}
+.tag{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.06em;padding:6px 10px;border:1px solid var(--line);color:var(--silver)}
+.cd-meta{margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.08em;color:var(--dim)}
+.cd-meta b{color:var(--orange);font-weight:500}
+/* proof: before/after DOM slider */
+.proof-feature{display:grid;grid-template-columns:1.25fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:26px}
+.ba{position:relative;overflow:hidden;min-height:480px;touch-action:none;cursor:ew-resize;background:#041926}
+.ba-pane{position:absolute;inset:0;padding:56px 26px 26px;overflow:hidden}
+.ba-pane.after-p{background:var(--panel);display:flex;justify-content:flex-end}
+.ba-pane.after-p .doc{width:min(440px,92%)}
+.ba-pane.before-p{background:#0b2635}
+.ba .before{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--pos,58%)) 0 0);z-index:2}
+.doc{font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:2.05;color:var(--silver);white-space:pre;overflow:hidden}
+.doc .bad{color:#e8a2a2;text-decoration:underline wavy #b95050 1.5px}
+.doc .good{color:var(--teal-hi)}
+.doc .hot{color:var(--orange)}
+.ba-line{position:absolute;top:0;bottom:0;left:var(--pos,58%);width:2px;background:var(--orange);transform:translateX(-1px);z-index:3}
+.ba-handle{position:absolute;top:50%;left:var(--pos,58%);transform:translate(-50%,-50%);z-index:4;width:44px;height:44px;border-radius:50%;background:var(--bg);border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;cursor:ew-resize}
+.ba-handle::before,.ba-handle::after{content:"";border:6px solid transparent}
+.ba-handle::before{border-left-color:var(--orange);margin-right:3px}
+.ba-handle::after{border-right-color:var(--orange);margin-left:3px}
+.ba-label{position:absolute;top:14px;font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;padding:6px 10px;background:rgba(5,31,47,.88);border:1px solid var(--line);z-index:5}
+.ba-label.l{left:14px;color:var(--silver)}
+.ba-label.r{right:14px;color:var(--orange)}
+.proof-side{background:var(--panel);padding:clamp(24px,3vw,38px);display:flex;flex-direction:column;min-width:0}
+.ps-meta{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--dim);margin-bottom:12px}
+.ps-name{font-weight:800;font-size:clamp(23px,2.3vw,33px);line-height:1.1}
+.ps-span{font-family:'Chakra Petch',monospace;font-size:11px;color:var(--orange);letter-spacing:.1em;margin:10px 0 18px}
+.delta{border-top:1px solid var(--line)}
+.delta .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:11px 0;border-bottom:1px solid var(--line)}
+.delta .v{font-weight:600;font-size:16.5px;color:#fff;white-space:nowrap}
+.delta .v .old{color:var(--dim);font-weight:400}
+.delta .v .ar{color:var(--orange);margin:0 5px;font-family:'IBM Plex Mono',monospace;font-size:14px}
+.delta .v.hot{color:var(--orange)}
+.ps-quote{margin-top:auto;padding-top:24px}
+.ps-quote p{font-size:16.5px;color:var(--silver);line-height:1.6;border-left:3px solid var(--orange);padding-left:16px}
+.ps-quote .who{font-family:'Chakra Petch',monospace;font-size:10.5px;color:var(--dim);margin-top:10px;letter-spacing:.1em}
+/* ledger */
+.ledger{border:1px solid var(--line)}
+.led-head,.lr-top{display:grid;grid-template-columns:1.35fr .55fr 1.9fr 44px;gap:18px;align-items:center}
+.led-head{padding:12px 22px;font-family:'Chakra Petch',monospace;font-size:10px;letter-spacing:.14em;color:var(--dim);border-bottom:1px solid var(--line)}
+.led-row{border-bottom:1px solid var(--line)}
+.led-row:last-child{border-bottom:0}
+.lr-top{width:100%;text-align:left;padding:18px 22px;transition:background .15s}
+.lr-top:hover{background:var(--bg2)}
+.lr-name{font-weight:700;font-size:17.5px;color:#fff}
+.lr-name small{display:block;font-family:'Chakra Petch',monospace;font-size:10px;color:var(--dim);letter-spacing:.08em;margin-top:5px;font-weight:400}
+.lr-span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--silver)}
+.lr-res{font-size:15px;color:var(--silver)}
+.lr-res b{color:var(--orange);font-weight:600}
+.lr-x{position:relative;width:20px;height:20px;justify-self:end}
+.lr-x::before,.lr-x::after{content:"";position:absolute;background:#4a748a;transition:transform .25s,background .25s;left:50%;top:50%}
+.lr-x::before{width:16px;height:2px;transform:translate(-50%,-50%)}
+.lr-x::after{width:2px;height:16px;transform:translate(-50%,-50%)}
+.led-row.open .lr-x::after{transform:translate(-50%,-50%) rotate(90deg)}
+.led-row.open .lr-x::before,.led-row.open .lr-x::after{background:var(--orange)}
+.lr-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.7,.2,1)}
+.led-row.open .lr-body{grid-template-rows:1fr}
+.lr-body>div{overflow:hidden}
+.lr-inner{padding:20px 22px 26px;border-top:1px dashed var(--line-soft);color:var(--silver);font-size:16px;line-height:1.65;max-width:900px}
+.lr-inner b{color:var(--orange);font-weight:600}
+/* board + form */
+.book-wrap{display:grid;grid-template-columns:1.35fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line)}
+.book-form{background:var(--panel);padding:clamp(26px,3vw,42px)}
+.form-kicker{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.12em;color:var(--dim);margin-bottom:22px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field.full,.consent.full,.full-btn{grid-column:1/-1}
+.field label{font-family:'Chakra Petch',monospace;font-size:10.5px;letter-spacing:.14em;color:var(--dim)}
+.field input,.field select{background:#041926;border:1px solid var(--line);color:var(--txt);font-family:Kanit,sans-serif;font-size:16.5px;padding:13px 14px;transition:border-color .15s;width:100%}
+.field input::placeholder{color:#3f6478}
+.field input:focus,.field select:focus{border-color:var(--orange);outline:none}
+option{background:var(--panel);color:var(--txt)}
+.err{display:none;font-family:'Chakra Petch',monospace;font-size:10.5px;color:var(--orange)}
+.field.invalid .err{display:block}
+.field.invalid input,.field.invalid select{border-color:var(--orange)}
+.bf-success{display:none;flex-direction:column;gap:16px;align-items:flex-start}
+.bf-success.show{display:flex}
+.bfs-title{font-weight:800;font-size:clamp(26px,2.8vw,38px);line-height:1.05}
+.bfs-ref{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--orange);letter-spacing:.12em}
+.bfs-copy{color:var(--silver);font-size:16.5px;max-width:540px}
+.board{background-color:var(--bg2);background-image:radial-gradient(rgba(140,229,220,.04) 1px,transparent 1.4px);background-size:9px 9px;padding:clamp(22px,2.6vw,34px);display:flex;flex-direction:column}
+.board-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.board-title{font-weight:800;font-size:21px}
+.board-sub{font-family:'Chakra Petch',monospace;font-size:9.5px;color:var(--dim);letter-spacing:.14em;margin-top:5px}
+.board-clock{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--orange);letter-spacing:.1em}
+.b-class{display:grid;grid-template-columns:58px 1fr auto;gap:6px 14px;align-items:center;padding:13px 6px;border-bottom:1px solid var(--line-soft);border-left:2px solid transparent}
+.b-class .t{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#fff}
+.b-class .n{font-weight:500;font-size:16px;color:#fff;min-width:0}
+.b-class .n small{display:block;font-family:'Chakra Petch',monospace;font-size:9.5px;color:var(--dim);letter-spacing:.1em;margin-top:3px;font-weight:400}
+.b-class .st{font-family:'Chakra Petch',monospace;font-size:10px;letter-spacing:.1em;text-align:right;white-space:nowrap;color:var(--dim)}
+.b-class.done{opacity:.4}
+.b-class.live{background:var(--orange-soft);border-left-color:var(--orange)}
+.b-class.live .st{color:var(--orange);display:flex;align-items:center;gap:7px;justify-content:flex-end}
+.board-foot{margin-top:auto;padding-top:20px;font-family:'Chakra Petch',monospace;font-size:10.5px;color:var(--dim);letter-spacing:.08em;line-height:1.9}
+.board-foot a{color:var(--orange)}
+/* footer */
+footer{border-top:1px solid var(--line);background:var(--bg2)}
+.foot-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:clamp(24px,3vw,48px);padding:clamp(40px,5vw,60px) 0 36px}
+.f-block .k{display:block;margin-bottom:14px;letter-spacing:.16em}
+.f-addr{font-size:16.5px;color:var(--silver);line-height:1.7}
+.f-addr b{color:#fff;font-weight:600}
+.f-links a{display:block;font-weight:500;font-size:15px;color:var(--silver);padding:5px 0;transition:color .15s}
+.f-links a:hover{color:var(--orange)}
+.foot-bottom{display:flex;justify-content:space-between;gap:14px;padding:18px 0;border-top:1px solid var(--line);font-family:'Chakra Petch',monospace;font-size:10px;color:var(--dim);letter-spacing:.1em;flex-wrap:wrap}
+.wordmark{font-weight:900;font-size:clamp(90px,19vw,290px);line-height:.9;height:.62em;overflow:hidden;text-align:center;color:#0a3348;user-select:none;letter-spacing:.01em}
+.wordmark b{color:var(--orange);font-weight:900}
+/* toast */
+#toasts{position:fixed;right:18px;bottom:18px;z-index:400;display:flex;flex-direction:column;gap:10px;max-width:min(380px,calc(100vw - 36px))}
+.toast{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--orange);padding:14px 16px;transform:translateX(24px);opacity:0;transition:transform .3s cubic-bezier(.2,.7,.2,1),opacity .3s}
+.toast.show{transform:none;opacity:1}
+.toast p{font-family:'Chakra Petch',monospace;font-size:11.5px;color:var(--silver);line-height:1.6}
+/* reveal */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+/* responsive */
+@media(max-width:1080px){
+  .hero-grid{grid-template-columns:1fr;min-height:0;padding-top:34px}
+  .bp{aspect-ratio:16/9}
+  .sec-head{grid-template-columns:auto 1fr}
+  .sec-note{grid-column:1/-1;max-width:560px}
+  .prog-wrap{grid-template-columns:1fr}
+  .prog-rail{flex-direction:row;overflow-x:auto}
+  .prog-tab{border-bottom:0;border-right:1px solid var(--line);min-width:200px;flex:none}
+  .prog-tab[aria-selected="true"]::before{left:0;right:0;top:0;bottom:auto;width:auto;height:3px}
+  .coach-wrap{grid-template-columns:1fr}
+  .coach-index{flex-direction:row;overflow-x:auto}
+  .coach-row{flex:none;min-width:210px;border-bottom:0;border-right:1px solid var(--line)}
+  .coach-row .c-role{display:none}
+  .coach-row[aria-selected="true"]::before{left:0;right:0;top:0;bottom:auto;width:auto;height:3px}
+  .coach-detail{grid-template-columns:1fr}
+  .cd-photo{aspect-ratio:16/8}
+  .proof-feature{grid-template-columns:1fr}
+  .ba{min-height:380px}
+  .book-wrap{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:920px){.nav-links{display:none}#nav-clock{display:none}#menu-btn{display:flex}}
+@media(max-width:640px){
+  .f-grid{grid-template-columns:1fr}
+  .pd-grid{grid-template-columns:1fr 1fr}
+  .pd-load,.pd-inc{grid-template-columns:1fr}
+  .pd-week{grid-template-columns:repeat(2,1fr)}
+  .led-head,.lr-top{grid-template-columns:1.4fr 1fr 34px}
+  .lr-span,.led-head span:nth-child(2){display:none}
+  .ba{min-height:300px}
+  .staff-note{display:none}
+  .foot-grid{grid-template-columns:1fr}
+}
+@media(max-width:480px){.nav-right .btn{display:none}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  .h1-line>span{transform:none}
+  .fade-up{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div class="grain" aria-hidden="true"></div>
+<div id="toasts" aria-live="polite"></div>
+
+<header id="site-header">
+  <a class="logo" href="#hero">
+    <span class="logo-main">นายช่างหมู</span>
+    <span class="logo-sub">CIVIL APPS ASSISTANT</span>
+  </a>
+  <nav class="nav-links" aria-label="เมนูหลัก">
+    <a href="#apps-cat">หมวดงาน</a>
+    <a href="#apps-index">แอปทั้งหมด</a>
+    <a href="#proof">หลักฐาน</a>
+    <a href="#board">สถานะสด</a>
+  </nav>
+  <div class="nav-right">
+    <span id="nav-clock" class="mono">TH 00:00:00</span>
+    <a href="#board" class="btn btn-primary btn-sm">ทดลองฟรี 7 วัน</a>
+    <button id="menu-btn" aria-label="เมนู"><span></span><span></span></button>
+  </div>
+</header>
+
+<div id="mobile-menu">
+  <nav aria-label="เมนูมือถือ">
+    <a class="mm-link" href="#apps-cat"><span>หมวดงาน</span><span class="mono">02</span></a>
+    <a class="mm-link" href="#apps-index"><span>แอปทั้งหมด</span><span class="mono">03</span></a>
+    <a class="mm-link" href="#proof"><span>หลักฐาน</span><span class="mono">04</span></a>
+    <a class="mm-link" href="#board"><span>เริ่มใช้</span><span class="mono">05</span></a>
+  </nav>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid container">
+    <div>
+      <div class="eyebrow fade-up">แพลตฟอร์มแอปงานโยธา — เอกสารราชการไทย</div>
+      <h1>
+        <span class="h1-line"><span>ตัวเลขที่</span></span>
+        <span class="h1-line"><span class="outline">ตรวจย้อน</span></span>
+        <span class="h1-line"><span>ได้จริง<span class="dot">.</span></span></span>
+      </h1>
+      <p class="lede fade-up d1">นายช่างหมูคือชุดแอปงานโยธาที่<strong>ทุกตัวเลขอ้างเอกสารต้นทางได้</strong> ประมาณราคา ราคาวัสดุ แผนงาน ค่า K — มี<strong>ผู้ช่วย AI ในตัว</strong>ที่ร่างให้ คุณตัดสิน แล้วระบบคำนวณเงินเองทุกสตางค์</p>
+      <div class="cta-row fade-up d2">
+        <a href="#board" class="btn btn-primary">เริ่มทดลองใช้ฟรี 7 วัน <span class="arw">→</span></a>
+        <a href="#apps-index" class="btn btn-ghost">ดูแอปทั้งหมด</a>
+      </div>
+      <div class="hero-meta fade-up d3">
+        <span>7 แอปในทะเบียน</span><span>ผู้ช่วย AI ในตัว</span><span>เงินเป็นสตางค์เสมอ</span><span>ทะเบียนตรวจได้</span>
+      </div>
+    </div>
+    <figure class="hero-fig reveal">
+      <div class="frame">
+        <svg class="bp" viewBox="0 0 400 460" aria-hidden="true">
+          <g stroke="#8ce5dc" stroke-width="1.4" fill="none" opacity=".85">
+            <path class="draw" d="M40 380 L200 80 L360 380 Z"/>
+            <path class="draw dl1" d="M110 380 L110 250 L290 250 L290 380 M110 310 L290 310"/>
+            <path class="draw dl2" d="M60 420 L340 420 M60 412 L60 428 M340 412 L340 428"/>
+          </g>
+          <g stroke="#f47721" stroke-width="1.6" fill="none">
+            <circle class="draw dl2" cx="200" cy="80" r="14"/>
+            <path class="draw dl3" d="M155 250 L155 200 L245 200 L245 250"/>
+          </g>
+          <g class="sweep"><line x1="40" y1="60" x2="40" y2="400" stroke="#8ce5dc" stroke-width="1" opacity=".6"/></g>
+          <g font-family="IBM Plex Mono,monospace" font-size="9" fill="#6f8891">
+            <text x="52" y="416">0</text><text x="192" y="416">10.00 ม.</text><text x="330" y="416">20.00</text>
+            <text x="300" y="96" fill="#f47721">EL.+12.50</text>
+          </g>
+        </svg>
+        <figcaption>
+          <span id="live-cap"><span class="pulse-dot"></span><span id="live-cap-text">กำลังอ่านสถานะ…</span></span>
+          <span>N°01 — แบบขยาย</span>
+        </figcaption>
+      </div>
+    </figure>
+  </div>
+
+  <div class="staff-band">
+    <div class="container staff-inner">
+      <span class="staff-label">แอปในทะเบียน</span>
+      <div class="staff-thumbs" id="staff-thumbs"></div>
+      <a class="staff-link" href="#apps-index">รู้จักทุกตัว ↘</a>
+      <span class="staff-note">7 แอป · 105 รายการโรดแมป · ปักธงแล้ว 68 รุ่น</span>
+    </div>
+  </div>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="mq-track" id="mq-track">
+      <div class="mq-half" id="mq-half">
+        <span>ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้</span><i></i>
+        <span>AI ร่าง — คุณตัดสิน — ระบบคำนวณ</span><i></i>
+        <span>เงินเป็นสตางค์จำนวนเต็มเสมอ</span><i></i>
+        <span>ทดลองฟรี 7 วัน ไม่ต้องใส่บัตร</span><i></i>
+        <span>ทุกคำแถลงมีผู้ดูแลเป็นเจ้าของ</span><i></i>
+        <span>ค่าเผื่อไม่ระบุที่มา ถูกปฏิเสธตั้งแต่บันทึก</span><i></i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 ตัวเลขแพลตฟอร์ม -->
+<section class="sec">
+  <div class="container">
+    <div class="ticks" aria-hidden="true"></div>
+    <div class="eyebrow club-label">01 — แพลตฟอร์ม ในตัวเลข</div>
+    <div class="stats-grid reveal">
+      <div class="stat"><div class="num" data-count="7">0</div><div class="lbl">แอปในทะเบียน</div></div>
+      <div class="stat"><div class="num" data-count="68">0</div><div class="lbl">รุ่นที่ปักธงแล้ว</div></div>
+      <div class="stat"><div class="num" data-count="105">0</div><div class="lbl">รายการโรดแมป</div></div>
+      <div class="stat"><div class="num" data-count="535">0</div><div class="lbl">เทสต์ที่คุมกฎอยู่</div></div>
+      <div class="stat"><div class="num" data-count="3">0</div><div class="lbl">แหล่งราคาราชการ</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 02 หมวดงาน master-detail -->
+<section id="apps-cat" class="sec">
+  <div class="container">
+    <div class="ticks" aria-hidden="true"></div>
+    <div class="sec-head reveal">
+      <div class="sec-no">02</div>
+      <div>
+        <div class="eyebrow">เลือกตามหมวดงาน</div>
+        <h2>งานของคุณ<br>อยู่หมวดไหน<span class="dot">.</span></h2>
+      </div>
+      <p class="sec-note">สามหมวดหลักของงานโยธาราชการ เลือกหมวดแล้วแผงขวาเปลี่ยนตาม พร้อมขั้นตอนจริงของแอปนำในหมวดนั้น</p>
+    </div>
+    <div class="prog-wrap reveal">
+      <aside class="prog-rail" role="tablist" aria-label="หมวดงาน" id="prog-rail"></aside>
+      <div class="prog-detail" id="prog-detail"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 แอปทั้งหมด editorial index -->
+<section id="apps-index" class="sec">
+  <div class="container">
+    <div class="ticks" aria-hidden="true"></div>
+    <div class="sec-head reveal">
+      <div class="sec-no">03</div>
+      <div>
+        <div class="eyebrow">ทะเบียนแอป — คำแถลงมีเจ้าของ</div>
+        <h2>เจ็ดแอป<br>หนึ่งมาตรฐาน<span class="dot">.</span></h2>
+      </div>
+      <p class="sec-note">ทุกใบในรายการนี้อ่านจากทะเบียนที่ผู้ดูแลกดประกาศเอง แอปที่ยังไม่ประกาศจะเงียบเรื่องสิทธิ์และราคา ไม่มีการเดา</p>
+    </div>
+    <div class="coach-wrap reveal">
+      <div class="coach-index" id="coach-index" role="tablist" aria-label="แอปทั้งหมด"></div>
+      <div class="coach-detail" id="coach-detail"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 04 หลักฐาน before/after -->
+<section id="proof" class="sec">
+  <div class="container">
+    <div class="ticks" aria-hidden="true"></div>
+    <div class="sec-head reveal">
+      <div class="sec-no">04</div>
+      <div>
+        <div class="eyebrow">ก่อน / หลัง — ลากเส้นดูเอง</div>
+        <h2>เอกสารเดิมของคุณ<br>เทียบของเรา<span class="dot">.</span></h2>
+      </div>
+      <p class="sec-note">ซ้ายคือตารางแบบที่ส่งกันอยู่ทุกวัน ขวาคือบรรทัดเดียวกันเมื่อทุกค่ามีที่มา ลากแถบส้มหรือใช้ปุ่มลูกศรเทียบดู</p>
+    </div>
+
+    <div class="proof-feature reveal">
+      <div class="ba" id="ba" style="--pos:58%">
+        <div class="ba-pane after-p">
+          <div class="doc"><span class="good">BOQ — งานคอนกรีตฐานราก F1</span>
+รายการ      ปริมาณ   ที่มา
+คอนกรีต     12.500   <span class="good">2.50×2.50×2.00 ×1 จากแบบ S-02</span>
+เผื่อวัสดุ    3%      <span class="good">หลักเกณฑ์เผื่อฯ ข้อ 4.1</span>
+ค่าแรง      459 อัตรา <span class="good">ว 809 ลว. 14 พ.ย. 68</span>
+Factor F    1.2731   <span class="good">กค 0433.2/ว 481 แถวพิมพ์</span>
+<span class="hot">ทุกบรรทัดกดดูเอกสารต้นทางได้</span></div>
+        </div>
+        <div class="before">
+          <div class="ba-pane before-p">
+            <div class="doc"><span style="color:#9fb3bd">ประมาณการ (ไฟล์เดิม v7_final2)</span>
+รายการ      ปริมาณ   ที่มา
+คอนกรีต     <span class="bad">1.25</span>     -
+เผื่อวัสดุ    <span class="bad">7%</span>      <span class="bad">ใครใส่ไว้ไม่รู้</span>
+ค่าแรง      <span class="bad">ว 480</span>    <span class="bad">ฉบับที่ถูกยกเลิกแล้ว</span>
+Factor F    <span class="bad">1.305</span>   <span class="bad">ก๊อปจากไฟล์เก่า</span>
+<span class="bad">ถูกซักเมื่อไหร่ ยืนไม่ได้</span></div>
+          </div>
+        </div>
+        <div class="ba-label l">ก่อน — ไฟล์เดิม</div>
+        <div class="ba-label r">หลัง — นายช่างหมู</div>
+        <div class="ba-line" aria-hidden="true"></div>
+        <div class="ba-handle" tabindex="0" role="slider" aria-label="เทียบก่อนและหลัง ลากหรือใช้ปุ่มลูกศร" aria-valuemin="0" aria-valuemax="100" aria-valuenow="58"></div>
+      </div>
+      <div class="proof-side">
+        <div class="ps-meta">ตัวอย่างประกอบ N°01 — งานประมาณราคาอาคาร (ตัวเลขสมมุติเพื่อสาธิต)</div>
+        <div class="ps-name">จากไฟล์ที่ยืนไม่ได้<br>เป็นเอกสารที่ยืนได้<span class="dot">.</span></div>
+        <div class="ps-span">ESTIMETR · ถอดปริมาณ → ตรวจ → BOQ</div>
+        <div class="delta">
+          <div class="row"><span class="k">ที่มาของปริมาณ</span><span class="v"><span class="old">พิมพ์มือ</span><span class="ar">→</span>บรรทัดวัดจากแบบ</span></div>
+          <div class="row"><span class="k">ค่าเผื่อ</span><span class="v"><span class="old">จำต่อกันมา</span><span class="ar">→</span>อ้างหลักเกณฑ์</span></div>
+          <div class="row"><span class="k">ค่าแรง</span><span class="v"><span class="old">ว 480 (ยกเลิก)</span><span class="ar">→</span>ว 809</span></div>
+          <div class="row"><span class="k">ตอบกรรมการ</span><span class="v hot">ชี้เอกสารได้ทุกบรรทัด</span></div>
+        </div>
+        <div class="ps-quote">
+          <p>"ตัวเลขที่ตอบไม่ได้ว่ามาจากไหน คือตัวเลขที่ป้องกันตัวเองไม่ได้ — เราสร้างระบบทั้งระบบจากประโยคเดียวนี้"</p>
+          <div class="who">— หลักยืนของนายช่างหมู</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ledger reveal">
+      <div class="led-head"><span>เหตุการณ์</span><span>รุ่น</span><span>สิ่งที่เกิดขึ้นจริง</span><span></span></div>
+      <div class="led-row">
+        <button class="lr-top" aria-expanded="false">
+          <span class="lr-name">ทะเบียนเป็นเจ้าของคำแถลง<small>ADR 0014 / 0015 / 0018</small></span>
+          <span class="lr-span">v0.65</span>
+          <span class="lr-res">หน้าเว็บพูดเรื่องสิทธิ์และราคาได้<b>เท่าที่ผู้ดูแลประกาศ</b>เท่านั้น</span>
+          <span class="lr-x" aria-hidden="true"></span>
+        </button>
+        <div class="lr-body"><div><div class="lr-inner">แอปที่ยังไม่ประกาศจะไม่ถูกเอ่ยชื่อบนหน้าราคา และประโยคความพร้อมทุกประโยคมีผู้ดูแลกดประกาศเป็นเจ้าของ <b>ฐานข้อมูลอ่านไม่ได้ = เงียบ ไม่ใช่เดา</b></div></div></div>
+      </div>
+      <div class="led-row">
+        <button class="lr-top" aria-expanded="false">
+          <span class="lr-name">ราคาวัสดุครบสามแหล่งราชการ<small>สนค. 74 จังหวัด · สพฐ. 1,949 รายการ · ว 809</small></span>
+          <span class="lr-span">v0.61</span>
+          <span class="lr-res">ค่าแรงถอดแบบใช้ <b>ว 809 ฉบับที่ยกเลิก ว 480</b> ที่คู่แข่งยังใช้อยู่</span>
+          <span class="lr-x" aria-hidden="true"></span>
+        </button>
+        <div class="lr-body"><div><div class="lr-inner">ราคาวัสดุรายจังหวัดดึงสดจาก API ของ สนค. เดือนที่ต้นทางไม่มีคือ<b>ช่องว่างจริง ไม่มีการลากเส้นเชื่อม</b> และทุกอัตราค่าแรงเก็บเงื่อนไขปริมาณงานไว้ครบ</div></div></div>
+      </div>
+      <div class="led-row">
+        <button class="lr-top" aria-expanded="false">
+          <span class="lr-name">ผู้ช่วย AI หนึ่งรอยต่อทุกแอป<small>เจ็ดจังหวะของงานราชการไทย</small></span>
+          <span class="lr-span">v0.68</span>
+          <span class="lr-res">กฎเหล็กมีเทสต์คุม: <b>schema ของ AI ห้ามมีช่องเงิน</b></span>
+          <span class="lr-x" aria-hidden="true"></span>
+        </button>
+        <div class="lr-body"><div><div class="lr-inner">ผู้ช่วยร่างและทักสิ่งที่ขัดกัน แต่<b>เงินทุกสตางค์คำนวณโดยระบบของเรา</b> สี่ในเจ็ดจังหวะโมเดลไม่คืนตัวเลขเลย จึงผิดทางการเงินไม่ได้ตั้งแต่โครงสร้าง</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 สถานะสด + ฟอร์ม -->
+<section id="board" class="sec">
+  <div class="container">
+    <div class="ticks" aria-hidden="true"></div>
+    <div class="sec-head reveal">
+      <div class="sec-no">05</div>
+      <div>
+        <div class="eyebrow">เริ่มใช้ — ทดลองฟรี 7 วัน</div>
+        <h2>ขึ้นกระดาน<span class="dot">.</span></h2>
+      </div>
+      <p class="sec-note">นาฬิกาทดลองใช้เริ่มนับเมื่อคุณกดเริ่มเองเท่านั้น เปิดดูก่อนได้ไม่เสียวัน — ฟอร์มนี้เป็นตัวอย่างประกอบใน mockup</p>
+    </div>
+
+    <div class="book-wrap reveal">
+      <div class="book-form" id="book-panel">
+        <div class="form-kicker">แบบฟอร์มสาธิต — ใน mockup นี้ยังไม่ส่งข้อมูลจริง</div>
+        <form id="trial-form" class="f-grid" novalidate>
+          <div class="field">
+            <label for="f-name">ชื่อที่ให้เรียก</label>
+            <input type="text" id="f-name" placeholder="เช่น ช่างโอ๊ต">
+            <span class="err">ต้องมีชื่อไว้ขึ้นกระดาน</span>
+          </div>
+          <div class="field">
+            <label for="f-email">อีเมล</label>
+            <input type="email" id="f-email" placeholder="you@email.com">
+            <span class="err">อีเมลยังไม่ถูกต้อง</span>
+          </div>
+          <div class="field full">
+            <label for="f-goal">งานแรกที่จะทำ</label>
+            <select id="f-goal">
+              <option value="">— เลือกงาน —</option>
+              <option>ประมาณราคางานอาคาร</option>
+              <option>เช็คราคาวัสดุและค่าแรง</option>
+              <option>สร้างแผนงานแนบสัญญา</option>
+              <option>คำนวณค่า K</option>
+            </select>
+            <span class="err">เลือกงานแรกก่อน</span>
+          </div>
+          <button type="submit" class="btn btn-primary full-btn">ส่งคำขอทดลองใช้ <span class="arw">→</span></button>
+        </form>
+        <div class="bf-success" id="bf-success">
+          <div class="bfs-title">รับเรื่องแล้ว<span class="dot">.</span></div>
+          <div class="bfs-ref" id="bfs-ref">REF —</div>
+          <p class="bfs-copy">นี่คือหน้าจอสาธิตของ mockup — ของจริงจะพาไปหน้ากดเริ่มทดลองใช้ ซึ่งบอกเงื่อนไขครบก่อนนาฬิกาเริ่มเดิน</p>
+        </div>
+      </div>
+
+      <aside class="board">
+        <div class="board-head">
+          <div>
+            <div class="board-title">กระดานสถานะ</div>
+            <div class="board-sub">คำนวณจากเวลาจริงของเครื่องคุณ</div>
+          </div>
+          <div class="board-clock mono" id="board-clock">00:00</div>
+        </div>
+        <div id="board-rows"></div>
+        <div class="board-foot">
+          ทะเบียน ตรวจได้ · โรดแมป เปิดอ่านได้ทั้งฉบับ<br>
+          <a href="#apps-index">ดูคำประกาศของทุกแอป ↘</a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="f-block">
+        <span class="k">นายช่างหมู</span>
+        <p class="f-addr"><b>CIVIL APPS ASSISTANT</b><br>เครื่องมือวิศวกรรมที่เรียบง่าย ตรวจสอบได้<br>และออกแบบมาเพื่อให้งานเดินหน้า</p>
+      </div>
+      <div class="f-block f-links">
+        <span class="k">ทางลัด</span>
+        <a href="#apps-index">แอปทั้งหมด</a>
+        <a href="#board">ทดลองใช้ฟรี</a>
+        <a href="#proof">หลักฐาน</a>
+      </div>
+      <div class="f-block f-links">
+        <span class="k">เอกสาร</span>
+        <a href="#">Roadmap &amp; Handoff</a>
+        <a href="#">นโยบายการใช้คุกกี้</a>
+      </div>
+    </div>
+  </div>
+  <div class="wordmark" aria-hidden="true">นายช่างหมู<b>.</b></div>
+  <div class="container foot-bottom">
+    <span>MOCKUP — LANDING EDITORIAL DIRECTION · 2026</span>
+    <span>ธีมสีจาก DESIGN.md · ตัวเลขบางส่วนเป็นตัวอย่างประกอบ</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- data ---------- */
+const APPS=[
+ {no:"01",name:"ESTIMETR",role:"ประมาณราคา",big:"E",bio:"ถอดปริมาณและประมาณราคางานอาคารอย่างเป็นลำดับ ทุกปริมาณเป็นผลรวมของบรรทัดวัดที่อ่านจากแบบได้",stat:["ประกาศแล้ว","ทดลองฟรี 7 วัน","หมวดต้นทุน"],tags:["ถอดปริมาณมีหลักฐาน","Factor F อ้างหนังสือ","BOQ ตรวจย้อนได้"],meta:"ประกาศเมื่อ 27 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"02",name:"PRICEMETR",role:"ราคาวัสดุและค่าแรง",big:"P",bio:"ราคาวัสดุรายจังหวัดจาก สนค. บัญชี สพฐ. 2569 และค่าแรงถอดแบบ ว 809 — สามแหล่งราชการในที่เดียว",stat:["ประกาศแล้ว","กำลังพัฒนา","หมวดต้นทุน"],tags:["74 จังหวัด","1,949 รายการ","459 อัตราค่าแรง"],meta:"ประกาศเมื่อ 27 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"03",name:"ผู้ช่วยสร้างแผนงาน",role:"แผนงานก่อสร้าง",big:"W",bio:"สร้างแผนงาน งวดงาน แผนกำลังคน และกราฟ Gantt กับ S-Curve จากข้อมูลโครงการ พร้อมผู้ช่วย AI ที่ร่างให้แล้วคุณแก้",stat:["ประกาศแล้ว","กำลังพัฒนา","หมวดบริหาร"],tags:["AI ร่างแผน","เอกสารแนบสัญญา A4","ปฏิทินวันทำงานไทย"],meta:"ประกาศเมื่อ 27 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"04",name:"ESCALATION K",role:"ปรับราคาสัญญา",big:"K",bio:"คำนวณค่า K และเงินชดเชยตามสัญญาแบบปรับราคาได้ ครบ 35 สูตรตามมติคณะรัฐมนตรี ว 109",stat:["ประกาศแล้ว","กำลังเตรียม","หมวดต้นทุน"],tags:["35 สูตร ว 109","ตัดเศษตามระเบียบ","อ้างเลขข้อจากเอกสาร"],meta:"ประกาศเมื่อ 26 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"05",name:"RETAINING WALL",role:"ออกแบบกำแพงกันดิน",big:"R",bio:"คำนวณและตรวจทานกำแพงกันดินแบบ cantilever ด้วย bisection พร้อมสามการตรวจเสถียรภาพ",stat:["ประกาศแล้ว","กำลังเตรียม","หมวดออกแบบ"],tags:["พลิกคว่ำ","เลื่อน","กำลังแบกทาน"],meta:"ประกาศเมื่อ 26 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"06",name:"TRAFFIC SIGN",role:"วัสดุป้ายจราจร",big:"T",bio:"จัดทำรายการวัสดุป้ายจราจรจนถึง BOQ สำหรับงานอุปกรณ์อำนวยความปลอดภัย",stat:["ประกาศแล้ว","กำลังเตรียม","หมวดปลอดภัย"],tags:["รายการป้าย","เสาและฐาน","BOQ"],meta:"ประกาศเมื่อ 26 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"},
+ {no:"07",name:"LAND ACQUISITION",role:"จัดกรรมสิทธิ์ที่ดิน",big:"L",bio:"งานจัดกรรมสิทธิ์ที่ดินสำหรับบุคลากรกรมทางหลวง ตามสิทธิ์ที่ได้รับ",stat:["ประกาศแล้ว","เฉพาะบุคลากร","กรมทางหลวง"],tags:["ไร่-งาน-ตร.วา","ระวาง","แนวเขตทาง"],meta:"ประกาศเมื่อ 26 ส.ค. 2569 โดยผู้ดูแลแพลตฟอร์ม"}
+];
+const CATS=[
+ {no:"A",name:"ต้นทุนและประมาณราคา",goal:"ESTIMETR · PRICEMETR · K",tag:"3 แอป",
+  h:"รู้ราคาก่อนใครถาม",sub:"ESTIMETR — แอปนำของหมวด",
+  desc:"ถอดปริมาณจากแบบ เช็คราคาจากสามแหล่งราชการ แล้วประกอบเป็น BOQ ที่ทุกบรรทัดชี้เอกสารต้นทางได้ ผู้ช่วย AI ทักรายการที่หายและอธิบายที่มาของ Factor F",
+  cells:[["สถานะ","ทดลองฟรี 7 วัน","hot"],["แหล่งราคา","3 แหล่งราชการ",""],["ผู้ช่วย AI","ทัก + อธิบาย",""]],
+  meter:4,label1:"ความพร้อมของหมวด",split:[62,38],
+  steps:["ตั้งโครงการ","ตรวจแบบ","ถอดปริมาณ","ประมาณราคา"],
+  inc:["ปริมาณเป็นบรรทัดวัด ไม่ใช่ตัวเลขพิมพ์มือ","ค่าเผื่อทุกตัวอ้างหลักเกณฑ์","ค่าแรง ว 809 ฉบับปัจจุบัน","Factor F บอกว่ามาจากแถวพิมพ์หรือเทียบส่วน"]},
+ {no:"B",name:"บริหารและจัดการงานก่อสร้าง",goal:"ผู้ช่วยสร้างแผนงาน",tag:"1 แอป + S-CURVE",
+  h:"แผนที่กรรมการอ่านแล้วผ่าน",sub:"ผู้ช่วยสร้างแผนงาน — แอปนำของหมวด",
+  desc:"กรอกข้อมูลโครงการไม่กี่ค่า ผู้ช่วย AI ร่างแผนงานทั้งชุด คุณแก้ด้วยคำสั่งภาษาคน แล้วพิมพ์เอกสารแนบสัญญาลงกระดาษ A4 จริง งวดเงินรวมตรงค่าสัญญาเป๊ะทุกสตางค์",
+  cells:[["สถานะ","กำลังพัฒนา",""],["ร่างแรก","จาก 5 ค่า","hot"],["เอกสาร","A4 ราชการ",""]],
+  meter:3,label1:"ความพร้อมของหมวด",split:[45,55],
+  steps:["กรอกโครงการ","AI ร่างแผน","ปรับงวดงาน","พิมพ์เอกสาร"],
+  inc:["Gantt และ S-Curve ในตัว","ปฏิทินวันทำงานไทย เผื่อฝนได้","แก้แผนด้วยคำสั่งภาษาคน","AI ทักลำดับงานที่ขัดกัน"]},
+ {no:"C",name:"ออกแบบและความปลอดภัย",goal:"RETAINING WALL · TRAFFIC SIGN",tag:"2 แอป",
+  h:"เครื่องคิดที่วิศวกรคุม",sub:"หมวดที่กำลังเตรียมระบบ",
+  desc:"กำแพงกันดิน cantilever ที่หา หน้าตัดพอดีด้วย bisection และรายการวัสดุป้ายจราจรถึง BOQ — ทุกค่าออกแบบเป็นอินพุตที่วิศวกรรับผิดชอบ ระบบไม่เดาแทน",
+  cells:[["สถานะ","กำลังเตรียม",""],["การตรวจ","3 เสถียรภาพ",""],["ผลลัพธ์","ถึง BOQ","hot"]],
+  meter:2,label1:"ความพร้อมของหมวด",split:[30,70],
+  steps:["ระบุเงื่อนไข","คำนวณ","ตรวจทาน","ยืนยันผล"],
+  inc:["bisection หาหน้าตัดพอดี","ตรวจพลิกคว่ำ เลื่อน แบกทาน","วิศวกรเป็นเจ้าของทุกค่าตั้งต้น","ป้ายจราจรถึงรายการวัสดุ"]}
+];
+/* ---------- helpers ---------- */
+const $=(s,c=document)=>c.querySelector(s);
+const $$=(s,c=document)=>[...c.querySelectorAll(s)];
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function toast(msg){const t=document.createElement("div");t.className="toast";t.innerHTML="<p>"+msg+"</p>";$("#toasts").append(t);requestAnimationFrame(()=>t.classList.add("show"));setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),350)},4200)}
+/* header / progress / clock */
+const header=$("#site-header");
+addEventListener("scroll",()=>{header.classList.toggle("scrolled",scrollY>10);
+ const h=document.documentElement;$("#progress").style.width=(scrollY/(h.scrollHeight-innerHeight)*100)+"%";},{passive:true});
+function tick(){const d=new Date();const z=n=>String(n).padStart(2,"0");
+ $("#nav-clock").textContent="TH "+z(d.getHours())+":"+z(d.getMinutes())+":"+z(d.getSeconds());
+ $("#board-clock").textContent=z(d.getHours())+":"+z(d.getMinutes());
+ const open=d.getHours()>=6&&d.getHours()<22;
+ $("#live-cap-text").textContent=open?"เปิดให้เข้าใช้ตอนนี้ — ทะเบียนออนไลน์":"นอกเวลา — ทะเบียนยังอ่านได้";
+}
+tick();setInterval(tick,1000);
+/* mobile menu */
+const mb=$("#menu-btn"),mm=$("#mobile-menu");
+mb.addEventListener("click",()=>{mb.classList.toggle("x");mm.classList.toggle("open")});
+$$(".mm-link").forEach(a=>a.addEventListener("click",()=>{mb.classList.remove("x");mm.classList.remove("open")}));
+/* app band thumbs */
+$("#staff-thumbs").innerHTML=APPS.map((a,i)=>`<a href="#apps-index" data-i="${i}" title="${a.name}">${a.big}</a>`).join("");
+$$("#staff-thumbs a").forEach(a=>a.addEventListener("click",()=>selectApp(+a.dataset.i,true)));
+/* marquee duplicate */
+$("#mq-track").append($("#mq-half").cloneNode(true));
+/* reveal */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.12});
+$$(".reveal").forEach(el=>io.observe(el));
+/* stats count-up */
+const cio=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;cio.unobserve(e.target);
+ const n=e.target,end=+n.dataset.count,dur=reduced?0:1100,t0=performance.now();
+ (function step(t){const p=dur?Math.min(1,(t-t0)/dur):1;n.textContent=Math.round(end*(p<.5?2*p*p:1-((-2*p+2)**2)/2)).toLocaleString();if(p<1)requestAnimationFrame(step)})(t0);
+}),{threshold:.5});
+$$(".num[data-count]").forEach(n=>cio.observe(n));
+/* categories master-detail */
+const rail=$("#prog-rail"),pd=$("#prog-detail");
+rail.innerHTML=CATS.map((c,i)=>`<button class="prog-tab" role="tab" aria-selected="${i===0}" data-i="${i}">
+ <span class="t-top"><span class="t-no">หมวด ${c.no}</span><span class="t-goal">${c.tag}</span></span>
+ <span class="t-name">${c.name}</span><span class="t-goal">${c.goal}</span></button>`).join("");
+function renderCat(i){const c=CATS[i];
+ pd.innerHTML=`<div class="enter">
+  <div class="pd-top"><div><h3>${c.h}<span class="dot">.</span></h3><span class="pd-sub">${c.sub}</span></div>
+  <span class="goal-tag">${c.tag}</span></div>
+  <p class="pd-desc">${c.desc}</p>
+  <div class="pd-grid">${c.cells.map(x=>`<div class="pd-cell"><span class="k">${x[0]}</span><div class="v ${x[2]}">${x[1]}</div></div>`).join("")}</div>
+  <div class="pd-load">
+    <div><div class="k-line"><span class="k">${c.label1}</span><span class="val">${c.meter}/5</span></div>
+      <div class="meter">${[1,2,3,4,5].map(n=>`<span class="${n<=c.meter?"on":""}"></span>`).join("")}</div></div>
+    <div><div class="k-line"><span class="k">AI ช่วย / คุณคุม</span><span class="val">${c.split[0]} : ${c.split[1]}</span></div>
+      <div class="split-bar"><span class="s1" style="width:${c.split[0]}%"></span><span class="s2" style="width:${c.split[1]}%"></span></div></div>
+  </div>
+  <div class="pd-week">${c.steps.map((s,n)=>`<div class="pd-day"><div class="d">ขั้น 0${n+1}</div><div class="f">${s}</div></div>`).join("")}</div>
+  <ul class="pd-inc">${c.inc.map(x=>`<li>${x}</li>`).join("")}</ul>
+  <div class="pd-cta"><span class="note">รอบอัปเดตถัดไป — <b id="cohort"></b></span>
+    <a class="btn btn-primary" href="#board">เริ่มกับหมวดนี้ <span class="arw">→</span></a></div></div>`;
+ const d=new Date();d.setDate(d.getDate()+((8-d.getDay())%7||7));
+ $("#cohort").textContent="จันทร์ที่ "+d.toLocaleDateString("th-TH",{day:"numeric",month:"short"});
+}
+rail.addEventListener("click",e=>{const b=e.target.closest(".prog-tab");if(!b)return;
+ $$(".prog-tab",rail).forEach(t=>t.setAttribute("aria-selected",t===b));renderCat(+b.dataset.i)});
+renderCat(0);
+/* apps editorial index */
+const ci=$("#coach-index"),cd=$("#coach-detail");
+ci.innerHTML=APPS.map((a,i)=>`<button class="coach-row" role="tab" aria-selected="${i===0}" data-i="${i}">
+ <span class="c-no">${a.no}</span><span class="c-name">${a.name}</span><span class="c-role">${a.role}</span></button>`).join("");
+function selectApp(i,scroll){$$(".coach-row",ci).forEach((r,n)=>r.setAttribute("aria-selected",n===i));
+ const a=APPS[i];
+ cd.innerHTML=`<div class="cd-photo enter"><span class="big">${a.big}</span><span class="cd-tag">${a.role}</span></div>
+ <div class="cd-info enter"><div class="cd-role">แอป N°${a.no} — ${a.role}</div>
+  <div class="cd-name">${a.name}<span class="dot">.</span></div>
+  <p class="cd-bio">${a.bio}</p>
+  <div class="cd-stats">${a.stat.map((s,n)=>`<div class="cell"><div class="v">${s}</div><span class="k">${["สถานะทะเบียน","สิทธิ์ที่ประกาศ","หมวด"][n]}</span></div>`).join("")}</div>
+  <div class="cd-block"><span class="k">จุดที่ต่างจากไฟล์เดิมของคุณ</span><div class="tags">${a.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div></div>
+  <div class="cd-meta"><b>${a.meta}</b> — คำแถลงทุกคำมาจากทะเบียน</div></div>`;
+ if(scroll)document.querySelector(".coach-detail").scrollIntoView({block:"nearest"});
+}
+ci.addEventListener("click",e=>{const b=e.target.closest(".coach-row");if(b)selectApp(+b.dataset.i,true)});
+selectApp(0);
+/* before/after slider */
+const ba=$("#ba"),handle=$(".ba-handle",ba);
+function setPos(p){p=Math.max(4,Math.min(96,p));ba.style.setProperty("--pos",p+"%");handle.setAttribute("aria-valuenow",Math.round(p))}
+function posFromEvent(e){const r=ba.getBoundingClientRect();const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;return x/r.width*100}
+let drag=false;
+ba.addEventListener("pointerdown",e=>{drag=true;setPos(posFromEvent(e));ba.setPointerCapture(e.pointerId)});
+ba.addEventListener("pointermove",e=>{if(drag)setPos(posFromEvent(e))});
+addEventListener("pointerup",()=>drag=false);
+handle.addEventListener("keydown",e=>{const cur=parseFloat(ba.style.getPropertyValue("--pos"))||58;
+ if(e.key==="ArrowLeft"){setPos(cur-4);e.preventDefault()}if(e.key==="ArrowRight"){setPos(cur+4);e.preventDefault()}});
+/* ledger accordion */
+$$(".lr-top").forEach(b=>b.addEventListener("click",()=>{const row=b.closest(".led-row");
+ const open=row.classList.toggle("open");b.setAttribute("aria-expanded",open)}));
+/* board rows: computed from real clock */
+const SLOTS=[["06:00","ทะเบียนแอป","อ่านคำประกาศได้ตลอด"],["09:00","ราคาวัสดุ สนค.","แคชรายชั่วโมง"],["12:00","โรดแมปสาธารณะ","refresh อัตโนมัติ"],["15:00","ผู้ช่วย AI","ร่าง ทัก อธิบาย"],["18:00","เอกสารแนบสัญญา","พิมพ์ A4 จริง"],["21:00","ปิดกระดานวันนี้","พรุ่งนี้เริ่มใหม่"]];
+function renderBoard(){const now=new Date();const cur=now.getHours()*60+now.getMinutes();
+ $("#board-rows").innerHTML=SLOTS.map(([t,n,s])=>{const[h,m]=t.split(":").map(Number);const start=h*60+m,end=start+180;
+  let cls="",st="รอเวลา T-"+Math.max(0,Math.floor((start-cur)/60))+" ชม.";
+  if(cur>=start&&cur<end){cls="live";st='<span class="pulse-dot"></span>LIVE ตอนนี้'}
+  else if(cur>=end){cls="done";st="ผ่านแล้ว"}
+  return `<div class="b-class ${cls}"><span class="t">${t}</span><span class="n">${n}<small>${s}</small></span><span class="st">${st}</span></div>`}).join("")}
+renderBoard();setInterval(renderBoard,30000);
+/* form (demo only) */
+$("#trial-form").addEventListener("submit",e=>{e.preventDefault();let ok=true;
+ const name=$("#f-name"),email=$("#f-email"),goal=$("#f-goal");
+ [[name,v=>v.trim()],[email,v=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)],[goal,v=>v]].forEach(([el,test])=>{
+  const bad=!test(el.value);el.closest(".field").classList.toggle("invalid",bad);if(bad)ok=false});
+ if(!ok){toast("ฟอร์มยังไม่ครบ — ช่องที่ขาดถูกทำเครื่องหมายไว้แล้ว");return}
+ $("#trial-form").style.display="none";$("#form-kicker")?.remove();
+ $("#bfs-ref").textContent="REF — DEMO-"+Math.random().toString(36).slice(2,7).toUpperCase();
+ $("#bf-success").classList.add("show");
+ toast("รับคำขอแล้ว (สาธิต) — ของจริงนาฬิกาจะยังไม่เดินจนกว่าคุณกดเริ่มเอง");});
+/* nav active state */
+const secIO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;
+ $$(".nav-links a").forEach(a=>a.classList.toggle("active",a.getAttribute("href")==="#"+e.target.id))}),{rootMargin:"-40% 0px -55% 0px"});
+["apps-cat","apps-index","proof","board"].forEach(id=>{const el=document.getElementById(id);if(el)secIO.observe(el)});
+</script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบ ค — เลื่อนแล้วภาพเปลี่ยนตาม</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  .story { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(24px, 4vw, 56px); align-items: start; }
+
+  /* บุคลิกของแบบนี้คือแผ่นแบบ กรอบเส้นคู่กับตารางชื่อแบบมุมล่าง เหมือนแผ่นที่วิศวกรเปิดอ่านจริง */
+  .story__stage { position: sticky; top: 84px; }
+  .sheet {
+    padding: 10px; border: 1px solid rgba(255, 255, 255, .28); border-radius: 8px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 32px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 32px),
+      rgba(255, 255, 255, .03);
+  }
+  .sheet__inner { border: 1px solid rgba(255, 255, 255, .18); }
+  .story__stage .shot { aspect-ratio: 4 / 3; border: 0; border-radius: 0; }
+  .sheet__block { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 9px 12px; border-top: 1px solid rgba(255, 255, 255, .18); }
+  .sheet__label { color: #cfeeea; font-size: .82rem; font-weight: 700; }
+  .sheet__meta { color: #7f9ea3; font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; }
+
+  .story__steps { display: grid; gap: clamp(18px, 3vw, 30px); }
+  .step {
+    padding: 22px; border: 1px solid rgba(255, 255, 255, .14); border-radius: var(--radius);
+    background: rgba(255, 255, 255, .04);
+    transition: border-color 200ms var(--ease-out), background 200ms var(--ease-out), transform 200ms var(--ease-out);
+  }
+  .step[data-active="true"] { border-color: rgba(127, 214, 207, .6); background: rgba(255, 255, 255, .09); transform: translateX(4px); }
+  .step__top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .step__name { color: #fff; font-weight: 700; letter-spacing: .02em; }
+  .step__tag { color: #7fd6cf; font-size: .74rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .step h3 { color: #fff; font-size: 1.14rem; margin-bottom: 6px; }
+  .step p { color: #b7cdd0; font-size: .93rem; }
+  .step__link { display: inline-block; margin-top: 12px; color: #ffb27a; font-size: .88rem; font-weight: 700; text-decoration: none; }
+  .step__link:hover { text-decoration: underline; }
+
+  /* จอแคบ ภาพไปอยู่ในใบของแต่ละขั้น แทนที่จะค้างอยู่ข้าง ๆ */
+  .step__shot { display: none; margin-top: 14px; }
+  @media (max-width: 900px) {
+    .story { grid-template-columns: 1fr; }
+    .story__stage { display: none; }
+    .step__shot { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container mock-head">
+  <div class="mock-head__bar">
+    <span class="mock-head__name">แบบ ค — เลื่อนแล้วภาพเปลี่ยนตาม</span>
+    <a class="mock-head__back" href="index.html">← กลับไปดูทั้งห้าแบบ</a>
+  </div>
+</div>
+
+<section class="section section--ink">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">แอปของเรา</p>
+      <h2>เลื่อนดูทีละแอป ภาพทางซ้ายเปลี่ยนตาม</h2>
+      <p>เหมาะกับการเล่าเรียงลำดับตั้งแต่หาราคา ถอดปริมาณ ไปจนถึงแผนงาน ที่จอแคบภาพจะย้ายลงไปอยู่ในใบของแต่ละแอป</p>
+    </div>
+
+    <div class="story">
+      <div class="story__stage">
+        <div class="sheet">
+          <div class="sheet__inner">
+            <div class="shot" id="stage">ที่วางภาพหน้าจอ — ตารางราคารายจังหวัด</div>
+            <div class="sheet__block">
+              <span class="sheet__label" id="stagelabel">PRICEMETR — ค้นราคาวัสดุและค่าแรง</span>
+              <span class="sheet__meta">แผ่นที่ 1 / 4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="story__steps">
+        <article class="step" data-active="true" data-shot="ที่วางภาพหน้าจอ — ตารางราคารายจังหวัด" data-label="PRICEMETR — ค้นราคาวัสดุและค่าแรง">
+          <div class="step__top"><span class="step__name">PRICEMETR</span><span class="step__tag">ขั้นที่ 1</span></div>
+          <h3>หาราคาที่อ้างอิงได้ก่อน</h3>
+          <p>ค้นราคาวัสดุรายจังหวัดและค่าแรงตามบัญชีราชการ หยิบรายการที่ใช้เก็บไว้ แล้วส่งเข้าโครงการเป็นบัญชีราคาที่แก้ไม่ได้</p>
+          <div class="step__shot shot">ที่วางภาพหน้าจอ — ตารางราคารายจังหวัด</div>
+          <a class="step__link" href="#">ดูรายละเอียด →</a>
+        </article>
+
+        <article class="step" data-shot="ที่วางภาพหน้าจอ — หน้าถอดปริมาณ" data-label="ESTIMETR — ถอดปริมาณจากแบบ">
+          <div class="step__top"><span class="step__name">ESTIMETR</span><span class="step__tag">ขั้นที่ 2</span></div>
+          <h3>ถอดปริมาณจากแบบ ทีละรายการ</h3>
+          <p>บันทึกที่มาของการวัดไว้กับทุกรายการ จำนวน กว้าง ยาว หนา ที่ชี้กลับไปหาแผ่นแบบได้ ปริมาณจึงยืนได้ตอนถูกซัก</p>
+          <div class="step__shot shot">ที่วางภาพหน้าจอ — หน้าถอดปริมาณ</div>
+          <a class="step__link" href="#">ดูรายละเอียด →</a>
+        </article>
+
+        <article class="step" data-shot="ที่วางภาพหน้าจอ — ใบ BOQ แยกกลุ่มงาน" data-label="ESTIMETR — ผู้ช่วยร่าง BOQ">
+          <div class="step__top"><span class="step__name">ESTIMETR</span><span class="step__tag">ขั้นที่ 3</span></div>
+          <h3>ให้ผู้ช่วยร่าง BOQ แล้วคุณตัดสิน</h3>
+          <p>ผู้ช่วยจับคู่ปริมาณกับบัญชีราคาให้ทั้งใบ คู่ที่ไม่ชัดจะบอกว่าไม่ชัดพร้อมตัวเลือก คุณกดรับทีละคู่ก่อนเข้าใบ</p>
+          <div class="step__shot shot">ที่วางภาพหน้าจอ — ใบ BOQ แยกกลุ่มงาน</div>
+          <a class="step__link" href="#">ดูรายละเอียด →</a>
+        </article>
+
+        <article class="step" data-shot="ที่วางภาพหน้าจอ — กราฟ S-Curve" data-label="ผู้ช่วยสร้างแผนงาน — แผนงานและงวดงาน">
+          <div class="step__top"><span class="step__name">ผู้ช่วยสร้างแผนงาน</span><span class="step__tag">ขั้นที่ 4</span></div>
+          <h3>ได้แผนงานและงวดงานแนบสัญญา</h3>
+          <p>จากวงเงินและระยะเวลาสัญญา ผู้ช่วยร่างแผนงาน งวดงาน และกำลังคน พร้อมกราฟ S-Curve ที่พิมพ์ลง A4 ได้จริง</p>
+          <div class="step__shot shot">ที่วางภาพหน้าจอ — กราฟ S-Curve</div>
+          <a class="step__link" href="#">ดูรายละเอียด →</a>
+        </article>
+      </div>
+    </div>
+
+    <p class="slotnote">
+      <strong>ช่องที่สลับได้</strong> — จำนวนขั้น ชื่อแอป หัวข้อ คำโปรย และภาพที่ผูกกับแต่ละขั้น
+      · เปลี่ยนลำดับการเล่าได้โดยสลับใบ · จอแคบไม่ใช้การตรึงภาพ จึงไม่มีปัญหาเรื่องความสูง
+    </p>
+  </div>
+</section>
+
+<script>
+  const steps = [...document.querySelectorAll('.step')];
+  const stage = document.getElementById('stage');
+  const label = document.getElementById('stagelabel');
+  const sheetMeta = document.querySelector('.sheet__meta');
+  const io = new IntersectionObserver((entries) => {
+    const top = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!top) return;
+    steps.forEach((s) => s.dataset.active = String(s === top.target));
+    stage.textContent = top.target.dataset.shot;
+    label.textContent = top.target.dataset.label;
+    sheetMeta.textContent = `แผ่นที่ ${steps.indexOf(top.target) + 1} / ${steps.length}`;
+  }, { rootMargin: "-30% 0px -45%", threshold: [0.15, 0.4, 0.75] });
+  steps.forEach((s) => io.observe(s));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,388 @@
+<title>ห้าสไตล์ปุ่มจากธีมเว็บ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap">
+<style>
+  /* ---------------------------------------------------------------
+     สีทุกค่าคัดลอกจาก src/app/globals.css ของเว็บจริง ไม่มีสีคิดใหม่
+     หน้านี้เป็นธีมสว่างอย่างเดียวโดยตั้งใจ เพราะแอปจริงมีธีมเดียว
+     ถ้าปล่อยให้พลิกตามเครื่องที่เปิด สีที่เห็นจะไม่ใช่สีที่ผู้ใช้เห็น
+     --------------------------------------------------------------- */
+  :root {
+    --ink: #073047;
+    --ink-deep: #051f2f;
+    --ink-body: #3f545f;
+    --teal: #0d8282;
+    --teal-text: #0c7878;
+    --teal-deep: #0a6a6a;
+    --teal-soft: #3aa8a8;
+    --teal-wash: #e6f3f3;
+    --orange: #f47721;
+    --orange-text: #a34f14;
+    --orange-wash: #fdeee2;
+    --orange-deep: #b4530a;
+    --on-orange: #17120d;
+    --canvas: #f4f7f7;
+    --paper: #ffffff;
+    --mist: #d8e4e4;
+    --line: #c9d8d9;
+    --off: #e9eff0;
+    --off-line: #d5e0e1;
+    --muted: #5f7178;
+    --success: #32765d;
+    --focus: rgba(244, 119, 33, .72);
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink-body);
+    font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 34px 20px 80px; }
+
+  header.top { display: grid; gap: 10px; padding-block-end: 20px; border-block-end: 2px solid var(--ink); }
+  .eyebrow { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--teal-text); }
+  h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 700; line-height: 1.2; color: var(--ink); }
+  .lede { margin: 0; max-width: 64ch; }
+
+  nav.jump { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 18px 0; }
+  nav.jump a { display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-size: .8rem; font-weight: 600; text-decoration: none; }
+  nav.jump a:hover { border-color: var(--teal); color: var(--teal-deep); }
+  nav.jump a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  nav.jump .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(7, 48, 71, .18); }
+
+  /* ---- หน้าของแต่ละสไตล์ ---- */
+  .style { margin-block-start: 30px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .style > header { display: grid; gap: 6px; padding: 20px 22px 16px; border-block-end: 1px solid var(--line); }
+  .style h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+  .style h2 .n { color: var(--teal); }
+  .style .why { margin: 0; max-width: 70ch; font-size: .88rem; }
+  .style .recipe { margin: 4px 0 0; font-size: .78rem; color: var(--muted); }
+
+  .demo { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  @media (max-width: 860px) { .demo { grid-template-columns: minmax(0, 1fr); } }
+
+  .stack { padding: 20px 22px; display: grid; gap: 16px; align-content: start; }
+  .stack + .stack { border-inline-start: 1px solid var(--line); }
+  @media (max-width: 860px) { .stack + .stack { border-inline-start: 0; border-block-start: 1px solid var(--line); } }
+
+  .lab { margin: 0; font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .line { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* การ์ดงานจริง เพื่อให้เห็นปุ่มอยู่ในที่ที่มันอยู่จริง */
+  .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .card__top { padding: 12px 14px; background: var(--canvas); border-block-end: 1px solid var(--line); }
+  .card__top strong { display: block; color: var(--ink); font-size: .92rem; }
+  .card__top span { font-size: .78rem; color: var(--muted); }
+  .card__body { padding: 14px; display: grid; gap: 10px; }
+  .kv { display: flex; justify-content: space-between; gap: 12px; font-size: .84rem; }
+  .kv span { color: var(--muted); }
+  .kv b { color: var(--ink); font-weight: 700; }
+  .card__foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-block-start: 1px solid var(--line); background: var(--paper); }
+
+  .darkstrip { padding: 18px 22px; background: var(--ink); }
+  .darkstrip .lab { color: #9dbcc5; }
+  .darkstrip .line { margin-block-start: 8px; }
+
+  .metrics { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 22px; background: var(--canvas); border-block-start: 1px solid var(--line); font-size: .78rem; color: var(--muted); }
+  .metrics b { color: var(--ink); }
+  .pass { color: #1f7a52; }
+  .fail { color: #b0301f; }
+
+  /* ---- โครงร่วมของปุ่มทุกสไตล์ ---- */
+  .b {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: 44px; height: 44px; padding: 0 20px;
+    border: 1px solid transparent; border-radius: 10px;
+    font: inherit; font-size: .92rem; font-weight: 600; line-height: 1.2;
+    white-space: nowrap; text-decoration: none; cursor: pointer;
+    transition: background 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+  }
+  .b svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .b:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .b:disabled { cursor: not-allowed; }
+
+  .t { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid transparent; background: transparent; color: var(--ink); border-radius: 8px; cursor: pointer; transition: background 150ms var(--ease-out), color 150ms var(--ease-out), box-shadow 150ms var(--ease-out); }
+  .t svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .t:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 5px 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+  .toolbar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 4px; }
+
+  /* ============ 6 · หมึกนำ ส้มเน้นจุดเดียว ============ */
+  .s6 .b1 { background: var(--ink); color: var(--paper); box-shadow: inset 0 -2px 0 0 var(--orange); }
+  .s6 .b1:hover:enabled, .s6 .b1.hov { background: var(--ink-deep); }
+  .s6 .b1:active:enabled, .s6 .b1.act { background: var(--ink-deep); box-shadow: inset 0 -2px 0 0 var(--orange-deep); }
+  .s6 .b2 { background: var(--paper); border-color: var(--line); color: var(--ink); }
+  .s6 .b2:hover:enabled, .s6 .b2.hov { border-color: var(--ink); }
+  .s6 .b3 { background: transparent; color: var(--teal-text); }
+  .s6 .b3:hover:enabled, .s6 .b3.hov { background: var(--teal-wash); }
+  .s6 .b:disabled { background: var(--off); border-color: var(--off-line); color: var(--ink-body); box-shadow: none; }
+  .s6 .t:hover { background: var(--canvas); }
+  .s6 .t[aria-checked="true"] { background: var(--ink); color: var(--paper); }
+  .s6 .darkstrip .b1 { background: var(--orange); color: var(--on-orange); box-shadow: none; }
+  .s6 .darkstrip .b2 { background: transparent; border-color: #4d7183; color: #dcecf1; }
+
+  /* ============ 7 · เขียวเป็นสีของระบบ ส้มคือสีของการลงมือ ============ */
+  .s7 .b { border-radius: 8px; }
+  .s7 .b1 { background: var(--orange-wash); border-color: var(--orange); color: var(--orange-text); }
+  .s7 .b1:hover:enabled, .s7 .b1.hov { background: var(--orange); color: var(--on-orange); border-color: var(--orange); }
+  .s7 .b1:active:enabled, .s7 .b1.act { background: var(--orange-deep); border-color: var(--orange-deep); color: #fff; }
+  .s7 .b2 { background: var(--teal-wash); color: var(--teal-text); }
+  .s7 .b2:hover:enabled, .s7 .b2.hov { background: #d5ebeb; color: var(--teal-deep); }
+  .s7 .b3 { background: transparent; color: var(--muted); }
+  .s7 .b3:hover:enabled, .s7 .b3.hov { background: var(--canvas); color: var(--ink); }
+  .s7 .b:disabled { background: var(--off); border-color: var(--off-line); color: var(--ink-body); }
+  .s7 .t:hover { background: var(--teal-wash); color: var(--teal-deep); }
+  .s7 .t[aria-checked="true"] { background: var(--teal-wash); color: var(--teal-text); box-shadow: inset 0 0 0 1.5px var(--teal); }
+  .s7 .darkstrip .b1 { background: var(--orange); color: var(--on-orange); border-color: var(--orange); }
+  .s7 .darkstrip .b2 { background: transparent; border-color: #4d7183; color: #dcecf1; }
+
+  /* ============ 8 · ขอบล่างหนา แบบหัวกระดาษแบบก่อสร้าง ============ */
+  .s8 .b { border-radius: 6px; border-width: 1px; }
+  .s8 .b1 { background: var(--paper); border-color: var(--orange); border-block-end-width: 3px; color: var(--orange-text); }
+  .s8 .b1:hover:enabled, .s8 .b1.hov { background: var(--orange-wash); }
+  .s8 .b1:active:enabled, .s8 .b1.act { background: var(--orange-wash); border-block-end-width: 1px; margin-block-start: 2px; }
+  .s8 .b2 { background: var(--paper); border-color: var(--mist); border-block-end-width: 3px; color: var(--ink); }
+  .s8 .b2:hover:enabled, .s8 .b2.hov { border-color: var(--teal); color: var(--teal-deep); }
+  .s8 .b3 { background: transparent; border-color: transparent; color: var(--teal-text); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; text-decoration-color: var(--mist); }
+  .s8 .b3:hover:enabled, .s8 .b3.hov { text-decoration-color: var(--teal); }
+  .s8 .b:disabled { background: var(--off); border-color: var(--off-line); color: var(--ink-body); }
+  .s8 .t { border-radius: 4px; }
+  .s8 .t:hover { background: var(--canvas); }
+  .s8 .t[aria-checked="true"] { background: var(--paper); color: var(--orange-text); box-shadow: inset 0 -3px 0 0 var(--orange); }
+  .s8 .darkstrip .b1 { background: transparent; border-color: var(--orange); color: #ffd9bd; }
+  .s8 .darkstrip .b2 { background: transparent; border-color: #4d7183; color: #dcecf1; }
+
+  /* ============ 9 · ทึบเรียบ ไล่น้ำหนักด้วยความเข้มของสีเดียว ============ */
+  .s9 .b { border-radius: 999px; }
+  .s9 .b1 { background: var(--orange); color: var(--on-orange); }
+  .s9 .b1:hover:enabled, .s9 .b1.hov { background: #ff8c37; }
+  .s9 .b1:active:enabled, .s9 .b1.act { background: var(--orange-deep); color: #fff; }
+  .s9 .b2 { background: var(--orange-wash); color: var(--orange-text); }
+  .s9 .b2:hover:enabled, .s9 .b2.hov { background: #fbe0cb; }
+  .s9 .b3 { background: transparent; color: var(--orange-text); }
+  .s9 .b3:hover:enabled, .s9 .b3.hov { background: var(--orange-wash); }
+  .s9 .b:disabled { background: var(--off); color: var(--ink-body); }
+  .s9 .t { border-radius: 999px; }
+  .s9 .t:hover { background: var(--orange-wash); color: var(--orange-text); }
+  .s9 .t[aria-checked="true"] { background: var(--orange); color: var(--on-orange); }
+  .s9 .darkstrip .b1 { background: var(--orange); color: var(--on-orange); }
+  .s9 .darkstrip .b2 { background: rgba(255, 255, 255, .14); color: #ffffff; }
+
+  /* ============ 10 · เส้นเดียวทั้งชุด ต่างกันที่สีของเส้น ============ */
+  .s10 .b { background: var(--paper); border-radius: 8px; border-width: 1.5px; }
+  .s10 .b1 { border-color: var(--orange); color: var(--orange-text); }
+  .s10 .b1:hover:enabled, .s10 .b1.hov { background: var(--orange-wash); }
+  .s10 .b1:active:enabled, .s10 .b1.act { background: #fbe0cb; }
+  .s10 .b2 { border-color: var(--teal); color: var(--teal-text); }
+  .s10 .b2:hover:enabled, .s10 .b2.hov { background: var(--teal-wash); }
+  .s10 .b3 { background: transparent; border-color: transparent; color: var(--muted); }
+  .s10 .b3:hover:enabled, .s10 .b3.hov { border-color: var(--line); color: var(--ink); }
+  .s10 .b:disabled { background: var(--paper); border-color: var(--off-line); color: var(--ink-body); }
+  .s10 .t { border-color: transparent; }
+  .s10 .t:hover { border-color: var(--line); }
+  .s10 .t[aria-checked="true"] { border-color: var(--teal); color: var(--teal-text); background: var(--paper); }
+  .s10 .darkstrip .b1 { background: transparent; border-color: var(--orange); color: #ffd9bd; }
+  .s10 .darkstrip .b2 { background: transparent; border-color: var(--teal-soft); color: #b9ecec; }
+
+  @media (prefers-reduced-motion: reduce) { .b, .t { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">ESTIMETR · ชุดที่สอง สไตล์ 6 ถึง 10</p>
+    <h1>ห้าสไตล์ปุ่ม แต่ละสไตล์อยู่ในหน้าของตัวเอง</h1>
+    <p class="lede">
+      ทุกสไตล์ประกอบจากตัวแปรสีของเว็บเราเท่านั้น — หมึก <span class="num">#073047</span>
+      เขียว <span class="num">#0d8282</span> ส้ม <span class="num">#f47721</span> และเฉดจางของสองสีหลัง
+      ไม่มีสีใหม่แม้แต่ค่าเดียว · แต่ละหน้ามีปุ่มครบสามระดับ ห้าสถานะ แถบเครื่องมือ การ์ดงานจริง
+      และแถบพื้นหมึกเข้ม พร้อมคอนทราสต์ที่วัดจากหน้านี้เอง
+    </p>
+    <nav class="jump" aria-label="ข้ามไปแต่ละสไตล์">
+      <a href="#s6"><span class="swatch" style="background:#073047"></span>6 หมึกนำ</a>
+      <a href="#s7"><span class="swatch" style="background:#e6f3f3"></span>7 เขียวเป็นระบบ</a>
+      <a href="#s8"><span class="swatch" style="background:#fdeee2"></span>8 ขอบล่างหนา</a>
+      <a href="#s9"><span class="swatch" style="background:#f47721"></span>9 ทึบเรียบ</a>
+      <a href="#s10"><span class="swatch" style="background:#ffffff"></span>10 เส้นเดียว</a>
+    </nav>
+  </header>
+
+  <div id="styles"></div>
+</div>
+
+<script>
+  (function () {
+    var ICONS = {
+      save: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h7L16 7.5V15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M7 4v4h5"/>',
+      select: '<path d="M4 3l5 12 2-5 5-2z"/>',
+      scale: '<path d="M3 12l9-9 5 5-9 9z"/><path d="M7 8l1.5 1.5M9.5 5.5L11 7"/>',
+      area: '<path d="M4 4h12v12H4z"/><path d="M4 9h12M9 4v12"/>',
+      count: '<path d="M5 5h4v4H5zM11 5h4v4h-4zM5 11h4v4H5zM11 11h4v4h-4z"/>',
+      fit: '<path d="M4 7V4h3M16 7V4h-3M4 13v3h3M16 13v3h-3"/>',
+      trash: '<path d="M5 6h10M8 6V4h4v2M6.5 6l.7 9h5.6l.7-9"/>'
+    };
+    function icon(n) { return '<svg viewBox="0 0 20 20" aria-hidden="true">' + ICONS[n] + '</svg>'; }
+
+    var STYLES = [
+      {
+        id: 's6', n: 6, name: 'หมึกนำ ส้มเน้นจุดเดียว',
+        why: 'ปุ่มหลักเป็นสีหมึกของเว็บ แล้วใช้ส้มเป็นขีดหนาใต้ปุ่มแทนการถมทั้งตัว ส้มจึงยังเป็นสีของ "จุดที่ต้องกด" โดยไม่มีแผ่นส้มใหญ่ ๆ บนหน้าจอ',
+        recipe: 'พื้น --ink · ขีดล่าง --orange 2px · ปุ่มรองขาวขอบ --line · ปุ่มตัวหนังสือ --teal-text'
+      },
+      {
+        id: 's7', n: 7, name: 'เขียวเป็นสีของระบบ ส้มคือสีของการลงมือ',
+        why: 'ปุ่มหลักเริ่มจากส้มจาง แล้วทึบขึ้นเป็นส้มเต็มตอนชี้ค้าง คนจึงเห็นว่ามัน "มีชีวิต" ตอนจะกด ส่วนปุ่มรองใช้เขียวจางซึ่งเป็นสีของระบบทั้งเว็บอยู่แล้ว',
+        recipe: 'พื้น --orange-wash ขอบ --orange · ชี้แล้วเป็น --orange เต็ม · ปุ่มรอง --teal-wash'
+      },
+      {
+        id: 's8', n: 8, name: 'ขอบล่างหนา แบบหัวกระดาษแบบก่อสร้าง',
+        why: 'ยืมภาษาของแบบก่อสร้างมาใช้ คือเส้นหนักบาง ๆ ที่บอกลำดับ ปุ่มเป็นพื้นขาวเสมอ ต่างกันที่ความหนาและสีของเส้นใต้ กดแล้วเส้นบางลงเหมือนกระดาษถูกกด',
+        recipe: 'พื้น --paper · ขอบล่าง 3px สีต่างระดับ · ปุ่มตัวหนังสือใช้เส้นใต้ ไม่ใช่พื้น'
+      },
+      {
+        id: 's9', n: 9, name: 'ทึบเรียบ ไล่น้ำหนักด้วยความเข้มของสีเดียว',
+        why: 'ทั้งสามระดับเป็นส้มชุดเดียวกัน ต่างกันแค่ความเข้ม ส้มเต็ม ส้มจาง ส้มโปร่ง ไม่มีเงา ไม่มีขอบ อ่านลำดับได้ทันทีโดยไม่ต้องจำว่าปุ่มไหนคืออะไร',
+        recipe: '--orange → --orange-wash → โปร่งใส · ตัวหนังสือ --on-orange และ --orange-text'
+      },
+      {
+        id: 's10', n: 10, name: 'เส้นเดียวทั้งชุด ต่างกันที่สีของเส้น',
+        why: 'ทุกปุ่มเป็นกรอบเส้นบนพื้นขาว ปุ่มหลักเส้นส้ม ปุ่มรองเส้นเขียว ปุ่มตัวหนังสือไม่มีเส้นจนกว่าจะชี้ เบาที่สุดในห้าแบบ และไม่มีแผ่นสีมาแย่งความสนใจจากแบบก่อสร้างเลย',
+        recipe: 'พื้น --paper ทุกปุ่ม · เส้น 1.5px สี --orange หรือ --teal · ชี้แล้วพื้นเป็นเฉดจางของเส้นนั้น'
+      }
+    ];
+
+    function state(cls, label, extra) {
+      return '' +
+        '<button type="button" class="b ' + cls + '">' + (extra || '') + label + '</button>' +
+        '<button type="button" class="b ' + cls + ' hov">' + (extra || '') + label + '</button>' +
+        '<button type="button" class="b ' + cls + ' act">' + (extra || '') + label + '</button>' +
+        '<button type="button" class="b ' + cls + '" disabled>' + (extra || '') + label + '</button>';
+    }
+
+    function toolbar() {
+      return '<div class="toolbar">' +
+        '<button type="button" class="t" role="radio" aria-checked="true" aria-label="เลือก">' + icon('select') + '</button>' +
+        '<button type="button" class="t" role="radio" aria-checked="false" aria-label="ตั้งสเกล">' + icon('scale') + '</button>' +
+        '<button type="button" class="t" role="radio" aria-checked="false" aria-label="พื้นที่สี่เหลี่ยม">' + icon('area') + '</button>' +
+        '<button type="button" class="t" role="radio" aria-checked="false" aria-label="นับจำนวน">' + icon('count') + '</button>' +
+        '<span class="sep"></span>' +
+        '<button type="button" class="t" aria-label="พอดีกรอบ">' + icon('fit') + '</button>' +
+        '</div>';
+    }
+
+    function card() {
+      return '<div class="card">' +
+        '<div class="card__top"><strong>ห้องน้ำผู้ป่วยชาย</strong><span>หน้า 7 · สเกล 1:124.60</span></div>' +
+        '<div class="card__body">' +
+          '<div class="kv"><span>กว้าง</span><b class="num">2.264 ม.</b></div>' +
+          '<div class="kv"><span>ยาว</span><b class="num">1.758 ม.</b></div>' +
+          '<div class="kv"><span>พื้นที่</span><b class="num">3.980 ตร.ม.</b></div>' +
+        '</div>' +
+        '<div class="card__foot">' +
+          '<button type="button" class="b b1">' + icon('save') + 'รับพื้นที่นี้</button>' +
+          '<button type="button" class="b b2">วัดใหม่</button>' +
+          '<button type="button" class="b b3">' + icon('trash') + 'ทิ้ง</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    document.getElementById('styles').innerHTML = STYLES.map(function (s) {
+      return '' +
+      '<section class="style ' + s.id + '" id="' + s.id + '">' +
+        '<header>' +
+          '<h2><span class="n num">' + s.n + '.</span> ' + s.name + '</h2>' +
+          '<p class="why">' + s.why + '</p>' +
+          '<p class="recipe">' + s.recipe + '</p>' +
+        '</header>' +
+        '<div class="demo">' +
+          '<div class="stack">' +
+            '<p class="lab">ปุ่มหลัก · ปกติ ชี้ค้าง กดค้าง กดไม่ได้</p>' +
+            '<div class="line">' + state('b1', 'บันทึกและตั้งสเกลหน้านี้') + '</div>' +
+            '<p class="lab">ปุ่มรอง</p>' +
+            '<div class="line">' + state('b2', 'ยกเลิก') + '</div>' +
+            '<p class="lab">ปุ่มตัวหนังสือ</p>' +
+            '<div class="line">' + state('b3', 'ล้างสเกลของหน้านี้') + '</div>' +
+            '<p class="lab">แถบเครื่องมือหน้าแบบ</p>' +
+            '<div class="line">' + toolbar() + '</div>' +
+          '</div>' +
+          '<div class="stack">' +
+            '<p class="lab">อยู่ในการ์ดงานจริง</p>' +
+            card() +
+          '</div>' +
+        '</div>' +
+        '<div class="darkstrip">' +
+          '<p class="lab">บนแถบพื้นหมึกเข้มของเว็บ</p>' +
+          '<div class="line">' +
+            '<button type="button" class="b b1">เริ่มถอดปริมาณ</button>' +
+            '<button type="button" class="b b2">ดูตัวอย่างใบราคา</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="metrics" data-for="' + s.id + '"></div>' +
+      '</section>';
+    }).join('');
+
+    function luminance(rgb) {
+      var p = rgb.match(/[\d.]+/g);
+      if (!p || p.length < 3) return null;
+      var c = p.slice(0, 3).map(function (v) {
+        var s = Number(v) / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+
+    function opaqueBg(el) {
+      var node = el;
+      while (node && node !== document.documentElement) {
+        var bg = getComputedStyle(node).backgroundColor;
+        var p = bg.match(/[\d.]+/g);
+        if (p && bg !== 'rgba(0, 0, 0, 0)' && (p.length < 4 || Number(p[3]) === 1)) return bg;
+        node = node.parentElement;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    }
+
+    function ratio(el) {
+      var cs = getComputedStyle(el);
+      var fg = luminance(cs.color);
+      var own = cs.backgroundColor;
+      var p = own.match(/[\d.]+/g);
+      var solid = p && own !== 'rgba(0, 0, 0, 0)' && (p.length < 4 || Number(p[3]) === 1);
+      var bg = luminance(solid ? own : opaqueBg(el.parentElement));
+      if (fg === null || bg === null) return null;
+      var hi = Math.max(fg, bg), lo = Math.min(fg, bg);
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    STYLES.forEach(function (s) {
+      var box = document.querySelector('.metrics[data-for="' + s.id + '"]');
+      var pairs = [
+        ['ปุ่มหลัก', '#' + s.id + ' .stack .b1:not(.hov):not(.act):not(:disabled)'],
+        ['ปุ่มหลัก ชี้ค้าง', '#' + s.id + ' .stack .b1.hov'],
+        ['ปุ่มหลัก กดไม่ได้', '#' + s.id + ' .stack .b1:disabled'],
+        ['ปุ่มรอง', '#' + s.id + ' .stack .b2:not(.hov):not(.act):not(:disabled)'],
+        ['ปุ่มตัวหนังสือ', '#' + s.id + ' .stack .b3:not(.hov):not(.act):not(:disabled)'],
+        ['ปุ่มหลักบนพื้นเข้ม', '#' + s.id + ' .darkstrip .b1'],
+        ['ปุ่มรองบนพื้นเข้ม', '#' + s.id + ' .darkstrip .b2']
+      ];
+      box.innerHTML = pairs.map(function (pair) {
+        var el = document.querySelector(pair[1]);
+        if (!el) return '<span>' + pair[0] + ' <b>วัดไม่ได้</b></span>';
+        var r = ratio(el);
+        if (r === null) return '<span>' + pair[0] + ' <b>วัดไม่ได้</b></span>';
+        var ok = r >= 4.5;
+        return '<span>' + pair[0] + ' <b class="num ' + (ok ? 'pass' : 'fail') + '">' + r.toFixed(2) + ':1</b>' + (ok ? '' : ' ตกเกณฑ์') + '</span>';
+      }).join('');
+    });
+  })();
+</script>

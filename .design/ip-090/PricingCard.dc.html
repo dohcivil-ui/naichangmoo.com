@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; color: #073047; background: #ffffff; }
+    a { color: #0d8282; text-decoration: none; }
+    a:hover { color: #073047; }
+    h2 { font-weight: 600; margin: 0; }
+    .tier { background: #ffffff; border: 1px solid #c9d8d9; border-radius: 14px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .tier h2 { font-size: 1.3rem; letter-spacing: -.03em; margin: 6px 0 0; }
+    .tier-eyebrow { color: #0d8282; font-size: .75rem; font-weight: 800; letter-spacing: .16em; margin: 0; }
+    .tier-note { color: #0d8282; font-weight: 800; font-size: 1.04rem; margin: 10px 0 0; }
+    .tier-summary { color: #5f7178; line-height: 1.7; font-size: .92rem; margin: 0; }
+    .tier-highlights { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+    .tier-highlights li { position: relative; padding-left: 20px; color: #5f7178; font-size: .88rem; line-height: 1.62; }
+    .tier-highlights li::before { content: ""; position: absolute; left: 0; top: .5em; width: 8px; height: 8px; border: 1.5px solid #0d8282; border-radius: 2px; }
+    .tier-cta { margin-top: auto; text-align: center; background: transparent; border: 1px solid #c9d8d9; border-radius: 8px; padding: .72rem 1rem; font-weight: 700; color: #073047; font-size: .9rem; }
+    .state-label { margin: 0 0 10px; color: #5f7178; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .state-why { margin: 12px 0 0; color: #93a5ab; font-size: .78rem; line-height: 1.7; }
+  </style>
+</helmet>
+
+<div style="padding: 30px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 26px; align-items: start; background: #ffffff;">
+
+  <!-- state 1 -->
+  <div>
+    <p class="state-label">1 · มีแอปที่ประกาศแล้ว</p>
+    <div class="tier">
+      <div>
+        <p class="tier-eyebrow">สำหรับสมาชิกทั่วไป</p>
+        <h2>สมาชิกใช้ฟรี</h2>
+        <p class="tier-note">ฟรี ไม่มีกำหนดสิ้นสุด</p>
+      </div>
+      <p class="tier-summary">แอปคำนวณและตรวจทานงานออกแบบที่สมาชิกใช้ได้โดยไม่มีค่าใช้จ่าย</p>
+      <ul class="tier-highlights">
+        <li>ส่งออกไฟล์และพิมพ์เอกสารได้</li>
+      </ul>
+
+      <div style="border-top: 1px solid #d8e4e4; padding-top: 13px; display: grid; gap: 8px;">
+        <p style="margin: 0; color: #073047; font-size: .8rem; font-weight: 700;">แอปที่ประกาศไว้ตอนนี้</p>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <span style="color: #073047; font-size: .87rem; font-weight: 600;">Retaining Wall Cantilever</span>
+          <span style="flex-shrink: 0; background: #f1f5f5; color: #5f7178; border-radius: 999px; padding: 2px 9px; font-size: .7rem; font-weight: 700;">กำลังเตรียมระบบ</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <span style="color: #073047; font-size: .87rem; font-weight: 600;">TRAFFIC SIGN</span>
+          <span style="flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; color: #32765d; font-size: .74rem; font-weight: 700;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#32765d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            เปิดใช้แล้ว
+          </span>
+        </div>
+      </div>
+
+      <div class="tier-cta">ดูแอปทั้งหมด</div>
+    </div>
+    <p class="state-why">รายชื่อมาจากทะเบียน ไม่ได้พิมพ์ไว้ในโค้ด ผู้ดูแลถอนคำประกาศเมื่อไหร่ ชื่อหายจากตรงนี้ทันที</p>
+  </div>
+
+  <!-- state 2 -->
+  <div>
+    <p class="state-label">2 · ยังไม่มีอะไรถูกประกาศ</p>
+    <div class="tier">
+      <div>
+        <p class="tier-eyebrow">สำหรับสมาชิกทั่วไป</p>
+        <h2>สมาชิกใช้ฟรี</h2>
+        <p class="tier-note">ฟรี ไม่มีกำหนดสิ้นสุด</p>
+      </div>
+      <p class="tier-summary">แอปคำนวณและตรวจทานงานออกแบบที่สมาชิกใช้ได้โดยไม่มีค่าใช้จ่าย</p>
+      <ul class="tier-highlights">
+        <li>ส่งออกไฟล์และพิมพ์เอกสารได้</li>
+      </ul>
+
+      <div style="border-top: 1px solid #d8e4e4; padding-top: 13px;">
+        <p style="margin: 0; color: #93a5ab; font-size: .85rem; line-height: 1.72;">แอปที่สมาชิกใช้ได้ฟรีจะประกาศบนหน้านี้เมื่อเปิดใช้งาน</p>
+      </div>
+
+      <div class="tier-cta">ดูแอปทั้งหมด</div>
+    </div>
+    <p class="state-why">สถานะหลัง deploy ครั้งแรก ทะเบียนว่างจนกว่าจะมีผู้ดูแลกดประกาศ ไม่มี seed script เพราะการประกาศคือการกระทำของคน</p>
+  </div>
+
+  <!-- state 3 -->
+  <div>
+    <p class="state-label">3 · อ่านฐานข้อมูลไม่ได้</p>
+    <div class="tier">
+      <div>
+        <p class="tier-eyebrow">สำหรับสมาชิกทั่วไป</p>
+        <h2>สมาชิกใช้ฟรี</h2>
+        <p class="tier-note">ฟรี ไม่มีกำหนดสิ้นสุด</p>
+      </div>
+      <p class="tier-summary">แอปคำนวณและตรวจทานงานออกแบบที่สมาชิกใช้ได้โดยไม่มีค่าใช้จ่าย</p>
+      <ul class="tier-highlights">
+        <li>ส่งออกไฟล์และพิมพ์เอกสารได้</li>
+      </ul>
+
+      <div style="border-top: 1px solid #d8e4e4; padding-top: 13px;">
+        <p style="margin: 0; color: #93a5ab; font-size: .85rem; line-height: 1.72;">แอปที่สมาชิกใช้ได้ฟรีจะประกาศบนหน้านี้เมื่อเปิดใช้งาน</p>
+      </div>
+
+      <div class="tier-cta">ดูแอปทั้งหมด</div>
+    </div>
+    <p class="state-why">ข้อความเดียวกับสถานะ 2 โดยตั้งใจ หน้าสาธารณะไม่บอกผู้อ่านว่าฐานข้อมูลล่ม และไม่ถอยไปใช้รายชื่อเก่าในโค้ด</p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

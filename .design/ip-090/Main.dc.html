@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif; color: #073047; background: #f4f7f7; }
+    a { color: #0d8282; text-decoration: none; }
+    a:hover { color: #073047; }
+    h1, h2, h3 { font-weight: 600; margin: 0; }
+  </style>
+</helmet>
+
+<div style="display: grid; grid-template-columns: 252px minmax(0,1fr); min-height: 980px; background: #f4f7f7;">
+
+  <!-- sidebar -->
+  <div style="background: #ffffff; border-right: 1px solid #c9d8d9; padding: 20px 16px; display: grid; gap: 22px; align-content: start;">
+    <div style="height: 46px; border-radius: 10px; background: #ffffff; box-shadow: 0 2px 8px rgba(7,48,71,.10); display: flex; align-items: center; padding: 0 12px; font-weight: 800; letter-spacing: -.02em; color: #073047;">นายช่างหมู</div>
+
+    <div style="display: grid; gap: 7px;">
+      <p style="margin: 0; color: #5f7178; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;">ภาพรวม</p>
+      <div style="display: grid; gap: 2px;">
+        <span style="display: flex; align-items: center; padding: .5rem .62rem; border-radius: 8px; color: #073047; font-size: .89rem; font-weight: 600;">แดชบอร์ด</span>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: 7px;">
+      <p style="margin: 0; color: #5f7178; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;">เนื้อหาที่ลูกค้าเห็น</p>
+      <div style="display: grid; gap: 2px;">
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: .5rem .62rem; border-radius: 8px; color: #93a5ab; font-size: .89rem; font-weight: 500;">ราคาและสิทธิ์<em style="font-style: normal; font-size: .66rem; font-weight: 700; color: #93a5ab; background: #f1f5f5; border-radius: 999px; padding: 2px 6px;">ยังไม่เปิด</em></span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: .5rem .62rem; border-radius: 8px; color: #93a5ab; font-size: .89rem; font-weight: 500;">ช่วงลดราคา<em style="font-style: normal; font-size: .66rem; font-weight: 700; color: #93a5ab; background: #f1f5f5; border-radius: 999px; padding: 2px 6px;">ยังไม่เปิด</em></span>
+        <span style="display: flex; align-items: center; padding: .5rem .62rem; border-radius: 8px; background: #e3f1ef; color: #0b5f5f; font-size: .89rem; font-weight: 600;">ทะเบียนแอป</span>
+      </div>
+    </div>
+
+    <div style="display: grid; gap: 7px;">
+      <p style="margin: 0; color: #5f7178; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;">การเข้าถึง</p>
+      <div style="display: grid; gap: 2px;">
+        <span style="display: flex; align-items: center; padding: .5rem .62rem; border-radius: 8px; color: #073047; font-size: .89rem; font-weight: 600;">สิทธิ์การใช้งานของลูกค้า</span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: .5rem .62rem; border-radius: 8px; color: #93a5ab; font-size: .89rem; font-weight: 500;">ผู้ดูแลแพลตฟอร์ม<em style="font-style: normal; font-size: .66rem; font-weight: 700; color: #93a5ab; background: #f1f5f5; border-radius: 999px; padding: 2px 6px;">ยังไม่เปิด</em></span>
+        <span style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: .5rem .62rem; border-radius: 8px; color: #93a5ab; font-size: .89rem; font-weight: 500;">บันทึกการเปลี่ยนแปลง<em style="font-style: normal; font-size: .66rem; font-weight: 700; color: #93a5ab; background: #f1f5f5; border-radius: 999px; padding: 2px 6px;">ยังไม่เปิด</em></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- main -->
+  <div style="display: grid; grid-template-rows: auto 1fr; min-width: 0;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 26px; background: #ffffff; border-bottom: 1px solid #c9d8d9;">
+      <div>
+        <p style="margin: 0; color: #0d8282; font-size: .75rem; font-weight: 800; letter-spacing: .16em;">หลังบ้าน</p>
+        <h1 style="margin: 4px 0 0; font-size: 1.28rem; letter-spacing: -.03em;">จัดการแพลตฟอร์ม</h1>
+      </div>
+      <div style="display: flex; align-items: center; gap: 18px;">
+        <div style="display: grid; text-align: right;">
+          <strong style="font-size: .9rem;">ผู้ดูแลแพลตฟอร์ม</strong>
+          <span style="color: #5f7178; font-size: .78rem;">admin@naichangmoo.com</span>
+        </div>
+        <span style="color: #0d8282; font-size: .9rem; font-weight: 750;">ดูเว็บไซต์ →</span>
+      </div>
+    </div>
+
+    <div style="padding: 24px 26px 40px; display: grid; gap: 18px; align-content: start;">
+
+      <!-- note card -->
+      <div style="background: #ffffff; border: 1px solid #c9d8d9; border-left: 3px solid #0d8282; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #c9d8d9;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.04rem; letter-spacing: -.02em;">ทะเบียนนี้คือคำแถลงต่อสาธารณะ ไม่ใช่การให้สิทธิ์</h2>
+            <p style="margin: 6px 0 0; color: #5f7178; font-size: .84rem; line-height: 1.7; max-width: 62ch;">แอปที่ยังไม่ประกาศจะไม่ถูกเอ่ยชื่อบนหน้าราคา แม้ระบบจะรู้จักแอปนั้นอยู่ก็ตาม สิ่งที่สมาชิกคนหนึ่งใช้ได้จริงยังตัดสินที่สิทธิ์การใช้งานของเขาเสมอ</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- registry table -->
+      <div style="background: #ffffff; border: 1px solid #c9d8d9; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #c9d8d9;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.04rem; letter-spacing: -.02em;">ทะเบียนแอป</h2>
+            <p style="margin: 6px 0 0; color: #5f7178; font-size: .84rem; line-height: 1.7; max-width: 62ch;">ทุกแอปในแพลตฟอร์ม พร้อมสถานะคำประกาศของแต่ละตัว ค่าตั้งต้นคือสิ่งที่ทีมงานตั้งใจไว้ตอนเขียนโค้ด ทะเบียนคือสิ่งที่ประกาศออกไปจริง เมื่อสองอย่างขัดกัน ทะเบียนเป็นฝ่ายถูก</p>
+          </div>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">แอป</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">สถานะทะเบียน</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">สิทธิ์ที่ประกาศ</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">การเปิดใช้</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">ประกาศเมื่อ</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;"></th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; font-weight: 600; color: #073047;">
+                  ESTIMETR
+                  <span style="display: block; color: #5f7178; font-size: .74rem; font-weight: 400; margin-top: 2px;">หมวดประมาณราคา</span>
+                </th>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; background: #e3f1ef; color: #0b5f5f; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 700;">ประกาศแล้ว</span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">ฟรี ทดลองใช้งาน 7 วัน</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 7px; color: #32765d; font-weight: 700; font-size: .84rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#32765d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    เปิดใช้แล้ว
+                  </span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; color: #5f7178;">24 ส.ค. 2569 · admin@…</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-block; border: 1px solid #c9d8d9; border-radius: 8px; padding: .38rem .72rem; font-weight: 700; font-size: .8rem; color: #073047;">แก้คำประกาศ</span>
+                </td>
+              </tr>
+
+              <tr>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; font-weight: 600; color: #073047;">
+                  Retaining Wall Cantilever
+                  <span style="display: block; color: #5f7178; font-size: .74rem; font-weight: 400; margin-top: 2px;">หมวดงานออกแบบวิศวกรรมโยธา</span>
+                </th>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; background: #e3f1ef; color: #0b5f5f; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 700;">ประกาศแล้ว</span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">สมาชิกใช้ฟรี</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 7px; color: #5f7178; font-weight: 600; font-size: .84rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5f7178" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                    กำลังเตรียมระบบ
+                  </span>
+                  <span style="display: block; color: #93a5ab; font-size: .72rem; margin-top: 3px;">ตั้งเปิดใช้ไม่ได้จนกว่าจะมีเส้นทางออกสิทธิ์</span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; color: #5f7178;">24 ส.ค. 2569 · admin@…</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-block; border: 1px solid #c9d8d9; border-radius: 8px; padding: .38rem .72rem; font-weight: 700; font-size: .8rem; color: #073047;">แก้คำประกาศ</span>
+                </td>
+              </tr>
+
+              <tr style="background: #fdf6f0;">
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; font-weight: 600; color: #073047;">
+                  TRAFFIC SIGN
+                  <span style="display: block; color: #5f7178; font-size: .74rem; font-weight: 400; margin-top: 2px;">หมวดงานอุปกรณ์อำนวยความปลอดภัย</span>
+                </th>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; background: #e3f1ef; color: #0b5f5f; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 700;">ประกาศแล้ว</span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  เฉพาะบุคลากรกรมทางหลวง
+                  <span style="display: flex; align-items: start; gap: 6px; color: #a4402f; font-size: .74rem; font-weight: 700; margin-top: 5px; line-height: 1.5;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a4402f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+                    ขัดกับค่าตั้งต้นในโค้ด ซึ่งตั้งไว้เป็น “สมาชิกใช้ฟรี”
+                  </span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 7px; color: #32765d; font-weight: 700; font-size: .84rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#32765d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                    เปิดใช้แล้ว
+                  </span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; color: #5f7178;">24 ส.ค. 2569 · admin@…</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">
+                  <span style="display: inline-block; border: 1px solid #c9d8d9; border-radius: 8px; padding: .38rem .72rem; font-weight: 700; font-size: .8rem; color: #073047;">แก้คำประกาศ</span>
+                </td>
+              </tr>
+
+              <tr>
+                <th style="text-align: left; padding: .72rem 20px; font-size: .88rem; font-weight: 600; color: #073047;">
+                  LAND ACQUISITION V2
+                  <span style="display: block; color: #5f7178; font-size: .74rem; font-weight: 400; margin-top: 2px;">หมวดงานสำนักจัดกรรมสิทธิ์ที่ดิน</span>
+                </th>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem;">
+                  <span style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f5; color: #5f7178; border-radius: 999px; padding: 3px 10px; font-size: .76rem; font-weight: 700;">ยังไม่ประกาศ</span>
+                  <span style="display: block; color: #93a5ab; font-size: .72rem; margin-top: 4px;">ไม่ถูกเอ่ยชื่อบนหน้าราคา</span>
+                </td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem; color: #93a5ab;">— <span style="font-size: .74rem;">(ค่าตั้งต้น เฉพาะบุคลากรกรมทางหลวง)</span></td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem; color: #93a5ab;">—</td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem; color: #93a5ab;">—</td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem;">
+                  <span style="display: inline-block; background: #f47721; border: 1px solid transparent; border-radius: 8px; padding: .38rem .72rem; font-weight: 700; font-size: .8rem; color: #17120d;">ประกาศแอปนี้</span>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- audit -->
+      <div style="background: #ffffff; border: 1px solid #c9d8d9; border-radius: 12px; overflow: hidden;">
+        <div style="display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid #c9d8d9;">
+          <div>
+            <h2 style="margin: 0; font-size: 1.04rem; letter-spacing: -.02em;">คำประกาศล่าสุด</h2>
+            <p style="margin: 6px 0 0; color: #5f7178; font-size: .84rem; line-height: 1.7; max-width: 62ch;">ทุกการประกาศและทุกการถอนมีผู้ทำ เวลา และเหตุผลติดอยู่ เหตุการณ์เหล่านี้ขึ้นบนแดชบอร์ดด้วย เพราะเป็นเหตุการณ์ระดับแพลตฟอร์ม ไม่ใช่งานของลูกค้ารายใด</p>
+          </div>
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">เหตุการณ์</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">แอป</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">เหตุผลที่ระบุ</th>
+                <th style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; background: #f6faf9; color: #5f7178; font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; font-weight: 800;">เมื่อ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;"><code style="font-family: inherit; font-weight: 700; color: #0d8282; font-size: .84rem;">app.announced_by_administrator</code></td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem;">rcopt</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; color: #5f7178;">เปิดเป็นแอปฟรีสำหรับสมาชิกตามที่ตกลงไว้ ยังไม่เปิดใช้จนกว่าจะปรับโครงสร้างเสร็จ</td>
+                <td style="text-align: left; padding: .72rem 20px; border-bottom: 1px solid #c9d8d9; font-size: .88rem; color: #5f7178;">24 ส.ค. 2569 20:14</td>
+              </tr>
+              <tr>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem;"><code style="font-family: inherit; font-weight: 700; color: #0d8282; font-size: .84rem;">app.announcement_revoked_by_administrator</code></td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem;">land-acquisition</td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem; color: #5f7178;">ถอนออกจากหน้าสาธารณะระหว่างรอหนังสือยืนยันสิทธิ์จากหน่วยงาน</td>
+                <td style="text-align: left; padding: .72rem 20px; font-size: .88rem; color: #5f7178;">24 ส.ค. 2569 19:02</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

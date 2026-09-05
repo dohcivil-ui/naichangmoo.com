@@ -1,0 +1,107 @@
+/* โครงร่วมของ mockup ทั้งห้าแบบ — ใช้จานสีเดียวกับ src/app/globals.css ไม่มีสีใหม่ */
+:root {
+  --ink: #073047;
+  --ink-deep: #051f2f;
+  --ink-body: #3f545f;
+  --teal: #0d8282;
+  --teal-text: #0c7878;
+  --orange: #f47721;
+  --orange-text: #a34f14;
+  --canvas: #f4f7f7;
+  --paper: #ffffff;
+  --mist: #d8e4e4;
+  --muted: #5f7178;
+  --line: #c9d8d9;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --radius: 18px;
+  --shadow: 0 10px 26px rgba(7, 48, 71, .09), 0 1px 3px rgba(7, 48, 71, .08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink-body);
+  font-family: Prompt, "Noto Sans Thai", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { width: min(1240px, calc(100% - clamp(28px, 5vw, 72px))); margin: 0 auto; }
+
+.section { padding: clamp(48px, 7vw, 96px) 0; }
+.section--ink { background: linear-gradient(150deg, var(--ink) 0%, var(--ink) 58%, #0a4f59 100%); color: #d6e3e4; }
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--teal-text);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.section--ink .eyebrow { color: #7fd6cf; }
+
+h2 { margin: 0; color: var(--ink); font-size: clamp(1.7rem, 3.2vw, 2.5rem); line-height: 1.25; letter-spacing: -.03em; }
+.section--ink h2 { color: #fff; }
+h3 { margin: 0; color: var(--ink); font-size: 1.06rem; letter-spacing: -.01em; }
+p { margin: 0; }
+
+.section-head { display: grid; gap: 12px; max-width: 720px; margin-bottom: clamp(28px, 4vw, 44px); }
+.section-head p { color: var(--muted); }
+.section--ink .section-head p { color: #b7cdd0; }
+
+.pill {
+  /* justify-self กันไม่ให้ป้ายยืดเต็มความกว้างเมื่อมันเป็นลูกของ grid */
+  display: inline-flex; align-items: center; gap: 7px; justify-self: start; width: fit-content;
+  padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--paper); color: var(--teal-text);
+  font-size: .74rem; font-weight: 700; white-space: nowrap;
+}
+
+.button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 22px; border: 0; border-radius: 999px;
+  background: var(--orange); color: #21150c;
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+  box-shadow: 0 6px 14px rgba(244, 119, 33, .26);
+  transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out);
+}
+.button:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(244, 119, 33, .32); }
+.button--ghost { background: transparent; color: var(--teal-text); border: 1px solid var(--line); box-shadow: none; }
+.section--ink .button--ghost { color: #cfeeea; border-color: rgba(255, 255, 255, .3); }
+
+/* ที่วางภาพหน้าจอจริงของแต่ละแอป — mockup ใช้ลายเส้นแทนไปก่อน */
+.shot {
+  position: relative; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 14px;
+  background:
+    repeating-linear-gradient(135deg, rgba(13, 130, 130, .05) 0 12px, transparent 12px 24px),
+    var(--paper);
+  color: var(--muted);
+  display: grid; place-items: center; text-align: center;
+  font-size: .78rem; letter-spacing: .04em;
+  aspect-ratio: 16 / 10;
+}
+.section--ink .shot { border-color: rgba(255, 255, 255, .16); background: repeating-linear-gradient(135deg, rgba(255, 255, 255, .05) 0 12px, transparent 12px 24px), rgba(255, 255, 255, .04); color: #9fbcc0; }
+
+/* แถบบอกว่าอันไหนคือช่องที่สลับเนื้อหาได้ — มีเฉพาะใน mockup ไม่ขึ้นของจริง */
+.slotnote {
+  margin-top: 28px; padding: 14px 16px;
+  border: 1px dashed var(--line); border-radius: 12px;
+  background: rgba(13, 130, 130, .05);
+  color: var(--muted); font-size: .8rem; line-height: 1.7;
+}
+.section--ink .slotnote { border-color: rgba(255, 255, 255, .22); background: rgba(255, 255, 255, .05); color: #b7cdd0; }
+
+.mock-head { padding: 18px 0 0; }
+.mock-head__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; justify-content: space-between; }
+.mock-head__name { color: var(--ink); font-weight: 700; letter-spacing: -.01em; }
+.mock-head__back { color: var(--teal-text); font-size: .82rem; text-decoration: none; }
+.mock-head__back:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

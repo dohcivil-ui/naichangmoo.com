@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แบบ ง — แถวสลับซ้ายขวา (บุคลิกนิตยสาร)</title>
+<link rel="stylesheet" href="base.css">
+<style>
+  /* บุคลิกของแบบนี้คือหน้านิตยสาร เลขกำกับตัวใหญ่ เส้นคั่นบาง ตัวอักษรหัวข้อใหญ่กว่าปกติ
+     และภาพวางเยื้องออกนอกคอลัมน์เล็กน้อยเพื่อไม่ให้ทุกแถวเรียงตรงกันเป๊ะจนแบน */
+  .rows { display: grid; gap: 0; }
+
+  .row {
+    display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1.02fr);
+    gap: clamp(16px, 3vw, 44px); align-items: start;
+    padding: clamp(30px, 5vw, 58px) 0; border-top: 1px solid var(--line);
+  }
+  .row:first-child { border-top: 0; padding-top: 0; }
+  /* วางตำแหน่งตรง ๆ ไม่ใช้ order เพราะ order จะดันภาพไปนั่งในคอลัมน์ของเลขกำกับ
+     แล้วภาพจะถูกบีบเหลือ 92 จุด — เจอตอนดูของจริงในเบราว์เซอร์ */
+  .row__index { grid-column: 1; }
+  .row__copy { grid-column: 2; }
+  .row__shot { grid-column: 3; }
+  .row:nth-child(even) .row__shot { grid-column: 2; }
+  .row:nth-child(even) .row__copy { grid-column: 3; }
+
+  .row__index {
+    color: var(--ink); font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 700;
+    line-height: .9; letter-spacing: -.05em; opacity: .16;
+  }
+
+  .row__copy { display: grid; gap: 12px; align-content: start; }
+  .row__name { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .row__name strong { color: var(--teal-text); font-size: .78rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .row__title { color: var(--ink); font-size: clamp(1.34rem, 2.5vw, 1.95rem); line-height: 1.28; letter-spacing: -.03em; }
+  .row__lead { color: var(--ink-body); }
+  .row__points { margin: 6px 0 0; padding: 0; list-style: none; display: grid; }
+  .row__points li { padding: 9px 0; border-top: 1px solid var(--line); font-size: .9rem; color: var(--muted); }
+  .row__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+
+  .row__shot { position: relative; }
+  .row__shot .shot { aspect-ratio: 4 / 3; border-color: var(--ink); box-shadow: 10px 10px 0 rgba(7, 48, 71, .07); }
+  .row:nth-child(even) .row__shot .shot { box-shadow: -10px 10px 0 rgba(244, 119, 33, .16); }
+  .row__stamp {
+    position: absolute; left: 14px; bottom: 14px;
+    padding: 6px 12px; border: 1px solid var(--ink); border-radius: 999px;
+    background: var(--paper); color: var(--ink); font-size: .72rem; font-weight: 700;
+  }
+
+  @media (max-width: 900px) {
+    .row { grid-template-columns: 56px minmax(0, 1fr); }
+    .row__index { grid-column: 1; }
+    .row__copy, .row:nth-child(even) .row__copy { grid-column: 2; }
+    .row__shot, .row:nth-child(even) .row__shot { grid-column: 1 / -1; margin-top: 6px; }
+  }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr; gap: 12px; }
+    .row__index { font-size: 2rem; }
+    .row__copy, .row:nth-child(even) .row__copy, .row__shot, .row:nth-child(even) .row__shot { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container mock-head">
+  <div class="mock-head__bar">
+    <span class="mock-head__name">แบบ ง — แถวสลับซ้ายขวา</span>
+    <a class="mock-head__back" href="index.html">← กลับไปดูทั้งห้าแบบ</a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <p class="eyebrow">แอปของเรา</p>
+      <h2>ทีละแอป พร้อมภาพของจริง</h2>
+      <p>แต่ละแอปได้พื้นที่เต็มแถว ภาพสลับซ้ายขวาไปเรื่อย ๆ เป็นแบบที่แก้เนื้อหาง่ายที่สุดเวลาอยากเปลี่ยนบ่อย</p>
+    </div>
+
+    <div class="rows">
+      <article class="row">
+        <span class="row__index">01</span>
+        <div class="row__copy">
+          <div class="row__name"><strong>ESTIMETR</strong><span class="pill">ทดลองใช้ฟรี 7 วัน</span></div>
+          <p class="row__title">ถอดปริมาณจากแบบ แล้วให้ผู้ช่วยร่าง BOQ ทั้งใบ</p>
+          <p class="row__lead">งานที่เคยนั่งถอดแบบและคิดราคาด้วยมือหลายวัน ผู้ช่วยร่างให้ก่อน คุณตรวจแล้วกดรับทีละรายการ</p>
+          <ul class="row__points">
+            <li>ทุกบรรทัดชี้กลับไปหาแบบและที่มาของราคาได้</li>
+            <li>แยกกลุ่มงานเหมือนที่ใบ ปร.4 แยก</li>
+            <li>ออกได้ทั้งราคากลางด้วย Factor F และต้นทุนผู้รับเหมา</li>
+          </ul>
+          <div class="row__actions"><a class="button" href="#">เริ่มทดลองใช้ฟรี</a><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="row__shot"><div class="shot">ที่วางภาพหน้าจอ — ใบ BOQ แยกกลุ่มงาน</div><span class="row__stamp">ภาพจากหน้าจอจริง</span></div>
+      </article>
+
+      <article class="row">
+        <span class="row__index">02</span>
+        <div class="row__copy">
+          <div class="row__name"><strong>PRICEMETR</strong><span class="pill">ราคาวัสดุและค่าแรง</span></div>
+          <p class="row__title">ราคาวัสดุรายจังหวัดและค่าแรงตามบัญชีราชการ</p>
+          <p class="row__lead">ค้นตามจังหวัดและเดือนที่ต้องการ หยิบรายการที่ใช้เก็บไว้ แล้วส่งเข้าโครงการเป็นบัญชีราคาที่ตัวเลขนิ่ง ไม่ขยับตามต้นทาง</p>
+          <ul class="row__points">
+            <li>ราคาผูกกับจังหวัด เดือน และรหัสของผู้ประกาศ</li>
+            <li>เทียบย้อนหลังได้ว่าราคาขยับขึ้นลงเท่าไร</li>
+          </ul>
+          <div class="row__actions"><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="row__shot"><div class="shot">ที่วางภาพหน้าจอ — ตารางราคารายจังหวัด</div><span class="row__stamp">ภาพจากหน้าจอจริง</span></div>
+      </article>
+
+      <article class="row">
+        <span class="row__index">03</span>
+        <div class="row__copy">
+          <div class="row__name"><strong>ผู้ช่วยสร้างแผนงาน</strong><span class="pill">แผนงานก่อสร้าง</span></div>
+          <p class="row__title">แผนงาน งวดงาน และ S-Curve ที่พิมพ์แนบสัญญาได้</p>
+          <p class="row__lead">จากวงเงินและระยะเวลาสัญญา ผู้ช่วยร่างแผนงานให้ก่อน ปรับได้ทุกช่อง แล้วส่งออกเป็นเอกสารแนบสัญญาที่พิมพ์ลง A4 ได้จริง</p>
+          <div class="row__actions"><a class="button button--ghost" href="#">ดูรายละเอียด</a></div>
+        </div>
+        <div class="row__shot"><div class="shot">ที่วางภาพหน้าจอ — กราฟ S-Curve และงวดงาน</div><span class="row__stamp">ภาพจากหน้าจอจริง</span></div>
+      </article>
+    </div>
+
+    <p class="slotnote">
+      <strong>ช่องที่สลับได้</strong> — จำนวนแถว ภาพ หัวข้อ คำโปรย รายการข้อดี และปุ่ม
+      · สลับลำดับแถวได้อิสระ ภาพจะสลับข้างเองตามลำดับคู่คี่ · จอแคบภาพลงไปอยู่ใต้ข้อความเต็มความกว้าง
+    </p>
+  </div>
+</section>
+
+</body>
+</html>

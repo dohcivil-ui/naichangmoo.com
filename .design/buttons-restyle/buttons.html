@@ -1,0 +1,376 @@
+<title>ผืนเทียบปุ่มนายช่างหมู</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap">
+<style>
+  :root {
+    /* ค่าทุกตัวคัดลอกจาก src/app/globals.css ของเว็บจริง ไม่ได้คิดสีใหม่ */
+    --ink: #073047;
+    --ink-deep: #051f2f;
+    --ink-body: #3f545f;
+    --teal: #0d8282;
+    --teal-text: #0c7878;
+    --teal-wash: #e6f3f3;
+    --teal-deep: #0a6a6a;
+    --orange: #f47721;
+    --orange-text: #a34f14;
+    --orange-wash: #fdeee2;
+    --orange-deep: #b4530a;
+    --on-orange: #17120d;
+    --canvas: #f4f7f7;
+    --paper: #ffffff;
+    --line: #c9d8d9;
+    --off: #e9eff0;
+    --off-line: #d5e0e1;
+    --muted: #5f7178;
+    --focus: rgba(244, 119, 33, .72);
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+
+    --page: #eef3f3;
+    --sheet: var(--paper);
+    --text: var(--ink-body);
+    --head: var(--ink);
+    --rule: var(--line);
+    --sky: #dfeaea;
+  }
+
+  /* หน้านี้เป็นธีมสว่างอย่างเดียวโดยตั้งใจ เพราะแอปจริงมีธีมเดียว
+     ถ้าปล่อยให้หน้าพลิกตามธีมของเครื่องที่เปิด สีที่คุณเห็นจะไม่ใช่สีที่ผู้ใช้เห็น
+     สีทุกค่าจึงระบายไว้ตรง ๆ ไม่ยืมพื้นจากตัวเปิด */
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font-family: "Prompt", "Noto Sans Thai", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .num { font-family: "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-variant-numeric: tabular-nums; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 34px 20px 72px; }
+
+  header.top { display: grid; gap: 10px; padding-block-end: 22px; border-block-end: 2px solid var(--head); }
+  .eyebrow { margin: 0; font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--teal-text); }
+  h1 { margin: 0; font-size: clamp(1.6rem, 4vw, 2.15rem); font-weight: 700; line-height: 1.2; color: var(--head); text-wrap: balance; }
+  .lede { margin: 0; max-width: 62ch; color: var(--text); }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-block: 20px 8px; padding: 12px 14px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 10px; }
+  .controls p { margin: 0; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .seg { display: inline-flex; gap: 4px; padding: 3px; background: var(--canvas); border-radius: 8px; }
+  .seg button { appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .82rem; font-weight: 600; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--sheet); color: var(--head); box-shadow: 0 1px 3px rgba(7, 48, 71, .14); }
+  .seg button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+
+  .variants { display: grid; gap: 18px; margin-block-start: 26px; }
+
+  .variant { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .variant > .head { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; padding: 14px 18px; border-block-end: 1px solid var(--rule); }
+  .variant h2 { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--head); }
+  .variant .tag { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .variant .spec { margin: 0; flex: 1 1 320px; font-size: .82rem; color: var(--muted); }
+
+  .rows { display: grid; }
+  .row { display: grid; grid-template-columns: 118px 1fr; gap: 14px; align-items: center; padding: 16px 18px; }
+  .row + .row { border-block-start: 1px solid var(--rule); }
+  .row.on-dark { background: var(--ink); }
+  .row.on-dark .rowname { color: #b9d1d8; }
+  .rowname { font-size: .78rem; font-weight: 700; letter-spacing: .04em; color: var(--muted); }
+  .pack { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .statecap { display: grid; gap: 5px; justify-items: start; }
+  .statecap small { font-size: .68rem; font-weight: 600; letter-spacing: .06em; color: var(--muted); }
+  .row.on-dark .statecap small { color: #9dbcc5; }
+
+  .metrics { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 12px 18px; background: var(--canvas); border-block-start: 1px solid var(--rule); font-size: .78rem; }
+  .metrics span { color: var(--muted); }
+  .metrics b { color: var(--head); font-weight: 700; }
+  .pass { color: #1f7a52; font-weight: 700; }
+  .fail { color: #b0301f; font-weight: 700; }
+
+  /* ---- โครงร่วมของทุกแบบ ---- */
+  .b {
+    --h: 48px;
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    min-height: var(--h); height: var(--h); padding: 0 22px;
+    border: 1px solid transparent; border-radius: 999px;
+    font: inherit; font-size: .95rem; font-weight: 700; line-height: 1.2;
+    white-space: nowrap; text-decoration: none; cursor: pointer;
+  }
+  .b svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  .b:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .b:disabled { cursor: not-allowed; }
+
+  /* ---- แบบ 1 ปัจจุบัน ---- */
+  .v1 .b1 { background: var(--orange); color: var(--on-orange); box-shadow: var(--orange-deep) 0 4px 0 0, rgba(244, 119, 33, .34) 0 12px 22px -8px, rgba(255, 255, 255, .38) 0 1px 0 0 inset; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
+  .v1 .b1:hover:enabled, .v1 .b1.is-hover { background: #ff8c37; transform: translateY(-1px); }
+  .v1 .b1:active:enabled, .v1 .b1.is-active { transform: translateY(4px); box-shadow: rgba(244, 119, 33, .28) 0 4px 12px 0; }
+  .v1 .b2.is-hover { background: var(--teal); }
+  .v1 .b2.is-active { transform: translateY(4px); box-shadow: none; }
+  .v1 .b3.is-hover, .v1 .b3.is-active { background: var(--teal-wash); }
+  .v1 .b2 { background: var(--ink); color: var(--paper); box-shadow: var(--ink-deep) 0 4px 0 0, rgba(7, 48, 71, .3) 0 12px 22px -8px; }
+  .v1 .b3 { background: transparent; color: var(--teal-deep); }
+  .v1 .b:disabled { background: var(--off); border-color: var(--off-line); color: var(--ink-body); box-shadow: none; }
+
+  /* ---- แบบ 2 ส้มพื้นจาง มีขอบ ---- */
+  .v2 .b { border-radius: 10px; transition: background 130ms var(--ease-out), border-color 130ms var(--ease-out), color 130ms var(--ease-out); }
+  .v2 .b1 { background: var(--orange-wash); border-color: var(--orange); color: var(--orange-text); }
+  .v2 .b1:hover:enabled, .v2 .b1.is-hover { background: #fbe0cb; border-color: var(--orange-deep); }
+  .v2 .b1:active:enabled, .v2 .b1.is-active { background: #f8d5b9; border-color: var(--orange-deep); }
+  .v2 .b2 { background: var(--paper); border-color: var(--line); color: var(--teal-text); }
+  .v2 .b2:hover:enabled, .v2 .b2.is-hover, .v2 .b2.is-active { border-color: var(--teal); color: var(--teal-deep); }
+  .v2 .b3 { background: transparent; color: var(--teal-text); }
+  .v2 .b3:hover:enabled, .v2 .b3.is-hover, .v2 .b3.is-active { background: var(--teal-wash); }
+  .v2 .b:disabled { background: var(--paper); border-color: var(--off-line); color: var(--muted); }
+
+  /* ---- แบบ 3 ส้มเส้นเดียวบนขาว ---- */
+  .v3 .b { border-radius: 8px; transition: background 130ms var(--ease-out), color 130ms var(--ease-out); }
+  .v3 .b1 { background: var(--paper); border: 1.5px solid var(--orange); color: var(--orange-text); }
+  .v3 .b1:hover:enabled, .v3 .b1.is-hover { background: var(--orange-wash); }
+  .v3 .b1:active:enabled, .v3 .b1.is-active { background: #fbe0cb; }
+  .v3 .b2 { background: var(--paper); border: 1.5px solid var(--line); color: var(--teal-text); }
+  .v3 .b2:hover:enabled, .v3 .b2.is-hover, .v3 .b2.is-active { border-color: var(--teal); }
+  .v3 .b3 { background: transparent; color: var(--teal-text); }
+  .v3 .b3:hover:enabled, .v3 .b3.is-hover, .v3 .b3.is-active { background: var(--teal-wash); }
+  .v3 .b:disabled { background: var(--paper); border-color: var(--off-line); color: var(--muted); }
+
+  /* ---- แบบ 4 ส้มทึบแต่แบน ---- */
+  .v4 .b { border-radius: 10px; transition: background 130ms var(--ease-out), box-shadow 130ms var(--ease-out); }
+  .v4 .b1 { background: var(--orange); color: var(--on-orange); box-shadow: 0 1px 2px rgba(7, 48, 71, .12); }
+  .v4 .b1:hover:enabled, .v4 .b1.is-hover { background: #ff8c37; box-shadow: 0 3px 10px -3px rgba(244, 119, 33, .5); }
+  .v4 .b1:active:enabled, .v4 .b1.is-active { background: var(--orange-deep); color: #fff; box-shadow: none; }
+  .v4 .b2 { background: var(--paper); border-color: var(--line); color: var(--ink); }
+  .v4 .b2:hover:enabled, .v4 .b2.is-hover, .v4 .b2.is-active { border-color: var(--teal); color: var(--teal-deep); }
+  .v4 .b3 { background: transparent; color: var(--teal-text); }
+  .v4 .b3:hover:enabled, .v4 .b3.is-hover, .v4 .b3.is-active { background: var(--teal-wash); }
+  .v4 .b:disabled { background: var(--off); border-color: var(--off-line); color: var(--ink-body); box-shadow: none; }
+
+  /* ---- แบบ 5 ส้มพื้นจาง ไม่มีขอบ ---- */
+  .v5 .b { border-radius: 8px; transition: background 130ms var(--ease-out); }
+  .v5 .b1 { background: var(--orange-wash); color: var(--orange-text); }
+  .v5 .b1:hover:enabled, .v5 .b1.is-hover { background: #fbe0cb; }
+  .v5 .b1:active:enabled, .v5 .b1.is-active { background: #f8d5b9; }
+  .v5 .b2 { background: var(--teal-wash); color: var(--teal-text); }
+  .v5 .b2:hover:enabled, .v5 .b2.is-hover, .v5 .b2.is-active { background: #d8ecec; }
+  .v5 .b3 { background: transparent; color: var(--muted); }
+  .v5 .b3:hover:enabled, .v5 .b3.is-hover, .v5 .b3.is-active { background: var(--canvas); color: var(--ink); }
+  /* ตัวหนังสือของปุ่มที่กดไม่ได้ใช้ --ink-body ไม่ใช่ --muted · --muted บนพื้น --off วัดได้ 4.39 ตกเกณฑ์ */
+  .v5 .b:disabled { background: var(--off); color: var(--ink-body); }
+
+  /* ---- แถบเครื่องมือจำลอง ---- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 5px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+  .t { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; background: transparent; color: var(--ink); border-radius: 6px; cursor: pointer; }
+  .t svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .t:hover { background: var(--canvas); }
+  .t[aria-checked="true"] { background: var(--teal); color: var(--paper); }
+  .v2 .t[aria-checked="true"], .v3 .t[aria-checked="true"], .v5 .t[aria-checked="true"] { background: var(--teal-wash); color: var(--teal-text); box-shadow: inset 0 0 0 1px var(--teal); }
+  .v4 .t[aria-checked="true"] { background: var(--orange-wash); color: var(--orange-text); box-shadow: inset 0 0 0 1px var(--orange); }
+  .toolbar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 4px; }
+
+  .verdict { margin-block-start: 34px; padding: 20px; background: var(--sheet); border: 1px solid var(--rule); border-inline-start: 4px solid var(--teal); border-radius: 10px; }
+  .verdict h2 { margin: 0 0 8px; font-size: 1.05rem; color: var(--head); }
+  .verdict ol { margin: 0; padding-inline-start: 20px; display: grid; gap: 7px; }
+  .verdict li { max-width: 68ch; }
+
+  footer.foot { margin-block-start: 28px; font-size: .78rem; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) { .b, .t { transition: none !important; } .b:hover { transform: none !important; } }
+  @media (max-width: 620px) {
+    .row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">ESTIMETR · ระบบปุ่มของทั้งเว็บ</p>
+    <h1>ห้าแนวปุ่มส้ม ให้เลือกหนึ่ง</h1>
+    <p class="lede">
+      สีทุกค่าบนหน้านี้คัดลอกมาจาก <span class="num">globals.css</span> ของเว็บจริง ไม่มีสีที่คิดขึ้นใหม่
+      ตัวเลขคอนทราสต์ใต้แต่ละแบบวัดจากของที่เรนเดอร์อยู่บนหน้านี้จริง ๆ ด้วย
+      <span class="num">getComputedStyle</span> ไม่ใช่ค่าที่พิมพ์ไว้ล่วงหน้า
+    </p>
+  </header>
+
+  <div class="controls">
+    <p>ลองเปลี่ยนความสูงดูทุกแบบพร้อมกัน</p>
+    <div class="seg" role="group" aria-label="ความสูงของปุ่ม">
+      <button type="button" data-h="48" aria-pressed="true">48px ปัจจุบัน</button>
+      <button type="button" data-h="44" aria-pressed="false">44px</button>
+      <button type="button" data-h="40" aria-pressed="false">40px</button>
+      <button type="button" data-h="36" aria-pressed="false">36px</button>
+    </div>
+  </div>
+
+  <div class="variants" id="variants"></div>
+
+  <section class="verdict">
+    <h2>สิ่งที่ผมอยากให้คุณดูตอนเลือก</h2>
+    <ol>
+      <li><b>ปุ่มหลักต้องยังชนะทุกอย่างบนหน้า</b> ถ้าส้มจางเกินไปจนดูเท่ากับปุ่มรอง คนจะไม่รู้ว่าต้องกดอะไรต่อ ซึ่งเป็นข้อสี่ของบทความที่คุณส่งมา</li>
+      <li><b>สถานะกดไม่ได้ ต้องอ่านออกว่าต่างจากกดได้</b> โดยไม่ต้องพึ่งการเปลี่ยนสีเดียว</li>
+      <li><b>บนพื้นหมึกเข้ม</b> แถวสุดท้ายของแต่ละแบบคือแถบสีเข้มของเว็บ ปุ่มที่ใช้พื้นขาวจะเด่นมากตรงนั้น ส่วนปุ่มพื้นจางจะจมหาย</li>
+      <li><b>ความสูง</b> กดปุ่มด้านบนเปลี่ยนได้ทั้งหน้า แล้วดูว่าที่ 40 กับ 36 ยังกดง่ายอยู่ไหมเวลาใช้บนแท็บเล็ต</li>
+    </ol>
+  </section>
+
+  <footer class="foot">
+    เลือกแล้วบอกหมายเลขแบบกับความสูงมาได้เลย ผมจะยกไปลงที่ <span class="num">.button</span> ตัวกลางที่เดียว
+    ปุ่มทั้งเว็บจะเปลี่ยนตามพร้อมกัน
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var ICONS = {
+      save: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h7L16 7.5V15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M7 4v4h5"/>',
+      select: '<path d="M4 3l5 12 2-5 5-2z"/>',
+      scale: '<path d="M3 12l9-9 5 5-9 9z"/><path d="M7 8l1.5 1.5M9.5 5.5L11 7"/>',
+      area: '<path d="M4 4h12v12H4z"/><path d="M4 9h12M9 4v12"/>',
+      count: '<path d="M5 5h4v4H5zM11 5h4v4h-4zM5 11h4v4H5zM11 11h4v4h-4z"/>',
+      fit: '<path d="M4 7V4h3M16 7V4h-3M4 13v3h3M16 13v3h-3"/>'
+    };
+
+    var VARIANTS = [
+      {
+        id: 'v1', n: 1, name: 'แบบที่ใช้อยู่ตอนนี้', tag: 'ของเดิม',
+        spec: 'ส้มทึบ ทรงแคปซูล เงาแข็งใต้ปุ่ม 4px บวกเงาฟุ้งอีกชั้นและเส้นไฮไลต์ด้านใน กดแล้วยุบลง 4px'
+      },
+      {
+        id: 'v2', n: 2, name: 'ส้มพื้นจาง มีขอบส้ม', tag: 'ไม่ถมเข้ม',
+        spec: 'พื้น --orange-wash ขอบ --orange ตัวหนังสือ --orange-text มุม 10px ไม่มีเงา เปลี่ยนสีตอนชี้เท่านั้น'
+      },
+      {
+        id: 'v3', n: 3, name: 'ส้มเส้นเดียวบนพื้นขาว', tag: 'เบาที่สุด',
+        spec: 'พื้นขาว ขอบส้มหนา 1.5px ตัวหนังสือ --orange-text มุม 8px ชี้แล้วพื้นค่อยเปลี่ยนเป็นส้มจาง'
+      },
+      {
+        id: 'v4', n: 4, name: 'ส้มทึบแต่แบน', tag: 'ทึบแบบเรียบ',
+        spec: 'ส้มทึบเหมือนเดิมแต่ถอดเงาสามชั้นออก เหลือเงาบาง 1px มุม 10px กดแล้วเป็นส้มเข้มไม่ใช่ยุบลง'
+      },
+      {
+        id: 'v5', n: 5, name: 'ส้มพื้นจาง ไม่มีขอบ', tag: 'นิ่งที่สุด',
+        spec: 'พื้น --orange-wash ล้วน ไม่มีขอบไม่มีเงา ปุ่มรองใช้ --teal-wash ให้เป็นชุดเดียวกัน'
+      }
+    ];
+
+    function icon(name) { return '<svg viewBox="0 0 20 20" aria-hidden="true">' + ICONS[name] + '</svg>'; }
+
+    function pack(cls, label, withIcon) {
+      var ic = withIcon ? icon('save') : '';
+      return '' +
+        cap('ปกติ', '<button type="button" class="b ' + cls + '">' + ic + label + '</button>') +
+        cap('ชี้ค้าง', '<button type="button" class="b ' + cls + ' is-hover">' + ic + label + '</button>') +
+        cap('กดค้าง', '<button type="button" class="b ' + cls + ' is-active">' + ic + label + '</button>') +
+        cap('กดไม่ได้', '<button type="button" class="b ' + cls + '" disabled>' + ic + label + '</button>');
+    }
+
+    function cap(name, html) {
+      return '<span class="statecap"><small>' + name + '</small>' + html + '</span>';
+    }
+
+    function toolbar() {
+      var out = '<div class="toolbar">';
+      out += '<button type="button" class="t" aria-checked="true" role="radio" aria-label="เลือก">' + icon('select') + '</button>';
+      out += '<button type="button" class="t" role="radio" aria-label="ตั้งสเกล">' + icon('scale') + '</button>';
+      out += '<button type="button" class="t" role="radio" aria-label="พื้นที่สี่เหลี่ยม">' + icon('area') + '</button>';
+      out += '<button type="button" class="t" role="radio" aria-label="นับจำนวน">' + icon('count') + '</button>';
+      out += '<span class="sep"></span>';
+      out += '<button type="button" class="t" aria-label="พอดีกรอบ">' + icon('fit') + '</button>';
+      out += '</div>';
+      return out;
+    }
+
+    var host = document.getElementById('variants');
+    host.innerHTML = VARIANTS.map(function (v) {
+      return '' +
+        '<article class="variant ' + v.id + '" id="' + v.id + '">' +
+          '<div class="head">' +
+            '<h2><span class="num">' + v.n + '.</span> ' + v.name + '</h2>' +
+            '<span class="tag">' + v.tag + '</span>' +
+            '<p class="spec">' + v.spec + '</p>' +
+          '</div>' +
+          '<div class="rows">' +
+            '<div class="row"><span class="rowname">ปุ่มหลัก</span><div class="pack">' + pack('b1', 'บันทึกและตั้งสเกลหน้านี้', true) + '</div></div>' +
+            '<div class="row"><span class="rowname">ปุ่มรอง</span><div class="pack">' + pack('b2', 'ยกเลิก', false) + '</div></div>' +
+            '<div class="row"><span class="rowname">ปุ่มตัวหนังสือ</span><div class="pack">' + pack('b3', 'ล้างสเกลของหน้านี้', false) + '</div></div>' +
+            '<div class="row"><span class="rowname">บนแถบเครื่องมือ</span><div class="pack">' + toolbar() + '</div></div>' +
+            '<div class="row on-dark"><span class="rowname">บนพื้นหมึกเข้ม</span><div class="pack">' +
+              '<button type="button" class="b b1">เริ่มถอดปริมาณ</button>' +
+              '<button type="button" class="b b2">ดูราคา</button>' +
+            '</div></div>' +
+          '</div>' +
+          '<div class="metrics" data-for="' + v.id + '"></div>' +
+        '</article>';
+    }).join('');
+
+    function luminance(rgb) {
+      var parts = rgb.match(/[\d.]+/g);
+      if (!parts || parts.length < 3) return null;
+      var c = parts.slice(0, 3).map(function (v) {
+        var s = Number(v) / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+
+    function solidBehind(el) {
+      var node = el;
+      while (node && node !== document.documentElement) {
+        var bg = getComputedStyle(node).backgroundColor;
+        var parts = bg.match(/[\d.]+/g);
+        if (parts && (parts.length < 4 || Number(parts[3]) === 1) && bg !== 'rgba(0, 0, 0, 0)') return bg;
+        node = node.parentElement;
+      }
+      return getComputedStyle(document.body).backgroundColor;
+    }
+
+    function ratio(el) {
+      var cs = getComputedStyle(el);
+      var fg = luminance(cs.color);
+      var ownBg = cs.backgroundColor;
+      var parts = ownBg.match(/[\d.]+/g);
+      var opaque = parts && (parts.length < 4 || Number(parts[3]) === 1) && ownBg !== 'rgba(0, 0, 0, 0)';
+      var bg = luminance(opaque ? ownBg : solidBehind(el.parentElement));
+      if (fg === null || bg === null) return null;
+      var hi = Math.max(fg, bg), lo = Math.min(fg, bg);
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    function measure() {
+      VARIANTS.forEach(function (v) {
+        var box = document.querySelector('.metrics[data-for="' + v.id + '"]');
+        var pairs = [
+          ['ปุ่มหลัก', '#' + v.id + ' .row:nth-child(1) .b1:not(:disabled)'],
+          ['ปุ่มหลัก กดไม่ได้', '#' + v.id + ' .row:nth-child(1) .b1:disabled'],
+          ['ปุ่มรอง', '#' + v.id + ' .row:nth-child(2) .b2:not(:disabled)'],
+          ['ปุ่มตัวหนังสือ', '#' + v.id + ' .row:nth-child(3) .b3:not(:disabled)'],
+          ['ปุ่มหลักบนพื้นเข้ม', '#' + v.id + ' .row.on-dark .b1']
+        ];
+        box.innerHTML = pairs.map(function (p) {
+          var el = document.querySelector(p[1]);
+          if (!el) return '<span>' + p[0] + ' <b>วัดไม่ได้</b></span>';
+          var r = ratio(el);
+          if (r === null) return '<span>' + p[0] + ' <b>วัดไม่ได้</b></span>';
+          var v2 = r.toFixed(2);
+          var ok = r >= 4.5;
+          return '<span>' + p[0] + ' <b class="num ' + (ok ? 'pass' : 'fail') + '">' + v2 + ':1</b>' + (ok ? '' : ' ตกเกณฑ์ 4.5') + '</span>';
+        }).join('');
+      });
+    }
+
+    measure();
+
+    document.querySelectorAll('.seg button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
+        document.documentElement.style.setProperty('--h', btn.dataset.h + 'px');
+        document.querySelectorAll('.b').forEach(function (b) { b.style.setProperty('--h', btn.dataset.h + 'px'); });
+        var pad = btn.dataset.h === '36' ? '0 14px' : btn.dataset.h === '40' ? '0 16px' : btn.dataset.h === '44' ? '0 19px' : '0 22px';
+        document.querySelectorAll('.b').forEach(function (b) { b.style.padding = pad; });
+      });
+    });
+  })();
+</script>
