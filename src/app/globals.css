@@ -245,19 +245,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
  * ขนาดตัวอักษรตั้งไว้ที่นี่ ไม่ปล่อยให้รับมาจากกล่องแม่ ไม่งั้นปุ่มเดียวกันจะตัวโตไม่เท่ากัน
  * ตามที่มันไปยืนอยู่ ซึ่งเป็นอีกทางที่ปุ่มเพี้ยนโดยไม่มีใครสั่ง
  */
-.button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: 999px; font-size: .95rem; font-weight: 700; line-height: 1.2; white-space: nowrap; text-decoration: none; cursor: pointer; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
-.button:active { transform: translateY(4px); }
+/* ทรงของปุ่มทั้งเว็บ — เจ้าของงานเลือกเมื่อ 2026-09-05 จากผืนเทียบสิบแบบ (IP-241)
+   เขาเลือกแบบ 8 "ขอบล่างหนา" กับแบบ 9 "ทึบเรียบ" ซึ่งเป็นคนละระบบกัน จึงรวมเป็นชุดเดียว
+   คือ **สีทึบแบนแบบ 9 บวกขอบล่างหนาแบบ 8**
+
+   สามอย่างที่ถอดออกจากของเดิม เพราะเขาบอกว่า "ใหญ่ ไม่สวย ไม่สมูท"
+   1. **เงาฟุ้งใต้ปุ่ม** ที่ซ้อนอยู่ชั้นที่สอง ทำให้ปุ่มดูลอยและหนา
+   2. **เส้นไฮไลต์สีขาวด้านใน** ที่ทำให้ผิวปุ่มดูเป็นพลาสติกเงา
+   3. **การยกตัวขึ้นตอนชี้** ซึ่งทำให้ทั้งแถวของปุ่มขยับตามเมาส์
+   เหลือขอบล่างทึบชั้นเดียวที่อ่านเป็นความหนาจริง กดแล้วขอบบางลงและตัวปุ่มลงมาทับ
+
+   ทรงเปลี่ยนจากแคปซูล 999px เป็นมุมมน 10px เพราะขอบล่างหนาอ่านเป็น "ความหนาของแผ่น"
+   ได้เฉพาะบนทรงที่มีด้านล่างตรง · บนแคปซูลมันกลายเป็นเงาโค้งที่ไม่มีที่มา */
+.button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: 10px; font-size: .95rem; font-weight: 700; line-height: 1.2; white-space: nowrap; text-decoration: none; cursor: pointer; transition: transform 120ms var(--ease-out), background 120ms var(--ease-out), box-shadow 120ms var(--ease-out), border-color 120ms var(--ease-out); }
+.button:active { transform: translateY(2px); }
 /* ยืดเต็มกล่องแม่ — ใช้แทนการตัดบรรทัดเมื่อคำยาวเกินที่ว่างบนจอแคบ
    ที่ผ่านมามีเจ็ดที่เขียน `width: 100%` ใส่ปุ่มเองแยกกัน คลาสนี้รวบให้เหลือชื่อเดียว */
 .button--block { width: 100%; }
 /* ลูกศรท้ายปุ่ม รับสีจากปุ่มเสมอ จึงถูกทุกระดับโดยไม่ต้องสั่งทีละที่ */
 .button__arrow { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
-.button--primary { background: var(--ink); color: var(--paper); box-shadow: var(--ink-deep) 0 4px 0 0, rgba(7, 48, 71, .3) 0 12px 22px -8px; }
-.button--primary:hover { background: var(--teal); transform: translateY(-1px); box-shadow: var(--teal-deep) 0 5px 0 0, rgba(13, 130, 130, .32) 0 14px 24px -8px; }
-.button--primary:active { box-shadow: rgba(7, 48, 71, .26) 0 4px 12px 0; }
-.button--orange { background: var(--orange); color: var(--on-orange); box-shadow: var(--orange-deep) 0 4px 0 0, rgba(244, 119, 33, .34) 0 12px 22px -8px, rgba(255, 255, 255, .38) 0 1px 0 0 inset; }
-.button--orange:hover { background: #ff8c37; transform: translateY(-1px); box-shadow: var(--orange-deep) 0 5px 0 0, rgba(244, 119, 33, .4) 0 14px 24px -8px, rgba(255, 255, 255, .42) 0 1px 0 0 inset; }
-.button--orange:active { box-shadow: rgba(244, 119, 33, .28) 0 4px 12px 0; }
+.button--primary { background: var(--ink); color: var(--paper); box-shadow: var(--ink-deep) 0 3px 0 0; }
+.button--primary:hover { background: var(--teal); box-shadow: var(--teal-deep) 0 3px 0 0; }
+.button--primary:active { box-shadow: var(--teal-deep) 0 1px 0 0; }
+.button--orange { background: var(--orange); color: var(--on-orange); box-shadow: var(--orange-deep) 0 3px 0 0; }
+.button--orange:hover { background: #ff8c37; box-shadow: var(--orange-deep) 0 3px 0 0; }
+.button--orange:active { box-shadow: var(--orange-deep) 0 1px 0 0; }
 /* ปุ่มที่กดไม่ได้ — สีทึบของตัวเอง ไม่ใช่ opacity ทับสีเดิม
    ครอบทั้ง `disabled` ของ <button> และ `aria-disabled` ของลิงก์ ซึ่งปิดด้วย attribute จริงไม่ได้ */
 /* ตัวหนังสือของปุ่มที่กดไม่ได้ ใช้ --ink-body ไม่ใช่ --muted · วัดของจริง 2026-09-05 ได้
@@ -1105,7 +1117,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* Access and pricing page. The layout borrows the shape of a plan comparison, but the right-hand
    column holds an account state rather than an order total, because no numeric price exists. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.button--ghost { background: var(--paper); border-color: var(--line); color: var(--teal-text); box-shadow: var(--edge) 0 4px 0 0; }.button--ghost:hover { border-color: var(--teal); color: var(--teal); transform: translateY(-1px); box-shadow: var(--edge) 0 5px 0 0; }.button--ghost:active { box-shadow: none; }
+.button--ghost { background: var(--paper); border-color: var(--line); color: var(--teal-text); box-shadow: var(--edge) 0 3px 0 0; }.button--ghost:hover { border-color: var(--teal); color: var(--teal-deep); box-shadow: var(--mist) 0 3px 0 0; }.button--ghost:active { box-shadow: var(--mist) 0 1px 0 0; }
 .section-heading h1 { font-size: clamp(1.9rem, 3.4vw, 2.9rem); letter-spacing: -.005em; line-height: 1.3; margin: 10px 0 0; }
 .access-intro { color: var(--muted); line-height: 1.75; max-width: 730px; margin: 16px 0 0; }
 .access-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(282px,338px); gap: 26px; align-items: start; margin-top: 34px; }
@@ -2690,7 +2702,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__icon:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 .mk__icon[aria-checked="true"] { background: var(--teal); color: var(--paper); }
 .mk__icon[aria-pressed="true"] { background: var(--canvas); color: var(--teal-text); box-shadow: inset 0 0 0 1px var(--teal); }
+/* กดไม่ได้จริง ๆ เพราะไม่มีอะไรให้ทำ เช่นย้อนกลับตอนยังไม่ได้ทำอะไร */
 .mk__icon:disabled { opacity: .35; cursor: not-allowed; }
+/* ยังทำงานไม่ได้เพราะขาดขั้นก่อนหน้า — คนละเรื่องกับกดไม่ได้ (IP-241)
+   ปุ่มพวกนี้ยังกดได้จริงและกดแล้วตอบ จึงห้ามใช้ opacity ซึ่งกดคอนทราสต์ของทั้งปุ่มลงพร้อมกัน
+   ทั้งรูป ทั้งพื้น ทั้งวงโฟกัส · บอกด้วยกรอบจางกับสีตัวอักษรที่ยังผ่าน 4.5:1 แทน
+   แล้วตอนชี้หรือโฟกัสค่อยเปลี่ยนเป็นส้ม เพื่อบอกว่ากดแล้วจะได้คำอธิบาย ไม่ใช่ได้เครื่องมือ */
+.mk__icon[aria-disabled="true"] { color: var(--muted); box-shadow: inset 0 0 0 1px var(--off-line); }
+.mk__icon[aria-disabled="true"]:hover,
+.mk__icon[aria-disabled="true"]:focus-visible { background: var(--orange-wash); color: var(--orange-text); box-shadow: inset 0 0 0 1px var(--orange); }
 .mk__open input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .mk__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 /* กลุ่มเครื่องมือต้องขึ้นบรรทัดใหม่ได้เอง ไม่งั้นจอแคบจะดันทั้งหน้าให้เลื่อนแนวนอน
@@ -2770,6 +2790,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__panel { background: var(--paper); border-inline-start: 1px solid var(--line); overflow-y: auto; min-width: 0; padding: 0 10px 16px; }
 .mk__panel-head { position: sticky; inset-block-start: 0; background: var(--paper); border-block-end: 1px solid var(--line); padding: 9px 2px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .mk__panel-head span { margin-inline-start: auto; color: var(--muted); font-weight: 400; font-size: .76rem; }
+/* รายการเส้นอ้างอิงพร้อมปุ่มลบทีละเส้น (IP-242) — เส้นบางเกินกว่าจะคลิกให้โดนบนแท็บเล็ต
+   จึงต้องมีทางลบที่ไม่ต้องเล็ง · หัวรายการใช้ .mk__panel-head ตัวเดิม ไม่ทำหัวข้อแบบใหม่ */
+.mk__guides { margin-block-start: 14px; }
+.mk__guide-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.mk__guide-list li { display: flex; align-items: stretch; gap: 4px; }
+/* สูง 48px ตามกฎปุ่มของทั้งเว็บ ไม่ใช่ 32px แบบตารางรายการวัดที่อยู่ข้างบน
+   เพราะปุ่มนี้ลบงานของผู้ใช้ทิ้ง กดพลาดแล้วเสียของ · ข้อยกเว้น 36px ที่เคาะไว้
+   เป็นของแถบเครื่องมือเท่านั้น ไม่ครอบมาถึงแผงนี้ */
+.mk__guide-pick { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; min-height: 48px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink-body); font: inherit; font-size: .84rem; text-align: start; cursor: pointer; }
+.mk__guide-pick b { color: var(--ink); }
+.mk__guide-pick em { flex: 1 1 100%; color: var(--orange-text); font-style: normal; font-size: .72rem; }
+.mk__guide-pick:hover, .mk__guide-pick[aria-pressed="true"] { background: var(--canvas); border-color: var(--line); }
+.mk__guide-pick:focus-visible, .mk__guide-drop:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.mk__guide-drop { flex: none; min-height: 48px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); color: var(--muted); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.mk__guide-drop:hover { border-color: var(--dimension-red); color: var(--dimension-red); }
 
 /* แถบเส้นที่เลือก (IP-235) — โผล่เหนือแถบสถานะเฉพาะตอนเลือกเส้นระยะจริงหรือแนวเสาอยู่
    ก่อนหน้านี้เส้นสองชนิดนี้เลือกไม่ได้และลบไม่ได้เลย ทางเดียวคือกดย้อนกลับไปเรื่อย ๆ

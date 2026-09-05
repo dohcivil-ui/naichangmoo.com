@@ -22,6 +22,7 @@ import type { MeasurementKind } from "@/lib/drawing-measurement";
  */
 export type Tool =
   | "select"
+  | "erase"
   | "scale"
   | "room"
   | "gridline"
@@ -50,6 +51,9 @@ export function toolNeedsScale(tool: Tool): boolean {
     case "room":
       return true;
     case "select":
+    /* ลบไม่ต้องมีสเกล เพราะมันไม่ได้ตอบเป็นเมตร มันแค่เอาของที่วาดไว้ออก
+       และของที่ต้องลบมากที่สุดคือแนวเสากับระยะที่แบบเขียน ซึ่งวาดได้ตั้งแต่ยังไม่ตั้งสเกล */
+    case "erase":
     case "scale":
     case "count":
     case "gridline":

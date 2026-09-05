@@ -4,6 +4,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { MeasurementRegister } from "@/components/estimeter/markup/measurement-register";
 import {
+  marqueeFrom,
+  segmentInMarquee,
+  shapeInMarquee,
+  type MarqueeRect
+} from "@/lib/drawing-marquee";
+import {
   hitTest,
   hitTestSegments,
   isMeasurementKind,
@@ -16,7 +22,7 @@ import {
 } from "@/lib/drawing-measurement";
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
-import { drawingTourStep } from "@/lib/drawing-tour";
+import { drawingTourStep, type TourTarget } from "@/lib/drawing-tour";
 import { explainRoomArea } from "@/lib/room-area-explained";
 import { Button } from "@/components/platform/button";
 import {
@@ -40,6 +46,7 @@ import {
   COLUMN_MIN_METRES,
   COLUMN_TOUCH_METRES,
   DOOR_BRIDGE_METRES,
+  LINE_MAX_THICKNESS_POINTS,
   MIN_STRUCTURE_METRES,
   MIN_WALL_RUN_METRES,
   OUTLINE_MIN_STEP_METRES,
@@ -130,6 +137,23 @@ const TOOLS: ToolSpec[] = [
     icon: "M4 3l7 17 2-7 7-2z"
   },
   {
+    /**
+     * ลบ — คำสั่ง ERASE ของ AutoCAD (IP-242)
+     *
+     * เจ้าของงานถามสองครั้งว่า "ปุ่มลบเส้นที่ไม่ต้องการล่ะ ทำไมไม่มี" ทั้งที่ปุ่ม "ลบเส้นนี้"
+     * มีอยู่แล้วในแถบที่โผล่ตอนเลือกเส้นได้ · แปลว่าเส้นทางเดิมหาไม่เจอ เพราะต้องคลิกให้โดน
+     * เส้นหนาหนึ่งพิกเซลก่อนถึงจะเห็นปุ่ม · ตัวนี้กลับด้าน คือกดเครื่องมือก่อน แล้วคลิกอะไรก็ลบ
+     * อันนั้น ซึ่งเป็นลำดับเดียวกับที่คนเขียนแบบคุ้นมือ และลบหลายชิ้นติดกันได้โดยไม่ต้องกดซ้ำ
+     *
+     * คีย์ E ตามชื่อคำสั่งใน AutoCAD
+     */
+    id: "erase",
+    label: "ลบ",
+    key: "E",
+    hint: "กดแล้วคลิกที่รายการวัด แนวเสา หรือระยะที่แบบเขียน เพื่อลบทีละชิ้น · ลบผิดกดย้อนกลับได้",
+    icon: "M8 20H5l-2-2 11-11 6 6-7 7M20 20h-9M9 8l6 6"
+  },
+  {
     id: "scale",
     label: "ตั้งสเกล",
     key: "S",
@@ -206,6 +230,8 @@ const ICONS = {
   sharp: "M12 5v3M12 16v3M5 12h3M16 12h3M7.8 7.8l2 2M14.2 14.2l2 2M16.2 7.8l-2 2M9.8 14.2l-2 2M12 10a2 2 0 1 0 .01 0",
   /** ล็อกแนวเส้น — มุมฉากพร้อมเส้นทแยงบอกว่ามุมถูกบังคับ */
   ortho: "M5 19V5M5 19h14M5 12h7v7",
+  /** ตั้งฉาก — กากบาทแนวนอนกับแนวตั้งล้วน สื่อว่าเหลือแค่สองแกน ไม่มีทแยง */
+  axes: "M12 3v18M3 12h18M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3",
   /** พอดีกรอบ — สี่มุมของกรอบกับแผ่นแบบข้างใน สื่อว่าแบบทั้งแผ่นถูกจับให้พอดีกรอบ */
   fit: "M3 8V4h4M21 8V4h-4M3 16v4h4M21 16v4h-4M8 9h8v6H8z",
   caret: "M7 10l5 5 5-5"
@@ -371,6 +397,18 @@ export function DrawingMarkup({
   const [axisLock, setAxisLock] = useState(false);
   /** Shift ค้างเปิดล็อกแนวชั่วขณะ โดยไม่แตะสถานะปุ่มสลับ */
   const [shiftHeld, setShiftHeld] = useState(false);
+  /**
+   * โหมดตั้งฉาก — เส้นที่ลากได้แค่แนวนอนกับแนวตั้งเท่านั้น ไม่มีทแยง (IP-242)
+   *
+   * **ทำไมเป็นโหมดที่สอง ไม่ใช่ไปแก้ของเดิม** เจ้าของงานเคาะเมื่อ 2026-09-02 ว่าล็อกแนวเส้น
+   * ต้องเป็น 15 องศา เพราะแอปเดิมของเขาใช้ 45 องศาแล้วลากเส้นทแยงของหลังคากับบันไดไม่ได้
+   * · วันที่ 2026-09-05 เขาขอโหมดแบบ AutoCAD คือกด F8 แล้วล็อกแกน x กับ y เท่านั้น
+   * ซึ่งเป็นคนละอย่างกับล็อกทีละ 15 องศา ไม่ใช่ของที่มาแทนกัน · AutoCAD เองก็แยกเป็นสองปุ่ม
+   * คือ F8 (ORTHO ตั้งฉาก) กับ F10 (POLAR ทีละมุม) ด้วยเหตุผลเดียวกัน
+   *
+   * ตั้งฉากชนะเมื่อเปิดพร้อมกัน เพราะมันเข้มกว่า คนที่เปิดตั้งฉากไว้ต้องการเส้นตรงจริง ๆ
+   */
+  const [orthoLock, setOrthoLock] = useState(false);
   /** ตำแหน่งเมาส์ดิบก่อนถูกดูด — แถบสถานะต้องบอกที่ที่เมาส์อยู่จริง ไม่ใช่จุดที่ดูดไปแล้ว */
   const [cursor, setCursor] = useState<PagePoint | null>(null);
   const [railOn, setRailOn] = useState(true);
@@ -423,6 +461,10 @@ export function DrawingMarkup({
    */
   const [pendingRoom, setPendingRoom] = useState<StoredMark | null>(null);
   const panRef = useRef<{ x: number; y: number; view: Camera; moved: boolean } | null>(null);
+  /** การลากของเครื่องมือลบที่กำลังทำอยู่ · เก็บเป็น ref เพราะทุกเฟรมของการลากไม่ต้องเรนเดอร์ใหม่ */
+  const eraseRef = useRef<{ x: number; y: number; start: PagePoint; moved: boolean } | null>(null);
+  /** กรอบที่กำลังลากอยู่ ให้ผู้ใช้เห็นว่ากำลังจะกวาดอะไร · null เมื่อไม่ได้ลากอยู่ */
+  const [marquee, setMarquee] = useState<MarqueeRect | null>(null);
 
   /** ตัวตนของแบบใบที่เปิดอยู่ในฐานข้อมูล — null แปลว่ายังลงทะเบียนไม่สำเร็จ จึงยังเซฟไม่ได้ */
   const [documentId, setDocumentId] = useState<string | null>(null);
@@ -464,7 +506,22 @@ export function DrawingMarkup({
    */
   const tourStep = drawingTourStep({ hasDrawing: Boolean(doc), hasPageScale: Boolean(pageScale) });
 
-  /** ช่องเลือกไฟล์ตัวเดียวของหน้านี้ — ทั้งไอคอนบนแถบและปุ่มของทัวร์กดมาที่ตัวนี้ */
+  /**
+   * ขั้นที่ผู้ใช้เพิ่งชนเข้าไปเอง ด้วยการกดเครื่องมือที่ยังทำงานไม่ได้
+   *
+   * **ทำไมเปลี่ยนจากแถบที่ขึ้นค้างไว้** เดิมแถบพาทัวร์ขึ้นทันทีที่มีอะไรล็อกอยู่ และกินความสูง
+   * 65px ตลอดเวลาจนกว่าจะตั้งสเกลเสร็จ · แถบนั้นเกิดมาเพื่อชดเชยว่าเครื่องมือดับแล้วไม่บอก
+   * เหตุผล ซึ่งเป็นการแก้ที่ปลายทาง · ตอนนี้ปุ่มตอบเองได้แล้ว คำอธิบายจึงมาตอนที่คนถามจริง ๆ
+   * คือตอนกดปุ่มนั้น และไม่กินผืนวาดเลยจนกว่าจะถูกถาม
+   *
+   * เก็บเป็น "ขั้นไหนที่ถูกถาม" ไม่ใช่ค่าจริงเท็จ เพราะเปิดไฟล์แบบเสร็จแล้วขั้นจะเปลี่ยนจาก
+   * `open` เป็น `scale` เอง ถ้าเก็บเป็นจริงเท็จ คำตอบของขั้นถัดไปจะโผล่มาทั้งที่ยังไม่มีใครถาม
+   */
+  const [askedFor, setAskedFor] = useState<TourTarget | null>(null);
+  /** คำตอบที่กำลังแสดงอยู่ · หายเองเมื่อเงื่อนไขที่ขวางอยู่ถูกแก้ เพราะ `tourStep` กลายเป็น null */
+  const blockedNotice = tourStep && askedFor === tourStep.target ? tourStep : null;
+
+  /** ช่องเลือกไฟล์ตัวเดียวของหน้านี้ — ทั้งไอคอนบนแถบและปุ่มของคำตอบกดมาที่ตัวนี้ */
   const openInputRef = useRef<HTMLInputElement | null>(null);
 
   /** ทุกการเปลี่ยนรายการวัดผ่านที่นี่ที่เดียว ประวัติจึงครบเสมอ ไม่มีทางลืมบันทึกบางการกระทำ */
@@ -1076,29 +1133,58 @@ export function DrawingMarkup({
   /**
    * จุดที่จะถูกปักจริงเมื่อผู้ใช้คลิกตรงนี้
    *
-   * **การดูดจุดชนะการล็อกแนวเสมอ** จุดที่ดูดติดคือของจริงบนแบบ มีพิกัดของมันเอง
+   * **การดูดจุดชนะการล็อกทีละ 15 องศา** จุดที่ดูดติดคือของจริงบนแบบ มีพิกัดของมันเอง
    * ส่วนทิศที่ล็อกเป็นการช่วยกะเมื่อไม่มีอะไรให้เกาะ ของที่วัดได้ต้องชนะของที่เดา
-   * โค้ดเดิมทำกลับด้าน ทำให้ดูดติดมุมห้องแล้วโดนดึงออกจากมุมห้องนั้น
    *
-   * เครื่องมือร่างกริดล็อกแนวนอนแนวตั้งล้วน เพราะแนวเสาไม่เคยเอียง ส่วนเครื่องมืออื่น
-   * ล็อกทีละ 15 องศาเพื่อให้ลากเส้นทแยงของหลังคาหรือบันไดได้
+   * **แต่ตั้งฉากชนะการดูดจุด** และเป็นข้อยกเว้นที่ตั้งใจ (IP-242) · เจ้าของงานกด F8 แล้วยังลากเอียงได้
+   * เพราะโค้ดเดิมคืนค่าตั้งแต่บรรทัดดูดจุด ยังไม่ทันไปถึงบรรทัดล็อกแกน · คำว่าตั้งฉากแปลว่า
+   * **เส้นเอียงต้องเกิดขึ้นไม่ได้เลย** ถ้ายังเอียงได้ก็ไม่ใช่ตั้งฉาก
+   *
+   * วิธีที่ได้ทั้งสองอย่างคือ **เอาจุดที่ดูดติดมาก่อน แล้วค่อยบีบแกนที่ไม่ใช่แกนหลักให้เท่ากับจุดตั้งต้น**
+   * ระยะตามแนวที่ลากจึงยังมาจากของจริงบนแบบ ส่วนความเอียงถูกตัดทิ้ง · ถ้าจุดที่ดูดติดอยู่บน
+   * แนวเดียวกับจุดตั้งต้นอยู่แล้ว ผลลัพธ์ไม่ขยับเลย การดูดจุดจึงยังชนะเต็ม ๆ ในกรณีนั้น
+   *
+   * เมื่อการบีบแกนทำให้จุดขยับ จะไม่คืน `hit` ออกไป เพราะหมุดดูดจุดบนจอจะไปโผล่คนละที่กับ
+   * จุดที่ปักจริง ซึ่งเป็นการโกหกผู้ใช้
+   *
+   * เครื่องมือร่างกริดตั้งฉากเสมอ เพราะแนวเสาไม่เคยเอียง
    */
   const resolvePoint = useCallback(
     (clientX: number, clientY: number, anchor: PagePoint | null): { point: PagePoint; hit: SnapHit | null } | null => {
       const raw = toPagePoint(clientX, clientY);
       if (!raw) return null;
       const hit = findSnap(raw, anchor);
+      if (anchor && (orthoLock || tool === "gridline")) {
+        const base = hit ? hit.point : raw;
+        const locked = lockToAxis(anchor, base);
+        const moved = locked.x !== base.x || locked.y !== base.y;
+        return { point: locked, hit: moved ? null : hit };
+      }
       if (hit) return { point: hit.point, hit };
       if ((axisLock || shiftHeld) && anchor) {
-        const locked = tool === "gridline" ? lockToAxis(anchor, raw) : lockToAngle(anchor, raw);
-        return { point: locked, hit: null };
+        return { point: lockToAngle(anchor, raw), hit: null };
       }
       return { point: raw, hit: null };
     },
-    [axisLock, findSnap, shiftHeld, toPagePoint, tool]
+    [axisLock, findSnap, orthoLock, shiftHeld, toPagePoint, tool]
   );
 
-  const activeAnchor = tool === "scale" ? calibrationPoints.at(-1) ?? null : draft.at(-1) ?? null;
+  /**
+   * จุดตั้งต้นที่เส้นกำลังลากออกมา — ตัวล็อกทุกชนิดอ้างอิงจุดนี้ (IP-242)
+   *
+   * **บั๊กที่บรรทัดนี้เกิดมาแก้** เจ้าของงานกด F8 แล้วยังเห็นเส้นเฉียง แม้แก้ไปแล้วสองรอบ
+   * เพราะเครื่องมือ "ระยะจริง" กับ "ร่างกริด" ไม่ได้เก็บจุดแรกไว้ใน `draft` แต่เก็บไว้ใน
+   * `pendingRefStart` ซึ่งเป็น state คนละตัว · ตอนวางจุดจริงโค้ดส่ง `pendingRefStart`
+   * เข้าไปถูกแล้ว แต่**ตอนลากให้ดู** ส่งแต่ `draft` ซึ่งว่างอยู่ ตัวล็อกจึงไม่มีจุดตั้งต้น
+   * และไม่ทำงานเลย
+   *
+   * ผลคือเส้นประที่ลากตามเมาส์เฉียงได้ ทั้งที่จุดที่ปักลงไปจริงตั้งฉาก · คนตัดสินจากสิ่งที่เห็น
+   * ไม่ใช่จากสิ่งที่บันทึก เขาจึงรายงานว่า F8 ไม่ทำงาน ซึ่งถูกของเขา
+   */
+  const activeAnchor =
+    tool === "scale"
+      ? calibrationPoints.at(-1) ?? null
+      : pendingRefStart ?? draft.at(-1) ?? null;
 
   function handleMove(event: React.PointerEvent<HTMLDivElement>) {
     const panning = panRef.current;
@@ -1111,6 +1197,17 @@ export function DrawingMarkup({
     }
     const raw = toPagePoint(event.clientX, event.clientY);
     setCursor(raw);
+
+    /* กำลังลากกรอบลบอยู่ · ไม่ต้องคิดเรื่องดูดจุดหรือล็อกแนว เพราะกรอบไม่ใช่การวัด */
+    const erasing = eraseRef.current;
+    if (erasing) {
+      const dx = event.clientX - erasing.x;
+      const dy = event.clientY - erasing.y;
+      if (Math.hypot(dx, dy) > DRAG_SLOP_PX) erasing.moved = true;
+      if (erasing.moved && raw) setMarquee(marqueeFrom(erasing.start, raw));
+      return;
+    }
+
     const resolved = resolvePoint(event.clientX, event.clientY, activeAnchor);
     setHover(resolved?.point ?? null);
     setSnapHit(resolved?.hit ?? null);
@@ -1139,6 +1236,22 @@ export function DrawingMarkup({
      */
     if (tool === "select") {
       startPan(event);
+      return;
+    }
+
+    /**
+     * ลบ — กดค้างแล้วลากคือกรอบคลุม ปล่อยโดยแทบไม่ขยับคือคลิกทีละชิ้น (IP-242)
+     *
+     * เจ้าของงานสั่งเมื่อ 2026-09-05 ว่า "ต้องเอาเมาส์คลิกเส้น หรือลากคลุม object ที่เลือกเพื่อลบ"
+     * · ทั้งสองทางจบที่ `handleUp` ตัวเดียวกัน เพราะการตัดสินว่าเป็นคลิกหรือเป็นลาก
+     * ต้องรอจนปล่อยนิ้วถึงจะรู้ · ใช้เกณฑ์ระยะเดียวกับที่เครื่องมือเลือกใช้แยกคลิกออกจากลากเลื่อนแบบ
+     */
+    if (tool === "erase") {
+      const start = toPagePoint(event.clientX, event.clientY);
+      if (!start) return;
+      eraseRef.current = { x: event.clientX, y: event.clientY, start, moved: false };
+      setMarquee(null);
+      stageRef.current?.setPointerCapture(event.pointerId);
       return;
     }
 
@@ -1208,6 +1321,75 @@ export function DrawingMarkup({
     if (fixed > 0 && next.length === fixed) finish(next);
   }
 
+  /**
+   * ลบชิ้นเดียวที่อยู่ใต้จุดที่คลิก
+   *
+   * ลำดับเดียวกับเครื่องมือเลือก คือรายการวัดมาก่อน แล้วระยะที่แบบเขียน แล้วแนวเสา
+   * เพราะแนวเสาพาดทั้งหน้า ถ้าให้มันชนะ การคลิกในห้องที่มีแนวเสาพาดจะลบแนวเสาแทนห้องทุกครั้ง
+   */
+  function eraseAtPoint(point: PagePoint) {
+    const tolerance = HIT_RADIUS_PX / view.scale;
+    const mark = hitTest(measurements.filter((item) => item.page === page), point, tolerance);
+    if (mark) {
+      removeMeasurements([mark]);
+      return;
+    }
+    const dimension = hitTestSegments(dimensionsOnPage, point, tolerance);
+    if (dimension) {
+      commitWork({ dimensions: dimensions.filter((item) => item.id !== dimension) });
+      return;
+    }
+    const gridline = hitTestSegments(gridLines.filter((line) => line.page === page), point, tolerance);
+    if (gridline) commitWork({ gridLines: gridLines.filter((line) => line.id !== gridline) });
+  }
+
+  /**
+   * ลบทุกชิ้นที่กรอบเก็บได้ ในการกระทำเดียว
+   *
+   * **ต้องเป็นการกระทำเดียว ไม่ใช่ลบทีละชิ้น** เพราะประวัติการแก้เก็บเป็นก้อน ถ้าลบทีละชิ้น
+   * คนที่กวาดโดนสิบชิ้นแล้วเปลี่ยนใจ ต้องกดย้อนกลับสิบครั้ง ซึ่งไม่มีใครคาดคิด
+   */
+  function eraseInMarquee(rect: MarqueeRect) {
+    const marks = measurements
+      .filter((item) => item.page === page && shapeInMarquee(item.points, rect))
+      .map((item) => item.id);
+    const keptDimensions = dimensions.filter(
+      (item) => !(item.page === page && segmentInMarquee(item.a, item.b, rect))
+    );
+    const keptGridLines = gridLines.filter(
+      (line) => !(line.page === page && segmentInMarquee(line.a, line.b, rect))
+    );
+    const guidesRemoved =
+      keptDimensions.length !== dimensions.length || keptGridLines.length !== gridLines.length;
+    if (guidesRemoved) commitWork({ dimensions: keptDimensions, gridLines: keptGridLines });
+    if (marks.length > 0) removeMeasurements(marks);
+    if (!guidesRemoved && marks.length === 0) {
+      setRegionError(
+        rect.mode === "window"
+          ? "กรอบนี้ไม่ได้คลุมชิ้นไหนทั้งชิ้น ลองลากจากขวาไปซ้ายเพื่อเก็บชิ้นที่กรอบแตะก็พอ"
+          : "กรอบนี้ไม่ได้แตะอะไรเลย"
+      );
+    }
+  }
+
+  /**
+   * เอารายการวัดออกจากหน้านี้ · รายการที่ส่งเข้าถอดปริมาณแล้วลบจากที่นี่ไม่ได้ตามสเปก IP-234
+   *
+   * บอกเป็นจำนวนที่ลบไม่ได้ ไม่ใช่บอกทีละชิ้น เพราะการกวาดกรอบเดียวอาจโดนหลายชิ้นพร้อมกัน
+   */
+  function removeMeasurements(ids: readonly string[]) {
+    const blocked = ids.filter((id) => filedIds.has(id));
+    const removable = ids.filter((id) => !filedIds.has(id));
+    if (removable.length > 0) commit(measurements.filter((item) => !removable.includes(item.id)));
+    if (blocked.length > 0) {
+      setRegionError(
+        blocked.length === 1
+          ? "รายการนี้ส่งเข้าถอดปริมาณแล้ว ลบได้จากหน้าถอดปริมาณ"
+          : `${blocked.length} รายการส่งเข้าถอดปริมาณแล้ว ลบได้จากหน้าถอดปริมาณ`
+      );
+    }
+  }
+
   function startPan(event: React.PointerEvent<HTMLDivElement>) {
     const stage = stageRef.current;
     if (!stage) return;
@@ -1216,6 +1398,19 @@ export function DrawingMarkup({
   }
 
   function handleUp(event: React.PointerEvent<HTMLDivElement>) {
+    const erasing = eraseRef.current;
+    if (erasing) {
+      eraseRef.current = null;
+      setMarquee(null);
+      const stage = stageRef.current;
+      if (stage?.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+      const end = toPagePoint(event.clientX, event.clientY);
+      if (!end) return;
+      if (erasing.moved) eraseInMarquee(marqueeFrom(erasing.start, end));
+      else eraseAtPoint(erasing.start);
+      return;
+    }
+
     const panning = panRef.current;
     if (!panning) return;
     panRef.current = null;
@@ -1324,6 +1519,12 @@ export function DrawingMarkup({
         minStepPixels: OUTLINE_MIN_STEP_METRES * pixelsPerMetre,
         // ขอบไปชิดผิวในของเส้นผนัง ผนังหนาหรือบางก็ไม่กินเข้าไปในเนื้อผนัง
         snapToLinePixels: WALL_SNAP_METRES * pixelsPerMetre,
+        /**
+         * ความหนาสูงสุดที่ยังนับว่าเป็น**เส้น** วัดเป็นจุดกระดาษแล้วคูณด้วยความละเอียดของ
+         * ผืนวิเคราะห์ · ไม่ใช่ค่าเป็นเมตร เพราะความหนาของหมึกเป็นเรื่องของตัวเรนเดอร์
+         * ไม่ใช่ของอาคาร · หน้าที่เรนเดอร์ละเอียดขึ้นจึงได้ค่านี้เป็นพิกเซลมากขึ้นตามกัน
+         */
+        lineMaxThicknessPixels: LINE_MAX_THICKNESS_POINTS * analysisScale,
         // เส้นยาวเป็นผนังต่อเมื่อมีเส้นคู่ขนานในระยะนี้ เส้นกระเบื้องกับเส้นตัดจึงไม่กั้น
         wallThicknessPixels: WALL_THICKNESS_METRES * pixelsPerMetre
         /**
@@ -1394,12 +1595,55 @@ export function DrawingMarkup({
     setDraft([]);
   }
 
+  /**
+   * ทิ้งทุกอย่างที่ค้างอยู่กลางคัน
+   *
+   * **`pendingRefStart` กับ `pendingDimension` เพิ่งถูกใส่เข้ามา 2026-09-05 (IP-242)** ก่อนหน้านี้
+   * ตกหล่นไปสองตัว · เครื่องมือ "ระยะจริง" กับ "ร่างกริด" เก็บจุดแรกไว้คนละที่กับเครื่องมืออื่น
+   * คนที่ปักจุดแรกแล้วเปลี่ยนใจ กด Escape ก็ล้างไม่ออก จุดนั้นค้างอยู่จนกว่าจะปักจุดที่สอง
+   * แล้วได้เส้นที่ไม่ได้ตั้งใจลากมาหนึ่งเส้น
+   */
   function cancelDraft() {
     setDraft([]);
     setCalibrationPoints([]);
     setCalibrationOpen(false);
     setPendingRoom(null);
     setRegionError("");
+    setPendingRefStart(null);
+    setPendingDimension(null);
+    setDimensionError("");
+  }
+
+  /**
+   * Escape สองชั้นแบบ AutoCAD — ชั้นแรกทิ้งของที่ค้าง ชั้นสองออกจากคำสั่ง (IP-242)
+   *
+   * เจ้าของงานขอเมื่อ 2026-09-05 ว่า "การยกเลิกคำสั่งที่กดปุ่มทำงาน ให้กด esc ได้"
+   * · ของเดิม Escape ล้างแค่จุดที่ลากค้างไว้ แล้วยังติดอยู่ในเครื่องมือเดิม คนที่กดเครื่องมือผิด
+   * จึงไม่มีทางออกนอกจากไปกดปุ่ม "เลือก" บนแถบ ซึ่งอยู่คนละที่กับมือที่กำลังวาดอยู่
+   *
+   * **แยกสองชั้น ไม่ใช่ทำทีเดียวจบ** เพราะคนที่ลากผิดจุดเดียวกลางเส้นต่อเนื่องยาว ๆ
+   * ต้องการล้างจุดที่ลากค้าง แล้ววาดต่อด้วยเครื่องมือเดิมทันที ไม่ใช่ถูกเด้งออกไปเครื่องมือเลือก
+   * แล้วต้องกดกลับเข้ามาใหม่ · เป็นลำดับเดียวกับที่ AutoCAD ทำ
+   */
+  function escapeCommand() {
+    const hasPending =
+      draft.length > 0 ||
+      calibrationPoints.length > 0 ||
+      calibrationOpen ||
+      Boolean(pendingRoom) ||
+      Boolean(pendingRefStart) ||
+      Boolean(pendingDimension) ||
+      regionError.length > 0 ||
+      snapPanelOpen ||
+      askedFor !== null;
+    if (hasPending) {
+      cancelDraft();
+      setSnapPanelOpen(false);
+      setAskedFor(null);
+      return;
+    }
+    setSelectedGuide(null);
+    if (tool !== "select") pickTool("select");
   }
 
   function applyCalibration() {
@@ -1442,6 +1686,19 @@ export function DrawingMarkup({
   function pickTool(next: Tool) {
     setDraft([]);
     setTool(next);
+    /* เลือกเครื่องมือได้แล้วแปลว่าเรื่องที่ขวางอยู่ถูกแก้ หรือคนเปลี่ยนใจไปทำอย่างอื่น
+       คำตอบจึงต้องหายไป ไม่ค้างเป็นแถบที่พูดถึงของที่ผ่านไปแล้ว */
+    setAskedFor(null);
+  }
+
+  /**
+   * ตอบคนที่เพิ่งกดปุ่มที่ยังทำงานไม่ได้ ว่าติดอะไรอยู่และต้องทำอะไรก่อน
+   *
+   * ไม่เก็บข้อความไว้เอง แต่ชี้ไปที่ขั้นที่ `drawingTourStep` คำนวณจากสถานะจริงของหน้า
+   * คำตอบจึงตรงกับเหตุผลที่ล็อกอยู่จริงเสมอ และหายเองเมื่อเหตุนั้นหมดไป
+   */
+  function explainBlock() {
+    setAskedFor(tourStep?.target ?? null);
   }
 
   /**
@@ -1549,9 +1806,39 @@ export function DrawingMarkup({
   // คีย์ลัด — ตัวอักษรเดี่ยว ตัวเลข และ Escape เท่านั้น จึงไม่ชนคีย์ลัดของเบราว์เซอร์
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
+      /**
+       * ปุ่มฟังก์ชันทำงานเสมอ แม้โฟกัสอยู่ในช่องกรอก — ต้องอยู่เหนือด่านข้างล่าง (IP-242)
+       *
+       * **บั๊กที่บรรทัดนี้เกิดมาแก้** เจ้าของงานกด F8 แล้วไม่ล็อกแกน เพราะตอนนั้นโฟกัสค้าง
+       * อยู่ในช่อง "ตั้งชื่อห้อง" ที่เพิ่งขึ้นมา ด่านข้างล่างจึงตัดทุกคีย์ทิ้งก่อนถึงตัวจัดการ
+       * · ด่านนั้นถูกของมันสำหรับคีย์ตัวอักษร เพราะคนกำลังพิมพ์ชื่อห้องอยู่ ตัว V ต้องเป็นตัว V
+       * ไม่ใช่การสลับเครื่องมือ · แต่ปุ่มฟังก์ชันไม่พิมพ์ตัวอักษรอะไรลงช่อง จึงไม่มีอะไรให้ชน
+       * และใน AutoCAD ปุ่มพวกนี้ก็ทำงานตลอดเวลาไม่ว่าเคอร์เซอร์อยู่ที่ไหน
+       */
+      if (event.key === "F8") {
+        event.preventDefault();
+        setOrthoLock((on) => !on);
+        return;
+      }
+      /**
+       * Escape ยกเลิกได้เสมอ แม้เคอร์เซอร์อยู่ในช่องกรอก — เหตุผลเดียวกับ F8 (IP-242)
+       *
+       * เจ้าของงานรายงานว่ากด Escape แล้วไม่ยกเลิก · ช่องกรอกที่ทำให้ตายมีสองช่องและทั้งคู่
+       * โผล่มาตอนกำลังทำงานพอดี คือช่อง "ตั้งชื่อห้อง" กับช่องพิมพ์เลขระยะจริง
+       * · การกด Escape ในช่องกรอกไม่ได้แปลว่าอยากพิมพ์ตัวอักษร Escape มันแปลว่าเลิก
+       * ซึ่งเป็นความหมายเดียวกับที่คนคาดหวังจากทั้ง AutoCAD และจากกล่องข้อความทั่วไป
+       *
+       * ต้องถอนโฟกัสออกจากช่องด้วย ไม่งั้นคนกด Escape แล้วเลิกได้จริง แต่ปุ่มตัวอักษร
+       * ที่กดต่อจากนั้นยังตกลงไปในช่องเดิมอยู่ดี
+       */
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        escapeCommand();
+        return;
+      }
       if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
       if (event.key === "Shift") setShiftHeld(true);
-      if (event.key === "Escape") cancelDraft();
       /**
        * Enter จบการวัดที่ค้างอยู่ และต้องกันไม่ให้ไปกดปุ่มที่โฟกัสค้างอยู่ด้วย
        *
@@ -1808,7 +2095,7 @@ export function DrawingMarkup({
         <span className="mk__project">{projectName}</span>
         <span className="mk__divider" aria-hidden="true" />
         <label
-          className={`mk__icon mk__open${tourStep?.target === "open" ? " is-tour-target" : ""}`}
+          className={`mk__icon mk__open${blockedNotice?.target === "open" ? " is-tour-target" : ""}`}
           title="เปิดแบบ PDF"
           onPointerEnter={(event) => showTip(event, { label: "เปิดแบบ PDF", hint: "เลือกไฟล์แบบก่อสร้างจากเครื่องของคุณ" })}
           onPointerLeave={() => setTip(null)}
@@ -1875,22 +2162,41 @@ export function DrawingMarkup({
         <span className="mk__divider" aria-hidden="true" />
         <div className="mk__tools" role="radiogroup" aria-label="เครื่องมือวัด">
           {TOOLS.map((entry) => {
-            const locked = toolNeedsScale(entry.id) && !pageScale;
+            const locked = (toolNeedsScale(entry.id) && !pageScale) || !doc;
             return (
               <button
                 key={entry.id}
                 type="button"
-                className={`mk__icon${tourStep?.target === entry.id ? " is-tour-target" : ""}`}
+                className={`mk__icon${blockedNotice?.target === entry.id ? " is-tour-target" : ""}`}
                 role="radio"
                 aria-checked={tool === entry.id}
                 aria-label={entry.label}
-                disabled={locked || !doc}
-                onClick={() => pickTool(entry.id)}
+                /*
+                  `aria-disabled` ไม่ใช่ `disabled` — ปุ่มยังโฟกัสด้วยแป้นพิมพ์ได้ ยังกดได้
+                  และโปรแกรมอ่านหน้าจอยังบอกว่ากดไปก็ยังไม่ได้ผล · borntodev เขียนไว้ว่า
+                  "หลีกเลี่ยง Disable ควรให้ผู้ใช้กดได้ แล้วแสดงข้อความแจ้ง" ซึ่งตรงกับปัญหา
+                  ที่เจอจริงบนแท็บเล็ตของเจ้าของงาน คือไม่มีการชี้เมาส์ จึงไม่มีทางเห็น tooltip
+                  ที่เคยเป็นที่เดียวที่บอกเหตุผล
+                */
+                aria-disabled={locked || undefined}
+                onClick={() => (locked ? explainBlock() : pickTool(entry.id))}
+                /* เหตุผลมาจากขั้นที่ขวางอยู่จริง ไม่ใช่ข้อความตายตัวว่า "ต้องตั้งสเกลก่อน"
+                   ซึ่งเดิมขึ้นแม้ตอนที่ยังไม่ได้เปิดไฟล์แบบด้วยซ้ำ */
                 onPointerEnter={(event) =>
-                  showTip(event, { label: entry.label, hint: locked ? "ต้องตั้งสเกลของหน้านี้ก่อน" : entry.hint, key: entry.key })
+                  showTip(event, {
+                    label: entry.label,
+                    hint: locked ? (tourStep?.reason ?? entry.hint) : entry.hint,
+                    key: entry.key
+                  })
                 }
                 onPointerLeave={() => setTip(null)}
-                onFocus={(event) => showTip(event, { label: entry.label, hint: entry.hint, key: entry.key })}
+                onFocus={(event) =>
+                  showTip(event, {
+                    label: entry.label,
+                    hint: locked ? (tourStep?.reason ?? entry.hint) : entry.hint,
+                    key: entry.key
+                  })
+                }
                 onBlur={() => setTip(null)}
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1982,6 +2288,26 @@ export function DrawingMarkup({
             <path d={ICONS.ortho} />
           </svg>
         </button>
+        {/* ตั้งฉาก — F8 เหมือน ORTHO ของ AutoCAD · แยกจากล็อกทีละ 15 องศาโดยตั้งใจ (IP-242) */}
+        <button
+          type="button"
+          className="mk__icon"
+          aria-pressed={orthoLock}
+          onClick={() => setOrthoLock((on) => !on)}
+          aria-label="ตั้งฉาก"
+          onPointerEnter={(event) =>
+            showTip(event, {
+              label: "ตั้งฉาก",
+              hint: "เส้นที่ลากได้แค่แนวนอนกับแนวตั้ง ไม่มีทแยง เหมือน ORTHO ของ AutoCAD · เปิดพร้อมล็อกแนวเส้นได้ ตั้งฉากชนะ",
+              key: "F8"
+            })
+          }
+          onPointerLeave={() => setTip(null)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d={ICONS.axes} />
+          </svg>
+        </button>
         {/*
           พอดีกรอบ — ปุ่มจริงบนแถบ ไม่ใช่ปุ่มลับที่มีแต่คนรู้คีย์ลัดถึงจะกดได้ (IP-239)
 
@@ -1994,8 +2320,8 @@ export function DrawingMarkup({
         <button
           type="button"
           className="mk__icon"
-          onClick={fitToStage}
-          disabled={!doc}
+          onClick={() => (doc ? fitToStage() : explainBlock())}
+          aria-disabled={!doc || undefined}
           aria-label="พอดีกรอบ"
           onPointerEnter={(event) =>
             showTip(event, {
@@ -2070,42 +2396,48 @@ export function DrawingMarkup({
       </div>
 
       {/*
-        แถบผู้ช่วยพาทัวร์ — ขึ้นเฉพาะตอนที่มีอะไรล็อกอยู่จริง แล้วหายไปเองเมื่อครบเงื่อนไข (IP-236)
+        คำตอบของปุ่มที่ยังทำงานไม่ได้ — ขึ้นตอนที่คนกดมันจริง ๆ ไม่ใช่ขึ้นค้างไว้ก่อน (IP-236 → IP-241)
 
-        **ทำไมไม่ใช่แผงผู้ช่วยกลาง** เปลือกโหมด workspace มี `AssistantDockHost` อยู่จริง
-        และเสียบผ่าน `<AppAssistant>` ได้ แต่แผงนั้นกางแล้ว **ดันเนื้อหาหลบ 396px**
-        ซึ่งบนหน้านี้คือกินผืนวาดไปเกือบครึ่ง และค่าตั้งต้นของแผงคือกางไว้ คนเปิดหน้าแบบ
-        ครั้งแรกจะเจอผืนวาดหดทันที · เจ้าของงานเคาะ 2026-09-05 ให้เป็นแถบบางเต็มความกว้าง
-        ที่กินความสูงเท่าที่จำเป็นและคืนที่ให้ผืนวาดทันทีที่ตั้งสเกลเสร็จ
+        **เดิมเป็นแถบพาทัวร์ที่ขึ้นค้าง** ทันทีที่มีอะไรล็อกอยู่ กินความสูง 65px ตลอดเวลา
+        จนกว่าจะตั้งสเกลเสร็จ · แถบนั้นเกิดมาเพื่อชดเชยว่าเครื่องมือดับแล้วไม่ยอมบอกเหตุผล
+        ซึ่งเป็นการแก้ที่ปลายทาง · borntodev เขียนไว้ว่า **"หลีกเลี่ยง Disable ควรให้ผู้ใช้กดได้
+        แล้วแสดงข้อความแจ้งหากมีข้อผิดพลาด"** พอปุ่มตอบเองได้ แถบที่ขึ้นค้างก็ซ้ำซ้อน
+        เจ้าของงานเคาะให้เปลี่ยนเมื่อ 2026-09-05 · **ผืนวาดได้ความสูงคืน 65px ตอนที่ยังไม่มีใครถาม**
 
-        **ไม่มีปุ่มปิด และไม่จำอะไรลงเครื่อง** เพราะแถบนี้ไม่ใช่โฆษณา มันคือคำอธิบายของ
-        เครื่องมือที่กดไม่ได้อยู่ตรงนั้น · ปุ่มปิดจะทำให้คนที่ปิดไปแล้วเจอเครื่องมือดับโดยไม่มี
-        คำอธิบายอีกเลย ซึ่งคือปัญหาเดิมที่แถบนี้เกิดมาแก้
+        **ยังใช้เนื้อหาชุดเดิมจาก `drawing-tour.ts`** ไม่ได้เขียนคำใหม่ เพราะคำเหล่านั้นผ่าน
+        การเคาะมาแล้วและมีเทสต์เฝ้าอยู่ · ที่เปลี่ยนคือจังหวะที่มันโผล่ ไม่ใช่สิ่งที่มันพูด
+
+        **มีปุ่มปิดได้แล้ว** เพราะคำอธิบายไม่ได้หายไปจากระบบตอนปิด มันกลับไปอยู่ที่ปุ่ม
+        ซึ่งกดใหม่เมื่อไหร่ก็ตอบอีก · เหตุผลเดิมที่ห้ามมีปุ่มปิดคือกลัวคนปิดแล้วไม่เหลือคำอธิบาย
+        ที่ไหนเลย ซึ่งไม่จริงอีกต่อไป
       */}
-      {tourStep ? (
+      {blockedNotice ? (
         <div className="mk__tour" role="status">
           <span className="mk__tour-step">
-            ขั้น <b className="mk__tour-num">{tourStep.index}</b> จาก{" "}
-            <b className="mk__tour-num">{tourStep.total}</b>
+            ขั้น <b className="mk__tour-num">{blockedNotice.index}</b> จาก{" "}
+            <b className="mk__tour-num">{blockedNotice.total}</b>
           </span>
           <span className="mk__tour-text">
-            <strong>{tourStep.title}</strong>
-            <em>{tourStep.reason}</em>
-            <span>{tourStep.action}</span>
-            {tourStep.alternative ? <small>{tourStep.alternative}</small> : null}
+            <strong>{blockedNotice.title}</strong>
+            <em>{blockedNotice.reason}</em>
+            <span>{blockedNotice.action}</span>
+            {blockedNotice.alternative ? <small>{blockedNotice.alternative}</small> : null}
           </span>
-          {tourStep.target === "open" ? (
+          {blockedNotice.target === "open" ? (
             /* กดแทนคนที่ช่องเลือกไฟล์ตัวเดิม ไม่ผูกเป็น <label> ตัวที่สอง เพราะเบราว์เซอร์
                เอาคำของ label ทุกตัวมาต่อกันเป็นชื่อของช่อง ปุ่มไอคอนบนแถบเครื่องมือจะถูก
                อ่านออกเสียงว่า "เปิดแบบ PDF เลือกไฟล์แบบ" ซึ่งไม่ใช่ชื่อของมัน */
             <Button tone="primary" onClick={() => openInputRef.current?.click()}>
-              {tourStep.actionLabel}
+              {blockedNotice.actionLabel}
             </Button>
           ) : (
             <Button tone="primary" onClick={() => pickTool("scale")}>
-              {tourStep.actionLabel}
+              {blockedNotice.actionLabel}
             </Button>
           )}
+          <Button tone="plain" onClick={() => setAskedFor(null)}>
+            ปิด
+          </Button>
         </div>
       ) : null}
 
@@ -2541,6 +2873,27 @@ export function DrawingMarkup({
                     );
                   })}
 
+                {/*
+                  กรอบลบที่กำลังลากอยู่ (IP-242)
+
+                  เส้นทึบคือคลุมทั้งชิ้น เส้นประคือแตะก็พอ — ต่างกันที่ลายเส้น ไม่ใช่ที่สีอย่างเดียว
+                  เพราะคนตาบอดสีแยกสีไม่ออกแต่แยกลายเส้นออก · ใช้สีแดงของเส้นบอกระยะ
+                  ซึ่งเป็นสีเดียวในธีมที่แปลว่า "ระวัง" อยู่แล้ว
+                */}
+                {marquee ? (
+                  <rect
+                    x={marquee.minX}
+                    y={marquee.minY}
+                    width={marquee.maxX - marquee.minX}
+                    height={marquee.maxY - marquee.minY}
+                    fill="var(--dimension-red)"
+                    fillOpacity={0.08}
+                    stroke="var(--dimension-red)"
+                    strokeWidth={stroke(1.4)}
+                    strokeDasharray={marquee.mode === "crossing" ? `${stroke(6)} ${stroke(4)}` : undefined}
+                  />
+                ) : null}
+
                 {/* จุดแรกของเส้นแนวเสาหรือเส้นระยะที่ยังลากไม่จบ */}
                 {pendingRefStart ? (
                   <g>
@@ -2610,6 +2963,72 @@ export function DrawingMarkup({
               commit(measurements.filter((item) => item.id !== id));
             }}
           />
+          {/*
+            เส้นอ้างอิงของหน้านี้ พร้อมปุ่มลบทีละเส้น (IP-242)
+
+            **ทำไมต้องมีรายการ ทั้งที่ปุ่มลบมีอยู่แล้ว** ปุ่ม "ลบเส้นนี้" โผล่เฉพาะตอนที่คลิกโดน
+            ตัวเส้นพอดี ซึ่งเส้นแนวเสาหนาหนึ่งพิกเซลและเส้นระยะก็บาง คลิกให้โดนยากมากบนแท็บเล็ต
+            · เจ้าของงานถามเองเมื่อ 2026-09-05 ว่า "ปุ่มลบเส้นที่ไม่ต้องการล่ะ ทำไมไม่มี"
+            ซึ่งแปลว่าเส้นทางที่มีอยู่หาไม่เจอ เท่ากับไม่มี
+
+            **ลบจากรายการไม่ต้องเลือกก่อน** แต่ชี้ค้างที่แถวแล้วเส้นบนแบบสว่างขึ้น คนจึงเห็นว่า
+            กำลังจะลบเส้นไหนก่อนกด · เป็นวิธีเดียวกับที่แผงรายการวัดทำอยู่แล้ว
+          */}
+          {(namedGridLines.length > 0 || dimensionsOnPage.length > 0) ? (
+            <div className="mk__guides">
+              <div className="mk__panel-head">
+                เส้นอ้างอิงบนหน้า {page}
+                <span>{namedGridLines.length + dimensionsOnPage.length} เส้น</span>
+              </div>
+              <ul className="mk__guide-list">
+                {namedGridLines.map((line) => (
+                  <li key={line.id}>
+                    <button
+                      type="button"
+                      className="mk__guide-pick"
+                      aria-pressed={selectedGuide?.id === line.id}
+                      onClick={() => setSelectedGuide({ kind: "gridline", id: line.id })}
+                      onPointerEnter={() => setSelectedGuide({ kind: "gridline", id: line.id })}
+                    >
+                      แนวเสา <b>{line.label}</b>
+                    </button>
+                    <button
+                      type="button"
+                      className="mk__guide-drop"
+                      onClick={() =>
+                        commitWork({ gridLines: gridLines.filter((item) => item.id !== line.id) })
+                      }
+                    >
+                      ลบ
+                    </button>
+                  </li>
+                ))}
+                {dimensionsOnPage.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="mk__guide-pick"
+                      aria-pressed={selectedGuide?.id === item.id}
+                      onClick={() => setSelectedGuide({ kind: "dimension", id: item.id })}
+                      onPointerEnter={() => setSelectedGuide({ kind: "dimension", id: item.id })}
+                    >
+                      ระยะที่แบบเขียน <b className="mk__num">{formatMetres(item.valueM)}</b> ม.
+                      {isScaleWitness(item) ? <em>เส้นที่ตั้งสเกลหน้านี้</em> : null}
+                    </button>
+                    <button
+                      type="button"
+                      className="mk__guide-drop"
+                      onClick={() =>
+                        commitWork({ dimensions: dimensions.filter((entry) => entry.id !== item.id) })
+                      }
+                    >
+                      ลบ
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </aside>
       </div>
 
@@ -2653,6 +3072,7 @@ export function DrawingMarkup({
         <span>เครื่องมือ <b>{TOOLS.find((entry) => entry.id === tool)?.label ?? "เลือก"}</b></span>
         <span>สเกล <b>{pageScale ? formatScaleRatio(pageScale) : "ยังไม่ตั้ง"}</b></span>
         <span>ดูดจุด <b>{snapSettings.enabled ? (snapHit ? snapKindLabel[snapHit.kind] : "เปิด") : "ปิด"}</b></span>
+        <span>ตั้งฉาก <b>{orthoLock ? "เปิด (F8)" : "ปิด (F8)"}</b></span>
         <span>ล็อกแนวเส้น <b>{axisLock || shiftHeld ? "เปิด" : "ปิด (กด Shift ค้าง)"}</b></span>
         <span>พิกัด <b>{cursor ? `x: ${Math.round(cursor.x)}, y: ${Math.round(cursor.y)} px` : "—"}</b></span>
         <span>ความคมชัด <b>{sharpOn ? "เปิด" : "ปิด"}</b></span>

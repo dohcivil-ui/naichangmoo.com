@@ -49,10 +49,16 @@ describe("ด่านสเกลของเครื่องมือ", () =
     expect(toolNeedsScale("dimension")).toBe(false);
   });
 
-  it("ครอบคลุมเครื่องมือครบทั้งสิบตัว ไม่มีตัวไหนหลุดจากตาราง", () => {
-    // เคยเป็นสิบเอ็ดตัว `pan` ถูกถอดออก 2026-09-05 เพราะซ้ำกับ `select` ทุกอย่างยกเว้นการเลือก
+  it("ลบไม่ต้องมีสเกล เพราะมันไม่ได้ตอบเป็นเมตร แค่เอาของที่วาดไว้ออก", () => {
+    expect(toolNeedsScale("erase")).toBe(false);
+  });
+
+  it("ครอบคลุมเครื่องมือครบทั้งสิบเอ็ดตัว ไม่มีตัวไหนหลุดจากตาราง", () => {
+    /* เคยเป็นสิบเอ็ดตัวโดยมี `pan` ถูกถอดออก 2026-09-05 เพราะซ้ำกับ `select`
+       แล้วกลับมาเป็นสิบเอ็ดอีกครั้งวันเดียวกัน เพราะเพิ่ม `erase` ตามที่เจ้าของงานขอ */
     const all: Tool[] = [
       "select",
+      "erase",
       "scale",
       "room",
       "gridline",
@@ -63,7 +69,7 @@ describe("ด่านสเกลของเครื่องมือ", () =
       "rect",
       "count"
     ];
-    expect(all.length).toBe(10);
+    expect(all.length).toBe(11);
     expect(all.filter(toolNeedsScale).sort()).toEqual(["area", "length", "polyline", "rect", "room"]);
   });
 });
