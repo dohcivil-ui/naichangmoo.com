@@ -17,6 +17,7 @@ import {
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
 import { drawingTourStep } from "@/lib/drawing-tour";
+import { explainRoomArea } from "@/lib/room-area-explained";
 import { Button } from "@/components/platform/button";
 import {
   gridIntersections,
@@ -1679,6 +1680,16 @@ export function DrawingMarkup({
     calibrationPoints.length === 2 ? distancePoints(calibrationPoints[0], calibrationPoints[1]) : 0;
 
   const pendingValue = pendingRoom ? measure(pendingRoom, pageScale) : null;
+
+  /**
+   * ขั้นตอนที่พาไปถึงตัวเลขพื้นที่ — กางจากรูปเดียวกับที่ `measure` ใช้ ไม่ได้คิดใหม่
+   *
+   * ถ้ากางด้วยการคำนวณของตัวเอง มันจะกลายเป็นเลขที่สองที่อาจไม่ตรงกับเลขแรก
+   * ซึ่งแย่กว่าไม่มีคำอธิบายเลย
+   */
+  const roomWorking = pendingRoom
+    ? explainRoomArea(pendingRoom.points, pageScale, pendingValue?.areaSquareMetres ?? null)
+    : null;
   const filedIds = useMemo(
     () => new Set(measurements.filter((mark) => mark.filed).map((mark) => mark.id)),
     [measurements]
@@ -2062,9 +2073,39 @@ export function DrawingMarkup({
 
       {pendingRoom ? (
         <div className="mk__confirm" role="status">
-          <span>
-            พื้นที่ห้องที่ไล่ได้ {formatMetres(pendingValue?.areaSquareMetres ?? 0)} ตร.ม.
-            <small> วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</small>
+          {/*
+            วิธีคิดอยู่บรรทัดเดียวกับตัวเลข ไม่ใช่แถบของตัวเอง (IP-238)
+
+            เจ้าของงานเปิดหน้านี้แล้วเจอ "3.98 ตร.ม." ทั้งที่เส้นบอกระยะบนแบบเขียนว่าช่วงนี้
+            2.50 × 2.00 · เขาถามว่าเลขนี้มาจากไหน แล้วจอตอบไม่ได้เลย · เลขที่ตอบไม่ได้ว่า
+            มาจากไหน คือเลขที่เถียงในห้องประชุมไม่ได้ ซึ่งเป็นปัญหาข้อแรกที่หน้าขายของเรา
+            ประกาศว่าเครื่องมือนี้แก้ จอที่แสดงแต่ผลลัพธ์จึงขัดกับคำโฆษณาของตัวเอง
+
+            **รอบแรกวางเป็นแถบของตัวเองใต้ตัวเลข แล้วแถบยืนยันสูงขึ้นเป็นสี่บรรทัด**
+            เจ้าของงานทักทันทีว่ากินพื้นที่แบบไปเปล่า ๆ · คำอธิบายที่ทำให้เห็นแบบน้อยลง
+            คือคำอธิบายที่ต้องแลกกับสิ่งที่มันอธิบาย ตอนนี้ไหลต่อท้ายตัวเลขในบรรทัดเดียวกัน
+          */}
+          <span className="mk__confirm-lead">
+            พื้นที่ห้องที่ไล่ได้ <b className="mk__num">{formatMetres(pendingValue?.areaSquareMetres ?? 0)}</b> ตร.ม.
+            {roomWorking ? (
+              <em>
+                = กว้าง <b className="mk__num">{formatMetres(roomWorking.widthMetres)}</b> × ลึก{" "}
+                <b className="mk__num">{formatMetres(roomWorking.depthMetres)}</b> ม.
+                {roomWorking.fillRatio <= 0.995 ? (
+                  <>
+                    {" "}
+                    (รูปมีมุมหัก กินกรอบ <b className="mk__num">{Math.round(roomWorking.fillRatio * 100)}</b>%)
+                  </>
+                ) : null}{" "}
+                · <b className="mk__num">{roomWorking.sideCount}</b> ด้าน · เส้นรอบรูป{" "}
+                <b className="mk__num">{formatMetres(pendingValue?.perimeterMetres ?? 0)}</b> ม. · สเกล{" "}
+                <b className="mk__num">1</b>:<b className="mk__num">{roomWorking.scaleRatio.toFixed(2)}</b>{" "}
+                คือหนึ่งจุดบนกระดาษยาว <b className="mk__num">{roomWorking.metresPerPoint.toFixed(4)}</b> ม. คูณสองครั้ง ·
+                วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา
+              </em>
+            ) : (
+              <em>วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</em>
+            )}
           </span>
           <input
             className="mk__confirm-name"

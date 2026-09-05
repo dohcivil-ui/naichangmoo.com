@@ -2828,6 +2828,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .markup-register__actions button { min-height: 32px; padding: 0 8px; margin-inline-start: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; font-size: .78rem; }
 .markup-register__actions button:first-child { border-color: var(--teal); color: var(--teal); }
 .mk__confirm span small { display: block; color: var(--muted); }
+/* เลขทุกตัวบนหน้าแบบมาจากฟอนต์ตัวเลขของระบบ ไม่ใช่ Prompt ซึ่งเลขกว้างไม่เท่ากัน
+   ตรงนี้สำคัญกว่าที่อื่น เพราะคนอ่านเอาเลขสองบรรทัดมาเทียบกันด้วยตา (IP-238) */
+.mk__num { font-family: var(--font-numeric), "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-weight: 700; }
+/* วิธีคิดไหลต่อท้ายตัวเลขในบรรทัดเดียวกัน ไม่ตั้งแถวของตัวเอง — ทุกบรรทัดที่แถบนี้สูงขึ้น
+   คือแถบก่อสร้างที่ผู้ใช้เห็นน้อยลง (เจ้าของงานทักเมื่อ 2026-09-05) */
+.mk__confirm-lead { flex: 1 1 340px; min-width: 0; line-height: 1.6; }
+.mk__confirm-lead em { color: var(--muted); font-style: normal; font-size: .78rem; }
+.mk__confirm-lead em .mk__num { color: var(--ink-body); }
 .mk__confirm-name { min-height: 44px; flex: 1 1 180px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 0 10px; }
 .markup-register tfoot th,
 .markup-register tfoot td { font-weight: 700; }
