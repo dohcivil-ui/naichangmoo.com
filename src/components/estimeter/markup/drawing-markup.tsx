@@ -123,15 +123,8 @@ const TOOLS: ToolSpec[] = [
     id: "select",
     label: "เลือก",
     key: "V",
-    hint: "คลิกเพื่อเลือกสิ่งที่วัดไว้แล้ว ลากเพื่อเลื่อนแบบ",
+    hint: "คลิกเพื่อเลือกสิ่งที่วัดไว้แล้ว หรือเลือกแนวเสาและระยะที่แบบเขียนเพื่อลบ · ลากเพื่อเลื่อนแบบ",
     icon: "M4 3l7 17 2-7 7-2z"
-  },
-  {
-    id: "pan",
-    label: "เลื่อน",
-    key: "H",
-    hint: "ลากเพื่อเลื่อนแบบอย่างเดียว",
-    icon: "M9 11V6a1.5 1.5 0 1 1 3 0v5m0-1V5a1.5 1.5 0 1 1 3 0v6m0-2a1.5 1.5 0 1 1 3 0v6a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L5 15a1.5 1.5 0 0 1 2.5-1.7L9 15"
   },
   {
     id: "scale",
@@ -1115,9 +1108,12 @@ export function DrawingMarkup({
     if (event.button !== 0) return;
     if (!doc) return;
 
-    if (tool === "pan" || tool === "select") {
+    /*
+     * เครื่องมือเลือกลากเพื่อเลื่อนแบบด้วย ปล่อยโดยแทบไม่ขยับจึงเป็นการคลิกเลือก
+     * เคยมีเครื่องมือ "เลื่อน" แยกอีกตัว ถอดออก 2026-09-05 เพราะมันทำได้แค่ครึ่งเดียวของตัวนี้
+     */
+    if (tool === "select") {
       startPan(event);
-      if (tool === "pan") return;
       return;
     }
 
@@ -1243,7 +1239,7 @@ export function DrawingMarkup({
 
   function handleDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
     event.preventDefault();
-    if (tool === "select" || tool === "pan") {
+    if (tool === "select") {
       zoomAt(event.clientX, event.clientY, event.shiftKey ? 1 / ZOOM_STEP : ZOOM_STEP);
       return;
     }

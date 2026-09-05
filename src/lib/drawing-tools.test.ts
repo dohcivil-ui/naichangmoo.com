@@ -33,10 +33,6 @@ describe("ด่านสเกลของเครื่องมือ", () =
     expect(toolNeedsScale("select")).toBe(false);
   });
 
-  it("เครื่องมือเลื่อนไม่ต้องมีสเกล", () => {
-    expect(toolNeedsScale("pan")).toBe(false);
-  });
-
   it("เครื่องมือตั้งสเกลเองไม่ต้องมีสเกล มิฉะนั้นตั้งสเกลครั้งแรกไม่ได้เลย", () => {
     expect(toolNeedsScale("scale")).toBe(false);
   });
@@ -53,10 +49,10 @@ describe("ด่านสเกลของเครื่องมือ", () =
     expect(toolNeedsScale("dimension")).toBe(false);
   });
 
-  it("ครอบคลุมเครื่องมือครบทั้งสิบเอ็ดตัว ไม่มีตัวไหนหลุดจากตาราง", () => {
+  it("ครอบคลุมเครื่องมือครบทั้งสิบตัว ไม่มีตัวไหนหลุดจากตาราง", () => {
+    // เคยเป็นสิบเอ็ดตัว `pan` ถูกถอดออก 2026-09-05 เพราะซ้ำกับ `select` ทุกอย่างยกเว้นการเลือก
     const all: Tool[] = [
       "select",
-      "pan",
       "scale",
       "room",
       "gridline",
@@ -67,7 +63,7 @@ describe("ด่านสเกลของเครื่องมือ", () =
       "rect",
       "count"
     ];
-    expect(all.length).toBe(11);
+    expect(all.length).toBe(10);
     expect(all.filter(toolNeedsScale).sort()).toEqual(["area", "length", "polyline", "rect", "room"]);
   });
 });

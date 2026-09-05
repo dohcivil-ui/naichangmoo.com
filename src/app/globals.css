@@ -2601,7 +2601,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__thumb b { font-weight: 600; color: var(--ink); font-size: .72rem; }
 
 .mk__stage { position: relative; overflow: hidden; touch-action: none; min-width: 0; min-height: 0; background: var(--canvas); }
-.mk__stage[data-tool="pan"] { cursor: grab; }
+/* เครื่องมือ "เลื่อน" ถูกถอดออก 2026-09-05 เครื่องมือเลือกลากเลื่อนแบบได้อยู่แล้ว
+   จึงเป็นมือจับตอนกดค้าง ไม่ใช่ตลอดเวลา เพราะตอนไม่ได้กดมันคือลูกศรที่ใช้เลือกของ */
+.mk__stage[data-tool="select"]:active { cursor: grabbing; }
 .mk__stage[data-tool="scale"],
 .mk__stage[data-tool="length"],
 .mk__stage[data-tool="polyline"],
