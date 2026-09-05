@@ -260,7 +260,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button--orange:active { box-shadow: rgba(244, 119, 33, .28) 0 4px 12px 0; }
 /* ปุ่มที่กดไม่ได้ — สีทึบของตัวเอง ไม่ใช่ opacity ทับสีเดิม
    ครอบทั้ง `disabled` ของ <button> และ `aria-disabled` ของลิงก์ ซึ่งปิดด้วย attribute จริงไม่ได้ */
-.button:disabled, .button[aria-disabled="true"] { background: var(--off); border-color: var(--off-line); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+/* ตัวหนังสือของปุ่มที่กดไม่ได้ ใช้ --ink-body ไม่ใช่ --muted · วัดของจริง 2026-09-05 ได้
+   --muted (#5f7178) บนพื้น --off (#e9eff0) เท่ากับ 4.39:1 ซึ่งตกเกณฑ์ AA 4.5
+   สภาพ "กดไม่ได้" บอกด้วยพื้นจางกับ cursor อยู่แล้ว ไม่ต้องบอกซ้ำด้วยการทำให้อ่านยาก */
+.button:disabled, .button[aria-disabled="true"] { background: var(--off); border-color: var(--off-line); color: var(--ink-body); box-shadow: none; cursor: not-allowed; }
+
+/* ระดับที่สาม — ปุ่มตัวหนังสือ สำหรับ action ที่ไม่ใช่ทั้งหลักและรอง เช่นยกเลิกหรือเปิดเมนู
+   (เกณฑ์ข้อสามของเจ้าของงาน 2026-09-05 ที่ระบบเรายังขาดไป) · สูง 48px เท่ากันตามกฎเดิม */
+.button--text { background: transparent; border-color: transparent; color: var(--teal-deep); box-shadow: none; padding: 0 12px; }
+.button--text:hover { background: var(--teal-wash); color: var(--teal-deep); }
+.button--text:active { background: var(--teal-wash); }
+
+/* ไอคอนหน้าคำ รับสีจากปุ่มเสมอด้วย currentColor จึงถูกทุกระดับโดยไม่ต้องสั่งสี */
+.button__icon { display: inline-flex; flex: none; }
+.button__icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+/* กำลังทำงาน — ต้องอ่านออกว่าต่างจากกดไม่ได้ ปุ่มจึงคงสีของระดับตัวเองไว้ ไม่จมเป็นสีจาง
+   แล้วบอกด้วยวงหมุนแทน · นิ่งสนิทใต้ prefers-reduced-motion */
+.button[data-pending="true"], .button[data-pending="true"]:hover { background: var(--orange-deep); border-color: transparent; color: var(--paper); box-shadow: none; cursor: progress; transform: none; }
+.button--primary[data-pending="true"], .button--primary[data-pending="true"]:hover { background: var(--teal-deep); }
+.button--ghost[data-pending="true"], .button--ghost[data-pending="true"]:hover,
+.button--text[data-pending="true"], .button--text[data-pending="true"]:hover { background: var(--paper); border-color: var(--line); color: var(--teal-deep); }
+.button__spin { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; opacity: .45; animation: button-spin 900ms linear infinite; }
+.button__spin path { opacity: 1; }
+@keyframes button-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .button__spin { animation: none; } }
 .button:disabled:hover, .button[aria-disabled="true"]:hover { background: var(--off); transform: none; box-shadow: none; }
 .button:disabled:active, .button[aria-disabled="true"]:active { transform: none; }
 .sign-in-preview { position: relative; display: inline-flex; align-items: center; }.sign-in-preview > span { position: absolute; z-index: 30; top: calc(100% + 9px); right: 0; width: min(290px, 78vw); padding: 9px 11px; border-radius: 8px; background: var(--ink-deep); color: white; font-size: .76rem; line-height: 1.45; box-shadow: 0 12px 24px rgba(5,31,47,.22); }

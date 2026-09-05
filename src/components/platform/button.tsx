@@ -25,12 +25,13 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  * `button--primary` เป็นสีหมึก ส่วนปุ่มหลักจริง ๆ คือ `button--orange` · ไม่เปลี่ยนชื่อคลาส
  * เพราะมันแตะทุกที่ที่เขียนสไตล์ทับไว้ **ที่นี่คือที่เดียวที่ต้องรู้เรื่องนี้** ข้างนอกเห็นแค่หน้าที่
  */
-export type Tone = "primary" | "ink" | "quiet";
+export type Tone = "primary" | "ink" | "quiet" | "plain";
 
 const toneClass: Record<Tone, string> = {
   primary: "button button--orange",
   ink: "button button--primary",
-  quiet: "button button--ghost"
+  quiet: "button button--ghost",
+  plain: "button button--text"
 };
 
 /**
@@ -49,8 +50,32 @@ function Arrow() {
   );
 }
 
+/**
+ * วงหมุนของสถานะกำลังทำงาน — ต้องต่างจากปุ่มที่กดไม่ได้ ไม่ใช่หน้าตาเดียวกัน
+ *
+ * ก่อนหน้านี้ `pending` เปลี่ยนแค่คำกับปิดปุ่ม ซึ่งวัดแล้วได้หน้าตาเหมือน `disabled`
+ * ทุกประการ · คนจึงแยกไม่ออกว่า "กดไม่ได้เพราะยังทำอะไรไม่ครบ" กับ "กดไปแล้วกำลังส่ง"
+ * ซึ่งเป็นคนละเรื่องกันโดยสิ้นเชิง (ข้อสองของเกณฑ์ที่เจ้าของงานวางไว้ 2026-09-05)
+ */
+function Spinner() {
+  return (
+    <svg viewBox="0 0 20 20" className="button__spin" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" />
+      <path d="M10 3a7 7 0 0 1 7 7" />
+    </svg>
+  );
+}
+
 type Shared = {
   tone?: Tone;
+  /**
+   * ไอคอนหน้าคำ ที่สื่อความเดียวกับคำบนปุ่ม
+   *
+   * ต่างจาก `arrow` ตรงที่ลูกศรบอกว่า "กดแล้วไปที่อื่น" ส่วนไอคอนบอกว่า "กดแล้วเกิดอะไร"
+   * · เกณฑ์ข้อห้าของเจ้าของงาน — ไอคอนต้องสื่อความเดียวกับข้อความ ไม่กำกวม
+   * ส่งเป็น `<svg>` ที่ใช้ `currentColor` เพื่อให้เปลี่ยนสีตามระดับของปุ่มเอง
+   */
+  icon?: ReactNode;
   /** ลูกศรท้ายปุ่ม สำหรับปุ่มที่พาไปหน้าอื่น */
   arrow?: boolean;
   /** ยืดเต็มความกว้างของกล่องแม่ ใช้บนจอแคบและในฟอร์ม */
@@ -119,9 +144,10 @@ type Internal = Shared & {
 };
 
 function split(props: Internal) {
-  const { tone, arrow, block, className, children, pending, pendingLabel, ...rest } = props;
+  const { tone, icon, arrow, block, className, children, pending, pendingLabel, ...rest } = props;
   return {
     tone: tone ?? "primary",
+    icon,
     arrow: arrow ?? false,
     block: block ?? false,
     className,
@@ -133,10 +159,13 @@ function split(props: Internal) {
 }
 
 export function Button(props: AsLink | AsButton | AsLabel) {
-  const { tone, arrow, block, className: extra, children, pending, pendingLabel, rest } = split(props as Internal);
+  const { tone, icon, arrow, block, className: extra, children, pending, pendingLabel, rest } = split(
+    props as Internal
+  );
   const className = classesFor(tone, block, extra);
   const body = (
     <>
+      {icon ? <span className="button__icon">{icon}</span> : null}
       {children}
       {arrow ? <Arrow /> : null}
     </>
@@ -174,7 +203,12 @@ export function Button(props: AsLink | AsButton | AsLabel) {
       className={className}
       type={attrs.type ?? "button"}
       disabled={attrs.disabled || pending}
+      /* `aria-busy` บอกโปรแกรมอ่านหน้าจอว่ากำลังทำงานอยู่ ส่วน `data-pending` ให้ CSS
+         แยกหน้าตาออกจากปุ่มที่กดไม่ได้ ซึ่งเป็นคนละสถานะกัน */
+      aria-busy={pending || undefined}
+      data-pending={pending ? "true" : undefined}
     >
+      {pending ? <Spinner /> : icon ? <span className="button__icon">{icon}</span> : null}
       {pending && pendingLabel ? pendingLabel : children}
       {arrow && !pending ? <Arrow /> : null}
     </button>
