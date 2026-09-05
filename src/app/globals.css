@@ -62,6 +62,11 @@
   /* ส้มเข้มสำหรับเงาแข็งใต้ปุ่มหลัก ไม่ใช่สีตัวหนังสือและไม่ใช่สีพื้น
      มีเพราะเงาต้องเข้มกว่าตัวปุ่มพอให้อ่านเป็นความหนา ถ้าใช้ --orange เองจะแบนหายไป */
   --orange-deep: #b4530a;
+  /* ตัวหนังสือบนพื้นส้ม — หมึกเข้ม ไม่ใช่ขาว (IP-235)
+     ค่านี้ไม่ได้คิดใหม่ หยิบมาจากที่ `.button--orange` ใช้อยู่แล้วตั้งแต่ต้น เพียงแต่เดิม
+     เขียนเป็นเลขดิบตรงกฎเดียว · ขาวบนส้มวัดได้ 2.80:1 ซึ่งตกเกณฑ์ AA และเป็นคู่สีที่กลืนกัน
+     ส่วนหมึกเข้มบนส้มวัดได้ 8.9:1 · เจ้าของงานเคาะหลักการนี้เอง 2026-09-05 ว่าคู่สีต้องตรงข้ามกัน */
+  --on-orange: #17120d;
 }
 
 * { box-sizing: border-box; }
@@ -2730,7 +2735,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .eh__todo { margin: .25rem 0 0; color: var(--orange-text); font-size: .82rem; font-weight: 700; }
 .eh__row { display: flex; gap: 10px; align-items: center; margin-block-start: 1rem; flex-wrap: wrap; }
 
-.eh__go { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 999px; padding: .6rem 1.05rem; background: var(--orange); color: var(--paper); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 5px 0 0 var(--orange-deep), 0 12px 24px rgba(244, 119, 33, .3), inset 0 1px 0 rgba(255, 255, 255, .4); }
+/* ตัวหนังสือบนปุ่มส้มเป็นหมึกเข้ม ไม่ใช่ขาว — ขาวบนส้มวัดได้ 2.80:1 ซึ่งกลืนกัน
+   และ `.button--orange` ของแอปก็ใช้หมึกเข้มอยู่แล้ว ต้นแบบเคยหยิบคู่ขาว-ส้มมาจากไฟล์โทเคนของคู่แข่ง */
+.eh__go { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 999px; padding: .6rem 1.05rem; background: var(--orange); color: var(--on-orange); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 5px 0 0 var(--orange-deep), 0 12px 24px rgba(244, 119, 33, .3), inset 0 1px 0 rgba(255, 255, 255, .4); }
 .eh__go:active { transform: translateY(3px); box-shadow: 0 5px 14px rgba(244, 119, 33, .28); }
 .eh__line { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 999px; padding: .6rem 1.05rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; }
 
@@ -2744,7 +2751,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .eh__bot-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-block-end: 1px solid var(--mist); background: var(--teal-wash); }
 .eh__mark { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 999px; background: var(--teal); color: var(--paper); font-size: .72rem; font-weight: 800; }
 .eh__bot-head strong { display: block; color: var(--ink); font-size: .9rem; font-weight: 700; }
-.eh__bot-head span { color: var(--muted); font-size: .74rem; }
+/* คลาสของตัวเอง ไม่ใช่ `.eh__bot-head span` เพราะกฎแบบนั้นชนะ `.eh__mark` ด้วยความจำเพาะ
+   แล้วไปทาสีเทาจาง ๆ ทับตัวอักษรบนวงกลม teal จนคอนทราสต์เหลือ 1.10 คือกลืนหายไปเลย
+   เจ้าของงานเห็นจากหน้าจอก่อนที่ผมจะวัดเจอ (2026-09-05) */
+/* --muted บนพื้น teal จางวัดได้ 4.49 ซึ่งตกเกณฑ์ AA อย่างเฉียดฉิว จึงใช้ --ink-body ที่ให้ 7.4
+   เป็นอาการเดียวกับที่ globals บันทึกไว้เรื่อง --teal ที่ต้องมี --teal-text แยกสำหรับพื้นจาง */
+.eh__bot-sub { color: var(--ink-body); font-size: .74rem; }
 .eh__thread { display: grid; gap: 8px; padding: 14px 15px; }
 .eh__say { margin: 0; border-radius: 12px; padding: .55rem .72rem; background: var(--canvas); color: var(--ink-body); font-size: .82rem; line-height: 1.55; }
 .eh__say--me { justify-self: end; max-width: 90%; background: var(--teal); color: var(--paper); }

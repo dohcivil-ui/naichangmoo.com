@@ -144,7 +144,7 @@ export function EstimeterHomePreview() {
               <span className="eh__mark" aria-hidden="true">ผช</span>
               <div>
                 <strong>ผู้ช่วยประมาณราคา</strong>
-                <span>พาทำทีละขั้น ถามได้ตลอด</span>
+                <span className="eh__bot-sub">พาทำทีละขั้น ถามได้ตลอด</span>
               </div>
             </div>
 
