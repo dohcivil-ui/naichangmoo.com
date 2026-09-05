@@ -15,12 +15,14 @@ import { filedLineRejectionMessage } from "@/lib/takeoff-from-measurement";
 import { parseTakeoffItemForm } from "@/lib/takeoff-item";
 import { requireEditAccess, revalidateTakeoff } from "@/server/estimeter/edit-access";
 import {
+  clearCalibration,
   fileDrawingMark as fileDrawingMarkInRepository,
   loadDrawingState,
   registerDrawingDocument,
   saveCalibration,
   saveMarks,
   saveViewState,
+  type ClearCalibrationRejection,
   type DrawingStateView,
   type DrawingWriteRejection,
   type FileMarkRejection
@@ -47,6 +49,13 @@ const rejectionMessage: Record<DrawingWriteRejection, string> = {
 };
 
 const MALFORMED = rejectionMessage.invalid_payload;
+
+/** เหตุผลที่ล้างสเกลไม่ได้ ในคำที่คนบนหน้าแบบอ่าน */
+const clearRejectionMessage: Record<ClearCalibrationRejection, string> = {
+  ...rejectionMessage,
+  page_has_reference_lines:
+    "หน้านี้ยังมีแนวเสาหรือระยะที่แบบเขียนอยู่ ซึ่งเก็บรวมกับสเกล ลบเส้นพวกนั้นให้หมดก่อนจึงล้างสเกลได้"
+};
 
 /** Every way filing a mark can fail, in the words the person on the markup page reads. */
 const fileMarkMessage: Record<FileMarkRejection, string> = {
@@ -155,6 +164,34 @@ export async function saveDrawingCalibration(input: {
   if (!result.ok) return { ok: false, message: rejectionMessage[result.reason] };
 
   return { ok: true, calibrationId: result.value.calibrationId };
+}
+
+/**
+ * ล้างสเกลของหน้าหนึ่ง (IP-235)
+ *
+ * ด่านจริงที่ห้ามลบตอนหน้ายังมีแนวเสาหรือระยะที่แบบเขียนอยู่ อยู่ในชั้นฐานข้อมูล ไม่ใช่ที่นี่
+ * และไม่ใช่ที่หน้าจอ เพราะทั้งสองที่นั้นเชื่อไม่ได้ — หน้าจอปิดปุ่มได้ แต่ POST นี้เป็นทางเปิด
+ * ใครยิงตรงมาก็ได้ ส่วนตัวเลขที่หน้าจอนับได้อาจเก่ากว่าที่อยู่ในฐานหนึ่งจังหวะ
+ */
+export async function clearDrawingCalibration(input: {
+  documentId: string;
+  pageNumber: number;
+}): Promise<DrawingActionResult<{ cleared: boolean }>> {
+  const guard = await requireEditAccess();
+  if (!guard.ok) return { ok: false, message: guard.message };
+
+  if (!nonEmpty(input.documentId)) return { ok: false, message: MALFORMED };
+  if (!positiveInteger(input.pageNumber)) return { ok: false, message: MALFORMED };
+
+  const result = await clearCalibration({
+    organizationId: guard.context.organizationId,
+    documentId: input.documentId,
+    actorId: guard.context.userId,
+    pageNumber: input.pageNumber
+  });
+  if (!result.ok) return { ok: false, message: clearRejectionMessage[result.reason] };
+
+  return { ok: true, cleared: result.value.cleared };
 }
 
 export async function loadDrawing(input: {

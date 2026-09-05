@@ -68,6 +68,7 @@ import type { CalibrationMethod } from "@/lib/drawing-calibration-method";
 import type { CalibrationReference, StoredMark } from "@/lib/drawing-state";
 import { TAKEOFF_CATEGORIES, TAKEOFF_UNITS } from "@/lib/takeoff-units";
 import {
+  clearDrawingCalibration,
   fileDrawingMark,
   listOpenRunItems,
   loadDrawing,
@@ -1423,6 +1424,21 @@ export function DrawingMarkup({
   }
 
   /**
+   * เปลี่ยนหน้า — ทุกทางที่เปลี่ยนหน้าต้องผ่านตัวนี้ ไม่ใช่เรียก `setPage` ตรง ๆ
+   *
+   * **เลิกเลือกเส้นอ้างอิงด้วยเสมอ** เพราะ `selectedGuide` เก็บแค่ไอดี ไม่ได้เก็บว่าอยู่หน้าไหน
+   * เส้นที่เลือกไว้บนหน้า 1 จึงยังเลือกอยู่เมื่อเลื่อนไปหน้า 2 แถบข้างล่างจะบอกว่า
+   * "เลือกอยู่ แนวเสา 1" ทั้งที่หน้านี้ไม่มีเส้นนั้น แล้วถ้ากด Delete มันจะลบของบนหน้าโน้นจริง ๆ
+   * โดยไม่มีอะไรบนจอเปลี่ยนให้เห็น
+   */
+  function goToPage(next: number) {
+    setDraft([]);
+    setPendingRoom(null);
+    setSelectedGuide(null);
+    setPage(next);
+  }
+
+  /**
    * เส้นระยะเส้นนี้ คือเส้นที่ตั้งสเกลของหน้านี้ไว้หรือเปล่า (IP-235)
    *
    * `references[page]` เก็บ **สำเนา** ของปลายทั้งสองกับระยะจริง ไม่ได้ชี้ด้วยไอดี
@@ -1450,6 +1466,48 @@ export function DrawingMarkup({
   const selectedGridLine = selectedGuide?.kind === "gridline"
     ? namedGridLines.find((line) => line.id === selectedGuide.id) ?? null
     : null;
+
+  /**
+   * ล้างสเกลของหน้านี้ (IP-235)
+   *
+   * **กดได้เฉพาะตอนหน้านั้นไม่มีแนวเสาและไม่มีระยะที่แบบเขียนเหลืออยู่** เพราะสองอย่างนั้นเก็บ
+   * เป็น jsonb อยู่บนแถวสอบเทียบแถวเดียวกับสเกล และคอลัมน์สเกลเป็น NOT NULL จึงไม่มีสภาพ
+   * "แถวที่ไม่มีสเกล" ให้เก็บมันไว้ · ถ้าปล่อยให้ล้างตอนยังมีเส้น มันจะลบงานของผู้ใช้เป็น
+   * ผลข้างเคียงของคำสั่งที่ชื่อว่า "ล้างสเกล" ซึ่งไม่มีใครอ่านชื่อนั้นแล้วคาดคิด
+   * เจ้าของงานเคาะทางนี้เมื่อ 2026-09-05 · ด่านจริงอยู่ที่ฐาน ที่นี่แค่ปิดปุ่มให้เห็นก่อน
+   */
+  const gridOnPage = gridLines.filter((line) => line.page === page);
+  const dimensionsOnPage = dimensions.filter((item) => item.page === page);
+  const marksOnPage = measurements.filter((item) => item.page === page);
+  const clearScaleBlockedBy =
+    !pageScale
+      ? "หน้านี้ยังไม่ได้ตั้งสเกล"
+      : gridOnPage.length > 0 || dimensionsOnPage.length > 0
+        ? `ลบแนวเสาและระยะที่แบบเขียนบนหน้านี้ให้หมดก่อน ยังเหลือ ${gridOnPage.length + dimensionsOnPage.length} เส้น เพราะเส้นพวกนั้นเก็บรวมอยู่กับสเกล`
+        : null;
+
+  async function clearScale() {
+    if (!documentId || clearScaleBlockedBy) return;
+    setSaveStatus({ kind: "saving" });
+    const result = await clearDrawingCalibration({ documentId, pageNumber: page });
+    if (!result.ok) {
+      setSaveStatus({ kind: "failed", message: result.message });
+      return;
+    }
+    setScales((current) => {
+      const next = { ...current };
+      delete next[page];
+      return next;
+    });
+    setReferences((current) => {
+      const next = { ...current };
+      delete next[page];
+      return next;
+    });
+    // ลายเซ็นของหน้าต้องหายไปด้วย ไม่งั้นการตั้งสเกลใหม่ที่ให้ค่าเดิมเป๊ะจะถูกมองว่า "เซฟไปแล้ว"
+    delete lastSavedRef.current[page];
+    setSaveStatus({ kind: "saved", at: new Date() });
+  }
 
   /**
    * ลบเส้นอ้างอิงที่เลือกอยู่
@@ -1911,6 +1969,28 @@ export function DrawingMarkup({
           </svg>
         </button>
         <span className="mk__scale-state">สเกลหน้า {page}: {pageScale ? formatScaleRatio(pageScale) : "ยังไม่ตั้ง"}</span>
+        {/* ล้างสเกลของหน้า — ที่ผ่านมาสเกลตั้งได้ ตั้งทับได้ แต่เอาออกไม่ได้ หน้าที่เผลอตั้งผิด
+            จึงติดค้างไปตลอด และตัวตนของแบบคิดจาก checksum ของเนื้อไฟล์ สเกลที่ค้างจึงตามไป
+            ทุกที่ที่เปิดไฟล์นั้น · ปุ่มโผล่เฉพาะตอนหน้ามีสเกลแล้ว ไม่งั้นมันคือปุ่มที่ไม่ทำอะไร */}
+        {pageScale ? (
+          <button
+            type="button"
+            className="mk__scale-clear"
+            onClick={() => void clearScale()}
+            disabled={Boolean(clearScaleBlockedBy)}
+            onPointerEnter={(event) =>
+              showTip(event, {
+                label: "ล้างสเกลของหน้านี้",
+                hint:
+                  clearScaleBlockedBy ??
+                  `หน้านี้กลับไปเป็น "ยังไม่ตั้ง" เครื่องมือวัดจะกดไม่ได้จนกว่าจะตั้งใหม่${marksOnPage.length > 0 ? ` · รอยวัด ${marksOnPage.length} อันบนหน้านี้ยังอยู่ แต่บอกความยาวไม่ได้จนกว่าจะตั้งสเกลใหม่` : ""} · รายการที่ส่งเข้าถอดปริมาณแล้วไม่กระทบ เพราะมันก๊อปสเกลไปตอนส่ง`
+              })
+            }
+            onPointerLeave={() => setTip(null)}
+          >
+            ล้างสเกล
+          </button>
+        ) : null}
         <button
           type="button"
           className="mk__icon"
@@ -1980,11 +2060,7 @@ export function DrawingMarkup({
               type="button"
               className="mk__thumb"
               aria-current={number === page ? "page" : undefined}
-              onClick={() => {
-                setDraft([]);
-                setPendingRoom(null);
-                setPage(number);
-              }}
+              onClick={() => goToPage(number)}
             >
               {thumbs[number] ? (
                 // eslint-disable-next-line @next/next/no-img-element -- รูปย่อสร้างในเบราว์เซอร์เป็น data URL ตัวปรับขนาดของ Next แตะไม่ได้
@@ -2315,7 +2391,7 @@ export function DrawingMarkup({
             summary={summary}
             selectedId={selectedId}
             currentPage={page}
-            onGoToPage={setPage}
+            onGoToPage={goToPage}
             onSelect={setSelectedId}
             filedIds={filedIds}
             onFile={(id) => void openFiling(id)}

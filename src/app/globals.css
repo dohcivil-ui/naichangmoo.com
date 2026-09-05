@@ -2559,6 +2559,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    เจอตอนเพิ่มเครื่องมือจากเก้าเป็นสิบเอ็ดตัว แถบแม่ห่อบรรทัดอยู่แล้วแต่กลุ่มนี้ไม่ห่อ */
 .mk__tools { display: flex; gap: 2px; flex-wrap: wrap; min-width: 0; }
 .mk__scale-state { margin-inline-start: auto; font-weight: 700; }
+/* ปุ่มล้างสเกลของหน้า (IP-235) — เงียบไว้ก่อน เพราะมันเป็นทางถอย ไม่ใช่ทางเดินหลัก
+   ตอนกดไม่ได้ยังต้องอ่านออก จึงใช้ --muted ที่ให้ 4.6:1 ไม่ใช่ opacity ที่กดคอนทราสต์ลงทั้งก้อน */
+.mk__scale-clear { min-block-size: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--muted); font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; }
+.mk__scale-clear:hover:enabled, .mk__scale-clear:focus-visible:enabled { border-color: var(--dimension-red); color: var(--dimension-red); }
+.mk__scale-clear:disabled { cursor: not-allowed; border-style: dashed; }
 
 /* ปุ่มดูดจุดกับปุ่มลูกศรเปิดกล่องตัวเลือกอยู่ติดกัน เพื่อให้เห็นว่าลูกศรขยายปุ่มไหน */
 .mk__snap-group { position: relative; display: flex; align-items: center; }

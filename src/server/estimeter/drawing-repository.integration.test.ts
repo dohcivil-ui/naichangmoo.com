@@ -237,6 +237,79 @@ describe.skipIf(!enabled)("drawing calibration against PostgreSQL", () => {
     expect(replaced.sort()).toEqual([false, true]);
   });
 
+  it("ล้างสเกลไม่ได้ตราบใดที่หน้ายังมีแนวเสาหรือระยะที่แบบเขียนอยู่ (IP-235)", async () => {
+    const { clearCalibration, saveCalibration } = await import("@/server/estimeter/drawing-repository");
+    const { getDb } = await import("@/db");
+    const { auditEvents, drawingCalibrations } = await import("@/db/schema");
+    const fixture = await registeredDocument();
+
+    const base = {
+      organizationId: fixture.organizationId,
+      documentId: fixture.documentId,
+      actorId: fixture.userId,
+      pageNumber: 7,
+      metresPerPoint: METRES_PER_POINT,
+      method: "stated_dimension",
+      reference
+    };
+
+    // แนวเสากับระยะที่แบบเขียนเก็บเป็น jsonb บนแถวนี้ ล้างสเกลตอนนี้จึงเท่ากับลบงานของผู้ใช้
+    const withLines = await saveCalibration({ ...base, grid: gridLines, dimensions: statedDimensions });
+    if (!withLines.ok) throw new Error("expected the first save to succeed");
+    expect(await clearCalibration({ ...base })).toEqual({ ok: false, reason: "page_has_reference_lines" });
+    expect(
+      await getDb().select({ id: drawingCalibrations.id }).from(drawingCalibrations).where(eq(drawingCalibrations.documentId, fixture.documentId))
+    ).toHaveLength(1);
+
+    // ระยะที่แบบเขียนอย่างเดียวก็ยังกั้น ไม่ใช่กั้นเฉพาะตอนมีครบสองอย่าง
+    await saveCalibration({ ...base, grid: [], dimensions: statedDimensions });
+    expect(await clearCalibration({ ...base })).toEqual({ ok: false, reason: "page_has_reference_lines" });
+
+    // ลบเส้นจนหมดแล้วจึงล้างได้ และแถวหายไปจริง
+    await saveCalibration({ ...base, grid: [], dimensions: [] });
+    expect(await clearCalibration({ ...base })).toEqual({ ok: true, value: { cleared: true } });
+    expect(
+      await getDb().select({ id: drawingCalibrations.id }).from(drawingCalibrations).where(eq(drawingCalibrations.documentId, fixture.documentId))
+    ).toHaveLength(0);
+
+    // การเอาสเกลออกต้องตรวจย้อนได้เหมือนตอนตั้ง ไม่ใช่การล้างค่าเงียบ ๆ
+    const audits = await getDb()
+      .select({ metadata: auditEvents.metadata })
+      .from(auditEvents)
+      .where(and(eq(auditEvents.organizationId, fixture.organizationId), eq(auditEvents.eventType, "drawing.calibration_cleared")));
+    expect(audits).toHaveLength(1);
+    expect((audits[0].metadata as { pageNumber?: number }).pageNumber).toBe(7);
+
+    // ล้างซ้ำบนหน้าที่ไม่มีสเกลแล้วไม่ใช่ความผิดพลาด มันคือสภาพที่ผู้เรียกอยากได้อยู่แล้ว
+    expect(await clearCalibration({ ...base })).toEqual({ ok: true, value: { cleared: false } });
+  });
+
+  it("ล้างสเกลของอีกองค์กรไม่ได้ แม้จะรู้ไอดีของแบบ (IP-235)", async () => {
+    const { clearCalibration, saveCalibration } = await import("@/server/estimeter/drawing-repository");
+    const owner = await registeredDocument();
+    const stranger = await createProjectFixture();
+    await saveCalibration({
+      organizationId: owner.organizationId,
+      documentId: owner.documentId,
+      actorId: owner.userId,
+      pageNumber: 7,
+      metresPerPoint: METRES_PER_POINT,
+      method: "stated_dimension",
+      reference,
+      grid: [],
+      dimensions: []
+    });
+
+    expect(
+      await clearCalibration({
+        organizationId: stranger.organizationId,
+        documentId: owner.documentId,
+        actorId: stranger.userId,
+        pageNumber: 7
+      })
+    ).toEqual({ ok: false, reason: "document_not_found" });
+  });
+
   it("refuses a scale of zero at the repository, and again at the database when bypassed", async () => {
     const { saveCalibration } = await import("@/server/estimeter/drawing-repository");
     const { getDb } = await import("@/db");

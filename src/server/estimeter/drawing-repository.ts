@@ -281,6 +281,78 @@ export async function saveCalibration(input: {
 }
 
 /**
+ * ล้างสเกลของหน้าหนึ่ง — ลบทั้งแถวสอบเทียบ (IP-235)
+ *
+ * **ทำไมต้องมี** ที่ผ่านมาสเกลตั้งได้ ตั้งทับได้ แต่เอาออกไม่ได้ หน้าที่เผลอตั้งสเกลผิดจึงติดค้าง
+ * ไปตลอด และตัวตนของแบบคิดจาก checksum ของเนื้อไฟล์ สเกลที่ค้างจึงตามไปทุกที่ที่เปิดไฟล์นั้น
+ *
+ * **ด่านที่สำคัญที่สุดของฟังก์ชันนี้คือ `grid` กับ `dimensions` ต้องว่างก่อน**
+ * แนวเสาและระยะที่แบบเขียนเก็บเป็น jsonb อยู่บนแถวเดียวกันนี้ และคอลัมน์ `metres_per_point`
+ * เป็น NOT NULL พร้อม CHECK > 0 จึงไม่มีสภาพ "แถวที่ไม่มีสเกล" ให้เก็บสองอย่างนั้นไว้ได้
+ * ถ้าปล่อยให้ลบตอนยังมีเส้นอยู่ มันจะเป็นการลบงานของผู้ใช้เป็นผลข้างเคียงของคำสั่งที่ชื่อว่า
+ * "ล้างสเกล" ซึ่งไม่มีใครอ่านชื่อนั้นแล้วคาดคิด · เจ้าของงานเคาะทางนี้เมื่อ 2026-09-05
+ * ให้ผู้ใช้ลบเส้นทีละเส้นเองก่อน ซึ่งตอนนี้ทำได้แล้ว แล้วปุ่มนี้จึงกดได้
+ *
+ * รอยวัดใน `drawing_marks` ไม่ถูกแตะ เพราะเป็นพิกัดหน้ากระดาษ ไม่ได้ผูกกับสเกล
+ * และบรรทัดที่ส่งเข้าถอดปริมาณไปแล้วไม่กระทบ เพราะหลักฐานก๊อปสเกลของหน้าไปตอนส่ง (IP-234)
+ */
+export type ClearCalibrationRejection = DrawingWriteRejection | "page_has_reference_lines";
+
+export async function clearCalibration(input: {
+  organizationId: string;
+  documentId: string;
+  actorId: string;
+  pageNumber: number;
+}): Promise<{ ok: true; value: { cleared: boolean } } | { ok: false; reason: ClearCalibrationRejection }> {
+  if (!Number.isInteger(input.pageNumber) || input.pageNumber < 1) return { ok: false, reason: "invalid_payload" };
+
+  return getDb().transaction(async (tx) => {
+    const scoped = await loadDocumentScoped(tx, input.organizationId, input.documentId, true);
+    if (!scoped) return { ok: false, reason: "document_not_found" };
+    if (!WRITABLE_PROJECT_STATES.has(scoped.projectState)) return { ok: false, reason: "project_not_writable" };
+
+    const rows = await tx
+      .select({
+        id: drawingCalibrations.id,
+        grid: drawingCalibrations.grid,
+        dimensions: drawingCalibrations.dimensions
+      })
+      .from(drawingCalibrations)
+      .where(
+        and(
+          eq(drawingCalibrations.documentId, input.documentId),
+          eq(drawingCalibrations.pageNumber, input.pageNumber)
+        )
+      )
+      .limit(1);
+
+    // หน้าที่ไม่เคยตั้งสเกลไม่ใช่ความผิดพลาด มันคือสภาพที่ผู้เรียกอยากได้อยู่แล้ว
+    if (!rows[0]) return { ok: true, value: { cleared: false } };
+
+    // อ่านผ่านตัวแปลงชุดเดียวกับตอนโหลด แถวที่ payload พังจึงนับเป็น "ไม่มีเส้น" เหมือนกันทั้งระบบ
+    const gridLines = parseGridPayload(rows[0].grid)?.lines ?? [];
+    const dimensions = parseDimensionsPayload(rows[0].dimensions)?.items ?? [];
+    if (gridLines.length > 0 || dimensions.length > 0) return { ok: false, reason: "page_has_reference_lines" };
+
+    await tx.delete(drawingCalibrations).where(eq(drawingCalibrations.id, rows[0].id));
+
+    // สเกลคือเลขที่ทุกปริมาณในหน้านั้นถูกคูณด้วย การเอามันออกจึงเป็นการกระทำที่ต้องตรวจย้อนได้
+    // เหมือนตอนตั้ง ไม่ใช่การล้างค่าเฉย ๆ
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      eventType: "drawing.calibration_cleared",
+      resourceType: "drawing_calibration",
+      resourceId: rows[0].id,
+      metadata: { documentId: input.documentId, pageNumber: input.pageNumber }
+    });
+
+    return { ok: true, value: { cleared: true } };
+  });
+}
+
+/**
  * Everything a browser needs to resume: every confirmed page scale of this drawing, plus the
  * page and camera this one person left behind.
  *
