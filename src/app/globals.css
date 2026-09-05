@@ -2709,6 +2709,34 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__confirm strong { flex: 1 1 240px; font-weight: 600; }
 .mk__confirm button { min-height: 44px; padding: 0 14px; border: 1px solid var(--teal); background: var(--teal); color: var(--paper); cursor: pointer; }
 .mk__confirm button + button { background: var(--paper); color: var(--ink); border-color: var(--line); }
+/* แถบผู้ช่วยพาทัวร์ของหน้าแบบ (IP-236) — บางที่สุดเท่าที่อ่านออก เพราะทุกพิกเซลที่มันกิน
+   คือพิกเซลที่ผืนวาดเสียไป · หายไปเองเมื่อเปิดแบบและตั้งสเกลครบ ผืนวาดจึงได้ที่คืนทันที */
+.mk__tour { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 12px; border-block-end: 1px solid var(--line); border-inline-start: 3px solid var(--orange); background: var(--orange-wash); color: var(--ink); }
+.mk__tour-step { flex: none; border-radius: 999px; padding: 3px 10px; background: var(--paper); border: 1px solid var(--line); color: var(--orange-text); font-size: .72rem; font-weight: 700; }
+.mk__tour-num { font-family: var(--font-numeric), "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-weight: 700; }
+.mk__tour-text { flex: 1 1 320px; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.mk__tour-text strong { color: var(--ink); font-size: .88rem; font-weight: 700; }
+.mk__tour-text em { color: var(--orange-text); font-style: normal; font-size: .8rem; font-weight: 600; }
+.mk__tour-text span { flex: 1 1 100%; color: var(--ink-body); font-size: .8rem; line-height: 1.5; }
+/* บรรทัดทางเลือกใช้ --ink-body ไม่ใช่ --muted เพราะ --muted (#5f7178) บนพื้นส้มจาง
+   (#fdeee2) วัดได้ 4.49:1 ซึ่งตกเกณฑ์ AA 4.5 อยู่นิดเดียว · ลำดับความสำคัญของบรรทัดนี้
+   บอกด้วยขนาดตัวอักษรแทน ไม่ใช่ด้วยการทำให้สีจางลงจนอ่านยาก */
+.mk__tour-text small { flex: 1 1 100%; color: var(--ink-body); font-size: .74rem; line-height: 1.5; }
+.mk__tour .button { flex: none; }
+
+/* วงชี้ปุ่มเป้าหมาย — บอกว่า "กดตรงนี้" โดยไม่ต้องมีลูกศรลอยทับแบบ
+
+   วาดเป็น ::after ไม่ใช่ outline ของตัวปุ่มเอง ด้วยสองเหตุผล — ปุ่มนี้ใช้ outline ไปแล้ว
+   ตอนโฟกัสด้วยแป้นพิมพ์ วงทัวร์จะไปทับวงโฟกัสจนคนกดแป้นหาไม่เจอ · และวงที่ลอยอยู่ชั้นบน
+   ขยับด้วย transform กับ opacity ซึ่งเบราว์เซอร์ยกไปทำบนชั้น composite ไม่ต้องระบายใหม่
+   ทุกเฟรม เรื่องนี้สำคัญเพราะข้าง ๆ มันคือผืนวาดที่กำลังเรนเดอร์แบบก่อสร้างอยู่ */
+.mk__icon.is-tour-target::after { content: ""; position: absolute; inset: -3px; border: 2px solid var(--orange); border-radius: 9px; pointer-events: none; animation: mk-tour-ring 1.8s var(--ease-in-out) infinite; }
+@keyframes mk-tour-ring {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.14); opacity: .35; }
+}
+@media (prefers-reduced-motion: reduce) { .mk__icon.is-tour-target::after { animation: none; } }
+
 .mk__alert { margin: 0; padding: 8px 12px; background: var(--canvas); border-block-start: 2px solid var(--orange); color: var(--ink); }
 .mk__blocked { padding: 48px 24px; text-align: center; color: var(--muted); }
 

@@ -16,6 +16,8 @@ import {
 } from "@/lib/drawing-measurement";
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
+import { drawingTourStep } from "@/lib/drawing-tour";
+import { Button } from "@/components/platform/button";
 import {
   gridIntersections,
   nameGridLines,
@@ -449,6 +451,18 @@ export function DrawingMarkup({
   const [calibrationError, setCalibrationError] = useState("");
 
   const pageScale = scales[page] ?? null;
+
+  /**
+   * ขั้นของทัวร์ที่ควรพาทำตอนนี้ — คิดสดจากสถานะจริงทุกครั้งที่หน้าเรนเดอร์ ไม่ได้เก็บเป็น state
+   *
+   * ไม่เก็บเป็น state เพราะทัวร์ไม่ใช่ของที่ผู้ใช้เดินหน้าเอง มันคือคำอธิบายของสิ่งที่ล็อกอยู่
+   * ณ วินาทีนั้น · คนที่เปิดไฟล์แบบใบใหม่ทับใบเดิม สเกลหายไปพร้อมไฟล์เก่า ทัวร์จึงต้องถอย
+   * กลับไปขั้นตั้งสเกลเองโดยไม่มีใครสั่ง ซึ่งค่าที่เก็บไว้ทำแบบนั้นไม่ได้
+   */
+  const tourStep = drawingTourStep({ hasDrawing: Boolean(doc), hasPageScale: Boolean(pageScale) });
+
+  /** ช่องเลือกไฟล์ตัวเดียวของหน้านี้ — ทั้งไอคอนบนแถบและปุ่มของทัวร์กดมาที่ตัวนี้ */
+  const openInputRef = useRef<HTMLInputElement | null>(null);
 
   /** ทุกการเปลี่ยนรายการวัดผ่านที่นี่ที่เดียว ประวัติจึงครบเสมอ ไม่มีทางลืมบันทึกบางการกระทำ */
   const snapshot = useCallback(
@@ -1773,7 +1787,7 @@ export function DrawingMarkup({
         <span className="mk__project">{projectName}</span>
         <span className="mk__divider" aria-hidden="true" />
         <label
-          className="mk__icon mk__open"
+          className={`mk__icon mk__open${tourStep?.target === "open" ? " is-tour-target" : ""}`}
           title="เปิดแบบ PDF"
           onPointerEnter={(event) => showTip(event, { label: "เปิดแบบ PDF", hint: "เลือกไฟล์แบบก่อสร้างจากเครื่องของคุณ" })}
           onPointerLeave={() => setTip(null)}
@@ -1782,7 +1796,9 @@ export function DrawingMarkup({
             <path d={ICONS.open} />
           </svg>
           <span className="mk__sr">เปิดแบบ PDF</span>
+          {/* ปุ่มของทัวร์กดมาที่ช่องนี้ ไม่ต้องมีช่องเลือกไฟล์ตัวที่สองให้สองที่ไม่ตรงกัน */}
           <input
+            ref={openInputRef}
             type="file"
             accept="application/pdf,.pdf"
             onChange={(event) => {
@@ -1843,7 +1859,7 @@ export function DrawingMarkup({
               <button
                 key={entry.id}
                 type="button"
-                className="mk__icon"
+                className={`mk__icon${tourStep?.target === entry.id ? " is-tour-target" : ""}`}
                 role="radio"
                 aria-checked={tool === entry.id}
                 aria-label={entry.label}
@@ -2003,6 +2019,46 @@ export function DrawingMarkup({
           </svg>
         </button>
       </div>
+
+      {/*
+        แถบผู้ช่วยพาทัวร์ — ขึ้นเฉพาะตอนที่มีอะไรล็อกอยู่จริง แล้วหายไปเองเมื่อครบเงื่อนไข (IP-236)
+
+        **ทำไมไม่ใช่แผงผู้ช่วยกลาง** เปลือกโหมด workspace มี `AssistantDockHost` อยู่จริง
+        และเสียบผ่าน `<AppAssistant>` ได้ แต่แผงนั้นกางแล้ว **ดันเนื้อหาหลบ 396px**
+        ซึ่งบนหน้านี้คือกินผืนวาดไปเกือบครึ่ง และค่าตั้งต้นของแผงคือกางไว้ คนเปิดหน้าแบบ
+        ครั้งแรกจะเจอผืนวาดหดทันที · เจ้าของงานเคาะ 2026-09-05 ให้เป็นแถบบางเต็มความกว้าง
+        ที่กินความสูงเท่าที่จำเป็นและคืนที่ให้ผืนวาดทันทีที่ตั้งสเกลเสร็จ
+
+        **ไม่มีปุ่มปิด และไม่จำอะไรลงเครื่อง** เพราะแถบนี้ไม่ใช่โฆษณา มันคือคำอธิบายของ
+        เครื่องมือที่กดไม่ได้อยู่ตรงนั้น · ปุ่มปิดจะทำให้คนที่ปิดไปแล้วเจอเครื่องมือดับโดยไม่มี
+        คำอธิบายอีกเลย ซึ่งคือปัญหาเดิมที่แถบนี้เกิดมาแก้
+      */}
+      {tourStep ? (
+        <div className="mk__tour" role="status">
+          <span className="mk__tour-step">
+            ขั้น <b className="mk__tour-num">{tourStep.index}</b> จาก{" "}
+            <b className="mk__tour-num">{tourStep.total}</b>
+          </span>
+          <span className="mk__tour-text">
+            <strong>{tourStep.title}</strong>
+            <em>{tourStep.reason}</em>
+            <span>{tourStep.action}</span>
+            {tourStep.alternative ? <small>{tourStep.alternative}</small> : null}
+          </span>
+          {tourStep.target === "open" ? (
+            /* กดแทนคนที่ช่องเลือกไฟล์ตัวเดิม ไม่ผูกเป็น <label> ตัวที่สอง เพราะเบราว์เซอร์
+               เอาคำของ label ทุกตัวมาต่อกันเป็นชื่อของช่อง ปุ่มไอคอนบนแถบเครื่องมือจะถูก
+               อ่านออกเสียงว่า "เปิดแบบ PDF เลือกไฟล์แบบ" ซึ่งไม่ใช่ชื่อของมัน */
+            <Button tone="primary" onClick={() => openInputRef.current?.click()}>
+              {tourStep.actionLabel}
+            </Button>
+          ) : (
+            <Button tone="primary" onClick={() => pickTool("scale")}>
+              {tourStep.actionLabel}
+            </Button>
+          )}
+        </div>
+      ) : null}
 
       {pendingRoom ? (
         <div className="mk__confirm" role="status">
