@@ -18,8 +18,10 @@ import {
   outlinePoints,
   summarise,
   formatMetres,
-  type MeasurementKind
+  type MeasurementKind,
+  type MeasurementRow
 } from "@/lib/drawing-measurement";
+import { explainMeasurement } from "@/lib/measurement-evidence";
 import { useDrawingLayers, type PdfDocument } from "@/components/estimeter/markup/use-drawing-layers";
 import { toolNeedsScale, type Tool } from "@/lib/drawing-tools";
 import { drawingTourStep, type TourTarget } from "@/lib/drawing-tour";
@@ -1963,6 +1965,24 @@ export function DrawingMarkup({
     });
   }, [dimensions, gridLines, measurements, scales]);
 
+  /**
+   * ที่มาของตัวเลขในแต่ละแถวของแผงรายการวัด (IP-242)
+   *
+   * หน้าแบบเป็นที่เดียวที่รู้ครบทั้งสามอย่างที่ต้องใช้ — สเกลของหน้า วิธีที่สเกลนั้นถูกตั้ง
+   * และระยะที่แบบเขียนไว้บนหน้าเดียวกัน · ตารางจึงไม่ต้องรู้จักของพวกนี้เลย
+   */
+  const evidenceFor = useCallback(
+    (row: MeasurementRow) =>
+      explainMeasurement({
+        measurement: row.measurement,
+        value: row.value,
+        scale: scales[row.measurement.page] ?? null,
+        method: references[row.measurement.page]?.method ?? null,
+        dimensions: dimensions.filter((item) => item.page === row.measurement.page)
+      }),
+    [dimensions, references, scales]
+  );
+
   const draftPreview = useMemo(() => {
     if (draft.length === 0) return null;
     const points = hover ? [...draft, hover] : draft;
@@ -2948,6 +2968,7 @@ export function DrawingMarkup({
             selectedId={selectedId}
             currentPage={page}
             onGoToPage={goToPage}
+            evidenceFor={evidenceFor}
             onSelect={setSelectedId}
             filedIds={filedIds}
             onFile={(id) => void openFiling(id)}

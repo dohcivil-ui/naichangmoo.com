@@ -2886,6 +2886,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* IP-234: รายการที่ส่งเข้าถอดปริมาณแล้วล็อกไว้ ป้ายบอกและปุ่มลบหาย */
 .markup-register__filed { display: inline-block; margin-inline-start: 6px; padding: 1px 6px; border: 1px solid var(--teal); color: var(--teal); font-size: .72rem; line-height: 1.4; }
 .markup-register tr[data-filed="true"] input { color: var(--muted); }
+/* ที่มาของตัวเลขในแต่ละแถว (IP-242) — ใช้ <details> ไม่ใช่ปุ่ม จึงไม่ชนกติกาความสูงของปุ่ม
+   ปิดอยู่เป็นค่าตั้งต้น เพราะตารางต้องอ่านเป็นตารางได้ก่อน คนที่ท้วงตัวเลขค่อยกางดู */
+.markup-register__evidence-row td { padding: 0; border-block-start: 0; }
+.markup-register__evidence { margin-block-end: 6px; font-size: .82rem; color: var(--ink-body); }
+/* `display:flex` บน summary ทำให้สามเหลี่ยมกางของเบราว์เซอร์หายไป ต้องวาดคืนเอง
+   ไม่งั้นแถวนี้ดูเหมือนข้อความเฉย ๆ ไม่บอกว่ากดกางได้ · วาดด้วยเส้นขอบ ไม่ใช่ไอคอนหรืออีโมจิ */
+.markup-register__evidence > summary { min-height: 32px; display: flex; align-items: center; gap: 8px; padding-inline-start: 16px; color: var(--teal-text); cursor: pointer; list-style: none; }
+.markup-register__evidence > summary::-webkit-details-marker { display: none; }
+.markup-register__evidence > summary::before { content: ""; flex: none; width: 0; height: 0; border-inline-start: 5px solid currentColor; border-block-start: 4px solid transparent; border-block-end: 4px solid transparent; transition: transform 120ms var(--ease-out); }
+.markup-register__evidence[open] > summary::before { transform: rotate(90deg) translateX(1px); }
+.markup-register__evidence > summary:hover { color: var(--teal-deep); }
+.markup-register__evidence > summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.markup-register__evidence dl { margin: 0; padding: 8px 16px 10px; display: grid; gap: 10px; background: var(--canvas); border-inline-start: 3px solid var(--mist); }
+.markup-register__evidence dt { color: var(--ink); font-weight: 700; }
+.markup-register__evidence dd { margin: 2px 0 0; }
+.markup-register__working { display: block; margin-block-start: 4px; white-space: pre-line; color: var(--ink); font-variant-numeric: tabular-nums; }
+.markup-register__unknown { margin: 8px 0 0; padding: 8px 16px 10px 32px; background: var(--orange-wash); border-inline-start: 3px solid var(--orange); color: var(--ink); }
+.markup-register__unknown li { margin-block-end: 4px; }
+.markup-register__unknown li:last-child { margin-block-end: 0; }
+
 .markup-register__actions { white-space: nowrap; }
 .markup-register__actions button { min-height: 32px; padding: 0 8px; margin-inline-start: 4px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; font-size: .78rem; }
 .markup-register__actions button:first-child { border-color: var(--teal); color: var(--teal); }

@@ -1,10 +1,13 @@
 "use client";
 
+import { Fragment } from "react";
 import {
   formatMetres,
   measurementKindLabel,
+  type MeasurementRow,
   type MeasurementSummary
 } from "@/lib/drawing-measurement";
+import type { MeasurementEvidence } from "@/lib/measurement-evidence";
 
 /**
  * ตารางรายการวัดที่จัดกลุ่มตามหน้าแบบ พร้อมสรุปรวมตามชนิด (IP-228)
@@ -14,6 +17,10 @@ import {
  *
  * คอมโพเนนต์นี้ไม่คำนวณอะไรเลย ตัวเลขทุกตัวมาจาก `summarise` ใน `src/lib/drawing-measurement.ts`
  * ซึ่งมีเทสต์เดินตรวจอยู่ ที่นี่เหลือแต่การจัดวาง
+ *
+ * **ที่มาของตัวเลขก็ไม่ได้คิดที่นี่เหมือนกัน** ผู้เรียกส่งฟังก์ชัน `evidenceFor` มาให้
+ * เพราะมันต้องรู้จักสเกลของหน้า วิธีตั้งสเกล และระยะที่แบบเขียน ซึ่งเป็นของที่หน้าแบบถืออยู่
+ * ไม่ใช่ของตาราง · ตัวกางอยู่ที่ `measurement-evidence.ts` (IP-242)
  */
 
 type Props = {
@@ -28,6 +35,8 @@ type Props = {
   filedIds: ReadonlySet<string>;
   currentPage: number;
   onGoToPage: (page: number) => void;
+  /** ขั้นตอนที่พาไปถึงตัวเลขของแถวนั้น · คืน null เมื่อกางไม่ได้ แถวนั้นจะไม่มีที่ให้กาง */
+  evidenceFor: (row: MeasurementRow) => MeasurementEvidence | null;
 };
 
 export function MeasurementRegister({
@@ -39,7 +48,8 @@ export function MeasurementRegister({
   onFile,
   filedIds,
   currentPage,
-  onGoToPage
+  onGoToPage,
+  evidenceFor
 }: Props) {
   if (summary.pages.length === 0) {
     return (
@@ -83,11 +93,13 @@ export function MeasurementRegister({
               </tr>
             </thead>
             <tbody>
-              {group.rows.map(({ measurement, value }) => {
+              {group.rows.map((row) => {
+                const { measurement, value } = row;
                 const filed = filedIds.has(measurement.id);
+                const evidence = evidenceFor(row);
                 return (
+                <Fragment key={measurement.id}>
                 <tr
-                  key={measurement.id}
                   onClick={() => onSelect(measurement.id)}
                   aria-selected={measurement.id === selectedId}
                   data-filed={filed ? "true" : undefined}
@@ -150,6 +162,36 @@ export function MeasurementRegister({
                     )}
                   </td>
                 </tr>
+                {evidence ? (
+                  <tr className="markup-register__evidence-row">
+                    <td colSpan={5}>
+                      <details className="markup-register__evidence">
+                        <summary>ที่มาของตัวเลขนี้</summary>
+                        <dl>
+                          {evidence.steps.map((step) => (
+                            <div key={step.question}>
+                              <dt>{step.question}</dt>
+                              <dd>
+                                {step.answer}
+                                {step.working ? (
+                                  <span className="markup-register__working mk__num">{step.working}</span>
+                                ) : null}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                        {evidence.openQuestions.length > 0 ? (
+                          <ul className="markup-register__unknown">
+                            {evidence.openQuestions.map((question) => (
+                              <li key={question}>{question}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </details>
+                    </td>
+                  </tr>
+                ) : null}
+                </Fragment>
                 );
               })}
             </tbody>
