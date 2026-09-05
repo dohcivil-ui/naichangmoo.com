@@ -51,7 +51,7 @@ export function BoqPanel({ lines, revisionLabel }: { lines: BoqLineView[]; revis
     <div className="workspace-panel">
       <div className="workspace-panel__title">
         <div>
-          <p className="eyebrow">BOQ</p>
+          <p className="eyebrow">บัญชีปริมาณงาน</p>
           <h2>รายการ BOQ ของประมาณราคาครั้งล่าสุด</h2>
         </div>
         <span className={lines.length > 0 ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>

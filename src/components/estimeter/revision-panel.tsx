@@ -25,7 +25,7 @@ export function RevisionPanel({ revisions }: { revisions: EstimateRevisionView[]
     <div className="workspace-panel">
       <div className="workspace-panel__title">
         <div>
-          <p className="eyebrow">ESTIMATE REVISION</p>
+          <p className="eyebrow">ผลการคำนวณ</p>
           <h2>ประมาณราคาของโครงการนี้</h2>
         </div>
         <span className={revisions.length > 0 ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>

@@ -52,7 +52,7 @@ export function PriceSetPanel({
       <div className="workspace-panel">
         <div className="workspace-panel__title">
           <div>
-            <p className="eyebrow">PRICE SET</p>
+            <p className="eyebrow">ราคาที่รับเข้ามา</p>
             <h2>บัญชีราคาของโครงการนี้</h2>
           </div>
           <span className="status-chip status-chip--attention">ยังไม่มีบัญชีราคา</span>
@@ -76,7 +76,7 @@ export function PriceSetPanel({
     <div className="workspace-panel">
       <div className="workspace-panel__title">
         <div>
-          <p className="eyebrow">PRICE SET</p>
+          <p className="eyebrow">ราคาที่รับเข้ามา</p>
           <h2>บัญชีราคาของโครงการนี้</h2>
         </div>
         <span className="status-chip status-chip--ready">รับมาแล้ว {priceSets.length} บัญชี</span>

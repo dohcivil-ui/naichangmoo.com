@@ -777,18 +777,42 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 .estimation-workspace { padding: 3.5rem 0 5rem; background: linear-gradient(180deg, #f4f8f7 0%, #fff 34%, #f5f8f8 100%); }
 .estimation-workspace__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 2rem; padding-bottom: 1.35rem; border-bottom: 1px solid #d8e5e3; }
-.estimation-workspace__head h1 { max-width: 680px; margin: .35rem 0 .6rem; color: #083a50; font-size: clamp(2rem, 4.1vw, 3.6rem); letter-spacing: -.005em; line-height: 1.28; }
-.estimation-workspace__lead { max-width: 690px; margin: 0; color: #49606b; font-size: 1.04rem; line-height: 1.75; }
-.estimation-workspace__progress { flex: 0 0 132px; border: 1px solid #b9d8d4; border-radius: 16px; padding: .9rem 1rem; background: #eff8f6; color: #0d6f70; }
-.estimation-workspace__progress span, .estimation-workspace__progress small { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-.estimation-workspace__progress strong { display: block; margin: .15rem 0; color: #083a50; font-size: 1.65rem; }
+/* ชื่อโครงการเคยเป็น h1 ขนาด clamp(2rem, 4.1vw, 3.6rem) ซึ่งวัดจริงที่ 1516px ได้ 57.6px
+   ใหญ่กว่าชื่อแอปในเปลือก (24px) อยู่ 2.4 เท่า · ตอนนี้เป็น h2 ที่เล็กกว่าชื่อแอป
+   หัวเรื่องบนหน้าจึงไล่ลงเป็นชั้น ไม่ใช่สองก้อนใหญ่ชนกัน */
+.estimation-workspace__head h2 { max-width: 680px; margin: .3rem 0 .5rem; color: var(--ink); font-size: clamp(1.5rem, 2.8vw, 2rem); letter-spacing: -.005em; line-height: 1.3; }
+/* บรรทัดวันที่ใช้ --ink-body ไม่ใช่ --muted · --muted (#5f7178) บนพื้นไล่สีตรงหัวหน้า
+   rgb(201,226,226) วัดได้ 3.77:1 ซึ่งตกเกณฑ์ ส่วน --ink-body ได้ 5.85:1 บนพื้นเดียวกัน */
+.estimation-workspace__lead { max-width: 690px; margin: 0; color: var(--ink-body); font-size: .88rem; line-height: 1.7; }
+.estimation-workspace__progress { flex: 0 0 auto; border: 1px solid var(--mist); border-radius: 16px; padding: .8rem 1rem; background: var(--paper); color: var(--teal-text); }
+/* ป้ายไทยไม่ใส่ letter-spacing กับ text-transform ที่เคยสั่งไว้ — สองอย่างนั้นเป็นของ
+   ตัวอักษรละตินตัวพิมพ์ใหญ่ ภาษาไทยไม่มีตัวพิมพ์ใหญ่ และการถ่างช่องไฟทำให้สระลอยห่างตัว */
+.estimation-workspace__progress span, .estimation-workspace__progress small { display: block; color: var(--muted); font-size: .72rem; font-weight: 700; }
+.estimation-workspace__progress strong { display: block; margin: .15rem 0; color: var(--ink); font-size: 1.35rem; font-weight: 700; }
+.estimation-workspace__num { font-family: var(--font-numeric), "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-weight: 700; }
+.workspace-foot { display: flex; margin-top: 1.4rem; }
 .workspace-notice { margin: 1.25rem 0; border-left: 3px solid #f47721; padding: .75rem 1rem; background: #fffaf5; color: #596c72; font-size: .88rem; line-height: 1.6; }
 .estimation-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; margin: 1.65rem 0; }
 .estimation-step { position: relative; min-height: 128px; display: flex; flex-direction: column; gap: .48rem; align-items: flex-start; border: 1px solid #d5e1df; border-radius: 14px; padding: .85rem; background: #fff; color: #668087; text-align: left; transition: transform 170ms var(--ease-out), border-color 170ms var(--ease-out), box-shadow 170ms var(--ease-out), background 170ms var(--ease-out); }
 .estimation-step:enabled { cursor: pointer; }.estimation-step:enabled:hover, .estimation-step:enabled:focus-visible { transform: translateY(-2px); border-color: #65aaa3; box-shadow: 0 9px 22px rgba(8,58,80,.08); outline: none; }.estimation-step:disabled { opacity: .58; cursor: not-allowed; }.estimation-step.is-active { border-color: #0d8282; background: #eff9f7; color: #093d4b; box-shadow: inset 0 0 0 1px rgba(13,130,130,.13); }.estimation-step.is-complete .estimation-step__number { background: #0d8282; color: #fff; }
 .estimation-step__number { display: grid; width: 1.9rem; height: 1.9rem; place-items: center; border-radius: 50%; background: #e8f0ef; color: #0d6f70; font-size: .76rem; font-weight: 800; }.estimation-step strong { display: block; color: inherit; font-size: .98rem; }.estimation-step small { display: block; margin-top: .07rem; color: #759096; font-size: .66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }.estimation-step em { color: #789096; font-size: .72rem; font-style: normal; line-height: 1.4; }
-.estimation-board { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; align-items: start; }.workspace-panel, .estimation-evidence { border: 1px solid #d9e5e4; border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); }.workspace-panel { min-height: 510px; padding: clamp(1.15rem, 3vw, 2rem); }
-.workspace-panel__title { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid #e4edec; }.workspace-panel__title h2 { margin: .3rem 0 0; color: #083a50; font-size: clamp(1.35rem, 2.6vw, 1.9rem); }.status-chip { display: inline-flex; white-space: nowrap; border: 1px solid #e2c392; border-radius: 99px; padding: .35rem .6rem; background: #fff9ee; color: #99631a; font-size: .72rem; font-weight: 700; }.status-chip--ready { border-color: #9fcfc7; background: #eff9f6; color: #0a6f70; }.status-chip--attention { border-color: #f1bb80; background: #fff6eb; color: #a5500b; }
+.estimation-board { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 1rem; align-items: start; }.workspace-panel, .estimation-evidence { border: 1px solid #d9e5e4; border-radius: 17px; background: #fff; box-shadow: 0 16px 35px rgba(8,58,80,.045); }/* เคยสั่ง `min-height: 510px` ไว้ ถอดออก 2026-09-05 — การ์ดที่มีข้อความสองบรรทัดจึงสูง
+   เกือบเต็มจอ วัดของจริงบนหน้าโครงการที่ 1516px ได้อากาศตายใต้เนื้อหา 303px 140px และ 326px
+   และที่ 390px หน้าเว็บสูง 4118px โดยเป็นอากาศตายราว 490px · เคยมีคนเจอแล้วเขียนทับไว้
+   เฉพาะหน้าเดียว (`.work-plan .workspace-panel { min-height: 0 }`) ซึ่งเป็นหลักฐานว่ามันผิด
+   ตั้งแต่ต้น ไม่ใช่ผิดเฉพาะหน้านั้น · เจ้าของงานเคาะให้ถอดจากคลาสกลาง 2026-09-05 */
+.workspace-panel { padding: clamp(1.15rem, 3vw, 2rem); }
+.workspace-panel__title { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid #e4edec; }/* หัวแผงเคยโตถึง 30.4px ที่ 1516px ซึ่งใหญ่กว่าชื่อโครงการที่หน้านั้นพูดถึงเสียอีก
+   ชั้นของหัวเรื่องบนหน้าหนึ่งต้องเล็กลงตามลำดับ ไม่ใช่ชั้นล่างโตกว่าชั้นบน */
+.workspace-panel__title h2 { margin: .3rem 0 0; color: var(--ink); font-size: clamp(1.15rem, 2.1vw, 1.45rem); }/* ป้ายสถานะสามโทน — ลงตามผืน `.design/shared-components/Cards.dc.html` (IP-237)
+
+   ของเดิมเป็นเลขสีดิบหกค่าที่ไม่มีอยู่ในกระปุกธีมเลยสักค่า (#e2c392 #fff9ee #99631a
+   #9fcfc7 #eff9f6 #0a6f70 ...) ซึ่งแปลว่าวันที่ธีมขยับ ป้ายสถานะไม่ขยับตาม
+   ตอนนี้ทุกค่าตักจากกระปุก และตรงกับที่ผืนออกแบบเขียนไว้พอดี
+
+   `--done` เขียว `--attention` ส้ม `--idle` เทา · ชื่อเดิม `--ready` ยังอยู่และเท่ากับ `--done`
+   เพราะมีหน้าอื่นเรียกใช้อยู่แปดจุด การเปลี่ยนชื่อไม่ได้ทำให้อะไรดีขึ้น */
+.status-chip { display: inline-flex; white-space: nowrap; border-radius: 999px; padding: .28rem .62rem; background: var(--orange-wash); color: var(--orange-text); font-size: .72rem; font-weight: 700; }.status-chip--ready, .status-chip--done { background: var(--success-wash); color: var(--success); }.status-chip--attention { background: var(--orange-wash); color: var(--orange-text); }.status-chip--idle { background: var(--canvas); color: var(--ink-body); }
 .review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1.3rem 0; }.review-grid article { display: flex; gap: .75rem; border: 1px solid #e2eceb; border-radius: 12px; padding: .95rem; background: #fbfdfd; }.review-grid__icon { display: grid; width: 2rem; height: 2rem; flex: 0 0 auto; place-items: center; border-radius: 8px; background: #e7f3f1; color: #087373; font-weight: 800; }.review-grid h3, .review-grid p { margin: 0; }.review-grid h3 { color: #153f4f; font-size: .92rem; }.review-grid p { margin-top: .3rem; color: #71878c; font-size: .78rem; line-height: 1.48; }.review-grid small { display: block; margin-top: .55rem; color: #0b7777; font-size: .66rem; font-weight: 700; }
 .workspace-callout, .workspace-split { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border-top: 1px solid #e4edec; padding-top: 1.15rem; }.workspace-callout strong, .workspace-split strong { color: #123e4e; font-size: .9rem; }.workspace-callout p, .workspace-split p { max-width: 570px; margin: .25rem 0 0; color: #70858b; font-size: .8rem; line-height: 1.5; }
 .takeoff-table-wrap { overflow-x: auto; margin: 1.25rem 0; border: 1px solid #e1ebea; border-radius: 12px; }.takeoff-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: .83rem; }.takeoff-table th { padding: .72rem .8rem; background: #f2f7f6; color: #5f7a80; font-size: .67rem; letter-spacing: .08em; text-align: left; text-transform: uppercase; }.takeoff-table td { padding: .82rem .8rem; border-top: 1px solid #e8efee; color: var(--ink-body); }.takeoff-table code { color: #0b7777; font-family: inherit; font-size: .72rem; font-weight: 800; }.number-cell { color: var(--ink) !important; font-variant-numeric: tabular-nums; font-weight: 700; text-align: right; }.evidence-link { color: #0b7777; border-bottom: 1px dashed #85bcb6; font-size: .75rem; font-weight: 600; }
@@ -857,8 +881,17 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    เรนเดอร์จริงตรงสูตรทุกจุด — บทเรียนคือ **อ่านข้อความในสไตล์ชีตไม่ใช่การวัด
    ต้องอ่านค่าที่คำนวณแล้วบน element จริง**
 
-   ค่าตรงตรงนี้จึงคงไว้เพราะมันทำงานถูกอยู่แล้ว ไม่ใช่เพราะ color-mix ใช้ไม่ได้ */
-.estimation-workspace .eyebrow { color: rgb(12, 120, 123); }
+   ค่าตรงตรงนี้จึงคงไว้เพราะมันทำงานถูกอยู่แล้ว ไม่ใช่เพราะ color-mix ใช้ไม่ได้
+
+   **แก้ต่อ 2026-09-05 (รอบสอง) — ค่าเดิม 4.96:1 วัดผิดพื้น** ทุกครั้งที่ผ่านมาวัดบน
+   **พื้นการ์ดสีขาว** แต่คำนำหัวตัวแรกของหน้าไม่ได้อยู่บนการ์ด มันอยู่บนหัวหน้าซึ่งนั่งทับ
+   วงไล่สีของพื้นเว็บพอดี · คำนวณสีจริงของพื้นตรงนั้นจากค่า `background-image` ของ body
+   ที่เบราว์เซอร์คืนมา (วงแรก 48vw 74vh ที่ 6% 20% สีเต็มถึงระยะ 24% และหัวหน้าอยู่ที่
+   ระยะ 0.24 พอดี) ได้พื้น rgb(201,226,226) · rgb(12,120,123) บนพื้นนั้นวัดได้ **3.88:1
+   ซึ่งตกเกณฑ์** ส่วน var(--teal-deep) ได้ 4.71:1 บนพื้นเดียวกัน และ 6.40:1 บนพื้นการ์ด
+   จึงผ่านทั้งสองที่ด้วยสีเดียว · บทเรียนคือ **พื้นที่ใช้วัดต้องเป็นพื้นที่ตัวหนังสือนั้นนั่งอยู่จริง
+   ไม่ใช่พื้นของพี่น้องมันที่อยู่คนละบล็อก** */
+.estimation-workspace .eyebrow { color: var(--teal-deep); }
 
 /* แท็บสี่อันเป็นชิปกระจก — แก้ที่กฎเดิมของแท็บด้านล่างโดยตรง ไม่เขียนกฎซ้อนทับตรงนี้
    เพราะกฎเดิมอยู่ล่างกว่าในไฟล์ กฎซ้อนที่นี่จะแพ้ทุกครั้งโดยไม่มีอะไรเตือน (เจอมาแล้วรอบนี้)
@@ -952,6 +985,33 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .preflight-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0 1.3rem; }.preflight-grid article { display: flex; gap: .72rem; border: 1px solid #e2eceb; border-radius: 12px; padding: .9rem; background: #fcfdfd; }.preflight-grid h3, .preflight-grid p { margin: 0; }.preflight-grid h3 { color: #153f4f; font-size: .9rem; }/* #71878c บนพื้น #fcfdfd วัดได้ 3.72:1 ซึ่งตกเกณฑ์ AA 4.5 — เจอตอนไล่ตรวจ 2026-09-05
    --muted บนพื้นเดียวกันได้ 4.62 และเป็นสีที่ทั้งเว็บใช้กับคำอธิบายอยู่แล้ว */
 .preflight-grid p { margin-top: .26rem; color: var(--muted); font-size: .76rem; line-height: 1.45; }.preflight-grid small { display: block; margin-top: .5rem; color: #0b7777; font-size: .65rem; font-weight: 700; }.preflight-grid .button { margin-top: .55rem; }.calibration-check { margin-top: .6rem; border: 1px dashed #5fa9a1; border-radius: 7px; padding: .38rem .45rem; background: #fff; color: #0b7273; cursor: pointer; font-size: .69rem; font-weight: 700; }.calibration-check.is-confirmed { border-style: solid; background: #e9f7f3; color: #12634e; }
+/* การ์ดขั้นงาน — ลงตามผืน `.design/shared-components/Cards.dc.html` (IP-237)
+
+   **ทำไมเป็นคลาสใหม่ ไม่ใช่แก้ `.preflight-grid` ที่มีอยู่** ตัวเดิมยังถูกใช้ในหน้าถอดปริมาณ
+   ด้วยการ์ดสามใบคนละเรื่องกัน การแก้ตัวเดิมจึงเปลี่ยนหน้านั้นไปด้วยโดยไม่มีใครสั่ง
+   คลาสใหม่กระทบเฉพาะที่ที่เรียกมันจริง
+
+   **สี่ช่องเรียงแถวเดียว** เจ้าของงานเคาะ 2026-09-05 · ของเดิมสั่งสามช่องตายตัวแล้วใส่ของ
+   สี่ชิ้น ขั้นที่สี่จึงตกไปอยู่คนเดียวบนแถวสองทุกความกว้างตั้งแต่ 721px ขึ้นไป
+   ซึ่งอ่านเป็นลำดับงานที่ซ้ายไปขวาแล้วขาดตอน ไม่ใช่สี่ขั้นที่ต่อกัน
+
+   ค่าสีทุกค่าตักจากกระปุกธีม ไม่มีเลขสีดิบ — เลขบนผืนออกแบบตรงกับ token อยู่แล้วทุกตัว
+   (#ffffff คือ --paper, #d8e4e4 คือ --mist, #073047 คือ --ink, #5f7178 คือ --muted) */
+.stage-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0 1.3rem; }
+.stage-card { display: grid; align-content: start; gap: 7px; border: 1px solid var(--mist); border-radius: 16px; padding: 16px; background: var(--paper); box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); }
+/* ขั้นที่กำลังทำอยู่บอกด้วยขอบส้มอย่างเดียว ไม่เปลี่ยนพื้นและไม่ขยายการ์ด
+   เพราะการ์ดในแถวเดียวกันต้องสูงเท่ากัน (คำกำกับที่เขียนไว้บนผืนออกแบบ) */
+.stage-card--current { border-color: var(--orange); }
+.stage-card__n { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: var(--teal-wash); color: var(--teal-text); font-family: var(--font-numeric), "IBM Plex Sans Thai", "Noto Sans Thai", Arial, sans-serif; font-size: .75rem; font-weight: 700; }
+.stage-card h3 { margin: 0; color: var(--ink); font-size: .94rem; font-weight: 700; line-height: 1.35; }
+.stage-card p { margin: 0; color: var(--muted); font-size: .81rem; line-height: 1.5; }
+/* ป้ายในการ์ดตัดบรรทัดได้ ต่างจากป้ายในหัวแผงที่นั่งอยู่บนแถวเดียวกับหัวเรื่อง
+   ป้ายที่ห้ามตัดบรรทัดในกล่องแคบ ๆ คือป้ายที่ล้นออกนอกขอบการ์ดไปเงียบ ๆ */
+.stage-card .status-chip { justify-self: start; max-width: 100%; white-space: normal; }
+.stage-card .button { justify-self: start; margin-top: 5px; }
+@media (max-width: 1000px) { .stage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .stage-grid { grid-template-columns: 1fr; } }
+
 .prelim-boq-note, .price-set-gate { display: flex; justify-content: space-between; gap: 1rem; align-items: center; border: 1px solid #e9d2a9; border-radius: 11px; padding: .85rem .95rem; background: #fffaf2; }.prelim-boq-note strong, .price-set-gate strong { color: #7c541f; font-size: .8rem; }.prelim-boq-note p, .price-set-gate p { margin: .18rem 0 0; color: #7b6f60; font-size: .74rem; line-height: 1.45; }.price-set-gate { margin: 1rem 0; border-color: #bedbd7; background: #f4fbf9; }.price-set-gate strong { color: #145b5e; }.price-set-gate p { color: #638086; }
 /* กฎ opacity .48 กับ saturate .25 ของเดิมถูกถอดออก 2026-09-05 — มันกดคอนทราสต์ของตัวหนังสือ
    ลงไปพร้อมกับพื้น สภาพ "กดไม่ได้" ของปุ่มย้ายไปอยู่ในกฎกลางข้างบนซึ่งใช้สีทึบแทน */
@@ -1309,7 +1369,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .work-plan__tab-number { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--mist); color: var(--ink); font-size: .68rem; font-weight: 800; }
 .work-plan__tab.is-active .work-plan__tab-number { background: var(--paper); color: var(--teal); }
 
-.work-plan .workspace-panel { min-height: 0; margin-bottom: 1rem; }
+/* `min-height: 0` ที่เคยอยู่ตรงนี้ถูกถอดออกพร้อมกับ min-height ของคลาสกลาง 2026-09-05
+   ของที่เขียนไว้เพื่อล้างกฎที่ไม่มีแล้ว คือกฎที่อ่านแล้วเข้าใจผิดว่ายังมีอะไรให้ล้าง */
+.work-plan .workspace-panel { margin-bottom: 1rem; }
 .work-plan__form { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 1.1rem; }
 .work-plan__form > label { margin-top: 0; }
 .work-plan__form-wide { grid-column: 1 / -1; }

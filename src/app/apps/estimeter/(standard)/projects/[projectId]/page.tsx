@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { BoqPanel } from "@/components/estimeter/boq-panel";
@@ -14,6 +15,7 @@ import { formatThaiDateTime } from "@/lib/thai-format";
 import { resolveEstimeterContext } from "@/server/estimeter/context";
 import { getProject } from "@/server/estimeter/project-repository";
 import { getOpenManualRun, listManualRuns, listRunItems } from "@/server/estimeter/takeoff-repository";
+import { summarizeDrawingProgress } from "@/server/estimeter/drawing-repository";
 import { Button } from "@/components/platform/button";
 
 export default async function EstimeterProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -52,13 +54,55 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
     linesBySet[set.id] = priceSetLines[index];
   });
 
-  const takeoffStatus = openRun
-    ? `กำลังทำงาน · ${items.length} รายการ ยืนยันแล้ว ${summary.reduce((total, row) => total + row.itemCount, 0)}`
-    : closedRuns.length > 0
-      ? `ปิดรอบแล้ว ${closedRuns.length} รอบ`
-      : "ยังไม่เริ่ม";
+  /**
+   * ความคืบหน้าของแบบ อ่านจากฐานจริง ไม่ใช่ข้อความที่เขียนตายไว้
+   *
+   * สถานะของขั้นสองเคยเป็นประโยคที่คนพิมพ์ทิ้งไว้ ("เปิดใช้งานแล้ว · สเกลและรอยวัดเก็บใน
+   * ระบบ แต่ไฟล์แบบยังต้องเปิดจากเครื่องทุกครั้ง") ซึ่งเป็นคำอธิบายว่าระบบทำอะไรได้
+   * ไม่ใช่สถานะของโครงการใบนี้ · มันเลยพูดเหมือนกันหมดทุกโครงการ ทั้งใบที่ยังไม่เคยเปิดแบบ
+   * และใบที่ยืนยันสเกลไปแล้วสิบหน้า `summarizeDrawingProgress` ตอบเรื่องนี้ได้อยู่แล้ว
+   * และหน้าแรกของแอปก็อ่านจากตัวเดียวกันนี้
+   */
+  const drawings = await summarizeDrawingProgress(organizationId, project.id);
 
-  const stages = [
+  /**
+   * ป้ายสถานะบนการ์ดต้องสั้น — มันคือคำบอกสถานะ ไม่ใช่ประโยคอธิบาย
+   *
+   * ของเดิมยาวถึง "ยังไม่มีบัญชีราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้" ซึ่งพอกลาย
+   * เป็นป้ายทรงแคปซูลที่ห้ามตัดบรรทัด มันล้นออกนอกขอบการ์ดไปทางขวา · คำแนะนำยาว ๆ
+   * มีที่อยู่ของมันอยู่แล้วในแผงข้างล่างที่พูดเรื่องเดียวกัน
+   *
+   * เลขทุกตัวห่อด้วย `estimation-workspace__num` เพราะฟอนต์หลักของเว็บคือ Prompt
+   * ซึ่งไม่มีชุดตัวเลขที่กว้างเท่ากัน ป้ายที่มีเลขจึงต้องยืมฟอนต์ตัวเลขของระบบมาใช้
+   */
+  const num = (value: number) => <b className="estimation-workspace__num">{value}</b>;
+
+  const takeoffStatus = openRun ? (
+    <>กำลังทำ {num(items.length)} รายการ</>
+  ) : closedRuns.length > 0 ? (
+    <>ปิดรอบแล้ว {num(closedRuns.length)} รอบ</>
+  ) : (
+    "ยังไม่เริ่ม"
+  );
+
+  /**
+   * สถานะของขั้นหนึ่งขั้น มีสามค่าเท่านั้น ตามป้ายสามโทนบนผืนออกแบบ
+   *
+   * `doing` คือขั้นที่เริ่มแล้วแต่ยังไม่จบ ส่วนขั้นที่ยังไม่เริ่มเป็น `idle` · การ์ดที่มีขอบส้ม
+   * คือขั้นแรกที่ยังไม่ `done` ซึ่งไม่จำเป็นต้องเป็นขั้นเดียวกับที่มีสถานะ `doing`
+   * เช่นคนที่เปิดแบบไว้แล้วแต่ยังไม่ตั้งสเกล ขั้นสองเป็นทั้ง `doing` และเป็นขั้นที่ค้างอยู่
+   */
+  type StageState = "done" | "doing" | "idle";
+
+  const stages: {
+    id: number;
+    label: string;
+    note: string;
+    state: StageState;
+    status: ReactNode;
+    href?: string;
+    linkLabel?: string;
+  }[] = [
     /**
      * ชื่อขั้นเป็นประโยคที่บอกว่าต้องทำอะไร ไม่ใช่คำนามสามคำต่อกัน (เจ้าของงานเคาะ 2026-09-04)
      *
@@ -71,6 +115,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
       id: 1,
       label: "ตั้งค่าโครงการ",
       note: "ใส่ชื่อโครงการ ชื่อผู้ประมาณราคา และประเภทงาน",
+      state: "done",
       status: "เสร็จแล้ว"
     },
     {
@@ -83,37 +128,77 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
       id: 2,
       label: "เปิดแบบและยืนยันสเกล",
       note: "ตั้งสเกลของหน้า แล้ววัดบนแบบพร้อมเก็บหลักฐาน",
-      status: "เปิดใช้งานแล้ว · สเกลและรอยวัดเก็บในระบบ แต่ไฟล์แบบยังต้องเปิดจากเครื่องทุกครั้ง",
+      state: drawings.calibratedPages > 0 ? "done" : drawings.documentCount > 0 ? "doing" : "idle",
+      status:
+        drawings.calibratedPages > 0 ? (
+          <>ยืนยันสเกลแล้ว {num(drawings.calibratedPages)} หน้า</>
+        ) : drawings.documentCount > 0 ? (
+          "เปิดแบบแล้ว ยังไม่ยืนยันสเกล"
+        ) : (
+          "ยังไม่ได้เปิดแบบ"
+        ),
       href: `/apps/estimeter/projects/${project.id}/markup`,
       linkLabel: "เปิดหน้าแบบ"
     },
-    { id: 3, label: "ถอดปริมาณพร้อมหลักฐาน", note: "หน่วย ปริมาณ และที่มาของการวัด", status: takeoffStatus },
+    {
+      id: 3,
+      label: "ถอดปริมาณพร้อมหลักฐาน",
+      note: "หน่วย ปริมาณ และที่มาของการวัด",
+      state: closedRuns.length > 0 ? "done" : openRun ? "doing" : "idle",
+      status: takeoffStatus
+    },
     {
       id: 4,
       label: "ประมาณราคาและสรุป BOQ",
       note: "บัญชีราคาที่รับมา และเอกสาร",
+      state: revisions.length > 0 ? "done" : priceSets.length > 0 ? "doing" : "idle",
       status:
-        priceSets.length > 0
-          ? `รับบัญชีราคาแล้ว ${priceSets.length} บัญชี · ${priceSets.reduce((total, set) => total + set.lineCount, 0)} บรรทัด · ${revisions.length > 0 ? `ออกประมาณราคาแล้ว ${revisions.length} ครั้ง` : "ยังไม่ได้ออกประมาณราคา"}`
-          : "ยังไม่มีบัญชีราคา · หยิบราคาจากแอปราคาวัสดุแล้วส่งเข้ามาได้"
+        revisions.length > 0 ? (
+          <>ออกประมาณราคาแล้ว {num(revisions.length)} ครั้ง</>
+        ) : priceSets.length > 0 ? (
+          <>รับบัญชีราคาแล้ว {num(priceSets.length)} บัญชี</>
+        ) : (
+          "ยังไม่มีบัญชีราคา"
+        )
     }
   ];
+
+  /**
+   * ขั้นที่ค้างอยู่ คือขั้นแรกที่ยังไม่ `done` — ไม่ใช่เลขที่เขียนตายไว้
+   *
+   * ของเดิมกล่องความคืบหน้าตอบได้แค่ "1 / 4" กับ "3 / 4" เพราะดูแค่ว่ามีรอบถอดปริมาณไหม
+   * โครงการที่เปิดแบบและยืนยันสเกลไปแล้วจึงยังขึ้นว่าอยู่ขั้นหนึ่ง ทั้งที่ทำขั้นสองจบไปแล้ว
+   */
+  const currentIndex = stages.findIndex((stage) => stage.state !== "done");
+  const currentStage = currentIndex === -1 ? null : stages[currentIndex];
+  const doneCount = stages.filter((stage) => stage.state === "done").length;
 
   return (
     <section className="estimation-workspace">
       <div className="container">
+        {/*
+          ชื่อโครงการเป็น h2 ไม่ใช่ h1 — เปลือกของแอปวาง h1 ไว้แล้วหนึ่งตัวคือชื่อแอป
+          (`app-identity` ใน AppShell) หน้านี้เคยวาง h1 ตัวที่สองทับลงไปด้วยขนาด 57.6px
+          ซึ่งใหญ่กว่าชื่อแอปที่ 24px อยู่ 2.4 เท่า อ่านเป็นหัวเรื่องสองชั้นที่ชนกันเอง
+          และทำให้หน้าเดียวมี h1 สองตัว ซึ่งโปรแกรมอ่านหน้าจอไล่โครงเรื่องไม่ถูก
+          คำกำกับใน AppShell เขียนเตือนเรื่องนี้ไว้เองตั้งแต่ต้นว่า "two large headings
+          stacked read as a layout mistake rather than as a hierarchy"
+        */}
         <header className="estimation-workspace__head">
           <div>
-            <p className="eyebrow">PROJECT · {project.workType === "building" ? "งานอาคาร" : project.workType}</p>
-            <h1>{project.name}</h1>
+            <p className="eyebrow">โครงการ · {project.workType === "building" ? "งานอาคาร" : project.workType}</p>
+            <h2>{project.name}</h2>
             <p className="estimation-workspace__lead">
               สร้างเมื่อ {formatThaiDateTime(project.createdAt)} · แก้ไขล่าสุด {formatThaiDateTime(project.updatedAt)}
             </p>
           </div>
           <div className="estimation-workspace__progress" aria-label="ความคืบหน้าของโครงการ">
-            <span>WORKFLOW</span>
-            <strong>{openRun || closedRuns.length > 0 ? "3 / 4" : "1 / 4"}</strong>
-            <small>{openRun || closedRuns.length > 0 ? "ถอดปริมาณ" : "ตั้งค่าโครงการ"}</small>
+            <span>ความคืบหน้า</span>
+            <strong>
+              <b className="estimation-workspace__num">{doneCount}</b> จาก{" "}
+              <b className="estimation-workspace__num">{stages.length}</b>
+            </strong>
+            <small>{currentStage ? `ค้างอยู่ที่ ${currentStage.label}` : "ครบทุกขั้นแล้ว"}</small>
           </div>
         </header>
 
@@ -126,28 +211,33 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
         <div className="workspace-panel">
           <div className="workspace-panel__title">
             <div>
-              <p className="eyebrow">WORKFLOW STATUS</p>
+              <p className="eyebrow">ภาพรวม</p>
               <h2>ลำดับงานของโครงการนี้</h2>
             </div>
-            <span className={summary.length > 0 ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>
+            <span className={summary.length > 0 ? "status-chip status-chip--done" : "status-chip status-chip--attention"}>
               {summary.length > 0 ? "มีปริมาณที่ยืนยันแล้ว" : "ยังไม่มีปริมาณที่ยืนยัน"}
             </span>
           </div>
 
-          <div className="preflight-grid">
-            {stages.map((stage) => (
-              <article key={stage.id}>
-                <span className="review-grid__icon">{stage.id}</span>
-                <div>
-                  <h3>{stage.label}</h3>
-                  <p>{stage.note}</p>
-                  <small>{stage.status}</small>
-                  {/* ขั้นที่มีหน้าจอของตัวเองต้องเข้าถึงได้จากการ์ด ไม่ใช่ให้ผู้ใช้เดา URL เอง */}
-                  {stage.href ? (
-                    <Button tone="quiet" href={stage.href} arrow>
-                      {stage.linkLabel}</Button>
-                  ) : null}
-                </div>
+          <div className="stage-grid">
+            {stages.map((stage, index) => (
+              <article
+                key={stage.id}
+                className={index === currentIndex ? "stage-card stage-card--current" : "stage-card"}
+              >
+                <span className="stage-card__n">{stage.id}</span>
+                <h3>{stage.label}</h3>
+                <p>{stage.note}</p>
+                <span
+                  className={`status-chip status-chip--${stage.state === "done" ? "done" : stage.state === "doing" ? "attention" : "idle"}`}
+                >
+                  {stage.status}
+                </span>
+                {/* ขั้นที่มีหน้าจอของตัวเองต้องเข้าถึงได้จากการ์ด ไม่ใช่ให้ผู้ใช้เดา URL เอง */}
+                {stage.href ? (
+                  <Button tone="quiet" href={stage.href} arrow>
+                    {stage.linkLabel}</Button>
+                ) : null}
               </article>
             ))}
           </div>
@@ -231,8 +321,10 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
          * ยังอยู่ครบพร้อมเทสต์ ถอดแค่การแสดงผลบนหน้านี้ กลับมาเปิดใหม่ได้ถ้าเขาสั่ง
          */}
 
-        <div className="hero__actions">
-          <Button tone="primary" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Button>
+        {/* เคยห่อด้วย `hero__actions` ซึ่งเป็นคลาสของแถบปุ่มบนหน้าขาย ไม่ใช่หน้าทำงาน
+            คลาสที่ยืมมาจากหน้าคนละชนิด คือทางที่หน้าสองหน้าเริ่มขยับตามกันโดยไม่มีใครตั้งใจ */}
+        <div className="workspace-foot">
+          <Button tone="quiet" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Button>
         </div>
       </div>
     </section>
