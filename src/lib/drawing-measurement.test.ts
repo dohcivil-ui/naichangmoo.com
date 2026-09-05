@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   distanceToSegment,
   hitTest,
+  hitTestSegments,
   isComplete,
   isMeasurementKind,
   measure,
@@ -271,5 +272,39 @@ describe("เรขาคณิตที่การเลือกใช้", (
     const to = { x: 10, y: 0 };
     expect(distanceToSegment({ x: 5, y: 3 }, from, to)).toBeCloseTo(3, 6);
     expect(distanceToSegment({ x: 14, y: 0 }, from, to)).toBeCloseTo(4, 6);
+  });
+});
+
+describe("เลือกเส้นอ้างอิง ระยะที่แบบเขียนและแนวเสา (IP-235)", () => {
+  const horizontal = { id: "dim", a: { x: 0, y: 0 }, b: { x: 100, y: 0 } };
+  const vertical = { id: "grid", a: { x: 50, y: -40 }, b: { x: 50, y: 40 } };
+
+  it("คลิกบนเส้นแล้วได้เส้นนั้น", () => {
+    expect(hitTestSegments([horizontal], { x: 40, y: 0 }, 4)).toBe("dim");
+  });
+
+  it("คลิกห่างเกินระยะผ่อนผันไม่โดน แม้จะอยู่ในแนวเดียวกัน", () => {
+    expect(hitTestSegments([horizontal], { x: 40, y: 5 }, 4)).toBeNull();
+    expect(hitTestSegments([horizontal], { x: 40, y: 3.9 }, 4)).toBe("dim");
+  });
+
+  it("คลิกเลยปลายเส้นไม่โดน เพราะเป็นส่วนของเส้น ไม่ใช่เส้นที่ยาวไม่สิ้นสุด", () => {
+    expect(hitTestSegments([horizontal], { x: 140, y: 0 }, 4)).toBeNull();
+  });
+
+  it("เส้นที่วางทีหลังชนะ เพราะมันอยู่บนสุดในสายตาผู้ใช้", () => {
+    // สองเส้นตัดกันที่ (50,0) จุดเดียวกันจึงอยู่ในระยะผ่อนผันของทั้งคู่
+    expect(hitTestSegments([horizontal, vertical], { x: 50, y: 0 }, 4)).toBe("grid");
+    expect(hitTestSegments([vertical, horizontal], { x: 50, y: 0 }, 4)).toBe("dim");
+  });
+
+  it("ไม่มีเส้นเลยได้ null ไม่ใช่พัง", () => {
+    expect(hitTestSegments([], { x: 0, y: 0 }, 4)).toBeNull();
+  });
+
+  it("เส้นที่ยาวเป็นศูนย์วัดจากจุดนั้นตรง ๆ ไม่หารด้วยศูนย์", () => {
+    const dot = { id: "dot", a: { x: 10, y: 10 }, b: { x: 10, y: 10 } };
+    expect(hitTestSegments([dot], { x: 12, y: 10 }, 4)).toBe("dot");
+    expect(hitTestSegments([dot], { x: 20, y: 10 }, 4)).toBeNull();
   });
 });

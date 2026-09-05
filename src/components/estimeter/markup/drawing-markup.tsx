@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MeasurementRegister } from "@/components/estimeter/markup/measurement-register";
 import {
   hitTest,
+  hitTestSegments,
   isMeasurementKind,
   measure,
   minimumPoints,
@@ -403,6 +404,17 @@ export function DrawingMarkup({
   const [dimensionUnit, setDimensionUnit] = useState<ScaleUnit>("m");
   const [dimensionError, setDimensionError] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  /**
+   * เส้นอ้างอิงที่เลือกอยู่ — ระยะที่แบบเขียน หรือแนวเสา (IP-235)
+   *
+   * **แยกจาก `selectedId` โดยตั้งใจ** ไม่ใช่ยัดสองอย่างลงตัวแปรเดียวแล้วค่อยไปค้นว่าไอดีนี้
+   * เป็นของอะไร เพราะทุกที่ที่อ่าน `selectedId` อยู่แล้ว (แผงรายการ ป้ายบนรูป เส้นหนา)
+   * ตั้งอยู่บนสมมติฐานว่ามันคือรายการวัด การเปลี่ยนความหมายของมันคือการต้องไล่แก้ทุกจุดนั้น
+   *
+   * ก่อนหน้านี้เส้นสองชนิดนี้เลือกไม่ได้เลย ลบก็ไม่ได้ ทางเดียวคือกด Ctrl+Z ย้อนไปเรื่อย ๆ
+   * ซึ่งลบของที่ทำถูกไปด้วยทั้งหมดที่ทำหลังจากนั้น
+   */
+  const [selectedGuide, setSelectedGuide] = useState<{ kind: "dimension" | "gridline"; id: string } | null>(null);
 
   /**
    * รูปห้องที่เพิ่งไล่ได้ ยังไม่เข้ารายการวัดจนกว่าคนจะกดยืนยัน
@@ -540,6 +552,7 @@ export function DrawingMarkup({
       setPendingDimension(null);
       setPendingRefStart(null);
       setSelectedId(null);
+      setSelectedGuide(null);
       setDocumentId(null);
       lastSavedRef.current = {};
       lastMarksSavedRef.current = {};
@@ -1191,8 +1204,32 @@ export function DrawingMarkup({
     if (panning.moved || tool !== "select" || event.button !== 0) return;
     const raw = toPagePoint(event.clientX, event.clientY);
     if (!raw) return;
+    const tolerance = HIT_RADIUS_PX / view.scale;
     const onThisPage = measurements.filter((item) => item.page === page);
-    setSelectedId(hitTest(onThisPage, raw, HIT_RADIUS_PX / view.scale));
+    const mark = hitTest(onThisPage, raw, tolerance);
+    if (mark) {
+      setSelectedId(mark);
+      setSelectedGuide(null);
+      return;
+    }
+
+    /*
+     * ลำดับ: รายการวัด แล้วระยะที่แบบเขียน แล้วแนวเสา
+     *
+     * รายการวัดมาก่อนเพราะมันคืองานของผู้ใช้ ส่วนอีกสองอย่างเป็นเส้นอ้างอิงที่พาดผ่านทั้งหน้า
+     * ถ้าให้แนวเสาชนะ การคลิกในห้องที่มีแนวเสาพาดจะเลือกแนวเสาแทนห้อง ทุกครั้ง
+     * และระยะที่แบบเขียนมาก่อนแนวเสาเพราะมันสั้นกว่า เจาะจงกว่า และมีตัวเลขติดอยู่
+     */
+    const dimension = hitTestSegments(dimensions.filter((item) => item.page === page), raw, tolerance);
+    if (dimension) {
+      setSelectedId(null);
+      setSelectedGuide({ kind: "dimension", id: dimension });
+      return;
+    }
+
+    const gridline = hitTestSegments(gridLines.filter((line) => line.page === page), raw, tolerance);
+    setSelectedId(null);
+    setSelectedGuide(gridline ? { kind: "gridline", id: gridline } : null);
   }
 
   function handleWheel(event: React.WheelEvent<HTMLDivElement>) {
@@ -1303,6 +1340,7 @@ export function DrawingMarkup({
     if (!pendingRoom) return;
     commit([...measurements, pendingRoom]);
     setSelectedId(pendingRoom.id);
+    setSelectedGuide(null);
     setPendingRoom(null);
   }
 
@@ -1330,6 +1368,7 @@ export function DrawingMarkup({
     };
     commit([...measurements, created]);
     setSelectedId(created.id);
+    setSelectedGuide(null);
     setDraft([]);
   }
 
@@ -1383,6 +1422,51 @@ export function DrawingMarkup({
     setTool(next);
   }
 
+  /**
+   * เส้นระยะเส้นนี้ คือเส้นที่ตั้งสเกลของหน้านี้ไว้หรือเปล่า (IP-235)
+   *
+   * `references[page]` เก็บ **สำเนา** ของปลายทั้งสองกับระยะจริง ไม่ได้ชี้ด้วยไอดี
+   * สเกลของหน้าจึงไม่ผูกกับแถวระยะจริง และการลบเส้นไม่ทำให้สเกลเปลี่ยนหรือหาย
+   * ซึ่งถูกแล้ว เพราะรอยวัดทุกอันที่วัดไปแล้วคูณด้วยสเกลตัวนั้นไปเรียบร้อย
+   *
+   * แต่คนใช้ต้องรู้ก่อนกด ว่าเส้นที่กำลังจะลบคือหลักฐานว่าสเกลมาจากไหน ลบแล้วเลขยังเท่าเดิม
+   * แต่จะไม่มีอะไรบนแบบบอกว่าเลขนั้นมาจากช่วงไหน
+   */
+  function isScaleWitness(item: StatedDimension): boolean {
+    const held = references[item.page]?.reference;
+    if (!held) return false;
+    const samePoint = (one: PagePoint, two: PagePoint) => one.x === two.x && one.y === two.y;
+    return (
+      samePoint(held.a, item.a) &&
+      samePoint(held.b, item.b) &&
+      held.unit === "m" &&
+      held.realDistance === item.valueM
+    );
+  }
+
+  const selectedDimension = selectedGuide?.kind === "dimension"
+    ? dimensions.find((item) => item.id === selectedGuide.id) ?? null
+    : null;
+  const selectedGridLine = selectedGuide?.kind === "gridline"
+    ? namedGridLines.find((line) => line.id === selectedGuide.id) ?? null
+    : null;
+
+  /**
+   * ลบเส้นอ้างอิงที่เลือกอยู่
+   *
+   * ผ่าน `commitWork` เหมือนทุกการเปลี่ยนแปลง จึงกด Ctrl+Z คืนได้ และ effect ที่เฝ้ากริด
+   * กับระยะจริงจะเห็นการเปลี่ยนแล้วเซฟลงฐานเอง ไม่ต้องเรียกเซฟตรงนี้
+   */
+  function removeSelectedGuide() {
+    if (!selectedGuide) return;
+    if (selectedGuide.kind === "dimension") {
+      commitWork({ dimensions: dimensions.filter((item) => item.id !== selectedGuide.id) });
+    } else {
+      commitWork({ gridLines: gridLines.filter((line) => line.id !== selectedGuide.id) });
+    }
+    setSelectedGuide(null);
+  }
+
   // คีย์ลัด — ตัวอักษรเดี่ยว ตัวเลข และ Escape เท่านั้น จึงไม่ชนคีย์ลัดของเบราว์เซอร์
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -1400,6 +1484,19 @@ export function DrawingMarkup({
           event.preventDefault();
           finish();
         }
+        return;
+      }
+      /*
+       * Delete และ Backspace ลบเส้นอ้างอิงที่เลือกอยู่ (IP-235)
+       *
+       * ไม่แตะรายการวัด เพราะรายการที่ส่งเข้าถอดปริมาณแล้วลบจากหน้านี้ไม่ได้ตามสเปก IP-234
+       * การให้ปุ่มเดียวลบได้ทั้งสองอย่างจะทำให้บางครั้งลบได้บางครั้งไม่ได้โดยไม่มีคำอธิบาย
+       * รายการวัดมีปุ่มลบของตัวเองในแผงขวาอยู่แล้ว ซึ่งบอกเหตุผลได้เมื่อลบไม่ได้
+       */
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (!selectedGuide) return;
+        event.preventDefault();
+        removeSelectedGuide();
         return;
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
@@ -2058,13 +2155,24 @@ export function DrawingMarkup({
                 */}
                 {namedGridLines.map((line) => (
                   <g key={line.id}>
+                    {/* เส้นใสหนากว่าเดิม วางใต้เส้นจริง เพื่อให้นิ้วบนแท็บเล็ตแตะโดนได้
+                        โดยที่เส้นที่ตาเห็นยังบางเท่าเดิม — ระยะผ่อนผันของการคลิกอยู่ที่
+                        `HIT_RADIUS_PX` ซึ่งเป็นตัวเลขเดียวกัน ไม่ใช่คนละค่ากับที่ตาเห็น */}
                     <line
                       x1={line.a.x}
                       y1={line.a.y}
                       x2={line.b.x}
                       y2={line.b.y}
-                      stroke="var(--muted)"
-                      strokeWidth={stroke(1)}
+                      stroke="transparent"
+                      strokeWidth={stroke(HIT_RADIUS_PX)}
+                    />
+                    <line
+                      x1={line.a.x}
+                      y1={line.a.y}
+                      x2={line.b.x}
+                      y2={line.b.y}
+                      stroke={selectedGuide?.id === line.id ? "var(--orange)" : "var(--muted)"}
+                      strokeWidth={stroke(selectedGuide?.id === line.id ? 2.4 : 1)}
                       strokeDasharray={`${stroke(14)} ${stroke(4)} ${stroke(2)} ${stroke(4)}`}
                     />
                     <circle
@@ -2072,8 +2180,8 @@ export function DrawingMarkup({
                       cy={line.a.y}
                       r={stroke(9)}
                       fill="var(--paper)"
-                      stroke="var(--muted)"
-                      strokeWidth={stroke(1)}
+                      stroke={selectedGuide?.id === line.id ? "var(--orange)" : "var(--muted)"}
+                      strokeWidth={stroke(selectedGuide?.id === line.id ? 2 : 1)}
                     />
                     <text
                       x={line.a.x}
@@ -2106,15 +2214,37 @@ export function DrawingMarkup({
                     const middle = { x: (item.a.x + item.b.x) / 2, y: (item.a.y + item.b.y) / 2 };
                     const gap = dimensionDisagreement(item, pageScale);
                     const drifted = gap !== null && Math.abs(gap.differenceM) >= 0.005;
+                    const picked = selectedGuide?.id === item.id;
                     return (
                       <g key={item.id}>
+                        {/* เส้นใสสำหรับให้แตะโดน เหตุผลเดียวกับแนวเสา */}
+                        <line
+                          x1={item.a.x}
+                          y1={item.a.y}
+                          x2={item.b.x}
+                          y2={item.b.y}
+                          stroke="transparent"
+                          strokeWidth={stroke(HIT_RADIUS_PX)}
+                        />
+                        {picked ? (
+                          <line
+                            x1={item.a.x}
+                            y1={item.a.y}
+                            x2={item.b.x}
+                            y2={item.b.y}
+                            stroke="var(--orange)"
+                            strokeWidth={stroke(5)}
+                            strokeLinecap="round"
+                            opacity={0.45}
+                          />
+                        ) : null}
                         <line
                           x1={item.a.x}
                           y1={item.a.y}
                           x2={item.b.x}
                           y2={item.b.y}
                           stroke="var(--dimension-red)"
-                          strokeWidth={stroke(1.4)}
+                          strokeWidth={stroke(picked ? 2.2 : 1.4)}
                           markerStart="url(#mk-arrow)"
                           markerEnd="url(#mk-arrow)"
                         />
@@ -2203,6 +2333,41 @@ export function DrawingMarkup({
           />
         </aside>
       </div>
+
+      {/*
+        แถบเส้นที่เลือก — โผล่เฉพาะตอนเลือกเส้นอ้างอิงอยู่ (IP-235)
+
+        อยู่เหนือแถบสถานะ ไม่ใช่ในแผงขวา เพราะเจ้าของงานเคาะเมื่อ 2026-09-05 ว่าไม่ควรเบียด
+        พื้นที่ผืนวาด และไม่ควรแย่งความกว้างของแผงรายการ · แถบหายไปเองเมื่อคลิกที่ว่าง
+      */}
+      {selectedGuide ? (
+        <div className="mk__picked" role="status">
+          {selectedDimension ? (
+            <>
+              <span>
+                เลือกอยู่ <b>เส้นระยะที่แบบเขียน {formatMetres(selectedDimension.valueM)} ม.</b>
+              </span>
+              {isScaleWitness(selectedDimension) ? (
+                <span className="mk__picked-warn">
+                  เส้นนี้คือเส้นที่ตั้งสเกลของหน้านี้ · ลบแล้วสเกลยังเท่าเดิม แต่จะไม่มีเส้นบอกว่าสเกลมาจากช่วงไหน
+                </span>
+              ) : null}
+            </>
+          ) : selectedGridLine ? (
+            <span>
+              เลือกอยู่ <b>แนวเสา {selectedGridLine.label}</b>
+            </span>
+          ) : (
+            <span>เลือกอยู่ <b>เส้นอ้างอิงที่ไม่อยู่ในหน้านี้แล้ว</b></span>
+          )}
+          <button type="button" className="mk__picked-drop" onClick={removeSelectedGuide}>
+            ลบเส้นนี้
+          </button>
+          <button type="button" className="mk__picked-keep" onClick={() => setSelectedGuide(null)}>
+            ยกเลิกการเลือก
+          </button>
+        </div>
+      ) : null}
 
       {/* แถวสี่ — แถบสถานะ */}
       <div className="mk__status">

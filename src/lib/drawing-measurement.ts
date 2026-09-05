@@ -159,6 +159,33 @@ export function hitTest(
   return null;
 }
 
+/** เส้นอ้างอิงหนึ่งเส้นที่คลิกเลือกได้ — ระยะที่แบบเขียน และแนวเสา มีรูปร่างเดียวกันคือสองจุด */
+export type SelectableSegment = { id: string; a: PagePoint; b: PagePoint };
+
+/**
+ * หาเส้นอ้างอิงที่อยู่ใต้จุดที่คลิก — เส้นระยะที่แบบเขียน และแนวเสา (IP-235)
+ *
+ * **ทำไมไม่ใช้ `hitTest` ตัวเดิม** ตัวนั้นรับ `Measurement` ซึ่งมีชนิด มีจุดหลายจุด และมีกติกา
+ * ว่ารูปปิดถือว่าโดนเมื่อคลิกในเนื้อที่ ส่วนเส้นอ้างอิงเป็นส่วนของเส้นตรงสองจุดล้วน ไม่มีเนื้อที่
+ * การยัดมันเข้าไปในชนิดของการวัดจะทำให้มันไหลไปโผล่ในรายการที่วัดแล้วและในยอดปริมาณ
+ * ซึ่งผิด เพราะแนวเสาไม่ใช่ของที่ก่อสร้างได้ และระยะที่แบบเขียนคือสิ่งที่ผู้ออกแบบเขียน
+ * ไม่ใช่สิ่งที่เราวัด
+ *
+ * ไล่จากเส้นที่วางทีหลังไปหาเส้นแรก ด้วยเหตุผลเดียวกับ `hitTest` คือของที่วางทีหลังอยู่บนสุด
+ * ในสายตาผู้ใช้ · ระยะผ่อนผันเป็นหน่วยหน้ากระดาษ ผู้เรียกหารด้วยระดับซูมมาแล้ว
+ */
+export function hitTestSegments(
+  segments: readonly SelectableSegment[],
+  point: PagePoint,
+  tolerance: number
+): string | null {
+  for (let index = segments.length - 1; index >= 0; index -= 1) {
+    const line = segments[index];
+    if (distanceToSegment(point, line.a, line.b) <= tolerance) return line.id;
+  }
+  return null;
+}
+
 /** จุดอยู่ในรูปหลายเหลี่ยมหรือไม่ ด้วยวิธีนับจำนวนครั้งที่รังสีตัดขอบ */
 export function pointInPolygon(point: PagePoint, polygon: readonly PagePoint[]): boolean {
   let inside = false;

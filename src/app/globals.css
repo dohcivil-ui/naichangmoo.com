@@ -2626,6 +2626,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .mk__panel-head { position: sticky; inset-block-start: 0; background: var(--paper); border-block-end: 1px solid var(--line); padding: 9px 2px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .mk__panel-head span { margin-inline-start: auto; color: var(--muted); font-weight: 400; font-size: .76rem; }
 
+/* แถบเส้นที่เลือก (IP-235) — โผล่เหนือแถบสถานะเฉพาะตอนเลือกเส้นระยะจริงหรือแนวเสาอยู่
+   ก่อนหน้านี้เส้นสองชนิดนี้เลือกไม่ได้และลบไม่ได้เลย ทางเดียวคือกดย้อนกลับไปเรื่อย ๆ
+   ซึ่งลบงานที่ทำถูกหลังจากนั้นไปด้วยทั้งหมด · ปุ่มสูง 44px ตามระยะนิ้วขั้นต่ำบนแท็บเล็ต */
+.mk__picked { display: flex; align-items: center; gap: 12px; padding: 6px 12px; background: var(--orange-wash); border-block-start: 1px solid var(--orange); font-size: .78rem; color: var(--ink-body); flex-wrap: wrap; }
+.mk__picked b { color: var(--ink); }
+.mk__picked-warn { color: var(--orange-text); font-weight: 700; }
+.mk__picked-drop, .mk__picked-keep { min-block-size: 44px; padding: 0 14px; border-radius: 999px; font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.mk__picked-drop { margin-inline-start: auto; border: 1px solid var(--dimension-red); background: var(--paper); color: var(--dimension-red); }
+.mk__picked-drop:hover, .mk__picked-drop:focus-visible { background: var(--dimension-red); color: var(--paper); }
+.mk__picked-keep { border: 1px solid var(--line); background: var(--paper); color: var(--muted); }
+.mk__picked-keep:hover, .mk__picked-keep:focus-visible { border-color: var(--teal); color: var(--teal-text); }
+
 .mk__status { display: flex; align-items: center; gap: 16px; padding: 5px 12px; background: var(--paper); border-block-start: 1px solid var(--line); font-size: .75rem; color: var(--muted); flex-wrap: wrap; }
 .mk__status b { color: var(--ink); font-variant-numeric: tabular-nums; }
 .mk__status-right { margin-inline-start: auto; display: flex; gap: 14px; }
