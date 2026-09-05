@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #3f545f; font-family: Prompt, "Noto Sans Thai", Arial, sans-serif; }
+    a { color: #0c7878; } a:hover { color: #0d8282; }
+    .num { font-family: "IBM Plex Sans Thai", Prompt, sans-serif; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 44px; display: flex; flex-direction: column; gap: 30px;">
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <p style="margin: 0; color: #a34f14; font-size: 12px; font-weight: 800; letter-spacing: 2px;">ของจริงวันนี้ · หลักฐาน</p>
+    <h1 style="margin: 0; color: #073047; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">ทำไมปุ่มไม่เท่ากัน</h1>
+    <p style="margin: 0; max-width: 76ch; color: #5f7178; font-size: 14px; line-height: 1.65;">ค่าที่ตั้งไว้เท่ากันหมด แต่ผลที่ออกมาไม่เท่า เพราะไม่เคยมีใครตัดสินว่าคำยาวแล้วจะเอาอย่างไร</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 22px;">
+    <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">วัดจากหน้าโครงการจริง สี่ปุ่ม คลาสเดียวกัน</p>
+    <div style="display: flex; align-items: flex-end; gap: 22px; flex-wrap: wrap;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; background: #f47721; color: #17120d; font-size: 16px; font-weight: 600;">ไปหน้าถอดปริมาณ  →</div>
+        <p style="margin: 0; color: #32765d; font-size: 12px; font-weight: 700;">สูง <span class="num">48</span> px</p>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="width: 229px; height: 72px; padding: 12px 16px; border: 1px solid transparent; border-radius: 8px; background: #f47721; color: #17120d; font-size: 16px; font-weight: 600; line-height: 1.5;">ไปหน้าราคาวัสดุและค่าแรง →</div>
+        <p style="margin: 0; color: #c0392b; font-size: 12px; font-weight: 700;">สูง <span class="num">72</span> px · ลูกศรตกไปบรรทัดสอง</p>
+      </div>
+    </div>
+    <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;">ระยะขอบ <span class="num">11.52px 16px</span> · มุมโค้ง <span class="num">8px</span> · ตัวอักษร <span class="num">16px</span> น้ำหนัก <span class="num">600</span> — เหมือนกันทั้งสองปุ่ม</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px;">
+
+    <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 22px;">
+      <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">เจ็ดสตริงพิมพ์มือ สำหรับของที่ควรมีแบบเดียว</p>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--orange micro-button</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">38</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--ghost micro-button</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">27</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--orange</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">5</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--primary micro-button</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">2</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--ghost</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">2</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px; padding-bottom: 7px; border-bottom: 1px solid #d8e4e4;"><span style="color: #3f545f; font-size: 13px;">button button--primary</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">1</span></div>
+        <div style="display: flex; justify-content: space-between; gap: 16px;"><span style="color: #3f545f; font-size: 13px;">button button--ghost micro-button work-plan__restore</span><span class="num" style="color: #073047; font-size: 13px; font-weight: 700;">1</span></div>
+      </div>
+      <p style="margin: 0; color: #a34f14; font-size: 13px; font-weight: 700; line-height: 1.6;">micro-button ติดอยู่ <span class="num">71</span> จุด แต่ไม่มีกฎ CSS สักบรรทัด · วันที่ใครใส่สไตล์ให้มัน ปุ่มเก้าตัวที่ไม่มีคลาสนี้จะเพี้ยนทันที</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 22px;">
+      <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">ช่องกรอกก็เหมือนกัน มุมโค้งสามค่า</p>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="height: 42px; border: 1px solid #c9d8d9; border-radius: 7px; background: #fbfdfd;"></div>
+          <p style="margin: 0; color: #5f7178; font-size: 12px;">แบบฟอร์มขอใบเสนอราคา · <span class="num">7</span> px</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="height: 42px; border: 1px solid #c9d8d9; border-radius: 8px; background: #ffffff;"></div>
+          <p style="margin: 0; color: #5f7178; font-size: 12px;">หน้าหลังบ้าน · <span class="num">8</span> px</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <div style="height: 42px; border: 1px solid #c9d8d9; border-radius: 12px; background: #ffffff;"></div>
+          <p style="margin: 0; color: #5f7178; font-size: 12px;">ช่องถามผู้ช่วย · <span class="num">12</span> px</p>
+        </div>
+      </div>
+      <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">สามที่เขียนแยกกัน ไม่มีใครผิด เพราะไม่มีใครถูกกำหนดไว้</p>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

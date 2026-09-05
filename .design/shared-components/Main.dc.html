@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #3f545f; font-family: Prompt, "Noto Sans Thai", Arial, sans-serif; }
+    a { color: #0c7878; } a:hover { color: #0d8282; }
+    .num { font-family: "IBM Plex Sans Thai", Prompt, sans-serif; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 44px; display: flex; flex-direction: column; gap: 30px;">
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <p style="margin: 0; color: #0c7878; font-size: 12px; font-weight: 800; letter-spacing: 2px;">แนวที่นำอยู่ · แนว ก กดได้</p>
+    <h1 style="margin: 0; color: #073047; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">ปุ่ม</h1>
+    <p style="margin: 0; max-width: 76ch; color: #5f7178; font-size: 14px; line-height: 1.65;">ขนาดเดียว สูง <span class="num">48</span> px ทุกปุ่มทุกที่ทุกแอป · ทุกปุ่มมาจากของชิ้นเดียว ไม่ใช่สตริงที่พิมพ์มือเจ็ดแบบ <span class="num">76</span> จุดอย่างวันนี้</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">สามระดับ · หน้าหนึ่งมีปุ่มหลักได้ปุ่มเดียว</p>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px;">
+
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 20px;">
+        <p style="margin: 0; color: #073047; font-size: 13px; font-weight: 700;">หลัก</p>
+        <p style="margin: 0; min-height: 38px; color: #5f7178; font-size: 12px; line-height: 1.6;">การกระทำเดียวที่หน้านั้นอยากให้ทำ</p>
+        <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; align-self: flex-start; box-shadow: #b4530a 0 4px 0 0, rgba(244, 119, 33, 0.34) 0 12px 22px -8px, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">
+          ตั้งค่าโครงการ
+          <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 20px;">
+        <p style="margin: 0; color: #073047; font-size: 13px; font-weight: 700;">เข้ม</p>
+        <p style="margin: 0; min-height: 38px; color: #5f7178; font-size: 12px; line-height: 1.6;">งานจริงจังที่ไม่ใช่ทางหลัก เช่น ยืนยัน ส่งเข้าระบบ</p>
+        <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 999px; background: #073047; color: #ffffff; font-size: 15px; font-weight: 700; white-space: nowrap; align-self: flex-start; box-shadow: #04202f 0 4px 0 0, rgba(7, 48, 71, 0.3) 0 12px 22px -8px;">ยืนยันปริมาณ</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 20px;">
+        <p style="margin: 0; color: #073047; font-size: 13px; font-weight: 700;">เงียบ</p>
+        <p style="margin: 0; min-height: 38px; color: #5f7178; font-size: 12px; line-height: 1.6;">ทางเลือกรอง ทางถอย และปุ่มที่มีหลายอันในแถวเดียว</p>
+        <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border: 1px solid #c9d8d9; border-radius: 999px; background: #ffffff; color: #0c7878; font-size: 15px; font-weight: 700; white-space: nowrap; align-self: flex-start; box-shadow: #dde7e7 0 4px 0 0;">ดูหน้าโครงการ</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">ห้าสถานะ</p>
+    <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; align-items: start; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 24px 20px 26px;">
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 1px;">ปกติ</p>
+        <div style="display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 18px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #b4530a 0 4px 0 0, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">ตั้งค่าโครงการ</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 1px;">ชี้</p>
+        <div style="display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 18px; border-radius: 999px; background: #ff8c37; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #b4530a 0 5px 0 0, rgba(244, 119, 33, 0.4) 0 14px 24px -8px, rgba(255, 255, 255, 0.42) 0 1px 0 0 inset; transform: translateY(-1px);">ตั้งค่าโครงการ</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 1px;">กด</p>
+        <div style="display: flex; align-items: center; justify-content: center; height: 48px; margin-top: 4px; padding: 0 18px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(244, 119, 33, 0.28) 0 4px 12px 0;">ตั้งค่าโครงการ</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 1px;">กำลังทำงาน</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; padding: 0 18px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #b4530a 0 4px 0 0, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">
+          <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 2.2; stroke-linecap: round;" aria-hidden="true"><path d="M10 2.6a7.4 7.4 0 1 0 7.4 7.4" opacity="0.95"></path></svg>
+          กำลังบันทึก
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0; color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 1px;">ปิดอยู่</p>
+        <div style="display: flex; align-items: center; justify-content: center; height: 48px; padding: 0 18px; border: 1px solid #d3dedf; border-radius: 999px; background: #e9eff0; color: #5f7178; font-size: 15px; font-weight: 700; white-space: nowrap;">ตั้งค่าโครงการ</div>
+      </div>
+
+    </div>
+    <p style="margin: 0; max-width: 96ch; color: #5f7178; font-size: 13px; line-height: 1.65;">ตอนกด ปุ่มยุบลง <span class="num">4</span> px แล้วเงาแข็งหายไป จึงรู้สึกว่ากดจริง · <span style="color: #a34f14; font-weight: 700;">ปุ่มปิดอยู่ใช้สีทึบของตัวเอง ไม่ใช่ opacity</span> เพราะ opacity กดคอนทราสต์ของตัวหนังสือลงไปด้วย ซึ่งเป็นวิธีที่โค้ดวันนี้ใช้อยู่</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">กติกาที่ยังไม่เคยมี</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;">
+
+      <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 20px;">
+        <p style="margin: 0; color: #073047; font-size: 13px; font-weight: 700;">คำยาวไม่ตัดบรรทัด ลูกศรไม่ตกบรรทัด</p>
+        <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; align-self: flex-start; box-shadow: #b4530a 0 4px 0 0, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">
+          ไปหน้าราคาวัสดุและค่าแรง
+          <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+        </div>
+        <p style="margin: 0; color: #5f7178; font-size: 12px; line-height: 1.65;">ลูกศรวาดเป็นรูป ไม่ใช่ตัวอักษรที่คนพิมพ์เอง จึงคมทุกความละเอียดจอและเปลี่ยนสีตามปุ่มได้ · วันนี้พิมพ์มือ <span class="num">8</span> จุด</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 20px;">
+        <p style="margin: 0; color: #073047; font-size: 13px; font-weight: 700;">บนจอแคบยืดเต็มความกว้าง</p>
+        <div style="width: 300px; border: 1px dashed #c9d8d9; border-radius: 12px; padding: 12px;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #b4530a 0 4px 0 0, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">
+            ไปหน้าราคาวัสดุและค่าแรง
+            <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+          </div>
+        </div>
+        <p style="margin: 0; color: #5f7178; font-size: 12px; line-height: 1.65;">แทนที่จะตัดบรรทัดจนสูงไม่เท่าเพื่อน ปุ่มยืดเต็มกล่องแม่ ความสูงจึงยังเป็น <span class="num">48</span> px เสมอ</p>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

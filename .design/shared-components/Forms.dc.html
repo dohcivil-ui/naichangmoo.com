@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #3f545f; font-family: Prompt, "Noto Sans Thai", Arial, sans-serif; }
+    a { color: #0c7878; } a:hover { color: #0d8282; }
+    .num { font-family: "IBM Plex Sans Thai", Prompt, sans-serif; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 44px; display: flex; flex-direction: column; gap: 30px;">
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <p style="margin: 0; color: #0c7878; font-size: 12px; font-weight: 800; letter-spacing: 2px;">ชิ้นส่วนกลาง · ที่เสนอ</p>
+    <h1 style="margin: 0; color: #073047; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">ช่องกรอก และตาราง</h1>
+    <p style="margin: 0; max-width: 74ch; color: #5f7178; font-size: 14px; line-height: 1.65;">มุมโค้ง <span class="num">8</span> px ชุดเดียวทั้งเว็บ เท่ากับปุ่ม ไม่ใช่สามค่าอย่างวันนี้</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px;">
+
+    <div style="display: flex; flex-direction: column; gap: 16px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 22px;">
+      <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">ช่องกรอก ทุกสถานะ</p>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="color: #073047; font-size: 13px; font-weight: 600;">ชื่อโครงการ</label>
+        <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border: 1px solid #c9d8d9; border-radius: 8px; background: #ffffff; color: #5f7178; font-size: 15px;">อาคารฟอกไต</div>
+        <p style="margin: 0; color: #5f7178; font-size: 12px;">ปกติ</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="color: #073047; font-size: 13px; font-weight: 600;">ชื่อผู้ประมาณราคา</label>
+        <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border: 1px solid #0d8282; border-radius: 8px; background: #ffffff; color: #073047; font-size: 15px; box-shadow: rgba(13, 130, 130, 0.12) 0 0 0 3px;">สุริยะ พัชโรทัย</div>
+        <p style="margin: 0; color: #5f7178; font-size: 12px;">กำลังพิมพ์อยู่</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="color: #073047; font-size: 13px; font-weight: 600;">ระยะที่แบบเขียน</label>
+        <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border: 1px solid #c0392b; border-radius: 8px; background: #ffffff; color: #073047; font-size: 15px;"><span class="num">0</span></div>
+        <p style="margin: 0; color: #c0392b; font-size: 12px; font-weight: 700;">ระยะที่แบบเขียนต้องมากกว่าศูนย์</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="color: #5f7178; font-size: 13px; font-weight: 600;">ประเภทงาน</label>
+        <div style="display: flex; align-items: center; height: 48px; padding: 0 12px; border: 1px solid #d8e4e4; border-radius: 8px; background: #eef2f3; color: #5f7178; font-size: 15px;">งานอาคาร</div>
+        <p style="margin: 0; color: #5f7178; font-size: 12px;">ปิดอยู่ · สีทึบ ไม่ใช่ opacity</p>
+      </div>
+
+      <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">ช่องกรอกสูง <span class="num">48</span> px เท่าปุ่ม เพื่อให้ยืนเรียงกันในแถวเดียวได้พอดี</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 16px; padding: 22px;">
+      <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">ตาราง</p>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; padding: 8px 8px; border-bottom: 1px solid #d8e4e4;">
+          <span style="color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 0.7px;">ชื่อรายการ</span>
+          <span style="color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 0.7px; text-align: right;">ปริมาณ</span>
+          <span style="color: #5f7178; font-size: 11px; font-weight: 800; letter-spacing: 0.7px;">หน่วย</span>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; padding: 10px 8px; border-bottom: 1px solid #d8e4e4;">
+          <span style="color: #073047; font-size: 14px; font-weight: 700;">ผนังก่ออิฐ ชั้น <span class="num">1</span></span>
+          <span class="num" style="color: #073047; font-size: 14px; font-weight: 700; text-align: right;">128.40</span>
+          <span style="color: #3f545f; font-size: 14px;">ตร.ม.</span>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; padding: 10px 8px; border-bottom: 1px solid #d8e4e4;">
+          <span style="color: #073047; font-size: 14px; font-weight: 700;">พื้นคอนกรีต</span>
+          <span class="num" style="color: #073047; font-size: 14px; font-weight: 700; text-align: right;">96.05</span>
+          <span style="color: #3f545f; font-size: 14px;">ตร.ม.</span>
+        </div>
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.1fr); gap: 10px; padding: 10px 8px; border-bottom: 1px solid #d8e4e4;">
+          <span style="color: #073047; font-size: 14px; font-weight: 700;">เสาตอม่อ</span>
+          <span class="num" style="color: #073047; font-size: 14px; font-weight: 700; text-align: right;">8.00</span>
+          <span style="color: #3f545f; font-size: 14px;">ต้น</span>
+        </div>
+      </div>
+      <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;">คอลัมน์ตัวเลขชิดขวาและใช้ฟอนต์ตัวเลข เลข <span class="num">0-9</span> จึงกว้างเท่ากันและหลักเรียงตรง · หัวคอลัมน์กับหน่วยเป็นตัวหนังสือ ใช้ฟอนต์หลักตามเดิม</p>
+      <div style="display: flex; align-items: center; gap: 10px; padding: 12px; border-radius: 12px; background: #f4f7f7;">
+        <span class="num" style="color: #073047; font-size: 20px; font-weight: 700;">128.40</span>
+        <span style="color: #5f7178; font-size: 13px;">ฟอนต์ตัวเลข</span>
+        <span style="margin-left: auto; color: #073047; font-size: 20px; font-weight: 700;">128.40</span>
+        <span style="color: #5f7178; font-size: 13px;">ฟอนต์หลัก</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

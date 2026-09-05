@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #3f545f; font-family: Prompt, "Noto Sans Thai", Arial, sans-serif; }
+    a { color: #0c7878; } a:hover { color: #0d8282; }
+    .num { font-family: "IBM Plex Sans Thai", Prompt, sans-serif; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 44px; display: flex; flex-direction: column; gap: 26px;">
+
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <p style="margin: 0; color: #0c7878; font-size: 12px; font-weight: 800; letter-spacing: 2px;">เลือกแนวก่อน แล้วค่อยลงโค้ด</p>
+    <h1 style="margin: 0; color: #073047; font-size: 30px; font-weight: 700; letter-spacing: -0.5px;">สี่แนวของปุ่ม</h1>
+    <p style="margin: 0; max-width: 78ch; color: #5f7178; font-size: 14px; line-height: 1.65;">ขนาดเดียวทุกแนว สูง <span class="num">48</span> px · แถวละแนว ปุ่มชุดเดียวกันทุกแถว จะได้เทียบของเหมือนกัน · ปุ่มขวาสุดคือตอนถูกกด</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 2px solid #0d8282; border-radius: 18px; padding: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+      <span style="border-radius: 999px; padding: 3px 11px; background: #e6f3f3; color: #0c7878; font-size: 12px; font-weight: 800;">แนว ก</span>
+      <h2 style="margin: 0; color: #073047; font-size: 19px; font-weight: 700;">กดได้</h2>
+      <p style="margin: 0; color: #5f7178; font-size: 13px;">มีความหนาใต้ปุ่ม กดแล้วยุบลงจริง</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 10px 0 14px;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #b4530a 0 4px 0 0, rgba(244, 119, 33, 0.34) 0 12px 22px -8px, rgba(255, 255, 255, 0.38) 0 1px 0 0 inset;">
+        ตั้งค่าโครงการ
+        <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+      </div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border: 0; border-radius: 999px; background: #073047; color: #ffffff; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #04202f 0 4px 0 0, rgba(7, 48, 71, 0.3) 0 12px 22px -8px;">ยืนยันปริมาณ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border: 1px solid #c9d8d9; border-radius: 999px; background: #ffffff; color: #0c7878; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: #dde7e7 0 4px 0 0;">ดูหน้าโครงการ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; margin-top: 4px; padding: 0 22px; border: 0; border-radius: 999px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(244, 119, 33, 0.28) 0 4px 12px 0;">กดอยู่</div>
+    </div>
+    <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;"><span style="color: #32765d; font-weight: 700;">ได้</span> รู้สึกกดได้จริงตั้งแต่ยังไม่แตะ เหมาะกับคนที่ทำงานเร็วและมองผ่าน ๆ · เป็นแนวเดียวกับหน้าแรกที่คุณเลือกไว้แล้ว ทั้งเว็บจึงพูดภาษาเดียวกัน<br><span style="color: #a34f14; font-weight: 700;">เสีย</span> เงาแข็งใต้ปุ่มกินที่แนวตั้งเพิ่ม <span class="num">4</span> px และดูเล่นกว่าอีกสามแนว</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 18px; padding: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+      <span style="border-radius: 999px; padding: 3px 11px; background: #f4f7f7; color: #5f7178; font-size: 12px; font-weight: 800;">แนว ข</span>
+      <h2 style="margin: 0; color: #073047; font-size: 19px; font-weight: 700;">เครื่องมือช่าง</h2>
+      <p style="margin: 0; color: #5f7178; font-size: 13px;">มุมคม ขอบคม ไม่มีเงา ไม่มีการเด้ง</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 10px 0 14px;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 20px; border: 1px solid #c96011; border-bottom-width: 2px; border-radius: 5px; background: #f47721; color: #17120d; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap;">
+        ตั้งค่าโครงการ
+        <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+      </div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border: 1px solid #04202f; border-bottom-width: 2px; border-radius: 5px; background: #073047; color: #ffffff; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap;">ยืนยันปริมาณ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border: 1px solid #c9d8d9; border-bottom-width: 2px; border-radius: 5px; background: #ffffff; color: #073047; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap;">ดูหน้าโครงการ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 20px; border: 1px solid #a94e0d; border-radius: 5px; background: #dd6a19; color: #17120d; font-size: 15px; font-weight: 700; letter-spacing: 0.2px; white-space: nowrap;">กดอยู่</div>
+    </div>
+    <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;"><span style="color: #32765d; font-weight: 700;">ได้</span> อ่านเป็นเครื่องมือวัด ไม่ใช่เว็บขายของ · แน่นที่สุดในสี่แนว เหมาะกับแถบเครื่องมือหน้าแบบที่มีปุ่มเยอะ<br><span style="color: #a34f14; font-weight: 700;">เสีย</span> เรียบจนปุ่มหลักไม่เด่นกว่าปุ่มรองเท่าที่ควร ต้องพึ่งสีอย่างเดียว</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 18px; padding: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+      <span style="border-radius: 999px; padding: 3px 11px; background: #f4f7f7; color: #5f7178; font-size: 12px; font-weight: 800;">แนว ค</span>
+      <h2 style="margin: 0; color: #073047; font-size: 19px; font-weight: 700;">ยกลอย</h2>
+      <p style="margin: 0; color: #5f7178; font-size: 13px;">ไล่สีบาง ๆ กับเงานุ่มที่ลอยขึ้นจากพื้น</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 10px 0 14px;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 21px; border: 0; border-radius: 11px; background: linear-gradient(180deg, #f9873a, #ee6b10); color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(7, 48, 71, 0.14) 0 1px 2px 0, rgba(238, 107, 16, 0.42) 0 9px 18px -7px, rgba(255, 255, 255, 0.4) 0 1px 0 0 inset;">
+        ตั้งค่าโครงการ
+        <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #17120d; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+      </div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 0; border-radius: 11px; background: linear-gradient(180deg, #0e4460, #062a3d); color: #ffffff; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(7, 48, 71, 0.16) 0 1px 2px 0, rgba(7, 48, 71, 0.36) 0 9px 18px -7px;">ยืนยันปริมาณ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 1px solid #d8e4e4; border-radius: 11px; background: linear-gradient(180deg, #ffffff, #f7fafa); color: #073047; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(7, 48, 71, 0.08) 0 1px 2px 0;">ดูหน้าโครงการ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 0; border-radius: 11px; background: linear-gradient(180deg, #ee6b10, #d85f0c); color: #17120d; font-size: 15px; font-weight: 700; white-space: nowrap; box-shadow: rgba(7, 48, 71, 0.2) 0 1px 3px 0 inset;">กดอยู่</div>
+    </div>
+    <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;"><span style="color: #32765d; font-weight: 700;">ได้</span> ดูประณีตที่สุด ปุ่มหลักเด่นชัดโดยไม่ต้องตะโกน<br><span style="color: #a34f14; font-weight: 700;">เสีย</span> ไล่สีกับเงานุ่มเป็นภาษาของเว็บทั่วไป ไม่ได้บอกว่านี่คือเครื่องมือวิศวกรรม · และเงาแบบนี้อ่านยากบนจอกลางแดดที่หน้างาน</p>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; background: #ffffff; border: 1px solid #d8e4e4; border-radius: 18px; padding: 24px;">
+    <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+      <span style="border-radius: 999px; padding: 3px 11px; background: #f4f7f7; color: #5f7178; font-size: 12px; font-weight: 800;">แนว ง</span>
+      <h2 style="margin: 0; color: #073047; font-size: 19px; font-weight: 700;">หมึกเงียบ</h2>
+      <p style="margin: 0; color: #5f7178; font-size: 13px;">ไม่มีเงาเลย ส้มเก็บไว้ใช้ที่เดียวในหน้า</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 22px; flex-wrap: wrap; padding: 10px 0 14px;">
+      <div style="display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 21px; border: 0; border-radius: 8px; background: #073047; color: #ffffff; font-size: 15px; font-weight: 700; white-space: nowrap;">
+        ตั้งค่าโครงการ
+        <svg viewBox="0 0 20 20" style="width: 17px; height: 17px; flex: none; fill: none; stroke: #ffffff; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;" aria-hidden="true"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg>
+      </div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 1.5px solid #073047; border-radius: 8px; background: #ffffff; color: #073047; font-size: 15px; font-weight: 700; white-space: nowrap;">ยืนยันปริมาณ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 1px solid #d8e4e4; border-radius: 8px; background: #ffffff; color: #5f7178; font-size: 15px; font-weight: 700; white-space: nowrap;">ดูหน้าโครงการ</div>
+      <div style="display: inline-flex; align-items: center; height: 48px; padding: 0 21px; border: 0; border-radius: 8px; background: #04202f; color: #ffffff; font-size: 15px; font-weight: 700; white-space: nowrap;">กดอยู่</div>
+    </div>
+    <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.65;"><span style="color: #32765d; font-weight: 700;">ได้</span> สงบที่สุด อ่านง่ายที่สุด และส้มที่เหลืออยู่ที่เดียวจะเด่นมาก เพราะไม่มีอะไรมาแย่ง<br><span style="color: #a34f14; font-weight: 700;">เสีย</span> ทั้งเว็บจะดูจืดลงจากวันนี้ และหน้าแรกที่เพิ่งทำเสร็จต้องรื้อสีปุ่มใหม่หมด</p>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

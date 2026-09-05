@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #f4f7f7; color: #3f545f; font-family: Prompt, "Noto Sans Thai", Arial, sans-serif; }
+    a { color: #0c7878; } a:hover { color: #0d8282; }
+    .num { font-family: "IBM Plex Sans Thai", Prompt, sans-serif; }
+    .pad { padding-left: 20px; padding-right: 20px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 48px; border-radius: 999px; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  </style>
+</helmet>
+
+<div style="display: flex; flex-direction: column;">
+
+  <div class="pad" style="background: linear-gradient(150deg, #073047 0%, #0b4a5e 62%, #0d5f6b 100%); padding-top: 44px; padding-bottom: 44px; display: flex; flex-direction: column; gap: 18px;">
+    <p style="margin: 0; color: #8ce5dc; font-size: 11px; font-weight: 800; letter-spacing: 2px;">นายช่างหมู · แอปงานโยธา</p>
+    <h1 style="margin: 0; color: #fff; font-size: 31px; font-weight: 700; line-height: 1.34; letter-spacing: -0.2px;">ประมาณราคาที่ชี้ต้นทางได้ทุกบรรทัด</h1>
+    <p style="margin: 0; color: rgba(255,255,255,.84); font-size: 15px; line-height: 1.75;">ถอดปริมาณจากแบบ คิดราคาจากบัญชีราชการที่ประกาศจริง แล้วออก BOQ ที่เปิดดูได้ว่าเลขแต่ละตัวมาจากไหน</p>
+    <div style="display: grid; gap: 11px; margin-top: 4px;">
+      <span class="btn" style="background: #f47721; color: #17120d; box-shadow: #b4530a 0 4px 0 0, rgba(255,255,255,.38) 0 1px 0 0 inset;">เริ่มใช้งานฟรี <svg viewBox="0 0 20 20" style="width:17px;height:17px;fill:none;stroke:#17120d;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg></span>
+      <span class="btn" style="background: #fff; color: #073047; box-shadow: rgba(0,0,0,.28) 0 4px 0 0;">ดูแอปทั้งหมด</span>
+    </div>
+    <p style="margin: 2px 0 0; color: rgba(255,255,255,.62); font-size: 12px;">ESTIMETR ทดลองใช้ฟรี <span class="num">7</span> วัน ไม่ต้องใส่บัตร</p>
+    <div style="margin-top: 8px; border: 1px solid rgba(255,255,255,.2); border-radius: 16px; background: rgba(255,255,255,.07); padding: 14px;">
+      <span style="color: rgba(255,255,255,.7); font-size: 11px; font-weight: 700; letter-spacing: 1px;">ที่มาของบรรทัดนี้</span>
+      <div style="margin-top: 10px; border-radius: 12px; background: #fff; padding: 14px;">
+        <p style="margin: 0; color: #073047; font-size: 14px; font-weight: 700;">ผนังก่ออิฐมอญ ชั้น <span class="num">1</span></p>
+        <p style="margin: 8px 0 0; color: #3f545f; font-size: 13px;"><span class="num">2.50 × 1.88 = 4.69</span> ตร.ม.</p>
+        <p style="margin: 8px 0 0; color: #5f7178; font-size: 12px; line-height: 1.6;">ด้านกว้าง ใช้เลขที่แบบเขียน <span class="num">2.50</span> ม. · วัดได้ <span class="num">2.25</span> ม.</p>
+        <p style="margin: 4px 0 0; color: #a34f14; font-size: 12px; font-weight: 700; line-height: 1.6;">ด้านลึกคำนวณจากสเกล ไม่มีเลขที่แบบเขียน</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad" style="background: #073047; padding-top: 34px; padding-bottom: 36px;">
+    <p style="margin: 0 0 18px; color: #8ce5dc; font-size: 11px; font-weight: 800; letter-spacing: 2px;">มีของอยู่ในระบบแค่ไหน</p>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 18px;">
+      <div><span class="num" style="display: block; color: #fff; font-size: 32px; font-weight: 700; line-height: 1;">1,949</span><span style="display: block; margin-top: 5px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.5;">รายการบัญชีราคา สพฐ.</span></div>
+      <div><span class="num" style="display: block; color: #fff; font-size: 32px; font-weight: 700; line-height: 1;">459</span><span style="display: block; margin-top: 5px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.5;">อัตราค่าแรง ว <span class="num">809</span></span></div>
+      <div><span class="num" style="display: block; color: #fff; font-size: 32px; font-weight: 700; line-height: 1;">35</span><span style="display: block; margin-top: 5px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.5;">สูตรค่า K ว <span class="num">109</span></span></div>
+      <div><span class="num" style="display: block; color: #fff; font-size: 32px; font-weight: 700; line-height: 1;">7</span><span style="display: block; margin-top: 5px; color: rgba(255,255,255,.72); font-size: 13px; line-height: 1.5;">แอปงานโยธาในทะเบียน</span></div>
+    </div>
+  </div>
+
+  <div class="pad" style="background: #f4f7f7; padding-top: 34px; padding-bottom: 36px;">
+    <p style="margin: 0 0 6px; color: #0c7878; font-size: 11px; font-weight: 800; letter-spacing: 2px;">ทำงานอย่างไร</p>
+    <h2 style="margin: 0 0 18px; color: #073047; font-size: 23px; font-weight: 700; line-height: 1.4;">สี่ขั้น ทุกขั้นทิ้งหลักฐานไว้</h2>
+    <div style="display: grid; gap: 11px;">
+      <div style="display: grid; gap: 7px; background: #fff; border: 1px solid #d8e4e4; border-radius: 14px; padding: 16px; box-shadow: rgba(7,48,71,.06) 0 1px 2px 0, rgba(7,48,71,.05) 0 2px 10px 0;">
+        <span class="num" style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: #e6f3f3; color: #0c7878; font-size: 12px; font-weight: 700;">1</span>
+        <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">ตั้งค่าโครงการ</p>
+        <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">ชื่อโครงการ ผู้ประมาณราคา และประเภทงาน</p>
+      </div>
+      <div style="display: grid; gap: 7px; background: #fff; border: 1px solid #d8e4e4; border-radius: 14px; padding: 16px; box-shadow: rgba(7,48,71,.06) 0 1px 2px 0, rgba(7,48,71,.05) 0 2px 10px 0;">
+        <span class="num" style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: #e6f3f3; color: #0c7878; font-size: 12px; font-weight: 700;">2</span>
+        <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">เปิดแบบและยืนยันสเกล</p>
+        <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">ชี้ช่วงที่แบบบอกระยะไว้ สเกลคำนวณจากเลขนั้นโดยตรง</p>
+      </div>
+      <div style="display: grid; gap: 7px; background: #fff; border: 1px solid #f47721; border-radius: 14px; padding: 16px; box-shadow: rgba(7,48,71,.06) 0 1px 2px 0, rgba(7,48,71,.05) 0 2px 10px 0;">
+        <span class="num" style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: #e6f3f3; color: #0c7878; font-size: 12px; font-weight: 700;">3</span>
+        <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">ถอดปริมาณพร้อมหลักฐาน</p>
+        <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">วัดบนแบบ ระบบจดที่มาให้เอง คุณตรวจแล้วกดยืนยัน</p>
+      </div>
+      <div style="display: grid; gap: 7px; background: #fff; border: 1px solid #d8e4e4; border-radius: 14px; padding: 16px; box-shadow: rgba(7,48,71,.06) 0 1px 2px 0, rgba(7,48,71,.05) 0 2px 10px 0;">
+        <span class="num" style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 999px; background: #e6f3f3; color: #0c7878; font-size: 12px; font-weight: 700;">4</span>
+        <p style="margin: 0; color: #073047; font-size: 15px; font-weight: 700;">ประมาณราคาและสรุป BOQ</p>
+        <p style="margin: 0; color: #5f7178; font-size: 13px; line-height: 1.6;">ดึงราคาจากบัญชีที่รับมา แล้วออก BOQ ที่ย้อนดูได้</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad" style="background: linear-gradient(140deg, #073047, #0b5162); padding-top: 34px; padding-bottom: 38px;">
+    <h2 style="margin: 0; color: #fff; font-size: 21px; font-weight: 700; line-height: 1.45;">เริ่มจากโครงการเดียว แล้วดูว่าตัวเลขชี้ต้นทางได้จริงไหม</h2>
+    <p style="margin: 9px 0 16px; color: rgba(255,255,255,.76); font-size: 14px; line-height: 1.7;">ทดลองใช้ฟรี <span class="num">7</span> วัน ไม่ต้องใส่บัตร</p>
+    <span class="btn" style="background: #f47721; color: #17120d; box-shadow: #b4530a 0 4px 0 0, rgba(255,255,255,.38) 0 1px 0 0 inset;">เริ่มใช้งานฟรี <svg viewBox="0 0 20 20" style="width:17px;height:17px;fill:none;stroke:#17120d;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><path d="M3.5 10h12"></path><path d="M11 5.5l4.5 4.5-4.5 4.5"></path></svg></span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
