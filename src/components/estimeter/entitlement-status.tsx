@@ -32,19 +32,55 @@ function describe(access: EstimeterAccessView): string {
   return "ใช้งาน workflow ได้ครบตามสิทธิ์ที่ได้รับ";
 }
 
-export function EntitlementStatus({ access }: { access: EstimeterAccessView }) {
-  const projectQuota =
-    access.projectLimit === null
-      ? `ใช้ไปแล้ว ${access.projectCount} โครงการ`
-      : `ใช้ไปแล้ว ${access.projectCount} จาก ${access.projectLimit} โครงการ`;
+function quotaLabel(access: EstimeterAccessView): string {
+  return access.projectLimit === null
+    ? `ใช้ไปแล้ว ${access.projectCount} โครงการ`
+    : `ใช้ไปแล้ว ${access.projectCount} จาก ${access.projectLimit} โครงการ`;
+}
 
-  const rows: Array<[string, boolean]> = [
-    [`สร้างโครงการ (${projectQuota})`, access.capabilities.create_project],
+function capabilityRows(access: EstimeterAccessView): Array<[string, boolean]> {
+  return [
+    [`สร้างโครงการ (${quotaLabel(access)})`, access.capabilities.create_project],
     ["AI Takeoff และตรวจหลักฐาน", access.capabilities.run_ai],
     ["แก้ไข BOQ", access.capabilities.edit],
     ["ส่งออกไฟล์", access.capabilities.export],
     ["พิมพ์เอกสาร", access.capabilities.print]
   ];
+}
+
+/**
+ * แถบสิทธิ์แบบบรรทัดเดียว สำหรับหน้าแรกที่การ์ดสี่ขั้นเป็นเรื่องหลัก (IP-235)
+ *
+ * บล็อกเต็มด้านล่างเคยกินพื้นที่หนึ่งหน้าจอบนหน้าแรก ทั้งที่คนเปิดแอปมาเพื่อทำงานต่อ
+ * ไม่ใช่มาอ่านว่าตัวเองทำอะไรได้บ้าง เจ้าของงานสั่งย่อเมื่อ 2026-09-05 · **ไม่ตัดข้อมูลทิ้ง**
+ * ห้าบรรทัดเดิมอยู่ครบใน `<details>` ซึ่งกดแล้วกางออกโดยไม่ต้องพึ่ง JavaScript
+ */
+export function EntitlementStrip({ access }: { access: EstimeterAccessView }) {
+  const note = describe(access);
+
+  return (
+    <details className="eh__rights">
+      <summary>
+        <span className="eh__rights-state">{headline[access.state]}</span>
+        <span className="eh__rights-note">{[note, quotaLabel(access)].filter(Boolean).join(" · ")}</span>
+        <span className="eh__rights-more">ดูสิทธิ์ทั้งหมด</span>
+      </summary>
+      <ul>
+        {capabilityRows(access).map(([name, enabled]) => (
+          <li key={name}>
+            <span className={enabled ? "capability capability--on" : "capability capability--off"}>
+              {enabled ? "อนุญาต" : "ล็อก"}
+            </span>
+            {name}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+}
+
+export function EntitlementStatus({ access }: { access: EstimeterAccessView }) {
+  const rows = capabilityRows(access);
 
   return (
     <section className="policy-preview" aria-label="สิทธิ์การใช้งาน ESTIMETR ของบัญชีนี้">

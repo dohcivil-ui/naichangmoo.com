@@ -710,7 +710,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ลูกทุกตัวห้ามหด (flex: none) ไม่งั้นพอแผงเตี้ยลง เนื้อหาจะถูกบีบแทนที่จะเลื่อน */
 .assistant-dock__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; }
 .assistant-dock__body > * { flex: none; }
-.assistant-dock__pill { pointer-events: auto; position: absolute; right: 18px; bottom: 18px; display: inline-flex; align-items: center; gap: 9px; min-height: 50px; padding: 0 18px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-family: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 12px 28px rgba(7,48,71,.16); transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+/* ชื่อบนปุ่มลอยห้ามตัดคำ — กรอบ `.assistant-dock` ไม่ได้ตั้งความกว้างไว้ พอย่อแผงแล้วมันเหลือ 0
+   ปุ่มข้างในจึงถูกบีบจนชื่อยาว ๆ ตัดเป็นสามบรรทัด วัดของจริง 2026-09-05 ได้ปุ่มสูง 64px
+   แทนที่จะเป็น 50px ตอนใส่ชื่อ "ผู้ช่วยประมาณราคา" · ของเดิมไม่เห็นอาการเพราะชื่อสั้นกว่า */
+.assistant-dock__pill { pointer-events: auto; position: absolute; right: 18px; bottom: 18px; display: inline-flex; align-items: center; gap: 9px; min-height: 50px; padding: 0 18px; white-space: nowrap; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font-family: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; box-shadow: 0 12px 28px rgba(7,48,71,.16); transition: transform 150ms var(--ease-out), border-color 150ms var(--ease-out); }
 .assistant-dock__pill:hover, .assistant-dock__pill:focus-visible { transform: translateY(-2px); border-color: var(--teal); outline: none; }
 .assistant-dock__pill svg { width: 20px; height: 20px; fill: none; stroke: var(--teal); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .assistant-dock.is-busy .assistant-dock__panel { border-top-color: var(--orange); animation: assistant-dock-thinking 1.4s var(--ease-in-out) infinite alternate; }
@@ -2702,14 +2705,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .mk__dialog { inset-block-start: auto; inset-block-end: 12px; inset-inline: 12px; inline-size: auto; }
 }
 
-/* ===== ต้นแบบหน้าแรก ESTIMETR (IP-235) — ลบทั้งบล็อกได้เมื่อยกเข้าหน้าจริงแล้ว =====
+/* ===== หน้าแรก ESTIMETR (IP-235) =====
    คลาสขึ้นต้น .eh- ทั้งหมด เพื่อไม่ให้ชนกับของที่มีอยู่
    แนวทางมาจาก .design/estimeter-home/variant-b-ours-dense.html ที่เจ้าของงานเลือก
-   แถบบน กล่องชื่อแอป และท้ายเว็บไม่อยู่ในนี้ เพราะ AppShell วางให้แล้ว */
-.eh { padding-block: 1rem 2.5rem; }
-.eh__switch { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--paper); border: 1px solid var(--mist); margin-block-end: 1rem; }
-.eh__switch button { border: 0; border-radius: 999px; padding: .34rem .9rem; background: transparent; color: var(--muted); font: inherit; font-size: .74rem; font-weight: 800; cursor: pointer; }
-.eh__switch button[aria-pressed="true"] { background: var(--teal); color: var(--paper); }
+   แถบบน กล่องชื่อแอป และท้ายเว็บไม่อยู่ในนี้ เพราะ AppShell วางให้แล้ว
+   ผู้ช่วยก็ไม่อยู่ในนี้ มันอยู่ในแผงผู้ช่วยกลาง — กฎของกล่องข้อความอยู่ท้ายบล็อกนี้ */
+.eh { container: eh / inline-size; padding-block: 1rem 2.5rem; }
+.eh--activate { padding-block-end: 0; }
 
 .eh__steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-block-end: 1rem; }
 .eh__steps article { display: grid; gap: 6px; align-content: start; background: var(--paper); border: 1px solid var(--mist); border-radius: 16px; padding: 15px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); }
@@ -2723,7 +2725,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .eh__badge--now { background: var(--orange-wash); color: var(--orange-text); }
 .eh__badge--wait { background: var(--canvas); color: var(--muted); }
 
-.eh__board { display: grid; grid-template-columns: minmax(0, 1fr) 366px; gap: 16px; align-items: start; }
 .eh__card { background: var(--paper); border: 1px solid var(--mist); border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); }
 .eh__over { margin: 0; color: var(--teal-text); font-size: .68rem; font-weight: 800; letter-spacing: .14em; }
 .eh__card h2 { margin: .18rem 0 0; color: var(--ink); font-size: 1rem; font-weight: 700; }
@@ -2747,32 +2748,36 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .eh__table td b { color: var(--ink); font-weight: 700; }
 .eh__num { font-family: var(--font-numeric); }
 
-.eh__bot { background: var(--paper); border: 1px solid var(--teal-soft); border-radius: 16px; box-shadow: 0 1px 2px rgba(7, 48, 71, .06), 0 2px 10px rgba(7, 48, 71, .05); overflow: hidden; position: sticky; inset-block-start: 1rem; }
-.eh__bot-head { display: flex; align-items: center; gap: 10px; padding: 13px 15px; border-block-end: 1px solid var(--mist); background: var(--teal-wash); }
-.eh__mark { display: grid; place-items: center; width: 30px; height: 30px; flex: none; border-radius: 999px; background: var(--teal); color: var(--paper); font-size: .72rem; font-weight: 800; }
-.eh__bot-head strong { display: block; color: var(--ink); font-size: .9rem; font-weight: 700; }
-/* คลาสของตัวเอง ไม่ใช่ `.eh__bot-head span` เพราะกฎแบบนั้นชนะ `.eh__mark` ด้วยความจำเพาะ
-   แล้วไปทาสีเทาจาง ๆ ทับตัวอักษรบนวงกลม teal จนคอนทราสต์เหลือ 1.10 คือกลืนหายไปเลย
-   เจ้าของงานเห็นจากหน้าจอก่อนที่ผมจะวัดเจอ (2026-09-05) */
-/* --muted บนพื้น teal จางวัดได้ 4.49 ซึ่งตกเกณฑ์ AA อย่างเฉียดฉิว จึงใช้ --ink-body ที่ให้ 7.4
-   เป็นอาการเดียวกับที่ globals บันทึกไว้เรื่อง --teal ที่ต้องมี --teal-text แยกสำหรับพื้นจาง */
-.eh__bot-sub { color: var(--ink-body); font-size: .74rem; }
-.eh__thread { display: grid; gap: 8px; padding: 14px 15px; }
+/* กล่องข้อความของผู้ช่วย — อยู่ใน **แผงผู้ช่วยกลาง** ซึ่งมีกรอบ หัวแผง และระยะขอบของตัวเองแล้ว
+   ระยะขอบซ้ายขวาจึงเป็นศูนย์ที่นี่ ไม่งั้นได้ระยะขอบสองชั้นซ้อนกันจนกล่องข้อความแคบลงเปล่า ๆ
+   ตอนอยู่ในต้นแบบมันเป็นการ์ดลอยในหน้า จึงเคยมี padding 15px ของตัวเอง */
+.eh__assist { display: grid; }
+.eh__thread { display: grid; gap: 8px; padding-block-end: .75rem; }
 .eh__say { margin: 0; border-radius: 12px; padding: .55rem .72rem; background: var(--canvas); color: var(--ink-body); font-size: .82rem; line-height: 1.55; }
 .eh__say--me { justify-self: end; max-width: 90%; background: var(--teal); color: var(--paper); }
-.eh__chips { display: grid; gap: 7px; padding: 0 15px 12px; }
-.eh__chip { border: 1px solid var(--teal-soft); border-radius: 999px; padding: .52rem .85rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-align: start; cursor: pointer; }
-.eh__chip:hover { border-color: var(--teal); background: var(--teal-wash); }
-.eh__ask { display: flex; gap: 7px; padding: 0 15px 13px; }
-.eh__ask input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 12px; padding: .5rem .65rem; font: inherit; font-size: .82rem; }
-.eh__ask button { border: 0; border-radius: 999px; padding: .5rem 1rem; background: var(--teal); color: var(--paper); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
-.eh__scope { padding: 12px 15px 15px; border-block-start: 1px solid var(--mist); background: var(--canvas); }
+.eh__chips { display: grid; gap: 7px; padding-block-end: .75rem; }
+/* ปุ่มคำถามสูงอย่างน้อย 44px ตามระยะนิ้วขั้นต่ำ — บนมือถือแผงผู้ช่วยเป็นแผ่นเลื่อนจากขอบล่าง
+   ซึ่งเป็นที่ที่นิ้วโป้งกดพลาดง่ายที่สุด · ข้อความยาวกว่าหนึ่งบรรทัดได้ จึงไม่ตรึงความสูง */
+.eh__chip { min-block-size: 44px; border: 1px solid var(--teal-soft); border-radius: 999px; padding: .52rem .85rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-align: start; cursor: pointer; }
+.eh__chip:hover, .eh__chip:focus-visible { border-color: var(--teal); background: var(--teal-wash); }
+.eh__scope { padding-block: .75rem 0; border-block-start: 1px solid var(--mist); }
 .eh__scope strong { color: var(--ink); font-size: .76rem; font-weight: 800; }
 .eh__scope ul { margin: .35rem 0 0; padding-inline-start: 1rem; color: var(--muted); font-size: .76rem; line-height: 1.5; }
 
-@media (max-width: 1000px) {
-  .eh__board { grid-template-columns: 1fr; }
-  .eh__bot { position: static; }
-  .eh__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 560px) { .eh__steps { grid-template-columns: 1fr; } }
+/* เหตุผลที่สร้างโครงการใหม่ไม่ได้ อยู่ใต้ปุ่ม ไม่ใช่แทนปุ่ม — คนต้องเห็นว่ามีทางไปต่อ
+   แล้วค่อยอ่านว่าทำไมทางนี้ปิด ไม่ใช่เจอปุ่มหายไปเฉย ๆ แล้วเดาเอง */
+.eh__deny { margin: .5rem 0 0; color: var(--orange-text); font-size: .78rem; }
+
+/* แถบสิทธิ์แบบย่อ กดกางดูได้ครบห้าบรรทัด · <details> ทำงานโดยไม่ต้องพึ่ง JavaScript */
+.eh__rights { margin-block-start: .75rem; border: 1px solid var(--mist); border-radius: 12px; background: var(--paper); }
+.eh__rights summary { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; min-block-size: 44px; padding: .55rem .85rem; cursor: pointer; font-size: .78rem; }
+.eh__rights-state { color: var(--ink); font-weight: 700; }
+.eh__rights-note { color: var(--muted); }
+.eh__rights-more { margin-inline-start: auto; color: var(--teal-text); font-weight: 700; }
+.eh__rights[open] summary { border-block-end: 1px solid var(--mist); }
+.eh__rights ul { display: grid; gap: .4rem; margin: 0; padding: .7rem .85rem .85rem; list-style: none; color: var(--ink-body); font-size: .78rem; }
+
+/* การ์ดสี่ขั้นพับตามความกว้างที่เหลือจริง ไม่ใช่ตามความกว้างจอ — แผงผู้ช่วยกลางกางอยู่จะกิน
+   ความกว้างไป 396px คิดตามจอจึงพับช้าไปหนึ่งจังหวะเสมอ (`.assistant-dock-push--active`) */
+@container eh (max-width: 1000px) { .eh__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container eh (max-width: 560px) { .eh__steps { grid-template-columns: 1fr; } }

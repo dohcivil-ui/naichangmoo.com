@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { auditEvents, drawingCalibrations, drawingDocuments, drawingMarks, drawingViewStates, projects } from "@/db/schema";
 import { isCalibrationMethod, type CalibrationMethod } from "@/lib/drawing-calibration-method";
@@ -353,6 +353,72 @@ export async function loadDrawingState(input: {
   }
 
   return { calibrations, marks, view };
+}
+
+/**
+ * ความคืบหน้าของขั้น "เปิดแบบและยืนยันสเกล" ของทั้งโครงการ — ใช้บนหน้าแรกของแอป (IP-235)
+ *
+ * หน้าแรกต้องบอกได้ว่าค้างอยู่ตรงไหน เช่น "ตั้งสเกลแล้ว 1 หน้า จากทั้งหมด 32 หน้า"
+ * เลขสองตัวนั้นมีอยู่ในฐานอยู่แล้ว — `drawing_documents.page_count` กับจำนวนแถวใน
+ * `drawing_calibrations` — แต่ยังไม่มีใครนับให้ ที่ผ่านมาจึงเดาไม่ได้และต้องเว้นว่างไว้
+ *
+ * **นับรวมทุกไฟล์แบบในโครงการ ไม่ใช่ไฟล์ล่าสุดไฟล์เดียว** เพราะหนึ่งโครงการเปิดแบบได้หลายไฟล์
+ * (สถาปัตย์ โครงสร้าง งานระบบ) และคนที่ถามว่า "เหลืออีกกี่หน้า" หมายถึงงานที่เหลือทั้งโครงการ
+ *
+ * `pageCount` เป็น null เมื่อไม่มีไฟล์ไหนบอกจำนวนหน้ามาเลย ซึ่งต่างจาก 0 โดยสิ้นเชิง —
+ * null คือ "ไม่รู้" ส่วน 0 คือ "รู้ว่าไม่มี" คนอ่านหน้าแรกต้องเห็นความต่างนี้ ไม่ใช่เห็นเลขที่เราเดาให้
+ */
+export type DrawingProgressView = {
+  documentCount: number;
+  /** จำนวนหน้ารวมของแบบทุกไฟล์ · null = ยังไม่มีไฟล์ไหนบอกจำนวนหน้ามา */
+  pageCount: number | null;
+  /** จำนวนหน้าที่ยืนยันสเกลแล้ว นับข้ามทุกไฟล์ */
+  calibratedPages: number;
+  /** สเกลที่ยืนยันล่าสุด — บอกได้ว่าเพิ่งทำอะไรค้างไว้ตรงไหน */
+  latest: { pageNumber: number; scale: PageScale } | null;
+};
+
+export async function summarizeDrawingProgress(
+  organizationId: string,
+  projectId: string
+): Promise<DrawingProgressView> {
+  const db = getDb();
+  // The join to projects is the organization scope, exactly as loadDocumentScoped does it:
+  // drawing_documents has no organization column of its own.
+  const documents = await db
+    .select({ id: drawingDocuments.id, pageCount: drawingDocuments.pageCount })
+    .from(drawingDocuments)
+    .innerJoin(projects, eq(projects.id, drawingDocuments.projectId))
+    .where(and(eq(drawingDocuments.projectId, projectId), eq(projects.organizationId, organizationId)));
+
+  if (documents.length === 0) return { documentCount: 0, pageCount: null, calibratedPages: 0, latest: null };
+
+  const counted = documents.filter((row) => row.pageCount !== null);
+  const pageCount = counted.length === 0 ? null : counted.reduce((total, row) => total + (row.pageCount ?? 0), 0);
+
+  const calibrations = await db
+    .select({
+      pageNumber: drawingCalibrations.pageNumber,
+      metresPerPoint: drawingCalibrations.metresPerPoint
+    })
+    .from(drawingCalibrations)
+    .where(inArray(drawingCalibrations.documentId, documents.map((row) => row.id)))
+    .orderBy(desc(drawingCalibrations.confirmedAt));
+
+  const newest = calibrations[0];
+  const metresPerPoint = newest ? Number(newest.metresPerPoint) : 0;
+
+  return {
+    documentCount: documents.length,
+    pageCount,
+    calibratedPages: calibrations.length,
+    // A stored scale is always positive (a CHECK constraint says so), but a row that somehow
+    // reads back as zero would make the ratio meaningless rather than merely wrong.
+    latest:
+      newest && metresPerPoint > 0
+        ? { pageNumber: newest.pageNumber, scale: { metresPerPoint, ratio: metresPerPoint * POINTS_PER_METRE } }
+        : null
+  };
 }
 
 /**

@@ -32,7 +32,11 @@ const NUMERIC_COLUMNS = [
   ".work-plan__cell--number",
   ".gl-num",
   ".gl-slab__price",
-  ".gl-labour__rate"
+  ".gl-labour__rate",
+  /* เลขบนหน้าแรก ESTIMETR (IP-235) — เลขขั้น เลขหน้าแบบ สเกล และจำนวนรายการ
+     วางซ้อนกันเป็นคอลัมน์ในตารางโครงการ และอยู่ปนกับตัวหนังสือในการ์ดงานค้าง */
+  ".eh__num",
+  ".eh__n"
 ];
 
 /**
