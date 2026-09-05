@@ -16,6 +16,13 @@
 import type { PagePoint, PageScale } from "@/lib/drawing-scale";
 
 export type RoomAreaExplained = {
+  /**
+   * กรอบที่ครอบรูป หน่วยจุดบนหน้ากระดาษ — เอาไว้วาดเส้นบอกระยะทับรูปบนแบบ
+   *
+   * คืนออกมาด้วยเพื่อให้ตัวที่วาดไม่ต้องไล่หาค่าน้อยสุดมากสุดเองอีกรอบ ค่าที่วาดกับค่าที่
+   * เขียนเป็นตัวเลขจึงมาจากการไล่ครั้งเดียวกันเสมอ ไม่มีทางหลุดจากกัน
+   */
+  bounds: { minX: number; maxX: number; minY: number; maxY: number };
   /** ด้านกว้างของกรอบที่ครอบรูปทั้งรูป หน่วยเมตร */
   widthMetres: number;
   /** ด้านลึกของกรอบที่ครอบรูปทั้งรูป หน่วยเมตร */
@@ -66,6 +73,7 @@ export function explainRoomArea(
   const boundingAreaSquareMetres = widthMetres * depthMetres;
 
   return {
+    bounds: { minX, maxX, minY, maxY },
     widthMetres,
     depthMetres,
     boundingAreaSquareMetres,

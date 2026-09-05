@@ -60,6 +60,21 @@ describe("กางวิธีคิดของพื้นที่ห้อ�
     expect(out.fillRatio).toBeCloseTo(0.75, 6);
   });
 
+  /**
+   * กรอบที่คืนออกมาเป็นตัวที่เอาไปวาดเส้นบอกระยะทับรูปบนแบบ
+   *
+   * ถ้ามันไม่ตรงกับตัวเลขที่เขียนกำกับ คนจะเห็นลูกศรคร่อมที่หนึ่งแต่ตัวเลขบอกอีกอย่าง
+   * ซึ่งแย่กว่าไม่วาดเลย เพราะมันดูเหมือนหลักฐาน
+   */
+  it("กรอบที่คืนมาเป็นหน่วยจุดบนกระดาษ และคูณสเกลแล้วได้เท่ากับความกว้างความลึกที่รายงาน", () => {
+    const points = rectangle(2.26, 1.76);
+    const out = explainRoomArea(points, scale, 3.98)!;
+    expect(out.bounds.minX).toBe(0);
+    expect(out.bounds.minY).toBe(0);
+    expect((out.bounds.maxX - out.bounds.minX) * scale.metresPerPoint).toBeCloseTo(out.widthMetres, 9);
+    expect((out.bounds.maxY - out.bounds.minY) * scale.metresPerPoint).toBeCloseTo(out.depthMetres, 9);
+  });
+
   it("ไม่มีสเกล ไม่มีรูป หรือไม่มีพื้นที่ ตอบ null ไม่เดา", () => {
     expect(explainRoomArea(rectangle(2, 2), null, 4)).toBeNull();
     expect(explainRoomArea([{ x: 0, y: 0 }], scale, 4)).toBeNull();

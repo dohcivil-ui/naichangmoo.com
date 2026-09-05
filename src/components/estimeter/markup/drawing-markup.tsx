@@ -206,6 +206,8 @@ const ICONS = {
   sharp: "M12 5v3M12 16v3M5 12h3M16 12h3M7.8 7.8l2 2M14.2 14.2l2 2M16.2 7.8l-2 2M9.8 14.2l-2 2M12 10a2 2 0 1 0 .01 0",
   /** ล็อกแนวเส้น — มุมฉากพร้อมเส้นทแยงบอกว่ามุมถูกบังคับ */
   ortho: "M5 19V5M5 19h14M5 12h7v7",
+  /** พอดีกรอบ — สี่มุมของกรอบกับแผ่นแบบข้างใน สื่อว่าแบบทั้งแผ่นถูกจับให้พอดีกรอบ */
+  fit: "M3 8V4h4M21 8V4h-4M3 16v4h4M21 16v4h-4M8 9h8v6H8z",
   caret: "M7 10l5 5 5-5"
 } as const;
 
@@ -1972,6 +1974,34 @@ export function DrawingMarkup({
             <path d={ICONS.ortho} />
           </svg>
         </button>
+        {/*
+          พอดีกรอบ — ปุ่มจริงบนแถบ ไม่ใช่ปุ่มลับที่มีแต่คนรู้คีย์ลัดถึงจะกดได้ (IP-239)
+
+          `fitToStage` มีมาตั้งแต่ต้นและวางแบบไว้กลางกรอบพอดีอยู่แล้ว แต่เรียกได้ทางเดียว
+          คือกด 0 หรือ F ซึ่งไม่มีอะไรบนจอบอกไว้เลย · คนที่ลากแบบเลื่อนไปจนหลงจึงไม่มีทางกลับ
+          เจ้าของงานสั่งเองเมื่อ 2026-09-05 ว่า "เมื่อเรากดปุ่ม fit มันก็มาอยู่จุดนี้เสมอ
+          ยึดกลางแบบปักหลักเลย" · การลากเลื่อนตอนซูมเข้ายังทำได้เหมือนเดิม ปุ่มนี้แค่พาก
+          กลับมาที่หลักเมื่อไหร่ก็ได้
+        */}
+        <button
+          type="button"
+          className="mk__icon"
+          onClick={fitToStage}
+          disabled={!doc}
+          aria-label="พอดีกรอบ"
+          onPointerEnter={(event) =>
+            showTip(event, {
+              label: "พอดีกรอบ",
+              hint: "ย่อขยายให้เห็นแบบทั้งแผ่นแล้ววางไว้กลางกรอบ กดเมื่อไหร่ก็กลับมาที่เดิมเสมอ",
+              key: "F"
+            })
+          }
+          onPointerLeave={() => setTip(null)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d={ICONS.fit} />
+          </svg>
+        </button>
         <button
           type="button"
           className="mk__icon"
@@ -2074,38 +2104,20 @@ export function DrawingMarkup({
       {pendingRoom ? (
         <div className="mk__confirm" role="status">
           {/*
-            วิธีคิดอยู่บรรทัดเดียวกับตัวเลข ไม่ใช่แถบของตัวเอง (IP-238)
+            แถบนี้บอกแค่พื้นที่ ส่วนวิธีคิดไปอยู่บนแบบ (IP-238)
 
-            เจ้าของงานเปิดหน้านี้แล้วเจอ "3.98 ตร.ม." ทั้งที่เส้นบอกระยะบนแบบเขียนว่าช่วงนี้
-            2.50 × 2.00 · เขาถามว่าเลขนี้มาจากไหน แล้วจอตอบไม่ได้เลย · เลขที่ตอบไม่ได้ว่า
-            มาจากไหน คือเลขที่เถียงในห้องประชุมไม่ได้ ซึ่งเป็นปัญหาข้อแรกที่หน้าขายของเรา
-            ประกาศว่าเครื่องมือนี้แก้ จอที่แสดงแต่ผลลัพธ์จึงขัดกับคำโฆษณาของตัวเอง
+            เจ้าของงานถามว่า "3.98 มาจากไหน" ทั้งที่เส้นบอกระยะเขียนว่าช่วงนี้ 2.50 × 2.00
+            รอบแรกผมตอบด้วยการเขียนวิธีคิดเป็นตัวหนังสือลงในแถบนี้ ซึ่งทำให้แถบสูงขึ้น
+            เป็นสี่บรรทัดและกินพื้นที่แบบไปเปล่า ๆ · เขาเคาะว่า **ให้วาดเส้นบอกระยะทับรูป
+            ที่ไล่ได้บนแบบเลย** แล้วแถบนี้เหลือแค่พื้นที่ให้กดยอมรับ
 
-            **รอบแรกวางเป็นแถบของตัวเองใต้ตัวเลข แล้วแถบยืนยันสูงขึ้นเป็นสี่บรรทัด**
-            เจ้าของงานทักทันทีว่ากินพื้นที่แบบไปเปล่า ๆ · คำอธิบายที่ทำให้เห็นแบบน้อยลง
-            คือคำอธิบายที่ต้องแลกกับสิ่งที่มันอธิบาย ตอนนี้ไหลต่อท้ายตัวเลขในบรรทัดเดียวกัน
+            เหตุผลที่ดีกว่าคือคนที่กำลังตัดสินใจกดยอมรับ กำลังมองแบบอยู่ ไม่ได้มองแถบ
+            เส้นบอกระยะที่วาดทับรูปตอบคำถาม "กว้างเท่าไหร่ ยาวเท่าไหร่" ตรงที่ตาเขาอยู่แล้ว
+            และตอบด้วยภาษาเดียวกับที่แบบก่อสร้างใช้บอกระยะอยู่แล้วทั้งแผ่น
           */}
           <span className="mk__confirm-lead">
             พื้นที่ห้องที่ไล่ได้ <b className="mk__num">{formatMetres(pendingValue?.areaSquareMetres ?? 0)}</b> ตร.ม.
-            {roomWorking ? (
-              <em>
-                = กว้าง <b className="mk__num">{formatMetres(roomWorking.widthMetres)}</b> × ลึก{" "}
-                <b className="mk__num">{formatMetres(roomWorking.depthMetres)}</b> ม.
-                {roomWorking.fillRatio <= 0.995 ? (
-                  <>
-                    {" "}
-                    (รูปมีมุมหัก กินกรอบ <b className="mk__num">{Math.round(roomWorking.fillRatio * 100)}</b>%)
-                  </>
-                ) : null}{" "}
-                · <b className="mk__num">{roomWorking.sideCount}</b> ด้าน · เส้นรอบรูป{" "}
-                <b className="mk__num">{formatMetres(pendingValue?.perimeterMetres ?? 0)}</b> ม. · สเกล{" "}
-                <b className="mk__num">1</b>:<b className="mk__num">{roomWorking.scaleRatio.toFixed(2)}</b>{" "}
-                คือหนึ่งจุดบนกระดาษยาว <b className="mk__num">{roomWorking.metresPerPoint.toFixed(4)}</b> ม. คูณสองครั้ง ·
-                วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา
-              </em>
-            ) : (
-              <em>วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา</em>
-            )}
+            <em>วัดถึงผิวผนังด้านใน ไม่ใช่กึ่งกลางเสา · เส้นบอกระยะบนแบบบอกว่ากว้างยาวเท่าไหร่</em>
           </span>
           <input
             className="mk__confirm-name"
@@ -2303,6 +2315,96 @@ export function DrawingMarkup({
                     strokeWidth={stroke(2)}
                     strokeDasharray={`${stroke(6)} ${stroke(4)}`}
                   />
+                ) : null}
+
+                {/*
+                  เส้นบอกระยะของรูปที่รอยืนยัน — วิธีคิดของพื้นที่ที่วาดให้ดูตรงที่ตาคนอยู่ (IP-238)
+
+                  เจ้าของงานสั่งเองเมื่อ 2026-09-05 ว่า "ต้องวัดแบบนี้ให้ดูด้วยว่ามันได้กว้าง
+                  เท่าไหร่ × ยาวเท่าไหร่ = พื้นที่ห้องจริงที่แสดงด้านบน" แล้วส่งรูปที่เขาขีดลูกศร
+                  แดงคร่อมรูปที่ไล่ได้มาให้ · คนที่กำลังตัดสินใจกดยอมรับกำลังมองแบบอยู่
+                  ไม่ได้มองแถบด้านบน คำอธิบายจึงต้องอยู่บนแบบ
+
+                  ขนาดทุกอย่างหารด้วย `view.scale` เหมือนเส้นบอกระยะที่มีอยู่แล้ว เส้นกับตัวหนังสือ
+                  จึงหนาและใหญ่เท่าเดิมบนจอทุกระดับซูม ส่วนตำแหน่งเลื่อนตามรูปเพราะอิงพิกัดกระดาษ
+                */}
+                {pendingRoom && pendingRoom.page === page && roomWorking ? (
+                  (() => {
+                    const { minX, maxX, minY, maxY } = roomWorking.bounds;
+                    const gap = stroke(26);
+                    const tick = stroke(5);
+                    // ตัวหนังสือมีขอบสีกระดาษล้อมไว้ ไม่งั้นมันจมหายไปในเส้นของแบบที่อยู่ข้างใต้
+                    const halo = { paintOrder: "stroke", stroke: "var(--paper)", strokeWidth: stroke(3.4), strokeLinejoin: "round" } as const;
+                    const lineY = maxY + gap;
+                    const lineX = maxX + gap;
+                    return (
+                      <g className="mk__roomdim">
+                        {/* เส้นต่อจากมุมรูปออกไปหาเส้นบอกระยะ แบบเดียวกับที่แบบก่อสร้างเขียน */}
+                        <line x1={minX} y1={maxY} x2={minX} y2={lineY + tick} stroke="var(--dimension-red)" strokeWidth={stroke(0.9)} />
+                        <line x1={maxX} y1={maxY} x2={maxX} y2={lineY + tick} stroke="var(--dimension-red)" strokeWidth={stroke(0.9)} />
+                        <line x1={maxX} y1={minY} x2={lineX + tick} y2={minY} stroke="var(--dimension-red)" strokeWidth={stroke(0.9)} />
+                        <line x1={maxX} y1={maxY} x2={lineX + tick} y2={maxY} stroke="var(--dimension-red)" strokeWidth={stroke(0.9)} />
+
+                        <line
+                          x1={minX}
+                          y1={lineY}
+                          x2={maxX}
+                          y2={lineY}
+                          stroke="var(--dimension-red)"
+                          strokeWidth={stroke(1.4)}
+                          markerStart="url(#mk-arrow)"
+                          markerEnd="url(#mk-arrow)"
+                        />
+                        <text
+                          x={(minX + maxX) / 2}
+                          y={lineY - stroke(6)}
+                          fill="var(--dimension-red)"
+                          fontSize={stroke(12)}
+                          fontWeight={700}
+                          textAnchor="middle"
+                          style={halo}
+                        >
+                          {formatMetres(roomWorking.widthMetres)}
+                        </text>
+
+                        <line
+                          x1={lineX}
+                          y1={minY}
+                          x2={lineX}
+                          y2={maxY}
+                          stroke="var(--dimension-red)"
+                          strokeWidth={stroke(1.4)}
+                          markerStart="url(#mk-arrow)"
+                          markerEnd="url(#mk-arrow)"
+                        />
+                        <text
+                          x={lineX + stroke(6)}
+                          y={(minY + maxY) / 2}
+                          fill="var(--dimension-red)"
+                          fontSize={stroke(12)}
+                          fontWeight={700}
+                          dominantBaseline="middle"
+                          style={halo}
+                        >
+                          {formatMetres(roomWorking.depthMetres)}
+                        </text>
+
+                        {/* ผลคูณเขียนไว้ใต้เส้นล่าง ให้เห็นว่าเลขบนแถบมาจากสองเลขนี้ */}
+                        <text
+                          x={(minX + maxX) / 2}
+                          y={lineY + stroke(16)}
+                          fill="var(--dimension-red)"
+                          fontSize={stroke(11)}
+                          fontWeight={700}
+                          textAnchor="middle"
+                          style={halo}
+                        >
+                          {formatMetres(roomWorking.widthMetres)} × {formatMetres(roomWorking.depthMetres)} ={" "}
+                          {formatMetres(pendingValue?.areaSquareMetres ?? 0)} ตร.ม.
+                        </text>
+                      </g>
+                    );
+                  })()
                 ) : null}
 
                 {calibrationPoints.length > 0 ? (
