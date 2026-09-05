@@ -9,6 +9,7 @@ import {
   type ProjectPath,
 } from "@/lib/estimation-workflow";
 import type { EstimeterAccessView } from "@/lib/estimeter-access-view";
+import { Button } from "@/components/platform/button";
 
 const stages = [
   { id: 1 as EstimationStage, label: "ตั้งโครงการและตรวจแบบ", english: "Project & drawing review", note: "สายงาน แบบ revision และสเกล" },
@@ -146,7 +147,7 @@ export function EstimationWorkspace({ access }: { access: EstimeterAccessView })
                   <article><span className="review-grid__icon">S</span><div><h3>Scale reference</h3><p>ตั้ง scale จากระยะจริงที่ตรวจสอบได้ ไม่อนุญาตให้เดา scale</p><button className={`calibration-check ${scaleConfirmed ? "is-confirmed" : ""}`} disabled={!canEdit} onClick={() => setScaleConfirmed((value) => !value)} type="button">{scaleConfirmed ? "ยืนยันจุดอ้างอิงแล้ว" : "ยืนยันจุดอ้างอิงสเกล"}</button></div></article>
                   <article><span className="review-grid__icon">Q</span><div><h3>Open issues</h3><p>บันทึกข้อขัดแย้งก่อนถอดปริมาณ เพื่อไม่ให้ตัวเลขปิดบังความไม่แน่นอน</p><small>ไม่มีการปิด issue อัตโนมัติ</small></div></article>
                 </div>
-                <div className="workspace-callout"><div><strong>QA gate: ปลดล็อกการถอดปริมาณ</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit || !projectPath || !scaleConfirmed} onClick={completeDrawingReview} type="button">ยืนยัน project, แบบ และสเกล <span>→</span></button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ปลดล็อกการถอดปริมาณ</strong><p>{canEdit ? blocker : lockReason}</p></div><Button tone="primary" disabled={!canEdit || !projectPath || !scaleConfirmed} onClick={completeDrawingReview} type="button" arrow>ยืนยัน project, แบบ และสเกล</Button></div>
               </div>
             )}
 
@@ -155,7 +156,7 @@ export function EstimationWorkspace({ access }: { access: EstimeterAccessView })
                 <div className="workspace-panel__title"><div><p className="eyebrow">02 · AI TAKE-OFF WITH HUMAN EVIDENCE REVIEW</p><h2>ถอดปริมาณงานพร้อมหลักฐาน</h2></div><span className={takeoffReviewed ? "status-chip status-chip--ready" : "status-chip"}>{takeoffReviewed ? "ปริมาณตรวจแล้ว" : "รอ review รายการ"}</span></div>
                 <div className="takeoff-table-wrap"><table className="takeoff-table"><thead><tr><th>รหัส</th><th>รายการงาน</th><th>หน่วย</th><th>ปริมาณ</th><th>หลักฐานจากแบบ</th></tr></thead><tbody>{takeoffRows.map((row) => <tr key={row.code}><td><code>{row.code}</code></td><td>{row.item}</td><td>{row.unit}</td><td className="number-cell">{row.quantity}</td><td><span className="evidence-link">{row.evidence}</span></td></tr>)}</tbody></table></div>
                 <div className="prelim-boq-note"><strong>Prelim BOQ ยังไม่ใช่เอกสารปล่อยออก</strong><p>AI อาจเสนอรายการได้ แต่ผู้ใช้ต้องยืนยันหน่วย สูตร และ evidence ก่อนสร้าง estimate revision</p></div>
-                <div className="workspace-split"><div><strong>QA gate: ก่อนเลือก Price Set</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit} onClick={completeTakeoff} type="button">ยืนยันปริมาณและหลักฐาน <span>→</span></button></div>
+                <div className="workspace-split"><div><strong>QA gate: ก่อนเลือก Price Set</strong><p>{canEdit ? blocker : lockReason}</p></div><Button tone="primary" disabled={!canEdit} onClick={completeTakeoff} type="button" arrow>ยืนยันปริมาณและหลักฐาน</Button></div>
               </div>
             )}
 
@@ -164,8 +165,8 @@ export function EstimationWorkspace({ access }: { access: EstimeterAccessView })
                 <div className="workspace-panel__title"><div><p className="eyebrow">03 · PROVENANCE-BOUND UNIT COST</p><h2>ประมาณราคาจาก Price Set ที่อนุมัติ</h2></div><span className={costReviewed ? "status-chip status-chip--ready" : "status-chip status-chip--attention"}>{costReviewed ? "ตรวจราคาแล้ว" : "ยังไม่พร้อมคำนวณ"}</span></div>
                 <div className="cost-source-card"><div><span className="cost-source-card__signal">REFERENCE PRICE POLICY</span><h3>{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยังไม่มี price set ที่อนุมัติ"}</h3><p>Production จะต้องระบุ source, จังหวัด, เดือน, revision, price excluding VAT, treatment ค่าขนส่ง และ raw payload hash ก่อนผูกราคากับ BOQ</p></div><div className="cost-source-card__meta"><span>สายงาน</span><strong>{projectPath === "government" ? "ราชการ" : "เอกชน"}</strong><span>Baseline</span><strong>{projectPath === "government" ? "versioned / รอยืนยัน" : "policy รออนุมัติ"}</strong></div></div>
                 <div className="cost-breakdown"><article><span>วัสดุ</span><strong>ห้ามใช้ราคาไม่มีที่มา</strong><small>source + province/month + revision</small></article><article><span>ค่าแรง</span><strong>แยกจากค่าวัสดุ</strong><small>ทุกแถวต้อง review ได้</small></article><article><span>VAT / ขนส่ง</span><strong>ห้ามเดาสถานะ</strong><small>ต้องระบุ policy ใน price set</small></article></div>
-                <div className="price-set-gate"><div><strong>Gate A: price set revision</strong><p>คลิกเพื่อจำลองการอนุมัติ price set เท่านั้น ไม่ได้ดึงหรือสร้างราคาจริง</p></div><button className={`button ${priceSetApproved ? "button--primary" : "button--orange"} micro-button`} disabled={!canEdit} onClick={approvePriceSet} type="button">{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยืนยัน price set สาธิต"}</button></div>
-                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>{canEdit ? blocker : lockReason}</p></div><button className="button button--orange micro-button" disabled={!canEdit || !priceSetApproved} onClick={completeCostReview} type="button">ยืนยันการประมาณราคา <span>→</span></button></div>
+                <div className="price-set-gate"><div><strong>Gate A: price set revision</strong><p>คลิกเพื่อจำลองการอนุมัติ price set เท่านั้น ไม่ได้ดึงหรือสร้างราคาจริง</p></div><Button tone={priceSetApproved ? "ink" : "primary"} disabled={!canEdit} onClick={approvePriceSet}>{priceSetApproved ? "Price set สาธิตถูกล็อกแล้ว" : "ยืนยัน price set สาธิต"}</Button></div>
+                <div className="workspace-callout"><div><strong>QA gate: ก่อนสรุป BOQ</strong><p>{canEdit ? blocker : lockReason}</p></div><Button tone="primary" disabled={!canEdit || !priceSetApproved} onClick={completeCostReview} type="button" arrow>ยืนยันการประมาณราคา</Button></div>
               </div>
             )}
 

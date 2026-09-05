@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { saveChannel, type ChannelFormState } from "@/server/actions/admin-channels";
 import type { AdminChannel } from "@/server/platform-channels";
+import { Button } from "@/components/platform/button";
 
 const initial: ChannelFormState = { ok: true, message: "" };
 
@@ -25,12 +26,12 @@ export function ChannelForm({ channel }: { channel: AdminChannel }) {
         <input type="text" name="reason" placeholder="เช่น เปิดบัญชี LINE OA แล้ว" required minLength={4} />
       </label>
       <div className="admin-form__foot">
-        <button className="button button--orange micro-button" type="submit" name="intent" value="save" disabled={pending}>
+        <Button tone="primary" type="submit" name="intent" value="save" disabled={pending}>
           บันทึกและแสดงบนท้ายเว็บ
-        </button>
-        <button className="button button--ghost micro-button" type="submit" name="intent" value="clear" disabled={pending}>
+        </Button>
+        <Button tone="quiet" type="submit" name="intent" value="clear" disabled={pending}>
           ล้างค่าและซ่อนจากท้ายเว็บ
-        </button>
+        </Button>
       </div>
       {state.message ? (
         <p className={state.ok ? "admin-form__ok" : "admin-form__error"} role="status">{state.message}</p>

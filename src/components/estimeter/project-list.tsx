@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { formatThaiDateTime } from "@/lib/thai-format";
 import type { ProjectSummary } from "@/server/estimeter/project-repository";
+import { Button } from "@/components/platform/button";
 
 const projectStateLabel: Record<string, string> = {
   draft: "ร่าง",
@@ -63,9 +64,9 @@ export function ProjectList({
           <p>{denial ?? "ตั้งชื่อโครงการเพื่อเริ่มงาน แล้วระบบจะพาไปตามลำดับ ตรวจแบบ ถอดปริมาณ ประมาณราคา และสรุป BOQ"}</p>
         </div>
         {denial ? (
-          <Link className="button button--orange micro-button" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Link>
+          <Button tone="primary" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Button>
         ) : (
-          <Link className="button button--orange micro-button" href="/apps/estimeter/projects/new">สร้างโครงการ <span>→</span></Link>
+          <Button tone="primary" href="/apps/estimeter/projects/new" arrow>สร้างโครงการ</Button>
         )}
       </div>
     </div>

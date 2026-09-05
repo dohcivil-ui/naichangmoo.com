@@ -14,6 +14,7 @@ import {
   workingDaysBetween,
   type WorkCalendar
 } from "@/lib/work-calendar";
+import { Button } from "@/components/platform/button";
 
 /**
  * ปฏิทินวันทำงานของโครงการ
@@ -196,19 +197,16 @@ export function WorkCalendarPanel({
             ถ้าเปลี่ยนเป็น{DURATION_UNIT_LABELS[pendingUnit]} แผนจะจบ {formatThaiDate(endUnderOtherUnit)}
           </p>
           <div className="work-plan__calendar-add">
-            <button
-              type="button"
-              className="button button--orange micro-button"
-              onClick={() => {
+            <Button tone="primary" type="button" onClick={() => {
                 onDurationUnit(pendingUnit);
                 setPendingUnit(null);
               }}
             >
               เปลี่ยนเป็น{DURATION_UNIT_LABELS[pendingUnit]}
-            </button>
-            <button type="button" className="button button--ghost micro-button" onClick={() => setPendingUnit(null)}>
+            </Button>
+            <Button tone="quiet" type="button" onClick={() => setPendingUnit(null)}>
               ไม่เปลี่ยน
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -307,9 +305,9 @@ export function WorkCalendarPanel({
                         ) : null}
                       </td>
                       <td>
-                        <button type="button" className="button button--ghost micro-button" onClick={() => remove(holiday.date)}>
+                        <Button tone="quiet" type="button" onClick={() => remove(holiday.date)}>
                           โครงการนี้ไม่หยุด
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))
@@ -322,9 +320,9 @@ export function WorkCalendarPanel({
                       <span className="form-note">เอาออกจากปฏิทินโครงการนี้แล้ว นับเป็นวันทำงาน</span>
                     </td>
                     <td>
-                      <button type="button" className="button button--ghost micro-button" onClick={() => restore(date)}>
+                      <Button tone="quiet" type="button" onClick={() => restore(date)}>
                         เอากลับมาเป็นวันหยุด
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -352,14 +350,9 @@ export function WorkCalendarPanel({
                 }}
               />
             </label>
-            <button
-              type="button"
-              className="button button--orange micro-button"
-              disabled={newDate.trim() === "" || newName.trim() === ""}
-              onClick={addHoliday}
-            >
+            <Button tone="primary" type="button" disabled={newDate.trim() === "" || newName.trim() === ""} onClick={addHoliday}>
               เพิ่มวันหยุด
-            </button>
+            </Button>
           </div>
           <p className="form-note">
             {/* เลขปีเป็นชื่อปี ไม่ใช่จำนวน — ห้ามผ่าน toLocaleString ไม่งั้นได้ "2,569" */}

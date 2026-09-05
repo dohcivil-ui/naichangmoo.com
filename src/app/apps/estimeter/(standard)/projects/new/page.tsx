@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { ProjectForm } from "@/components/estimeter/project-form";
 import { projectCreationDenial } from "@/lib/estimeter-project";
 import { resolveEstimeterContext } from "@/server/estimeter/context";
+import { Button } from "@/components/platform/button";
 
 export default async function NewEstimeterProjectPage() {
   const result = await resolveEstimeterContext();
@@ -29,8 +29,8 @@ export default async function NewEstimeterProjectPage() {
             <>
               <p className="hero__note">{denial}</p>
               <div className="hero__actions">
-                <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการ</Link>
-                <Link className="button button--primary micro-button" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Link>
+                <Button tone="primary" href="/apps/estimeter">กลับหน้าโครงการ</Button>
+                <Button tone="ink" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Button>
               </div>
             </>
           ) : (

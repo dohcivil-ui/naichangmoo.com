@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { Button, type Tone } from "@/components/platform/button";
 import type { TakeoffActionState } from "@/server/actions/estimeter-takeoff";
 
 const initialState: TakeoffActionState = { ok: false, message: "" };
@@ -11,19 +12,19 @@ type Action = (state: TakeoffActionState | undefined, formData: FormData) => Pro
 function Submit({
   label,
   pendingLabel,
-  className,
+  tone,
   disabled
 }: {
   label: string;
   pendingLabel: string;
-  className: string;
+  tone: Tone;
   disabled?: boolean;
 }) {
   const { pending } = useFormStatus();
   return (
-    <button className={className} type="submit" disabled={pending || disabled}>
-      {pending ? pendingLabel : label}
-    </button>
+    <Button tone={tone} type="submit" disabled={disabled} pending={pending} pendingLabel={pendingLabel}>
+      {label}
+    </Button>
   );
 }
 
@@ -36,14 +37,14 @@ export function TakeoffActionButton({
   fields,
   label,
   pendingLabel,
-  className = "button button--ghost micro-button",
+  tone = "quiet",
   disabledReason
 }: {
   action: Action;
   fields: Record<string, string>;
   label: string;
   pendingLabel: string;
-  className?: string;
+  tone?: Tone;
   disabledReason?: string | null;
 }) {
   const [state, formAction] = useActionState(action, initialState);
@@ -56,7 +57,7 @@ export function TakeoffActionButton({
       <Submit
         label={label}
         pendingLabel={pendingLabel}
-        className={className}
+        tone={tone}
         disabled={Boolean(disabledReason)}
       />
       {disabledReason ? <span className="takeoff-action__reason">{disabledReason}</span> : null}

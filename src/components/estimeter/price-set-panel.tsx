@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/price-catalogue";
 import { formatPricedQuantity } from "@/lib/takeoff-quantity";
 import { formatThaiDateTime } from "@/lib/thai-format";
 import type { PriceSetLineView, PriceSetSummary } from "@/server/estimeter/price-set-repository";
+import { Button } from "@/components/platform/button";
 
 /**
  * ชุดราคาที่รับมาจาก PRICEMETR — ฝั่งรับของ IP-163
@@ -64,9 +65,8 @@ export function PriceSetPanel({
               เดือนประกาศ และเลขหน้าเอกสารมาด้วย จึงตรวจย้อนได้ว่าตัวเลขมาจากประกาศฉบับไหน
             </p>
           </div>
-          <a className="button button--orange micro-button" href="/prototype/price-check">
-            ไปหน้าราคาวัสดุและค่าแรง <span>→</span>
-          </a>
+          <Button tone="primary" href="/prototype/price-check" arrow>
+            ไปหน้าราคาวัสดุและค่าแรง</Button>
         </div>
       </div>
     );

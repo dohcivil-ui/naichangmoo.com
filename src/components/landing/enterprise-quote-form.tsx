@@ -4,15 +4,16 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { requestEnterpriseQuotation } from "@/server/actions/enterprise-quotation";
 import type { QuotationActionResult } from "@/server/actions/quotation-schema";
+import { Button } from "@/components/platform/button";
 
 const initialState: QuotationActionResult = { ok: false, message: "" };
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--orange" type="submit" disabled={pending}>
+    <Button tone="primary" type="submit" disabled={pending}>
       {pending ? "กำลังส่งคำขอ..." : "ส่งคำขอให้ทีมงานจัดทำข้อเสนอ"}
-    </button>
+    </Button>
   );
 }
 

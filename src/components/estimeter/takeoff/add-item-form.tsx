@@ -5,15 +5,16 @@ import { useFormStatus } from "react-dom";
 import { DESCRIPTION_MAX } from "@/lib/takeoff-item";
 import { TAKEOFF_CATEGORIES, TAKEOFF_UNITS } from "@/lib/takeoff-units";
 import { addTakeoffItem, type TakeoffActionState } from "@/server/actions/estimeter-takeoff";
+import { Button } from "@/components/platform/button";
 
 const initialState: TakeoffActionState = { ok: false, message: "" };
 
 function Submit() {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--orange" type="submit" disabled={pending}>
+    <Button tone="primary" type="submit" disabled={pending}>
       {pending ? "กำลังบันทึก..." : "เพิ่มรายการ"}
-    </button>
+    </Button>
   );
 }
 

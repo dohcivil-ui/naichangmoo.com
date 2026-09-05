@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatTrialDate } from "@/lib/estimeter-access-view";
 import { landingActionContract } from "@/lib/landing-interactions";
 import { resolveEstimeterContext } from "@/server/estimeter/context";
+import { Button } from "@/components/platform/button";
 
 /**
  * The Typeform layout this page borrows its shape from puts a running order total here, with a
@@ -39,9 +40,9 @@ export async function AccessStatePanel() {
           เข้าสู่ระบบเพื่อดูว่าบัญชีของคุณใช้อะไรได้อยู่ และเหลือเวลาอีกเท่าไหร่
         </p>
         <div className="access-panel__actions">
-          <Link className="button button--orange micro-button" href="/market/estimeter">
+          <Button tone="primary" href="/market/estimeter">
             เริ่มทดลองใช้งาน
-          </Link>
+          </Button>
           <Link className="text-link" href={landingActionContract.allAppsHref}>
             ดูแอปทั้งหมด<span aria-hidden="true">→</span>
           </Link>
@@ -76,9 +77,9 @@ export async function AccessStatePanel() {
         ) : null}
       </dl>
       <div className="access-panel__actions">
-        <Link className="button button--orange micro-button" href="/apps/estimeter">
+        <Button tone="primary" href="/apps/estimeter">
           เปิด ESTIMETR
-        </Link>
+        </Button>
         <Link className="text-link" href="/enterprise">
           ขอใบเสนอราคาสำหรับหน่วยงาน<span aria-hidden="true">→</span>
         </Link>

@@ -10,6 +10,7 @@ import {
   type CustomerMatch
 } from "@/server/admin/entitlement-admin";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
+import { Button } from "@/components/platform/button";
 
 /**
  * Finds a customer by the two things a person asking for help can say about themselves: an email
@@ -53,9 +54,9 @@ export default async function AdminEntitlementsPage({
             <span className="visually-hidden">คำค้น</span>
             <input type="search" name="q" defaultValue={query} placeholder="อีเมล หรือ ชื่อองค์กร" minLength={2} />
           </label>
-          <button className="button button--ghost micro-button" type="submit">
+          <Button tone="quiet" type="submit">
             ค้นหา
-          </button>
+          </Button>
         </form>
 
         {lookupFailed ? (

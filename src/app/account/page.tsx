@@ -10,6 +10,7 @@ import { entitlementStateLabel } from "@/lib/platform-admin-labels";
 import { formatThaiDate, formatThaiDateTime } from "@/lib/thai-format";
 import { readMemberAppAccess, readMemberOrganizations, readMemberSessions } from "@/server/member-account";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
+import { Button } from "@/components/platform/button";
 
 export const metadata = {
   title: "บัญชีของฉัน | นายช่างหมู",
@@ -48,9 +49,9 @@ export default async function AccountPage() {
           <section className="account-page__card">
             <h1>ต้องเข้าสู่ระบบก่อน</h1>
             <p>หน้านี้แสดงข้อมูลบัญชีของผู้ที่เข้าสู่ระบบแล้ว</p>
-            <Link className="button button--ghost" href={landingActionContract.homeHref}>
+            <Button tone="quiet" href={landingActionContract.homeHref}>
               {landingActionContract.homeLabel}
-            </Link>
+            </Button>
           </section>
         </div>
         <PlatformFooter />

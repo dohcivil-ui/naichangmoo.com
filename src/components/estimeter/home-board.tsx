@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Button } from "@/components/platform/button";
 import type { EstimeterAccessView } from "@/lib/estimeter-access-view";
 import type { HomeStage } from "@/lib/estimeter-home-status";
 import { formatThaiDateTime } from "@/lib/thai-format";
@@ -83,12 +84,12 @@ export function EstimeterHomeBoard({
               </p>
               <p className="eh__todo">{resume.todo}</p>
               <div className="eh__row">
-                <Link className="eh__go" href={`/apps/estimeter/projects/${resume.project.id}/markup`}>
+                <Button tone="primary" href={`/apps/estimeter/projects/${resume.project.id}/markup`} arrow>
                   เปิดหน้าแบบ ทำงานต่อ
-                </Link>
-                <Link className="eh__line" href={`/apps/estimeter/projects/${resume.project.id}`}>
+                </Button>
+                <Button tone="quiet" href={`/apps/estimeter/projects/${resume.project.id}`}>
                   ดูหน้าโครงการ
-                </Link>
+                </Button>
               </div>
             </div>
 
@@ -119,9 +120,9 @@ export function EstimeterHomeBoard({
 
             <div className="eh__row">
               {denial ? (
-                <Link className="eh__line" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Link>
+                <Button tone="quiet" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Button>
               ) : (
-                <Link className="eh__line" href="/apps/estimeter/projects/new">เริ่มโครงการใหม่</Link>
+                <Button tone="quiet" href="/apps/estimeter/projects/new" arrow>เริ่มโครงการใหม่</Button>
               )}
             </div>
             {denial ? <p className="eh__deny">{denial}</p> : null}
@@ -136,9 +137,9 @@ export function EstimeterHomeBoard({
             </p>
             <div className="eh__row">
               {denial ? (
-                <Link className="eh__line" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Link>
+                <Button tone="quiet" href="/enterprise">ขอใบเสนอราคาสำหรับองค์กร</Button>
               ) : (
-                <Link className="eh__go" href="/apps/estimeter/projects/new">ตั้งค่าโครงการ</Link>
+                <Button tone="primary" href="/apps/estimeter/projects/new" arrow>ตั้งค่าโครงการ</Button>
               )}
             </div>
             {denial ? <p className="eh__deny">{denial}</p> : null}

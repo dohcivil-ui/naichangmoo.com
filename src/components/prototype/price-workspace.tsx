@@ -1081,7 +1081,7 @@ export function PriceWorkspace({
               <div className="container gl-pickgate__inner">
                 <p className="gl-pickgate__text">{pickNotice}</p>
                 <div className="gl-pickgate__actions">
-                  {access.signedIn ? null : <SignInButton callbackURL="/prototype/price-check" className="button button--orange micro-button" />}
+                  {access.signedIn ? null : <SignInButton callbackURL="/prototype/price-check" tone="primary" />}
                   <button type="button" className="gl-pickgate__close" onClick={() => setPickNotice(null)} aria-label="ปิดคำอธิบาย">
                     ปิด
                   </button>

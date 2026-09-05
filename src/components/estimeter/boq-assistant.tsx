@@ -6,6 +6,7 @@ import { formatPrice } from "@/lib/price-catalogue";
 import { formatPricedQuantity, roundPricedQuantity } from "@/lib/takeoff-quantity";
 import { requestAssistant, settleAssistantProposal } from "@/server/actions/assistant";
 import { acceptBoqMatches, loadBoqMatchInput } from "@/server/actions/estimeter-boq";
+import { Button } from "@/components/platform/button";
 
 /**
  * ผู้ช่วย ESTIMETR บนหน้าโครงการ — จับคู่ปริมาณกับชุดราคาแล้วให้คนติ๊กรับทีละคู่ (IP-217)
@@ -274,9 +275,9 @@ export function BoqAssistant({
           <p className="boq-assistant__target">ยังไม่มีประมาณราคาให้รับเข้า ออกได้ที่แผงบัญชีราคาก่อน</p>
         )}
 
-        <button className="button button--orange micro-button" type="button" disabled={!canAsk} onClick={ask}>
+        <Button tone="primary" type="button" disabled={!canAsk} onClick={ask}>
           {busy ? "กำลังจับคู่..." : "ให้ผู้ช่วยจับคู่ปริมาณกับบัญชีราคา"}
-        </button>
+        </Button>
 
         {message ? (
           <p className="boq-assistant__message" role="status">
@@ -318,17 +319,12 @@ export function BoqAssistant({
             </p>
 
             <div className="boq-assistant__actions">
-              <button
-                className="button button--orange micro-button"
-                type="button"
-                disabled={busy || picked.size === 0}
-                onClick={accept}
-              >
+              <Button tone="primary" type="button" disabled={busy || picked.size === 0} onClick={accept}>
                 รับคู่ที่ติ๊กไว้เข้า BOQ
-              </button>
-              <button className="button button--ghost micro-button" type="button" disabled={busy} onClick={reject}>
+              </Button>
+              <Button tone="quiet" type="button" disabled={busy} onClick={reject}>
                 ไม่รับชุดนี้
-              </button>
+              </Button>
             </div>
           </>
         ) : null}

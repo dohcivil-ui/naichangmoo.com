@@ -4,15 +4,16 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { EVIDENCE_NOTE_MAX, MAX_PAGE_NUMBER } from "@/lib/takeoff-item";
 import { addTakeoffEvidence, type TakeoffActionState } from "@/server/actions/estimeter-takeoff";
+import { Button } from "@/components/platform/button";
 
 const initialState: TakeoffActionState = { ok: false, message: "" };
 
 function Submit() {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--ghost micro-button" type="submit" disabled={pending}>
+    <Button tone="quiet" type="submit" disabled={pending}>
       {pending ? "กำลังบันทึก..." : "บันทึกหลักฐาน"}
-    </button>
+    </Button>
   );
 }
 

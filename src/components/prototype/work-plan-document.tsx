@@ -30,6 +30,7 @@ import {
   type DocumentSignatory,
   type WorkPlanDocumentMeta
 } from "@/lib/work-plan-document-meta";
+import { Button } from "@/components/platform/button";
 
 /**
  * เอกสารบัญชีงวดงาน–งวดเงิน สำหรับพิมพ์แนบสัญญาจ้าง
@@ -557,20 +558,16 @@ export function WorkPlanDocument({
               <MagnifierIcon sign="plus" />
             </button>
           </div>
-          <button
-            type="button"
-            className="button button--ghost micro-button"
-            aria-pressed={showSettings}
-            onClick={() => setShowSettings((open) => !open)}
+          <Button tone="quiet" type="button" aria-pressed={showSettings} onClick={() => setShowSettings((open) => !open)}
           >
             {showSettings ? "ปิดแผงตั้งค่า" : "ตั้งค่าเอกสาร"}
-          </button>
-          <button type="button" className="button button--orange micro-button" onClick={print}>
+          </Button>
+          <Button tone="primary" type="button" onClick={print}>
             พิมพ์ หรือบันทึกเป็น PDF
-          </button>
-          <button type="button" className="button button--ghost micro-button" onClick={onClose}>
+          </Button>
+          <Button tone="quiet" type="button" onClick={onClose}>
             ปิด
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -584,9 +581,9 @@ export function WorkPlanDocument({
         <div className="work-plan__doc-field">
           <span>โลโก้บนหัวกระดาษ</span>
           <div className="work-plan__doc-logo-actions">
-            <label className="button button--ghost micro-button" htmlFor={fileId}>
+            <Button tone="quiet" htmlFor={fileId}>
               {meta.logoDataUri === "" ? "ใส่โลโก้" : "เปลี่ยนโลโก้"}
-            </label>
+            </Button>
             <input
               id={fileId}
               type="file"
@@ -596,24 +593,17 @@ export function WorkPlanDocument({
             />
             {meta.logoDataUri === "" ? null : (
               <>
-                <button
-                  type="button"
-                  className="button button--ghost micro-button"
-                  aria-pressed={meta.showLogo}
-                  onClick={() => patch({ showLogo: !meta.showLogo })}
+                <Button tone="quiet" type="button" aria-pressed={meta.showLogo} onClick={() => patch({ showLogo: !meta.showLogo })}
                 >
                   {meta.showLogo ? "ไม่แสดงโลโก้" : "แสดงโลโก้"}
-                </button>
-                <button
-                  type="button"
-                  className="button button--ghost micro-button"
-                  onClick={() => {
+                </Button>
+                <Button tone="quiet" type="button" onClick={() => {
                     setLogoError(null);
                     patch({ logoDataUri: "", showLogo: true });
                   }}
                 >
                   เอาโลโก้ออก
-                </button>
+                </Button>
               </>
             )}
           </div>

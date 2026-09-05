@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import {
   appPreparingLabel,
@@ -15,6 +14,7 @@ import {
   type PricingTier
 } from "@/lib/pricing";
 import type { AnnouncedApp } from "@/server/app-registry";
+import { Button } from "@/components/platform/button";
 
 export type VipPricing = { standard: number; promotion: PricePromotion | null; payable: number };
 
@@ -97,12 +97,9 @@ export function AccessTiers({ tiers, vip, saving, memberFreeApps }: AccessTiersP
 
             {tier.id === "member_free" ? <MemberFreeApps apps={memberFreeApps} /> : null}
 
-            <Link
-              className={`button micro-button ${tier.featured ? "button--orange" : "button--ghost"}`}
-              href={tier.cta.href}
-            >
+            <Button tone={tier.featured ? "primary" : "quiet"} href={tier.cta.href}>
               {tier.cta.label}
-            </Link>
+            </Button>
           </article>
         ))}
       </div>
@@ -116,9 +113,9 @@ export function AccessTiers({ tiers, vip, saving, memberFreeApps }: AccessTiersP
           <strong>{formatBaht(dayPass.priceBaht)}</strong>
           <span> บาท/วัน</span>
         </div>
-        <Link className="button button--ghost micro-button" href={dayPass.cta.href}>
+        <Button tone="quiet" href={dayPass.cta.href}>
           {dayPass.cta.label}
-        </Link>
+        </Button>
       </div>
 
       <p className="price-note">{vatInclusiveNote}</p>

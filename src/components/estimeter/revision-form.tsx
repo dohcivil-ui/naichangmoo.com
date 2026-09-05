@@ -9,6 +9,7 @@ import {
   type PriceAuthoritySource
 } from "@/lib/price-authority";
 import { issueEstimateRevision, type RevisionActionState } from "@/server/actions/estimeter-revision";
+import { Button } from "@/components/platform/button";
 
 const initialState: RevisionActionState = { ok: false, message: "" };
 
@@ -17,9 +18,9 @@ const METHODS: CostingMethod[] = ["factor_f", "contractor_cost"];
 function Submit({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--orange micro-button" type="submit" disabled={pending || disabled}>
+    <Button tone="primary" type="submit" disabled={pending || disabled}>
       {pending ? "กำลังออกประมาณราคา..." : "ออกประมาณราคาจากบัญชีนี้"}
-    </button>
+    </Button>
   );
 }
 

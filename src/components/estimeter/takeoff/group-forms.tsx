@@ -8,15 +8,16 @@ import {
   setTakeoffItemGroup,
   type TakeoffActionState
 } from "@/server/actions/estimeter-takeoff";
+import { Button } from "@/components/platform/button";
 
 const initialState: TakeoffActionState = { ok: false, message: "" };
 
 function Submit({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--ghost micro-button" type="submit" disabled={pending}>
+    <Button tone="quiet" type="submit" disabled={pending}>
       {pending ? "กำลังบันทึก..." : label}
-    </button>
+    </Button>
   );
 }
 

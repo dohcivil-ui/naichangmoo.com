@@ -4,15 +4,16 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { AGENCY_NAME_MAX, PROJECT_NAME_MAX, PROJECT_NAME_MIN, PROJECT_PATHS, SITE_LOCATION_MAX } from "@/lib/estimeter-project";
 import { createEstimeterProject, type ProjectActionState } from "@/server/actions/estimeter-project";
+import { Button } from "@/components/platform/button";
 
 const initialState: ProjectActionState = { ok: false, message: "" };
 
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button className="button button--orange" type="submit" disabled={pending}>
+    <Button tone="primary" type="submit" disabled={pending}>
       {pending ? "กำลังสร้างโครงการ..." : "สร้างโครงการและเริ่มตรวจแบบ"}
-    </button>
+    </Button>
   );
 }
 

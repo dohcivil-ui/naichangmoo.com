@@ -5,6 +5,7 @@ import { changeEntitlement, type EntitlementFormState } from "@/server/actions/a
 import { entitlementStateLabel } from "@/lib/platform-admin-labels";
 import type { AdminSettableState, CustomerEntitlement } from "@/server/admin/entitlement-admin";
 import { ThaiDateField } from "@/components/ui/thai-date-field";
+import { Button } from "@/components/platform/button";
 
 const initial: EntitlementFormState = { ok: false, message: "" };
 
@@ -63,9 +64,9 @@ export function EntitlementForm({
       </label>
 
       <div className="admin-form__foot">
-        <button className="button button--orange micro-button" type="submit" disabled={pending}>
+        <Button tone="primary" type="submit" disabled={pending}>
           {pending ? "กำลังบันทึก…" : "บันทึกการเปลี่ยนแปลง"}
-        </button>
+        </Button>
         {state.message ? (
           <p className={state.ok ? "admin-form__ok" : "admin-form__error"} role="status">
             {state.message}

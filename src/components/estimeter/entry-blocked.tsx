@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { landingActionContract } from "@/lib/landing-interactions";
+import { Button } from "@/components/platform/button";
 
 const copy = {
   unauthenticated: {
@@ -24,7 +24,7 @@ export function EstimeterEntryBlocked({ reason }: { reason: keyof typeof copy })
         <p className="hero__note">{detail}</p>
         <div className="hero__actions">
           {reason === "unauthenticated" ? <SignInButton /> : null}
-          <Link className="button button--orange micro-button" href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Link>
+          <Button tone="primary" href={landingActionContract.allAppsHref}>{landingActionContract.allAppsLabel}</Button>
         </div>
       </div>
     </section>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { BoqPanel } from "@/components/estimeter/boq-panel";
@@ -15,6 +14,7 @@ import { formatThaiDateTime } from "@/lib/thai-format";
 import { resolveEstimeterContext } from "@/server/estimeter/context";
 import { getProject } from "@/server/estimeter/project-repository";
 import { getOpenManualRun, listManualRuns, listRunItems } from "@/server/estimeter/takeoff-repository";
+import { Button } from "@/components/platform/button";
 
 export default async function EstimeterProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const result = await resolveEstimeterContext();
@@ -144,9 +144,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
                   <small>{stage.status}</small>
                   {/* ขั้นที่มีหน้าจอของตัวเองต้องเข้าถึงได้จากการ์ด ไม่ใช่ให้ผู้ใช้เดา URL เอง */}
                   {stage.href ? (
-                    <Link className="button button--ghost micro-button" href={stage.href}>
-                      {stage.linkLabel} <span>→</span>
-                    </Link>
+                    <Button tone="quiet" href={stage.href} arrow>
+                      {stage.linkLabel}</Button>
                   ) : null}
                 </div>
               </article>
@@ -161,9 +160,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
                   ระบบจะไม่แสดงยอดปริมาณหรือราคาใด ๆ จนกว่ารายการจะมีหลักฐานอ้างอิงและถูกยืนยันแล้ว
                 </p>
               </div>
-              <Link className="button button--orange micro-button" href={`/apps/estimeter/projects/${project.id}/takeoff`}>
-                ไปหน้าถอดปริมาณ <span>→</span>
-              </Link>
+              <Button tone="primary" href={`/apps/estimeter/projects/${project.id}/takeoff`} arrow>
+                ไปหน้าถอดปริมาณ</Button>
             </div>
           ) : (
             <>
@@ -172,9 +170,8 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
                   <strong>ยอดรวมของปริมาณที่ยืนยันแล้ว</strong>
                   <p>รวมแยกตามหน่วยและไม่ปัดค่า ยังไม่มีการคิดราคาในขั้นนี้</p>
                 </div>
-                <Link className="button button--orange micro-button" href={`/apps/estimeter/projects/${project.id}/takeoff`}>
-                  เปิดหน้าถอดปริมาณ <span>→</span>
-                </Link>
+                <Button tone="primary" href={`/apps/estimeter/projects/${project.id}/takeoff`} arrow>
+                  เปิดหน้าถอดปริมาณ</Button>
               </div>
               <div className="takeoff-table-wrap">
                 <table className="takeoff-table">
@@ -235,7 +232,7 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
          */}
 
         <div className="hero__actions">
-          <Link className="button button--orange micro-button" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Link>
+          <Button tone="primary" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Button>
         </div>
       </div>
     </section>

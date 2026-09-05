@@ -3,6 +3,7 @@ import { BrandLogo } from "@/components/platform/brand-logo";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { landingActionContract } from "@/lib/landing-interactions";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
+import { Button } from "@/components/platform/button";
 
 export const metadata = {
   title: "หลังบ้าน | นายช่างหมู",
@@ -40,9 +41,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <BrandLogo />
           <h1>{copy.title}</h1>
           <p>{copy.detail}</p>
-          <Link className="button button--ghost micro-button" href={landingActionContract.homeHref}>
+          <Button tone="quiet" href={landingActionContract.homeHref}>
             {landingActionContract.homeLabel}
-          </Link>
+          </Button>
         </div>
       </main>
     );

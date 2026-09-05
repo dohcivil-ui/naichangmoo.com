@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { accessLabel, availabilityNotePresets, type AppAccess } from "@/lib/platform";
 import { declareApp, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
 import type { RegistryEntry } from "@/server/app-registry";
+import { Button } from "@/components/platform/button";
 
 const initial: AppRegistryFormState = { ok: false, message: "" };
 
@@ -129,9 +130,9 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
         </label>
 
         <div className="admin-form__foot">
-          <button className="button button--orange micro-button" type="submit" disabled={pending || openRefused}>
+          <Button tone="primary" type="submit" disabled={pending || openRefused}>
             {pending ? "กำลังบันทึก…" : entry.announced ? "บันทึกคำประกาศ" : "ประกาศแอปนี้"}
-          </button>
+          </Button>
           {state.message ? (
             <p className={state.ok ? "admin-form__ok" : "admin-form__error"} role="status">
               {state.message}
@@ -151,9 +152,9 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
             </small>
           </label>
           <div className="admin-form__foot">
-            <button className="button button--ghost micro-button" type="submit" disabled={withdrawing}>
+            <Button tone="quiet" type="submit" disabled={withdrawing}>
               {withdrawing ? "กำลังถอน…" : "ถอนคำประกาศ"}
-            </button>
+            </Button>
             {withdrawState.message ? (
               <p className={withdrawState.ok ? "admin-form__ok" : "admin-form__error"} role="status">
                 {withdrawState.message}

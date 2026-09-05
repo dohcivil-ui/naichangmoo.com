@@ -65,6 +65,7 @@ import {
   type DurationUnit,
   type ScheduledActivity
 } from "@/lib/work-plan-schedule";
+import { Button } from "@/components/platform/button";
 
 /**
  * ต้นแบบแอปผู้ช่วยสร้างแผนงานและ S-Curve
@@ -689,9 +690,9 @@ function WorkPlanBoard({ restored }: { restored: WorkPlanSnapshot | null }) {
             />
           ) : null}
           {planHistory.length > 0 ? (
-            <button type="button" className="button button--ghost micro-button work-plan__restore" onClick={restorePlan} disabled={assistantBusy}>
+            <Button tone="quiet" className="work-plan__restore" onClick={restorePlan} disabled={assistantBusy}>
               คืนค่า ({planHistory.length})
-            </button>
+            </Button>
           ) : null}
           <ReviewSection
             canReview={canReview}
@@ -851,12 +852,12 @@ function ProposalCard({
         <p key={warning} className="form-note work-plan__proposal-warning">{warning}</p>
       ))}
       <div className="work-plan__row-actions">
-        <button type="button" className="button button--orange micro-button" onClick={onAccept} disabled={busy}>
+        <Button tone="primary" type="button" onClick={onAccept} disabled={busy}>
           ปรับตามข้อเสนอ
-        </button>
-        <button type="button" className="button button--ghost micro-button" onClick={onReject} disabled={busy}>
+        </Button>
+        <Button tone="quiet" type="button" onClick={onReject} disabled={busy}>
           ปฏิเสธ
-        </button>
+        </Button>
       </div>
     </section>
   );
@@ -879,9 +880,9 @@ function ReviewSection({
   return (
     <section className="work-plan__review" aria-label="ผู้ช่วยตรวจแผน">
       <div className="work-plan__row-actions">
-        <button type="button" className="button button--orange micro-button" onClick={onReview} disabled={busy || !canReview}>
+        <Button tone="primary" type="button" onClick={onReview} disabled={busy || !canReview}>
           {busy ? "กำลังตรวจ..." : "ให้ผู้ช่วยตรวจแผน"}
-        </button>
+        </Button>
       </div>
       {error ? (
         <p className="form-error work-plan__assistant-message" role="alert">{error}</p>
@@ -948,14 +949,9 @@ function AssistantBar({
               if (event.key === "Enter" && instruction.trim() !== "" && !busy) onRevise();
             }}
           />
-          <button
-            type="button"
-            className="button button--orange micro-button"
-            onClick={onRevise}
-            disabled={busy || instruction.trim() === ""}
-          >
+          <Button tone="primary" type="button" onClick={onRevise} disabled={busy || instruction.trim() === ""}>
             {busy ? "กำลังคำนวณใหม่..." : "สั่งแก้"}
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="work-plan__assistant-row">
@@ -963,9 +959,9 @@ function AssistantBar({
             ป้อนห้าค่าในแท็บแรกให้ครบ แล้วให้ผู้ช่วยอ่านชื่อโครงการและร่างรายการงาน ค่างาน
             ช่วงเวลา และการแบ่งงวดให้ทั้งชุด
           </p>
-          <button type="button" className="button button--orange micro-button" onClick={onDraft} disabled={busy || !canAsk}>
+          <Button tone="primary" type="button" onClick={onDraft} disabled={busy || !canAsk}>
             {busy ? "กำลังร่าง..." : "ให้ผู้ช่วยร่างแผน"}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -1175,9 +1171,9 @@ function SetupTab({
               แล้วแก้ต่อได้ทุกช่อง
             </p>
           </div>
-          <button type="button" className="button button--orange" onClick={onDraft} disabled={!canDraft}>
+          <Button tone="primary" type="button" onClick={onDraft} disabled={!canDraft}>
             ร่างแผนจากแม่แบบ
-          </button>
+          </Button>
         </div>
       </Panel>
 
@@ -1221,12 +1217,12 @@ function ActivitiesTab({
       <Panel eyebrow="รายการงาน" title="ยังไม่มีรายการงาน">
         <p className="form-note">กลับไปกรอกข้อมูลโครงการแล้วกดร่างแผนจากแม่แบบ หรือเพิ่มรายการเอง</p>
         <div className="work-plan__row-actions">
-          <button type="button" className="button button--ghost micro-button" onClick={onGoSetup}>
+          <Button tone="quiet" type="button" onClick={onGoSetup}>
             ← ไปกรอกข้อมูลโครงการ
-          </button>
-          <button type="button" className="button button--orange micro-button" onClick={onAdd}>
+          </Button>
+          <Button tone="primary" type="button" onClick={onAdd}>
             เพิ่มรายการเอง
-          </button>
+          </Button>
         </div>
       </Panel>
     );
@@ -1326,9 +1322,9 @@ function ActivitiesTab({
                   )}
                 </td>
                 <td>
-                  <button type="button" className="button button--ghost micro-button" onClick={() => onRemove(activity.id)}>
+                  <Button tone="quiet" type="button" onClick={() => onRemove(activity.id)}>
                     ลบ
-                  </button>
+                  </Button>
                 </td>
               </tr>
               );
@@ -1353,9 +1349,9 @@ function ActivitiesTab({
             น้ำหนักคิดจากสัดส่วนค่างานต่อค่างานรวมของทั้งโครงการ
           </p>
         </div>
-        <button type="button" className="button button--ghost micro-button" onClick={onAdd}>
+        <Button tone="quiet" type="button" onClick={onAdd}>
           เพิ่มรายการ
-        </button>
+        </Button>
       </div>
     </Panel>
   );
@@ -1396,9 +1392,9 @@ function MilestonesTab({
     return (
       <Panel eyebrow="งวดงาน–งวดเงิน" title="ยังไม่มีงวด">
         <p className="form-note">ร่างแผนจากแม่แบบจะสร้างงวดให้ หรือเพิ่มงวดเองแล้วย้ายงานเข้ามา</p>
-        <button type="button" className="button button--orange micro-button" onClick={onAdd}>
+        <Button tone="primary" type="button" onClick={onAdd}>
           เพิ่มงวด
-        </button>
+        </Button>
       </Panel>
     );
   }
@@ -1412,9 +1408,9 @@ function MilestonesTab({
           ส่วนผู้ช่วยตรวจแผนอยู่ที่แผงผู้ช่วยด้านข้าง
         </p>
         <div className="work-plan__row-actions">
-          <button type="button" className="button button--ghost micro-button" onClick={onPrint} disabled={!balanced && contractSatang > 0n ? false : schedule.rows.length === 0}>
+          <Button tone="quiet" type="button" onClick={onPrint} disabled={!balanced && contractSatang> 0n ? false : schedule.rows.length === 0}>
             พิมพ์บัญชีงวดงาน
-          </button>
+          </Button>
         </div>
       </Panel>
 
@@ -1541,9 +1537,9 @@ function MilestonesTab({
           </table>
         </div>
         <div className="work-plan__row-actions">
-          <button type="button" className="button button--ghost micro-button" onClick={onAdd}>
+          <Button tone="quiet" type="button" onClick={onAdd}>
             เพิ่มงวด
-          </button>
+          </Button>
         </div>
       </Panel>
     </>
@@ -1736,10 +1732,7 @@ function ActualsPanel({
                         {!actual?.received ? (
                           <>
                             <br />
-                            <button
-                              type="button"
-                              className="button button--ghost micro-button"
-                              onClick={() =>
+                            <Button tone="quiet" type="button" onClick={() =>
                                 patchEvent(row.milestoneId, "received", actual?.received, {
                                   satang: expected,
                                   date: actual?.received?.date || dataDate
@@ -1747,7 +1740,7 @@ function ActualsPanel({
                               }
                             >
                               เติมยอดนี้เป็นเงินเข้า
-                            </button>
+                            </Button>
                           </>
                         ) : null}
                       </>
@@ -2058,9 +2051,9 @@ function CurveTab({
             {dataDateOverride === "" ? " ตอนนี้ใช้วันล่าสุดที่มีบันทึกให้อัตโนมัติ" : null}
           </p>
           {dataDateOverride !== "" ? (
-            <button type="button" className="button button--ghost micro-button" onClick={() => onDataDate("")}>
+            <Button tone="quiet" type="button" onClick={() => onDataDate("")}>
               กลับไปใช้วันล่าสุดที่มีบันทึก
-            </button>
+            </Button>
           ) : null}
         </div>
 

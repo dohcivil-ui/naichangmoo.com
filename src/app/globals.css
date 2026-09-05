@@ -247,6 +247,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
  */
 .button { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 48px; padding: 0 22px; border: 1px solid transparent; border-radius: 999px; font-size: .95rem; font-weight: 700; line-height: 1.2; white-space: nowrap; text-decoration: none; cursor: pointer; transition: transform 140ms var(--ease-out), background 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
 .button:active { transform: translateY(4px); }
+/* ยืดเต็มกล่องแม่ — ใช้แทนการตัดบรรทัดเมื่อคำยาวเกินที่ว่างบนจอแคบ
+   ที่ผ่านมามีเจ็ดที่เขียน `width: 100%` ใส่ปุ่มเองแยกกัน คลาสนี้รวบให้เหลือชื่อเดียว */
+.button--block { width: 100%; }
+/* ลูกศรท้ายปุ่ม รับสีจากปุ่มเสมอ จึงถูกทุกระดับโดยไม่ต้องสั่งทีละที่ */
+.button__arrow { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .button--primary { background: var(--ink); color: var(--paper); box-shadow: var(--ink-deep) 0 4px 0 0, rgba(7, 48, 71, .3) 0 12px 22px -8px; }
 .button--primary:hover { background: var(--teal); transform: translateY(-1px); box-shadow: var(--teal-deep) 0 5px 0 0, rgba(13, 130, 130, .32) 0 14px 24px -8px; }
 .button--primary:active { box-shadow: rgba(7, 48, 71, .26) 0 4px 12px 0; }
@@ -2802,11 +2807,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .eh__todo { margin: .25rem 0 0; color: var(--orange-text); font-size: .82rem; font-weight: 700; }
 .eh__row { display: flex; gap: 10px; align-items: center; margin-block-start: 1rem; flex-wrap: wrap; }
 
-/* ตัวหนังสือบนปุ่มส้มเป็นหมึกเข้ม ไม่ใช่ขาว — ขาวบนส้มวัดได้ 2.80:1 ซึ่งกลืนกัน
-   และ `.button--orange` ของแอปก็ใช้หมึกเข้มอยู่แล้ว ต้นแบบเคยหยิบคู่ขาว-ส้มมาจากไฟล์โทเคนของคู่แข่ง */
-.eh__go { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 999px; padding: .6rem 1.05rem; background: var(--orange); color: var(--on-orange); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; box-shadow: 0 5px 0 0 var(--orange-deep), 0 12px 24px rgba(244, 119, 33, .3), inset 0 1px 0 rgba(255, 255, 255, .4); }
-.eh__go:active { transform: translateY(3px); box-shadow: 0 5px 14px rgba(244, 119, 33, .28); }
-.eh__line { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); border-radius: 999px; padding: .6rem 1.05rem; background: var(--paper); color: var(--teal-text); font: inherit; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+/* ปุ่มของหน้าแรกเคยมีสไตล์ของตัวเอง `.eh__go` กับ `.eh__line` — ถอดออก 2026-09-05
+   ตอนที่ปุ่มกลางเปลี่ยนมาเป็นแนวเดียวกันหมด · ของสองชิ้นที่หน้าตาเหมือนกันแต่คนละที่มา
+   คือทางที่ปุ่มเริ่มเพี้ยนอีกรอบ หน้าแรกใช้ <Button> เหมือนทุกหน้าแล้ว */
 
 .eh__table { width: 100%; border-collapse: collapse; margin-block-start: .75rem; }
 .eh__table th, .eh__table td { text-align: start; padding: .55rem .5rem; border-block-end: 1px solid var(--mist); font-size: .82rem; }

@@ -16,6 +16,7 @@ import labourSchedule from "@/data/cgd/cgd-w809-labour-be2568.json";
 import escalationRules from "@/data/escalation-k/cabinet-w109-be2532.json";
 import { DocCompare } from "@/components/landing/doc-compare";
 import { EvidencePeek } from "@/components/landing/evidence-peek";
+import { Button } from "@/components/platform/button";
 
 export default async function LandingPage() {
   // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
@@ -62,7 +63,7 @@ export default async function LandingPage() {
               <span className="h1-line"><span className="h1-line__text">ด้วยผู้ช่วย AI<span className="h1-dot">.</span></span></span>
             </h1>
             <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
-          <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><a className="button button--orange micro-button" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</a></div>
+          <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><Button tone="primary" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</Button></div>
             {/* IP-197: บรรทัดหลักการใต้ปุ่มถูกตัดตามคำสั่งเจ้าของงาน 2026-08-28 — ฉากสาธิต
                 เล่าเรื่องเดียวกันด้วยภาพแทน (ผู้ช่วยเสนอ คนตัดสิน ระบบคำนวณ) */}
             {/* ADR 0015: naming ESTIMETR is an introduction, but its commercial terms are a
@@ -194,7 +195,7 @@ export default async function LandingPage() {
               design record. The panel introduces the service and routes the request into the
               enterprise quotation intake (ADR 0005) - it claims no price and no readiness, so it
               stays on the introduction side of ADR 0015. */}
-          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal-text)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตาม use case ที่ส่งเข้ามา</p></div><a className="button button--primary micro-button" href={hermesRequestHref}>ส่ง use case ให้ออกแบบ</a></div>
+          <div className="hermes-panel" data-reveal><div className="hermes-panel__icon"><Image src={visualAssetUrl("hermes")} alt="Hermes assistant" width={74} height={74} /></div><div><div className="eyebrow" style={{ color: "var(--teal-text)" }}>HERMES · 24/7</div><h2>ระบบผู้ช่วยอัตโนมัติ ออกแบบตามงานของคุณ</h2><p>รับออกแบบและติดตั้งระบบผู้ช่วยทำงาน 24/7 ให้องค์กร บริษัท ห้างร้าน และเจ้าของกิจการ ตาม use case ที่ส่งเข้ามา</p></div><Button tone="ink" href={hermesRequestHref}>ส่ง use case ให้ออกแบบ</Button></div>
         </div>
       </section>
 

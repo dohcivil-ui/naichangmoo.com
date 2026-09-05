@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { signOutOtherDevices, type AccountActionState } from "@/server/actions/account";
+import { Button } from "@/components/platform/button";
 
 const initial: AccountActionState = { ok: false, message: "" };
 
@@ -15,9 +16,9 @@ export function SignOutOtherDevices({ otherSessionCount }: { otherSessionCount: 
 
   return (
     <form action={formAction} className="account-page__action">
-      <button className="button button--ghost" type="submit" disabled={pending || otherSessionCount === 0}>
+      <Button tone="quiet" type="submit" disabled={pending || otherSessionCount === 0}>
         {pending ? "กำลังดำเนินการ…" : "ออกจากระบบอุปกรณ์อื่นทั้งหมด"}
-      </button>
+      </Button>
       {otherSessionCount === 0 ? (
         <p className="account-page__hint">อุปกรณ์นี้เป็นที่เดียวที่เข้าระบบอยู่</p>
       ) : (

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { EstimeterEntryBlocked } from "@/components/estimeter/entry-blocked";
 import { AddEvidenceForm } from "@/components/estimeter/takeoff/add-evidence-form";
@@ -32,6 +31,7 @@ import {
   listRunGroups,
   listRunItems
 } from "@/server/estimeter/takeoff-repository";
+import { Button } from "@/components/platform/button";
 
 const reviewStateLabel: Record<string, string> = {
   proposed: "ร่าง",
@@ -348,7 +348,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                     fields={{ runId: openRun.id }}
                     label="ปิดรอบและบันทึกลายนิ้วมือข้อมูล"
                     pendingLabel="กำลังปิดรอบ..."
-                    className="button button--orange micro-button"
+                    tone="primary"
                     disabledReason={confirmedCount === 0 ? "ต้องมีรายการที่ยืนยันแล้วอย่างน้อยหนึ่งรายการ" : null}
                   />
                 ) : null}
@@ -393,7 +393,7 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
                   fields={{ projectId: project.id }}
                   label="เปิดรอบการถอดปริมาณ"
                   pendingLabel="กำลังเปิดรอบ..."
-                  className="button button--orange micro-button"
+                  tone="primary"
                 />
               ) : null}
             </div>
@@ -436,9 +436,9 @@ export default async function ManualTakeoffPage({ params }: { params: Promise<{ 
         ) : null}
 
         <div className="hero__actions">
-          <Link className="button button--orange micro-button" href={`/apps/estimeter/projects/${project.id}`}>
+          <Button tone="primary" href={`/apps/estimeter/projects/${project.id}`}>
             กลับหน้าโครงการ
-          </Link>
+          </Button>
         </div>
       </div>
     </section>
