@@ -46,8 +46,13 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  * และแคปซูลแดงในการ์ด Hermes บนพื้นน้ำเงินเข้ม · เจ้าของงานเคาะให้ใช้เขียวตัวเดียวทั้งคู่
  * ปุ่มที่พาไปที่เดียวกันไม่ควรมีสองสีให้คนต้องเรียนรู้สองรอบ และสีเขียวคือสิ่งที่คนจำได้ว่าคือ LINE
  * ส่วนแดงเป็นสีของเราเอง ซึ่งบนปุ่มนี้ไม่ได้บอกอะไรเพิ่ม
+ * **`slideNav` เป็นระดับที่แปด สำหรับปุ่มเลื่อนสไลด์บนแบนเนอร์** ผืนออกแบบวาดไว้ 36×36
+ * แต่กฎ 48 ชนะเหมือนทุกระดับ ตัวมันจึงเป็นวงกลม **48×48** ไม่ใช่ 36 · ที่ต้องเป็นระดับใหม่
+ * แทนการเขียน `className` ทับ เพราะปุ่มปกติได้ `padding: 0 22px` กับ `border-radius: 10px`
+ * ติดมาด้วย ซึ่งทำให้ปุ่มที่มีแค่ไอคอนตัวเดียวยืดเป็นแคปซูลกว้างราว 61px ไม่ใช่วงกลม ·
+ * การเขียนทับด้วยคลาสข้างนอกจะกลายเป็นปุ่มชุดที่สองที่ `button-fence` มองไม่เห็น
  */
-export type Tone = "primary" | "ink" | "quiet" | "plain" | "shop" | "shopNav" | "line";
+export type Tone = "primary" | "ink" | "quiet" | "plain" | "shop" | "shopNav" | "line" | "slideNav";
 
 const toneClass: Record<Tone, string> = {
   primary: "button button--orange",
@@ -56,7 +61,8 @@ const toneClass: Record<Tone, string> = {
   plain: "button button--text",
   shop: "button button--shop",
   shopNav: "button button--shop-nav",
-  line: "button button--line"
+  line: "button button--line",
+  slideNav: "button button--slide-nav"
 };
 
 /**

@@ -3250,6 +3250,31 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   letter-spacing: .02em;
 }
 
+/* ปุ่มเลื่อนสไลด์ — วงกลมโปร่งบนภาพ ระดับที่แปดของ `<Button>`
+
+   **ต้องเป็นระดับของปุ่มจริง ไม่ใช่คลาสทับ** ปุ่มปกติได้ `padding: 0 22px` กับมุม 10px
+   ติดมาจาก `.button` ซึ่งทำให้ปุ่มที่มีแค่ไอคอนตัวเดียวยืดเป็นแคปซูลกว้างราว 61px
+   ตรงนี้จึงล้างระยะในออกแล้วบังคับกว้างเท่าความสูง ได้วงกลม 48
+
+   ผืนออกแบบวาดไว้ 36×36 ไม่มีพื้น มีแต่ไอคอนขาว · ที่นี่ใหญ่กว่าเพราะกฎ 48 ชนะ
+   และเพิ่มพื้นดำจางเพราะ **ไอคอนขาวล้วนบนภาพถ่ายอ่านไม่ออกเมื่อสไลด์นั้นพื้นสว่าง**
+   ผืนออกแบบรอดตรงนี้ได้เพราะภาพทั้งสามใบมุมซ้ายขวาเข้มพอดี ซึ่งไม่ใช่สิ่งที่รับประกันได้
+   วันที่มีคนเปลี่ยนภาพสไลด์ */
+
+.button--slide-nav {
+  inline-size: 48px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--v3-banner-a55);
+  color: var(--v3-white);
+  border-color: transparent;
+}
+/* ตัวปุ่มไม่ต้องจัดตัวเองให้อยู่กลางแนวตั้ง กล่อง `.v3-banner__nav` ที่ครอบมันทำไปแล้ว
+   ถ้าประกาศ `translateY(-50%)` ซ้ำที่นี่ ปุ่มจะเลื่อนขึ้นสองเท่าตอนเอาเมาส์ไปชี้ */
+.button--slide-nav:hover { background: var(--v3-banner-a85); transform: scale(1.08); }
+.button--slide-nav:active { transform: scale(.94); }
+.button--slide-nav svg { inline-size: 26px; block-size: 26px; }
+
 .v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
 
 /* --- ลิงก์ที่ตอบมือ --------------------------------------------------------
@@ -3300,6 +3325,91 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-hcard:hover .v3-htext { transform: translateY(-4px); }
 .v3-hsub { opacity: 0; transform: translateY(8px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
 .v3-hcard:hover .v3-hsub, .v3-hcard:focus-within .v3-hsub { opacity: 1; transform: none; }
+
+/* --- แถวเปิดหน้า แบนเนอร์สไลด์กับการ์ด Hermes -------------------------------
+   ผืนออกแบบรุ่นสาม ส่วนที่ 3 · สองใบนี้อยู่ในกริดเดียวกันและสูงเท่ากันด้วย `stretch`
+   ไม่ใช่ด้วยความสูงที่พิมพ์ตาย เพราะการ์ดขวาสูงตามโปสเตอร์ซึ่งห้ามครอป             */
+
+.v3-hero { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: stretch; padding: 28px 48px 0; }
+
+/* แบนเนอร์ — ภาพเป็นพื้นหลังเต็มใบ ตัวหนังสือขาวนั่งบนม่านสองชั้น
+
+   **ม่านสองชั้นไม่ใช่การตกแต่ง** ชั้นแนวนอนทำให้ครึ่งซ้ายเข้มพอให้ตัวหนังสือขาวอ่านออก
+   ชั้นแนวตั้งกันไม่ให้จุดบอกสไลด์ที่ขอบล่างจมหายไปกับภาพที่สว่าง · ถ้าเอาออกชั้นใดชั้นหนึ่ง
+   คอนทราสต์จะขึ้นกับว่าภาพสไลด์ใบนั้นมืดตรงไหน ซึ่งเปลี่ยนได้ทุกวันที่มีคนสลับภาพ */
+
+.v3-banner { position: relative; display: flex; align-items: flex-end; min-block-size: 400px; padding: 44px 96px 64px; border-radius: 18px; overflow: hidden; background: var(--v3-banner-bg); color: var(--v3-white); }
+.v3-banner__img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.v3-banner__scrim { position: absolute; inset: 0; }
+.v3-banner__scrim--x { background: linear-gradient(90deg, var(--v3-banner-a85), var(--v3-banner-a55) 55%, var(--v3-banner-a20)); }
+.v3-banner__scrim--y { background: linear-gradient(180deg, var(--v3-banner-a0) 40%, var(--v3-banner-a75)); }
+.v3-banner__text { position: relative; flex: none; inline-size: 560px; max-inline-size: 100%; }
+.v3-banner .v3-tag { background: var(--v3-red); color: var(--v3-white); }
+.v3-banner__title { margin: 12px 0 0; font-size: 56px; line-height: 1.08; letter-spacing: -.02em; }
+.v3-banner__title span { display: block; white-space: nowrap; }
+.v3-banner__title span + span { margin-block-start: 10px; font-size: 34px; font-weight: 600; line-height: 1.3; }
+.v3-banner__body { margin: 14px 0 26px; max-inline-size: 44ch; font-size: 16px; line-height: 26px; color: var(--v3-white-a88); }
+.v3-banner__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* ปุ่มรองบนแบนเนอร์ — ขอบขาวจางบนภาพ ไม่ใช่ระดับใหม่ของปุ่ม เป็น `quiet` ที่เปลี่ยนสีขอบ
+   เพราะพื้นหลังเป็นภาพ ไม่ใช่กระดาษ · ขาว .6 มาจากผืนออกแบบ */
+.v3-banner .button--ghost { border-color: var(--v3-white-a60); color: var(--v3-white); background: none; }
+.v3-banner .button--ghost:hover { border-color: var(--v3-white); background: var(--v3-banner-a55); }
+
+/* จุดบอกสไลด์ — ขีดสั้นสี่เหลี่ยม ไม่ใช่วงกลม ตามผืนออกแบบ
+
+   เป็น `<button>` จริงทุกขีด ไม่ใช่ `<span>` ที่ผูก onClick เพราะมันเปลี่ยนสิ่งที่คนเห็น
+   คนที่ใช้คีย์บอร์ดต้องแท็บถึงได้ · `button-fence` บังคับให้ปุ่มมาจาก `<Button>` อยู่แล้ว
+   ตรงนี้จึงใช้ระดับ `plain` แล้วล้างระยะในทิ้ง */
+.v3-banner__dots { position: absolute; inset-block-end: 18px; inset-inline-start: 96px; display: flex; gap: 6px; }
+/* **เขตกดใหญ่กว่าขีดที่ตาเห็น** ผืนออกแบบวาดขีดไว้ 22x3 ซึ่งถ้าทำให้ปุ่มสูงสามพิกเซลจริง
+   จะกดไม่ติดบนมือถือและกดยากบนเมาส์ · ปุ่มจึงสูง 20px โปร่งใส แล้ววาดขีดด้วย `::before`
+   ตรงกลาง ได้ทั้งขนาดตามผืนและเขตกดที่นิ้วเล็งถูก */
+.v3-banner__dots .button--text { position: relative; min-block-size: 0; inline-size: 22px; block-size: 20px; padding: 0; background: none; }
+.v3-banner__dots .button--text::before { content: ""; position: absolute; inset-block-start: 50%; inset-inline: 0; block-size: 3px; margin-block-start: -1.5px; border-radius: 2px; background: var(--v3-white-a45); transition: background .18s var(--ease-out); }
+.v3-banner__dots .button--text:hover::before { background: var(--v3-white); }
+.v3-banner__dots .button--text[aria-current="true"]::before { background: var(--v3-red); }
+/* --- จังหวะเข้าของสไลด์ ----------------------------------------------------
+   ภาพเลื่อนเข้าจากขวาแล้วซูมลง ตัวหนังสือวิ่งขึ้นทีละชิ้นตามลำดับการอ่าน
+   ป้าย .7s หัวเรื่อง .85s เนื้อความ 1s ปุ่ม 1.15s ตามผืนออกแบบ
+
+   **ที่ต้องมีสองชุด A กับ B ไม่ใช่ของซ้ำ** สไลด์เปลี่ยนเนื้อในโดยไม่เปลี่ยนอิลิเมนต์
+   เบราว์เซอร์จึงไม่เล่น animation ซ้ำถ้าชื่อยังเป็นชื่อเดิม คอมโพเนนต์สลับ `data-flip`
+   ไปมาทุกครั้งที่เปลี่ยนสไลด์ เพื่อให้ชื่อ animation เปลี่ยนจริงและจังหวะเริ่มใหม่ */
+
+.v3-banner[data-flip="a"] .v3-banner__img { animation: v3-fadeA 1.1s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__img { animation: v3-fadeB 1.1s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-tag { animation: v3-riseA .6s .7s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-tag { animation: v3-riseB .6s .7s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__title { animation: v3-riseA .7s .85s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__title { animation: v3-riseB .7s .85s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__body { animation: v3-riseA .7s 1s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__body { animation: v3-riseB .7s 1s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__actions { animation: v3-riseA .7s 1.15s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__actions { animation: v3-riseB .7s 1.15s var(--ease-out) both; }
+
+.v3-banner__nav { position: absolute; inset-block-start: 50%; transform: translateY(-50%); }
+.v3-banner__nav--prev { inset-inline-start: 24px; }
+.v3-banner__nav--next { inset-inline-end: 24px; }
+/* ลูกศรซ้ายเป็นตัวเดียวกับขวา พลิกด้วย CSS ไม่ได้วาดรูปที่สอง */
+.v3-banner__nav--prev svg { transform: scale(-1, 1); }
+
+/* การ์ด Hermes — โปสเตอร์เต็มใบข้างบน แผงน้ำเงินเข้มข้างล่าง
+
+   `1fr` แถวล่างทำให้แผงยืดเต็มความสูงที่เหลือเมื่อการ์ดถูกยืดให้สูงเท่าแบนเนอร์
+   ซึ่งเป็นเหตุผลที่กริดข้างบนใช้ `stretch` ไม่ใช่ `start` */
+
+.v3-hcard { position: relative; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--v3-line); border-radius: 18px; overflow: hidden; background: var(--v3-night); box-shadow: var(--v3-sh-md); color: var(--v3-white); text-decoration: none; }
+.v3-hcard__poster { display: block; inline-size: 100%; block-size: auto; }
+.v3-hcard__panel { position: relative; padding: 18px 20px 20px; background: linear-gradient(180deg, var(--v3-night), var(--v3-night-2)); }
+.v3-hcard__eyebrow { display: block; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--v3-pink-200); }
+.v3-hcard__title { margin: 6px 0 0; font-size: 34px; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; }
+.v3-hcard__lead { margin: 0; font-size: 16px; line-height: 1.4; font-weight: 600; white-space: nowrap; }
+/* ลิงก์ที่หัวเรื่องแผ่แผ่นใสปูทับทั้งการ์ด ทำให้ทั้งใบกดได้โดยไม่ต้องซ้อน `<a>` ใน `<a>`
+   ปุ่ม LINE ยกตัวขึ้นเหนือแผ่นด้วย `z-index` จึงยังเป็นลิงก์ของตัวเองที่กดได้แยก */
+.v3-hcard__link { color: inherit; text-decoration: none; }
+.v3-hcard__link::after { content: ""; position: absolute; inset: 0; }
+.v3-hcard__action { position: relative; z-index: 1; margin-block-start: 14px; }
+.v3-hsub { margin-block-start: 10px; font-size: 12px; color: var(--v3-white-a85); }
 
 /* --- แถบบนของหน้าร้าน ------------------------------------------------------
    ค่าทุกตัวมาจากผืนออกแบบรุ่นสาม ส่วนที่ 5 ข้อ 1 · ยกเว้นความสูงปุ่มขอใบเสนอราคา
@@ -3373,4 +3483,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
      **ทุกตัวที่ติด keyframe ประดับต้องใส่ `data-v3-decor` ด้วยเสมอ** */
   [data-v3-decor] { animation: none !important; opacity: 1 !important; transform: none !important; }
   .v3-hsub { opacity: 1; transform: none; }
+
+  /* **กฎกลางบีบความยาว animation แต่ไม่บีบเวลาหน่วง** ของในแบนเนอร์กับการ์ด Hermes
+     ตั้งหน่วงไว้ .6 ถึง 1.35 วินาทีเพื่อให้เข้าทีละชิ้นตามลำดับการอ่าน ซึ่งสำหรับคนที่ปิด
+     การเคลื่อนไหวจะกลายเป็นหน้าที่ว่างอยู่วินาทีกว่าแล้วของค่อยโผล่ทีละชิ้น
+     นั่นไม่ใช่การเคลื่อนไหวที่น้อยลง มันคือความช้า · ล้างหน่วงทิ้งให้ทุกอย่างอยู่ครบทันที */
+  .v3-banner *, .v3-hcard * { animation-delay: 0s !important; }
 }

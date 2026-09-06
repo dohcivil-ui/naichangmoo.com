@@ -32,7 +32,11 @@ export const visualAssets = {
   land_acquisition: { file: "naichangmoo-land-acquisition-badge.webp" },
   escalation_k: { file: "naichangmoo-escalation-k-badge.webp" },
   work_plan: { file: "naichangmoo-work-plan-badge.webp" },
-  hermes: { file: "naichangmoo-hermes-badge.webp" }
+  hermes: { file: "naichangmoo-hermes-badge.webp" },
+  /* โปสเตอร์แนวตั้ง 1122x1402 ไม่ใช่ตราสี่เหลี่ยม 640 เหมือนตัวอื่นในตารางนี้ ·
+     วาดจริงกว้าง 338px ในคอลัมน์ 340 ต้นฉบับจึงใหญ่พอสำหรับจอสามเท่าอยู่แล้ว ไม่ต้องขยาย ·
+     **ห้ามครอปและห้าม ken-burns** ตัวหนังสือในโปสเตอร์ต้องอ่านออกครบทั้งใบ */
+  hermes_poster: { file: "naichangmoo-hermes-poster.webp" }
 } as const;
 
 export type VisualAssetKey = keyof typeof visualAssets;

@@ -1,15 +1,17 @@
 import type { CSSProperties } from "react";
 import { AppCard } from "@/components/landing/app-card";
 import { LandingMotion } from "@/components/landing/landing-motion";
-import { HeroLiveDemo } from "@/components/landing/hero-live-demo";
-import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
 import { CategoryBar } from "@/components/landing/v3/category-bar";
+import { HeroSlider, type HeroSlideView } from "@/components/landing/v3/hero-slider";
+import { HermesCard } from "@/components/landing/v3/hermes-card";
 import { ShopHeader } from "@/components/landing/v3/shop-header";
-import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
+import { heroSlides } from "@/lib/landing-v3-data";
+import { describeCardClaims } from "@/lib/catalogue-card";
+import { getAppInteractionContract, landingNavigationContract } from "@/lib/landing-interactions";
+import { marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
-import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { readCatalogueClaims } from "@/server/app-registry";
 import { StatStrip } from "@/components/landing/stat-strip";
 import obecPrices from "@/data/obec/obec-2569-unit-prices.json";
@@ -39,7 +41,32 @@ export default async function LandingPage() {
   ];
   // The quotation page is where a Hermes use case is submitted; the nav contract owns the route.
   const hermesRequestHref = landingNavigationContract.find((item) => item.id === "enterprise")?.href ?? "/enterprise";
-  const estimeter = claims.estimeter;
+
+  /**
+   * แบนเนอร์สไลด์เป็นคอมโพเนนต์ฝั่ง client จึงอ่านทะเบียนเองไม่ได้ — ฝั่ง server อ่านให้แล้ว
+   * ส่งลงไปเป็นค่าที่ตัดสินเสร็จแล้ว ทั้งป้ายสิทธิ์และทางเข้า ไม่ใช่ส่งเรคอร์ดดิบลงไปให้มันตีความ
+   *
+   * ADR 0015: ป้ายกับปุ่มทางเข้าเป็นคำแถลง ป้ายจึงเป็น null เมื่อทะเบียนยังไม่ประกาศ
+   * และทางเข้าเป็น null เมื่อทะเบียนยังไม่เปิด · `getAppInteractionContract` เป็นคนตัดสิน
+   * เรื่องทางเข้าอยู่แล้วทั้งเว็บ ตรงนี้จึงไม่ได้ตัดสินซ้ำ
+   */
+  const heroSlideViews: HeroSlideView[] = heroSlides.flatMap((slide) => {
+    const app = platformApps.find((item) => item.slug === slide.slug);
+    if (!app) return [];
+    const says = describeCardClaims(claims[slide.slug]);
+    const interaction = getAppInteractionContract(app, says.readiness?.modifier === "available");
+    return [{
+      slug: slide.slug,
+      imageUrl: visualAssetUrl(slide.imageKey),
+      title: slide.title,
+      subtitle: slide.subtitle,
+      body: slide.body,
+      tagLabel: says.access?.label ?? null,
+      detailHref: interaction.detailHref,
+      entryHref: interaction.entryHref,
+      entryLabel: slide.secondaryCtaLabel
+    }];
+  });
 
   return (
     <main className="site-shell">
@@ -49,53 +76,11 @@ export default async function LandingPage() {
       <ShopHeader />
       <CategoryBar />
 
-      <section className="hero" id="top">
-        <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>
-        <div className="container hero__grid">
-          {/* The hero introduces itself a line at a time rather than as one block: the eyebrow
-              settles down from above, then everything under it rises, so the eye is led to the
-              headline instead of meeting the whole panel at once. */}
-          <div className="hero__copy">
-            <div className="eyebrow" data-reveal style={{ "--fy": "-14px" } as CSSProperties}>นายช่างหมู · แอปงานโยธา</div>
-            {/* IP-192: the headline rises a line at a time behind a clipping mask - the motion
-                trick from the approved mockup. The first line wears an outline stroke so the
-                second one, which names what the platform actually sells, stays the loudest
-                thing on the page. The split point is chosen so each line is a whole phrase:
-                Thai has no word spaces, and a line break landing mid-phrase reads as a typo. */}
-            <h1 className="hero__headline" data-reveal data-delay="120" style={{ "--fy": "26px" } as CSSProperties}>
-              <span className="h1-line"><span className="h1-line__text h1-line__text--outline">เสริมพลังให้แอป</span></span>
-              <span className="h1-line"><span className="h1-line__text">ด้วยผู้ช่วย AI<span className="h1-dot">.</span></span></span>
-            </h1>
-            <p data-reveal data-delay="240" style={{ "--fy": "18px" } as CSSProperties}>ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ</p>
-          <div className="hero__actions" data-reveal data-delay="360" style={{ "--fy": "14px" } as CSSProperties}><SignInButton /><Button tone="primary" href={landingActionContract.allAppsHref}>ดูแอปทั้งหมด</Button></div>
-            {/* IP-197: บรรทัดหลักการใต้ปุ่มถูกตัดตามคำสั่งเจ้าของงาน 2026-08-28 — ฉากสาธิต
-                เล่าเรื่องเดียวกันด้วยภาพแทน (ผู้ช่วยเสนอ คนตัดสิน ระบบคำนวณ) */}
-            {/* ADR 0015: naming ESTIMETR is an introduction, but its commercial terms are a
-                claim, so the line renders only while the registry says the app is open and the
-                access word is the registry's own. Unannounced or closed means no line at all. */}
-            {estimeter.open && estimeter.access ? <p className="hero__note" data-reveal data-delay="430" style={{ "--fy": "14px" } as CSSProperties}>ESTIMETR · {accessLabel[estimeter.access]}</p> : null}
-          </div>
-          {/* IP-197: หน้าต่างสาธิตสดแทนภาพลายเส้นนิ่ง — ฉากผู้ช่วยสร้างแผนงานสี่จังหวะ
-              ที่ตัวเลขตรวจย้อนได้จริงกับเอกสาร วสท. (docs/research/s-curve-rules-2026-08-25.md) */}
-          <div className="hero__side" data-reveal data-delay="300" style={{ "--fy": "22px" } as CSSProperties}>
-            <HeroLiveDemo />
-          </div>
-        </div>
-        {/* IP-226: เจ้าของงานเคาะ 2026-09-01 ว่าห้าขั้นตอนทำงานของ ESTIMETR เป็นความรู้
-            ของระบบ ให้เก็บไว้โชว์สมาชิกในแอป ไม่ใช่บนหน้าขาย หน้าแรกขายแอปก็พอ
-            แถบเริ่มใช้งาน 01-04 จึงกลับมาเหมือนเดิม ส่วนสไตล์ .run-window ที่ทำไว้
-            ยังอยู่ใน globals.css รอเอาไปใช้ในหน้าแอป */}
-        <div className="container">
-          <aside className="workflow-band" aria-label="การเริ่มใช้งาน" data-reveal data-delay="460" style={{ "--fy": "14px" } as CSSProperties}>
-            <h2>เริ่มใช้งาน</h2>
-            {["เลือกแอป", "ดูรายละเอียด", "เริ่มใช้งาน", "ทำงานต่อ"].map((step, index) => (
-              <div className="workflow-band__step" key={step} tabIndex={0} style={{ "--step": index } as CSSProperties}>
-                <span>0{index + 1}</span>
-                <div>{step}</div>
-              </div>
-            ))}
-          </aside>
-        </div>
+      {/* แถวเปิดหน้าของรุ่นสาม — แบนเนอร์สไลด์คู่กับการ์ด Hermes
+          แทน hero เดิมทั้งบล็อก ส่วนที่เหลือของหน้ายังเป็นของเดิมและจะทยอยเปลี่ยนต่อไป */}
+      <section className="v3-hero" id="top">
+        <HeroSlider slides={heroSlideViews} />
+        <HermesCard requestHref={hermesRequestHref} />
       </section>
 
       <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
