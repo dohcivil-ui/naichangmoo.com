@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก แบบ ค — งานบริการ วางตาม NEO PROBUILD</title>
+<style>
+/*
+  ผืนโครงหน้าแรก แบบ ค  ·  2026-09-06
+
+  วางตามจังหวะของ neoprobuild.com ซึ่งเป็นเว็บผู้รับเหมาไทย
+  แกนของแบบนี้คือ  ภาพเต็มจอเป็นพระเอก  ·  หัวเรื่องไทยตัวใหญ่ชิดซ้าย
+  ·  ช่องทางติดต่ออยู่ในตอนแรกเลย ไม่ต้องเลื่อนหา  ·  แถบนำทางโปร่งทับภาพ
+
+  สีในผืนนี้เป็นเทาล้วนเพราะเป็น wireframe  สีจริงใช้ตัวแปรธีมของเราเท่านั้น
+  ไม่เอาน้ำเงินกับทองของเขามา และไม่ลอกองค์ประกอบเฉพาะตัวของเขา
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#e9e9e9; --ghost-line:#dcdcdc; --dark:#1c1c1c;
+  --r:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding:0 22px}
+.tag{position:absolute;top:8px;left:14px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);font-weight:700;z-index:3}
+section{position:relative;padding:64px 0;border-top:1px dashed var(--ghost-line)}
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;
+  text-align:center;padding:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;
+  border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:14px;white-space:nowrap}
+.btn--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ตอนเปิด ภาพเต็มจอ แถบนำทางโปร่งทับอยู่ */
+.hero{position:relative;min-height:clamp(520px,74vh,760px);border-radius:0;
+  background:var(--ghost);border-bottom:1px dashed var(--ghost-line);
+  display:flex;flex-direction:column}
+.hero__nav{display:flex;align-items:center;gap:26px;padding:18px 22px;max-width:1200px;
+  width:100%;margin:0 auto}
+.hero__logo{width:64px;height:64px;border:1px dashed var(--ghost-line);border-radius:50%;
+  background:#fff;display:grid;place-items:center;font-size:11px;color:var(--muted);flex:none}
+.hero__links{display:flex;gap:22px;font-size:14px;font-weight:700;margin-inline:auto}
+.hero__body{max-width:1200px;width:100%;margin:auto auto 0;padding:0 22px 44px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:end}
+.eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.hero h1{margin:14px 0 0;font-size:clamp(36px,5.6vw,64px);font-weight:700;line-height:1.06}
+.rule{width:120px;height:2px;background:var(--line);margin:22px 0}
+.chip{display:inline-flex;min-height:44px;align-items:center;padding:0 22px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px}
+.hero__list{margin:16px 0 0;color:#555;font-size:14px;line-height:1.8}
+
+/* บล็อกติดต่ออยู่ในตอนแรกเลย */
+.contact-blocks{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.contact-blocks div{border:1px dashed var(--ghost-line);background:#fff;border-radius:var(--r);
+  padding:18px;display:flex;gap:14px;align-items:center;font-weight:700;font-size:15px}
+.contact-blocks i{width:44px;height:44px;border:1px solid var(--line);border-radius:50%;flex:none}
+.contact-blocks span{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+
+h2{margin:0;font-size:clamp(24px,3vw,34px);font-weight:700;line-height:1.18;max-width:22ch}
+.head{display:flex;align-items:end;justify-content:space-between;gap:22px;flex-wrap:wrap;margin-bottom:28px}
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:22px;min-height:180px}
+.card i{display:block;width:40px;height:40px;border:1px solid var(--line);border-radius:var(--r)}
+.card h3{margin:14px 0 6px;font-size:17px;font-weight:700}
+.card p{margin:0;color:#666;font-size:13.5px}
+
+.work{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.work .ph{height:210px}
+
+.dark{background:var(--dark);color:#fafafa;border-radius:var(--r);padding:44px 28px}
+.dark h2{color:#fafafa}
+.dark .card{background:#262626;border-color:#333}
+.dark .card p{color:#a9a9a9}
+
+.review{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:22px}
+.review p{margin:0 0 14px;color:#444;font-size:14px;line-height:1.7}
+.review b{font-size:14px}
+.review span{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+
+/* แถบติดต่อลอยมุมล่างขวา */
+.dock{position:fixed;right:18px;bottom:18px;display:flex;gap:10px;align-items:center;z-index:5}
+.dock .btn{box-shadow:0 8px 24px rgba(0,0,0,.14)}
+
+.foot{padding:40px 0 96px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.note{max-width:1200px;margin:0 auto;padding:14px 22px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:10px;font-size:13px;line-height:1.6}
+
+@media (max-width:900px){
+  .hero__body{grid-template-columns:1fr}
+  .hero__links{display:none}
+  .g3,.g4,.work{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .g3,.g4,.work,.contact-blocks{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <span class="tag">ตอน 1 · ภาพเต็มจอ แถบนำทางโปร่งทับอยู่</span>
+  <nav class="hero__nav">
+    <span class="hero__logo">โลโก้</span>
+    <span class="hero__links"><span>หน้าแรก</span><span>แอปของเรา</span><span>วิธีทำงาน</span><span>ผลงาน</span><span>ราคา</span><span>ติดต่อ</span></span>
+    <span class="btn btn--solid">ขอใบเสนอราคา</span>
+  </nav>
+
+  <div class="hero__body">
+    <div>
+      <span class="eyebrow">NAICHANGMOO · CIVIL APPS ASSISTANT</span>
+      <h1>เครื่องมือของ<br>ผู้ประมาณราคา</h1>
+      <div class="rule"></div>
+      <span class="chip">ถอดแบบ ถอดปริมาณ ออก BOQ</span>
+      <p class="hero__list">
+        ถอดแบบโครงสร้าง | ถอดแบบสถาปัตยกรรม | ราคาวัสดุและค่าแรง<br>
+        BOQ และ ปร. | Backup Sheet ที่พิมพ์ออกได้
+      </p>
+    </div>
+    <div class="contact-blocks">
+      <div><i></i><b>ทักแชท<span>LINE @naichangmoo</span></b></div>
+      <div><i></i><b>ทดลองใช้ฟรี<span>7 วัน ไม่ต้องใส่บัตร</span></b></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section>
+    <span class="tag">ตอน 2 · บริการของเรา</span>
+    <div class="head"><h2>งานที่เครื่องมือนี้ทำให้ได้</h2><span class="btn">ดูแอปทั้งหมด</span></div>
+    <div class="grid g4">
+      <div class="card"><i></i><h3>ถอดแบบโครงสร้าง</h3><p>ฐานราก เสา คาน พื้น — ทำก่อนตามลำดับวิชาชีพ</p></div>
+      <div class="card"><i></i><h3>ถอดแบบสถาปัตยกรรม</h3><p>ผนัง พื้นผิว ฝ้า ประตูหน้าต่าง</p></div>
+      <div class="card"><i></i><h3>ราคาวัสดุและค่าแรง</h3><p>ทุกบรรทัดอ้างแหล่งและเดือนประกาศ</p></div>
+      <div class="card"><i></i><h3>BOQ และเอกสาร</h3><p>ออก ปร. พร้อม Backup Sheet</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 3 · ผลงาน</span>
+    <div class="head"><h2>งานที่ถอดด้วยเครื่องมือนี้จริง</h2><span class="btn">ดูทั้งหมด</span></div>
+    <div class="work">
+      <div class="ph">ภาพงานจริง — อาคารฟอกไต</div>
+      <div class="ph">ว่างไว้จนกว่าจะมีงานจริง</div>
+      <div class="ph">ห้ามแต่งผลงานที่ไม่มีอยู่จริง</div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 4 · ทำไมต้องเชื่อตัวเลข</span>
+    <div class="dark">
+      <div class="head"><h2>ตัวเลขที่เถียงในห้องประชุมได้</h2><span class="btn">ดูตัวอย่าง Backup Sheet</span></div>
+      <div class="grid g3">
+        <div class="card"><i></i><h3>ทุกบรรทัดกางที่มาได้</h3><p>รูปอยู่ตรงไหน สเกลเท่าไร วัดถึงตรงไหน</p></div>
+        <div class="card"><i></i><h3>คนยืนยันสเกลทุกหน้า</h3><p>AI ไม่ตั้งสเกลเอง</p></div>
+        <div class="card"><i></i><h3>AI เสนอ คนกดรับ</h3><p>ไม่มีตัวเลขไหนผ่านโดยไม่มีคนดู</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 5 · รีวิว</span>
+    <div class="head"><h2>คนที่ใช้จริงพูดว่าอย่างไร</h2></div>
+    <div class="grid g3">
+      <div class="review"><p>ว่างไว้จนกว่าจะมีรีวิวจริง ห้ามแต่งขึ้นมา</p><b>—<span>—</span></b></div>
+      <div class="review"><p>ว่างไว้จนกว่าจะมีรีวิวจริง</p><b>—<span>—</span></b></div>
+      <div class="review"><p>ว่างไว้จนกว่าจะมีรีวิวจริง</p><b>—<span>—</span></b></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 6 · ปิด</span>
+    <div style="text-align:center">
+      <h2 style="max-width:none;margin:0 auto 10px">เริ่มจากแบบที่คุณมีอยู่ตอนนี้</h2>
+      <p style="margin:0 0 22px;color:#555">เปิดไฟล์ PDF ตั้งสเกล แล้วลากครอบ</p>
+      <span class="btn btn--solid">ทดลองใช้ฟรี 7 วัน</span>
+    </div>
+  </section>
+
+  <div class="foot">ท้ายเว็บของ AppShell — ไม่วาดซ้ำในผืนนี้</div>
+
+  <p class="note">
+    <b>ข้อต่างของแบบนี้</b> — ช่องทางติดต่ออยู่ในตอนแรกเลย ไม่ต้องเลื่อนหา
+    และมีแถบติดต่อลอยค้างมุมล่างขวาตลอดหน้า ·
+    <b>แบบนี้ต้องมีภาพงานจริงขนาดใหญ่หนึ่งภาพ</b> ที่แข็งแรงพอจะเป็นพระเอกเต็มจอ
+    ซึ่งวันนี้เรายังไม่มี · ตอนผลงานกับตอนรีวิวต้องว่างไว้จนกว่าจะมีของจริง
+    <b>ห้ามแต่งขึ้นมา</b> ตามกติกาของโปรเจกต์
+  </p>
+
+</div>
+
+<div class="dock"><span class="btn">ทักแชท LINE</span><span class="btn btn--solid">ติดต่อเรา</span></div>
+
+</body>
+</html>

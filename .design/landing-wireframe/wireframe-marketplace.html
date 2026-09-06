@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก แบบ จ — ร้านค้า + มีอะไรใหม่</title>
+<style>
+/*
+  ผืนโครงหน้าแรก แบบ จ  ·  2026-09-06
+
+  ตามที่เจ้าของงานสั่ง
+    โครงเป็นร้านค้าแบบ tmsmartonline.com ซึ่งเขาบอกว่าชอบสไตล์นี้
+    ยังมี hero เหมือนเดิม
+    เข้ามาเห็นเลยว่าตอนนี้มีอะไรใหม่ มีโปรโมชั่นอะไร มีอะไรขาย
+    ไม่เอาการ์ดนับจำนวนสมาชิกแบบช่างคิด เพราะจะกลายเป็นการลอกเขา
+    แทนด้วยการ์ดงานที่มีสมาชิกใช้อยู่ นับแบบเรียลไทม์
+
+  ระวัง — ตัวเลขทุกตัวในผืนนี้เป็นขีดกลาง เพราะบนหน้าขายห้ามใส่เลขที่คิดเอง
+  ดูคำเตือนท้ายไฟล์เรื่องตัวเลขเรียลไทม์ตอนที่ยังไม่มีคนใช้
+
+  สีเป็นเทาล้วนเพราะเป็น wireframe  สีจริงใช้ตัวแปรธีมของเราเท่านั้น
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#e9e9e9; --ghost-line:#dcdcdc; --band:#ededed;
+  --r:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+.tag{position:absolute;top:6px;left:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;z-index:4}
+section{position:relative;padding:38px 0;border-top:1px dashed var(--ghost-line)}
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;
+  text-align:center;padding:14px;line-height:1.7}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;
+  border:1px solid var(--line);border-radius:var(--r);background:#fff;font-weight:700;font-size:14px;
+  white-space:nowrap;text-decoration:none;color:inherit}
+.btn--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn--sm{min-height:40px;padding:0 16px;font-size:13.5px}
+
+/* แถวบนสุด ค้นหาเป็นพระเอก แบบ TM Smart */
+.utility{display:grid;grid-template-columns:auto minmax(260px,1fr) auto auto auto;gap:16px;
+  align-items:center;padding:14px 0}
+.brand{font-weight:700;font-size:18px}
+.search{display:flex}
+.search input{flex:1;min-height:48px;padding:0 14px;border:1px solid var(--line);border-right:0;
+  border-radius:var(--r) 0 0 var(--r);font:inherit;background:#fff}
+.search .btn{border-radius:0 var(--r) var(--r) 0}
+.util{font-size:13px;color:var(--muted);line-height:1.25}
+.util b{display:block;color:var(--ink);font-size:14px}
+
+.menubar{background:var(--band);border-radius:var(--r)}
+.menubar ul{display:flex;gap:24px;align-items:center;margin:0;padding:0 18px;list-style:none;
+  min-height:52px;font-weight:700;font-size:14px;flex-wrap:wrap}
+.menubar li:last-child{margin-inline-start:auto}
+
+/* ตอน 1 · hero สามช่อง  ซ้ายบอกว่ามีอะไรใหม่  กลางเป็นของจริง  ขวาเป็นการ์ดงานที่มีคนใช้ */
+.hero{display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:18px;align-items:stretch}
+.whatsnew{display:flex;flex-direction:column;justify-content:center;gap:10px}
+.whatsnew .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.whatsnew h1{margin:0;font-size:clamp(24px,2.4vw,30px);font-weight:700;line-height:1.2}
+.whatsnew a{font-weight:700;font-size:14px;text-decoration:none;color:inherit}
+.showcase{position:relative;min-height:clamp(300px,34vw,430px)}
+.showcase .ph{position:absolute;inset:0}
+.showcase .cta{position:absolute;left:50%;top:50%;translate:-50% -50%}
+.showcase .cta .btn{min-height:56px;padding:0 30px;font-size:16px;border-radius:999px}
+
+/* การ์ดงานที่มีสมาชิกใช้อยู่ — ของเราเอง ไม่ใช่การนับจำนวนสมาชิกแบบเขา */
+.live{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;flex-direction:column;gap:10px}
+.live h2{margin:0;font-size:14px;font-weight:700}
+.live .pulse{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--muted);font-weight:700}
+.live .pulse i{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.live__row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.live__row b{margin-left:auto;font-size:17px;font-weight:400}
+.live__row span{font-size:13.5px}
+.live__row i{width:24px;height:24px;border:1px solid var(--line);border-radius:7px;flex:none}
+.live small{color:var(--muted);font-size:11.5px}
+
+/* ตอน 2 · แถบอัปเดต เลื่อนแนวนอน */
+.rowhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.rowhead h2{margin:0;font-size:20px;font-weight:700}
+.scroller{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:14px;
+  overflow-x:auto;padding-bottom:6px}
+.upd{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;flex-direction:column;gap:8px}
+.upd__top{display:flex;justify-content:space-between;gap:10px;font-size:12px}
+.upd__kind{font-weight:700}
+.upd__time{color:var(--muted)}
+.upd__app{font-size:12.5px;color:var(--muted);font-weight:700}
+.upd h3{margin:0;font-size:15px;font-weight:700;line-height:1.35}
+.upd p{margin:0;color:#666;font-size:13px}
+.upd a{margin-top:auto;font-weight:700;font-size:13.5px;text-decoration:none;color:inherit}
+
+/* ตอน 3 · โปรโมชั่น */
+.promo{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.promo__big{border:1px solid var(--line);border-radius:var(--r);background:var(--band);
+  padding:28px;display:flex;flex-direction:column;justify-content:center;gap:10px;min-height:200px}
+.promo__big h3{margin:0;font-size:clamp(20px,2.4vw,28px);font-weight:700;line-height:1.2}
+.promo__side{display:grid;gap:16px}
+.promo__side div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:20px}
+.promo__side h4{margin:0 0 4px;font-size:15px;font-weight:700}
+.promo__side p{margin:0;color:var(--muted);font-size:13px}
+
+/* ตอน 4 · ชั้นวางแอป */
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.item{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden;
+  display:flex;flex-direction:column}
+.item .ph{border:0;border-radius:0;height:158px}
+.item__body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.item h3{margin:0;font-size:15px;font-weight:700}
+.item p{margin:0;color:var(--muted);font-size:12.5px}
+.item .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px}
+.item .price{font-weight:700;font-size:14px}
+
+.trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.trust div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;gap:12px;align-items:center;font-size:13.5px;font-weight:700}
+.trust i{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;flex:none}
+
+.foot-note{padding:34px 0 84px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.note{max-width:1280px;margin:0 auto;padding:15px 20px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:10px;font-size:13px;line-height:1.7}
+.dock{position:fixed;right:16px;bottom:16px;z-index:8}
+.dock .btn{box-shadow:0 10px 26px rgba(0,0,0,.15)}
+
+@media (max-width:1080px){
+  .hero{grid-template-columns:1fr}
+  .utility{grid-template-columns:auto 1fr;row-gap:12px}
+  .util{display:none}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .promo{grid-template-columns:1fr}
+  .trust{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .g4,.g3{grid-template-columns:1fr}
+  .trust{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="utility">
+    <span class="brand">นายช่างหมู</span>
+    <form class="search" onsubmit="return false">
+      <input placeholder="ค้นหาแอป หรือพิมพ์งานที่อยากทำ เช่น ถอดแบบฐานราก">
+      <span class="btn btn--solid">ค้นหา</span>
+    </form>
+    <span class="util">ปรึกษาการใช้งาน<b>08 xxxx xxxx</b></span>
+    <span class="util">มีบัญชีแล้ว<b>เข้าสู่ระบบ</b></span>
+    <span class="btn">ขอใบเสนอราคา</span>
+  </div>
+
+  <nav class="menubar">
+    <ul>
+      <li>แอปทั้งหมด</li>
+      <li>ถอดปริมาณ · BOQ</li>
+      <li>ราคาวัสดุ · ค่าแรง</li>
+      <li>งานเอกสาร</li>
+      <li>Hermes 24/7</li>
+      <li><span class="btn btn--sm">ทดลองใช้ฟรี 7 วัน</span></li>
+    </ul>
+  </nav>
+
+  <section>
+    <span class="tag">ตอน 1 · hero สามช่อง — มีอะไรใหม่ / ของจริง / งานที่มีคนใช้อยู่</span>
+    <div class="hero">
+      <div class="whatsnew">
+        <span class="kicker">What's new</span>
+        <h1>เดือนนี้มีอะไรใหม่</h1>
+        <p style="margin:0;color:#666;font-size:13.5px">อัปเดตล่าสุด — วันนี้ 13:35 น.</p>
+        <a>ดูอัปเดตทั้งหมด →</a>
+      </div>
+
+      <div class="showcase">
+        <div class="ph">
+          <b>ภาพเคลื่อนไหวของแอปตอนทำงานจริง</b><br>
+          หน้าแบบจริง คลิกในห้อง ขอบไล่ตัวเองรอบห้อง แล้วตัวเลขโผล่<br>
+          ไม่ใช่ภาพนิ่งจากคลังภาพ
+        </div>
+        <span class="cta"><span class="btn btn--solid">กดเลือกแอปได้เลย</span></span>
+      </div>
+
+      <aside class="live">
+        <h2>งานที่มีคนใช้อยู่ตอนนี้</h2>
+        <span class="pulse"><i></i>อัปเดตสด</span>
+        <div class="live__row"><i></i><span>ถอดแบบโครงสร้าง</span><b>—</b></div>
+        <div class="live__row"><i></i><span>ถอดแบบสถาปัตย์</span><b>—</b></div>
+        <div class="live__row"><i></i><span>ราคาวัสดุและค่าแรง</span><b>—</b></div>
+        <div class="live__row"><i></i><span>ออก BOQ และ ปร.</span><b>—</b></div>
+        <small>นับจากงานที่กำลังเปิดอยู่จริงในระบบ ไม่ใช่จำนวนสมาชิก</small>
+      </aside>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 2 · แถบอัปเดต เลื่อนแนวนอน</span>
+    <div class="rowhead"><h2>อัปเดตล่าสุด</h2><span class="btn btn--sm">ดูทั้งหมด</span></div>
+    <div class="scroller">
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">ของใหม่</span><span class="upd__time">วันนี้ 13:35 น.</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>Backup Sheet พิมพ์เป็น A4 ได้แล้ว</h3>
+        <p>กางที่มาของทุกตัวเลขทั้งโครงการในแผ่นเดียว เอาเข้าห้องประชุมได้</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">แม่นขึ้น</span><span class="upd__time">วันนี้ 12:19 น.</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>ตัวเลขบอกได้แล้วว่ากรอบที่ครอบรูปไม่ใช่ด้านของห้อง</h3>
+        <p>ห้องรูปตัว L จะบอกเองว่ารูปจริงกินในกรอบกี่เปอร์เซ็นต์</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">แก้บั๊ก</span><span class="upd__time">เมื่อวาน</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>ขอบห้องนั่งกึ่งกลางเส้นผิวผนัง</h3>
+        <p>พื้นที่ที่เคยขาดไปราว 4% กลับมาครบทั้ง 14 ห้องบนหน้าเดียว</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">ของใหม่</span><span class="upd__time">—</span></div>
+        <span class="upd__app">—</span>
+        <h3>ใบถัดไปเว้นไว้</h3>
+        <p>เติมเมื่อมีของจริง ห้ามแต่งอัปเดตขึ้นมาให้ดูคึกคัก</p>
+        <a>—</a>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 3 · โปรโมชั่น มีอะไรขายช่วงนี้</span>
+    <div class="promo">
+      <div class="promo__big">
+        <span style="font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700">ช่วงนี้</span>
+        <h3>ทดลองใช้ฟรี 7 วัน<br>ไม่ต้องใส่บัตร</h3>
+        <p style="margin:0;color:#555;font-size:14px">เอาแบบที่มีอยู่มาลองได้เลย</p>
+        <span class="btn btn--solid" style="align-self:start">เริ่มทดลอง</span>
+      </div>
+      <div class="promo__side">
+        <div><h4>แพ็กหลายโครงการ</h4><p>ราคายังไม่เคาะ — เว้นไว้</p></div>
+        <div><h4>สำหรับองค์กร</h4><p>หลายคน หลายโครงการ ขอใบเสนอราคา</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 4 · ชั้นวางแอป มีอะไรขาย</span>
+    <div class="rowhead"><h2>แอปทั้งหมด</h2><span class="btn btn--sm">ดูทั้งหมด</span></div>
+    <div class="grid g4">
+      <div class="item"><div class="ph">ภาพหน้าจอจริง</div><div class="item__body">
+        <h3>ESTIMETR</h3><p>ถอดแบบ ถอดปริมาณ ออก BOQ</p>
+        <div class="foot"><span class="price">ทดลองฟรี 7 วัน</span><span class="btn btn--sm">เปิดแอป</span></div></div></div>
+      <div class="item"><div class="ph">ภาพหน้าจอจริง</div><div class="item__body">
+        <h3>PRICEMETR</h3><p>ราคาวัสดุและค่าแรงที่อ้างแหล่งได้</p>
+        <div class="foot"><span class="price">ทดลองฟรี 7 วัน</span><span class="btn btn--sm">เปิดแอป</span></div></div></div>
+      <div class="item"><div class="ph">ภาพหน้าจอจริง</div><div class="item__body">
+        <h3>Hermes 24/7</h3><p>ผู้ช่วยที่เสนอได้ แต่คนกดรับ</p>
+        <div class="foot"><span class="price">ส่ง use case</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+      <div class="item"><div class="ph">ยังไม่มี</div><div class="item__body">
+        <h3>แอปถัดไป</h3><p>เว้นช่องไว้ ไม่ต้องเติมให้เต็ม</p>
+        <div class="foot"><span class="price">เร็ว ๆ นี้</span></div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 5 · ทำไมเชื่อตัวเลขได้</span>
+    <div class="trust">
+      <div><i></i>ทุกบรรทัดกางที่มาได้</div>
+      <div><i></i>คนยืนยันสเกลทุกหน้า</div>
+      <div><i></i>AI เสนอ คนกดรับ</div>
+      <div><i></i>พิมพ์ Backup Sheet เป็น A4</div>
+    </div>
+  </section>
+
+  <div class="foot-note">ท้ายเว็บของ AppShell — ไม่วาดซ้ำในผืนนี้</div>
+
+  <p class="note">
+    <b>เรื่องตัวเลขเรียลไทม์ ต้องตัดสินก่อนทำ</b> — การ์ด "งานที่มีคนใช้อยู่ตอนนี้" เป็นความคิดที่ดี
+    และต่างจากช่างคิดจริงเพราะมันนับ<b>งาน</b> ไม่ใช่นับ<b>คน</b> ·
+    แต่วันนี้ระบบมีผู้ใช้จริงน้อยมาก การขึ้นเลข 1 หรือ 0 บนหน้าขายจะทำร้ายเรามากกว่าไม่มีเลย
+    ทางที่ปลอดภัยคือขึ้นเมื่อมีคนใช้จริงถึงระดับหนึ่ง หรือเปลี่ยนเป็นตัวเลขสะสมที่ไม่มีวันลด
+    เช่น จำนวนหน้าแบบที่ถอดไปแล้ว จำนวนรายการที่วัดแล้ว ซึ่งเป็นของจริงที่นับได้จากฐานวันนี้เลย
+    <br><br>
+    <b>ตอน 2 การ์ดอัปเดตสามใบแรกเป็นของจริงจากงานวันนี้</b> ไม่ได้แต่งขึ้น ·
+    ใบที่สี่เว้นไว้ตั้งใจ เพื่อไม่ให้ใครเผลอเติมอัปเดตปลอมให้ดูคึกคัก
+  </p>
+
+</div>
+<div class="dock"><a class="btn">ทักแชท</a></div>
+</body>
+</html>

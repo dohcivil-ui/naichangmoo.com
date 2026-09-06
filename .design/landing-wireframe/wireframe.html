@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก นายช่างหมู — วางตามจังหวะของ Structa</title>
+<style>
+/*
+  ผืนโครงหน้าแรก 2026-09-06
+
+  นี่คือ wireframe ไม่ใช่หน้าตาสุดท้าย — กล่องเทากับเส้นประคือที่ของภาพ
+  ตั้งใจให้ตัดสินเรื่อง "อะไรอยู่ตรงไหน ตอนไหนมาก่อนมาหลัง" ก่อนจะไปเถียงเรื่องสี
+
+  ค่าที่ยืมมาเป็นคุณสมบัติ ไม่ใช่การลอกหน้าตา วัดจากเว็บที่เจ้าของงานส่งมาเอง
+    พื้นหลัง #fafafa  ·  หัวเรื่องน้ำหนัก 400 ไม่ใช่ 700  ·  ปุ่มแคปซูล
+    มุมการ์ด 16px เป็นมุมหลัก  ·  แถบนำทางลอยไม่ติดขอบบน  ·  ช่องไฟแนวตั้งเยอะ
+  สีส้มแดง งานภาพสามมิติ และองค์ประกอบเฉพาะตัวของเขา ไม่ถูกนำมา
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#eee; --ghost-line:#dcdcdc;
+  --r-card:16px; --r-pill:999px;
+  --gap:clamp(64px,7vw,120px);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+/* ป้ายกำกับของ wireframe เอง ไม่ใช่ของหน้าจริง */
+.tag{position:absolute;top:8px;left:12px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);font-weight:700}
+section{position:relative;padding:var(--gap) 0;border-top:1px dashed var(--ghost-line)}
+section:first-of-type{border-top:0}
+
+/* กล่องแทนภาพ */
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r-card);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);
+  font-size:12px;text-align:center;padding:16px}
+
+/* แถบนำทางลอย ทรงแคปซูล ไม่ติดขอบบน */
+.nav{position:sticky;top:16px;z-index:9;margin:16px auto 0;max-width:1100px;
+  display:flex;align-items:center;gap:24px;padding:10px 12px 10px 24px;
+  border:1px solid var(--line);border-radius:var(--r-pill);background:#fff}
+.nav__brand{font-weight:700;letter-spacing:.02em}
+.nav__links{display:flex;gap:22px;margin-inline:auto;color:var(--muted);font-size:14px}
+.pill{display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;padding:0 22px;border-radius:var(--r-pill);
+  border:1px solid var(--line);background:#fff;font-weight:700;font-size:14px;white-space:nowrap}
+.pill--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.nav .pill{min-height:40px;padding:0 18px}
+
+/* ตอนเปิด */
+.hero{text-align:center;padding-top:clamp(56px,6vw,96px)}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  display:inline-flex;align-items:center;gap:8px}
+.eyebrow::before{content:"";width:10px;height:10px;border:1px solid var(--muted);border-radius:2px}
+h1{font-size:clamp(38px,5.2vw,60px);font-weight:400;line-height:1.08;letter-spacing:-.01em;
+  margin:20px auto 0;max-width:16ch}
+.lede{margin:18px auto 0;max-width:60ch;color:#555}
+.hero__cta{display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+
+/* ตอนโชว์ของ ภาพเต็มความกว้างมุมมน มีการ์ดลอยทับ */
+.stage{position:relative;margin-top:56px}
+.stage__media{height:clamp(280px,42vw,520px)}
+.stage__cards{position:absolute;right:20px;bottom:20px;display:grid;gap:10px;width:min(340px,52%)}
+.stage__card{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#fff;
+  border:1px solid var(--line);border-radius:12px;font-size:13px;font-weight:700}
+.stage__card span:first-child{width:26px;height:26px;border:1px solid var(--line);border-radius:8px;flex:none}
+.stage__card span:last-child{margin-left:auto;width:26px;height:26px;border:1px solid var(--line);
+  border-radius:var(--r-pill);flex:none}
+
+h2{font-size:clamp(28px,3.4vw,40px);font-weight:400;line-height:1.15;margin:0;max-width:20ch}
+.head{display:flex;align-items:end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:32px}
+
+.grid{display:grid;gap:16px}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.card{border:1px solid var(--line);border-radius:var(--r-card);background:#fff;padding:22px;min-height:190px}
+.card h3{margin:12px 0 6px;font-size:17px;font-weight:700}
+.card p{margin:0;color:#666;font-size:13.5px}
+.card__slot{height:34px;width:34px;border:1px solid var(--line);border-radius:10px}
+
+/* แถวตัวเลข */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.stat{border:1px solid var(--line);border-radius:var(--r-card);background:#fff;padding:24px}
+.stat b{display:block;font-size:34px;font-weight:400;line-height:1.1}
+.stat span{color:var(--muted);font-size:13px}
+
+/* ตอนสีเข้ม สลับจังหวะไม่ให้หน้าจืด */
+.dark{background:#111;color:#fafafa;border-radius:24px}
+.dark .card{background:#1b1b1b;border-color:#2a2a2a}
+.dark .card p{color:#a9a9a9}
+.dark .ph{background:#1b1b1b;border-color:#2a2a2a}
+
+/* ขั้นตอน */
+.steps{counter-reset:s;display:grid;gap:0}
+.step{counter-increment:s;display:grid;grid-template-columns:64px 1fr auto;gap:20px;align-items:center;
+  padding:22px 0;border-top:1px solid var(--line)}
+.step::before{content:counter(s,decimal-leading-zero);font-size:13px;color:var(--muted);font-weight:700}
+.step h3{margin:0;font-size:19px;font-weight:400}
+.step p{margin:4px 0 0;color:#666;font-size:13.5px}
+
+.faq{border-top:1px solid var(--line)}
+.faq div{padding:18px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px}
+.faq span{color:var(--muted)}
+
+.foot{padding:48px 0 64px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+
+.note{max-width:1180px;margin:0 auto;padding:14px 24px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:12px;font-size:13px;line-height:1.6}
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stage__cards{position:static;width:auto;margin-top:12px}
+  .step{grid-template-columns:44px 1fr}
+  .step .pill{grid-column:2}
+}
+@media (max-width:560px){
+  .g3,.g4,.g2{grid-template-columns:1fr}
+  .nav__links{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <span class="nav__brand">นายช่างหมู</span>
+  <span class="nav__links"><span>แอปของเรา</span><span>วิธีทำงาน</span><span>Hermes 24/7</span><span>ราคา</span></span>
+  <a class="pill">เข้าสู่ระบบ</a>
+  <a class="pill pill--solid">ขอใบเสนอราคา</a>
+</nav>
+
+<div class="wrap">
+
+<section class="hero">
+  <span class="tag">ตอน 1 · เปิด</span>
+  <span class="eyebrow">เครื่องมือของผู้ประมาณราคา</span>
+  <h1>ถอดแบบให้เสร็จ แล้วยังตอบได้ว่าเลขนี้มาจากไหน</h1>
+  <p class="lede">
+    หัวเรื่องน้ำหนักบาง ไม่ใช่ตัวหนา · ประโยคเดียว บอกงานที่ทำได้กับสิ่งที่คู่แข่งไม่มี
+    ไม่ใช่คำโฆษณา
+  </p>
+  <div class="hero__cta">
+    <a class="pill pill--solid">ทดลองใช้ฟรี 7 วัน</a>
+    <a class="pill">ดูวิธีทำงาน</a>
+  </div>
+
+  <div class="stage">
+    <div class="ph stage__media">ภาพหน้าแบบจริงที่กำลังไล่ขอบห้อง — เต็มความกว้าง มุมมน 16px</div>
+    <div class="stage__cards">
+      <div class="stage__card"><span></span>คลิกในห้อง ระบบไล่ขอบให้<span></span></div>
+      <div class="stage__card"><span></span>ทุกเลขกางที่มาของตัวเองได้<span></span></div>
+      <div class="stage__card"><span></span>พิมพ์ Backup Sheet ออกได้<span></span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 2 · ตัวเลขที่พิสูจน์ได้</span>
+  <div class="stats">
+    <div class="stat"><b>—</b><span>ตัวเลขจากชุดข้อมูลจริงเท่านั้น</span></div>
+    <div class="stat"><b>—</b><span>ห้ามใส่เลขที่คิดเอง</span></div>
+    <div class="stat"><b>—</b><span>ห้ามใช้เลขงานภายใน</span></div>
+    <div class="stat"><b>—</b><span>ถ้ายังไม่มีเลขจริง ให้ตัดตอนนี้ทิ้ง</span></div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 3 · แอปของเรา</span>
+  <div class="head">
+    <h2>แอปที่แยกกันชัด ไม่ปนหน้าที่กัน</h2>
+    <a class="pill">ดูแอปทั้งหมด</a>
+  </div>
+  <div class="grid g3">
+    <div class="card"><div class="card__slot"></div><h3>ESTIMETR</h3><p>ถอดแบบ ถอดปริมาณ ออก BOQ</p></div>
+    <div class="card"><div class="card__slot"></div><h3>PRICEMETR</h3><p>ราคาวัสดุและค่าแรงที่อ้างแหล่งได้</p></div>
+    <div class="card"><div class="card__slot"></div><h3>แอปถัดไป</h3><p>ช่องว่างไว้ ไม่ต้องเติมให้เต็ม</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 4 · วิธีทำงาน</span>
+  <div class="head"><h2>สี่ขั้น จบที่ BOQ ที่ย้อนดูที่มาได้</h2></div>
+  <div class="steps">
+    <div class="step"><div><h3>เปิดแบบ แล้วยืนยันสเกล</h3><p>คนยืนยันสเกลทุกหน้าที่จะถอด</p></div><a class="pill">เริ่มตรงนี้</a></div>
+    <div class="step"><div><h3>ลากครอบ ตั้งชื่อ</h3><p>AI หาตัวที่ขนาดเท่ากันให้ทั้งแผ่น</p></div><a class="pill">ดูตัวอย่าง</a></div>
+    <div class="step"><div><h3>ตรวจสิ่งที่ AI เสนอ</h3><p>คนกดรับ ไม่ใช่ระบบตัดสิน</p></div><a class="pill">ดูตัวอย่าง</a></div>
+    <div class="step"><div><h3>ออก BOQ กับ Backup Sheet</h3><p>พิมพ์เป็น A4 เอาเข้าห้องประชุมได้</p></div><a class="pill">ดูตัวอย่าง</a></div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 5 · สลับเป็นพื้นเข้ม</span>
+  <div class="dark" style="padding:56px 32px">
+    <div class="head"><h2 style="max-width:22ch">Hermes 24/7 ผู้ช่วยที่ไม่ตัดสินแทนคุณ</h2><a class="pill">ส่ง use case</a></div>
+    <div class="grid g3">
+      <div class="card"><div class="card__slot"></div><h3>เสนอได้</h3><p>แต่คนกดรับ</p></div>
+      <div class="card"><div class="card__slot"></div><h3>อ่านไม่ได้จะบอกว่าอ่านไม่ได้</h3><p>ไม่เดาระยะที่แบบไม่ได้เขียน</p></div>
+      <div class="card"><div class="card__slot"></div><h3>ไม่รับรองราคา</h3><p>ผู้ประมาณราคาเป็นคนรับผิดชอบ</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 6 · ราคา</span>
+  <div class="head"><h2>ราคาที่บอกครบตั้งแต่หน้านี้</h2><a class="pill">ดูราคาทั้งหมด</a></div>
+  <div class="grid g3">
+    <div class="card"><h3>ทดลอง</h3><p>7 วัน</p></div>
+    <div class="card"><h3>รายเดือน</h3><p>—</p></div>
+    <div class="card"><h3>องค์กร</h3><p>ขอใบเสนอราคา</p></div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 7 · คำถามที่พบบ่อย</span>
+  <div class="head"><h2>เรื่องที่คนถามก่อนตัดสินใจ</h2></div>
+  <div class="faq">
+    <div><span>ตัวเลขมาจากปัญญาประดิษฐ์หรือเปล่า</span><span>+</span></div>
+    <div><span>ปิดเว็บแล้วงานที่วัดไว้หายไหม</span><span>+</span></div>
+    <div><span>ย้อนดูที่มาของแต่ละบรรทัดได้ไหม</span><span>+</span></div>
+    <div><span>ไฟล์แบบของลูกค้าถูกเก็บไว้ที่ไหน</span><span>+</span></div>
+  </div>
+</section>
+
+<section>
+  <span class="tag">ตอน 8 · ปิด</span>
+  <div style="text-align:center">
+    <h2 style="max-width:none;margin:0 auto">คุยกันก่อนได้</h2>
+    <p class="lede">ปิดด้วยทางเดียว ไม่ใช่สามทางให้เลือกจนไม่มีใครกดอะไรเลย</p>
+    <div class="hero__cta"><a class="pill pill--solid">ขอใบเสนอราคา</a></div>
+  </div>
+</section>
+
+<div class="foot">
+  ท้ายเว็บของ AppShell — ที่อยู่ ลิงก์บริการ นโยบาย · ไม่วาดซ้ำในหน้านี้
+</div>
+
+<p class="note">
+  <b>สิ่งที่ยังไม่ได้ตัดสิน</b> — ตัวเลขในตอน 2 ต้องมาจากชุดข้อมูลจริง ถ้ายังไม่มีให้ตัดตอนนั้นทิ้งทั้งตอน ห้ามใส่เลขที่คิดเอง ·
+  ตอน 5 จะเป็นพื้นเข้มจริงหรือคงพื้นอ่อนทั้งหน้า ·
+  ลูกเล่นตอนเลื่อนจะเอาแค่ไหน เว็บต้นทางผูกไว้ 1,161 จุด ซึ่งมากเกินไปสำหรับเครื่องมือทำงาน ·
+  และปุ่มในผืนนี้เป็นทรงแคปซูลตามเว็บที่ชอบ ซึ่ง<b>ขัดกับทรงที่เคาะไว้เมื่อ 5 กันยา</b> คือมุม 10px ขอบล่างหนา 3px
+</p>
+
+</div>
+</body>
+</html>

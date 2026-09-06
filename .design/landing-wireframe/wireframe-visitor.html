@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก แบบ ง — เริ่มจากคนที่เข้ามา</title>
+<style>
+/*
+  ผืนโครงหน้าแรก แบบ ง  ·  2026-09-06
+
+  ต่างจากแบบ ก ข ค ตรงที่ไม่ได้เริ่มจากโครงของเว็บเจ้าอื่น
+  แต่เริ่มจากคำถามว่า คนที่เข้ามาต้องการอะไร แล้วเรียงตามลำดับที่เขาต้องการจริง
+
+    1  นี่คืออะไร                      ตอบใน 5 วินาทีโดยไม่ต้องอ่าน
+    2  ใช้กับแบบของผมได้ไหม            ให้เห็นแบบก่อสร้างไทยจริง
+    3  เร็วกว่าที่ผมทำอยู่แค่ไหน        ให้ตัวเลข ไม่ใช่คำว่ารวดเร็ว
+    4  ถ้าถูกท้วงจะตอบยังไง            Backup Sheet
+    5  ราคาเท่าไร                      ไม่ต้องไปหา
+    6  เข้าใช้งาน                      คนที่สมัครแล้วต้องไม่ถูกบังคับผ่านหน้าขาย
+
+  ของที่เก็บมาจากสามแบบก่อนหน้า
+    จังหวะช่องไฟกับปุ่มแคปซูล จากแบบ ก
+    แถบเลือกงานที่ทำ         จากแบบ ข
+    ช่องทางติดต่อที่ไม่ต้องเลื่อนหา จากแบบ ค
+
+  สีเป็นเทาล้วนเพราะเป็น wireframe  สีจริงใช้ตัวแปรธีมของเราเท่านั้น
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#e9e9e9; --ghost-line:#dcdcdc; --dark:#1a1a1a;
+  --r:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+.tag{position:absolute;top:8px;left:14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;z-index:4}
+section{position:relative;padding:clamp(56px,6vw,92px) 0;border-top:1px dashed var(--ghost-line)}
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;
+  text-align:center;padding:16px;line-height:1.7}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;
+  border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:14px;
+  white-space:nowrap;text-decoration:none;color:inherit}
+.btn--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn--sm{min-height:40px;padding:0 18px;font-size:13.5px}
+
+/* แถบนำทาง สั้นที่สุดเท่าที่ทำได้ · ข้อ 6 อยู่ตรงนี้ */
+.nav{position:sticky;top:14px;z-index:9;margin:14px auto 0;max-width:1120px;display:flex;
+  align-items:center;gap:20px;padding:9px 10px 9px 22px;border:1px solid var(--line);
+  border-radius:999px;background:#fff}
+.nav b{font-size:17px}
+.nav__links{display:flex;gap:20px;margin-inline:auto;font-size:14px;color:var(--muted)}
+
+/* ตอน 1 · แบบที่กำลังถูกถอด เป็นพระเอก หัวเรื่องเป็นคำบรรยายใต้ภาพ */
+.hero{padding-top:clamp(28px,3vw,44px)}
+.hero__stage{position:relative;border-radius:var(--r);overflow:hidden}
+.hero__stage .ph{height:clamp(320px,46vw,560px);border-radius:var(--r)}
+.hero__badge{position:absolute;left:18px;top:18px;background:#fff;border:1px solid var(--line);
+  border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700}
+.hero__num{position:absolute;right:18px;bottom:18px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:14px 18px;min-width:230px}
+.hero__num b{display:block;font-size:30px;font-weight:400;line-height:1.1}
+.hero__num span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.hero__caption{display:flex;align-items:end;justify-content:space-between;gap:26px;
+  flex-wrap:wrap;margin-top:26px}
+h1{margin:0;font-size:clamp(24px,3.1vw,36px);font-weight:400;line-height:1.2;max-width:24ch}
+.hero__cta{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ตอน 2 · เริ่มจากงานที่ทำอยู่ */
+.works{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.work{border:1px solid var(--line);border-radius:12px;background:#fff;padding:16px 14px;
+  text-align:center;font-weight:700;font-size:14px}
+.work i{display:block;width:32px;height:32px;margin:0 auto 10px;border:1px solid var(--line);border-radius:9px}
+.work span{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ตอน 3 · เทียบกับวิธีเดิม */
+.versus{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.versus > div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:26px}
+.versus h3{margin:0 0 4px;font-size:16px;font-weight:700}
+.versus .big{font-size:38px;font-weight:400;line-height:1.1;margin:14px 0 2px}
+.versus small{color:var(--muted);font-size:12.5px;display:block}
+.versus ol{margin:16px 0 0;padding-left:18px;color:#666;font-size:13.5px;line-height:1.9}
+.versus--now{background:#f2f2f2}
+
+/* ตอน 4 · ถ้าถูกท้วง */
+.proof{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:24px;align-items:center}
+.sheet{border:1px solid var(--line);border-radius:12px;background:#fff;padding:20px 22px;font-size:13.5px}
+.sheet dt{font-weight:700;margin-top:12px}
+.sheet dt:first-child{margin-top:0}
+.sheet dd{margin:2px 0 0;color:#555}
+.sheet code{display:block;margin-top:4px;font-family:ui-monospace,monospace;font-size:12.5px;color:#333}
+
+/* ตอน 5 · ราคา */
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.plan{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:24px}
+.plan h3{margin:0 0 8px;font-size:16px;font-weight:700}
+.plan b{font-size:28px;font-weight:400}
+.plan p{margin:6px 0 18px;color:var(--muted);font-size:13px}
+
+h2{margin:0;font-size:clamp(24px,3vw,34px);font-weight:400;line-height:1.2;max-width:22ch}
+.head{display:flex;align-items:end;justify-content:space-between;gap:22px;flex-wrap:wrap;margin-bottom:28px}
+
+.close{text-align:center;padding:clamp(56px,6vw,88px) 0}
+.foot{padding:34px 0 92px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.dock{position:fixed;right:16px;bottom:16px;z-index:8}
+.dock .btn{box-shadow:0 10px 26px rgba(0,0,0,.15)}
+.note{max-width:1180px;margin:0 auto;padding:15px 22px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:12px;font-size:13px;line-height:1.7}
+
+@media (max-width:980px){
+  .works{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .proof{grid-template-columns:1fr}
+  .plans{grid-template-columns:1fr}
+  .nav__links{display:none}
+}
+@media (max-width:600px){
+  .works{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .versus{grid-template-columns:1fr}
+  .hero__num{position:static;margin-top:12px;min-width:0}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <b>นายช่างหมู</b>
+  <span class="nav__links"><span>แอปของเรา</span><span>วิธีทำงาน</span><span>ราคา</span></span>
+  <a class="btn btn--sm">เข้าสู่ระบบ</a>
+  <a class="btn btn--sm btn--solid">ทดลองใช้ฟรี</a>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero">
+    <span class="tag">ตอน 1 · ตอบข้อ 1 กับ 2 พร้อมกัน โดยไม่ต้องอ่าน</span>
+    <div class="hero__stage">
+      <div class="ph">
+        <b>ที่นี่คือแบบก่อสร้างจริงกำลังถูกถอด</b><br>
+        ภาพเคลื่อนไหวสั้น ๆ วนซ้ำ — เมาส์คลิกในห้องหนึ่งครั้ง ขอบไล่ตัวเองรอบห้อง<br>
+        แล้วตัวเลขโผล่ขึ้นมามุมขวาล่างพร้อมบรรทัดที่บอกว่าคูณอะไรมา<br>
+        <b>ของนี้เรามีอยู่แล้ว</b> — หน้า 7 ของแบบอาคารฟอกไต ไม่ต้องซื้อรูปจากคลังภาพ
+      </div>
+      <span class="hero__badge">แบบก่อสร้างจริง · ไม่ใช่ภาพจำลอง</span>
+      <div class="hero__num">
+        <b>4.02 ตร.ม.</b>
+        <span>2.276 × 1.768 · สเกล 1:125.29 · ผิวผนังด้านใน</span>
+      </div>
+    </div>
+
+    <div class="hero__caption">
+      <h1>เปิดแบบ คลิกในห้อง ได้ปริมาณที่บอกได้ว่ามาจากไหน</h1>
+      <div class="hero__cta">
+        <a class="btn btn--solid">ทดลองใช้ฟรี 7 วัน</a>
+        <a class="btn">ดูวิธีทำงาน</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 2 · ข้อ 2 — ใช้กับงานผมได้ไหม</span>
+    <div class="head"><h2>เริ่มจากงานที่คุณทำอยู่ตอนนี้</h2></div>
+    <div class="works">
+      <div class="work"><i></i>ฐานราก<span>โครงสร้าง</span></div>
+      <div class="work"><i></i>เสา<span>โครงสร้าง</span></div>
+      <div class="work"><i></i>คาน<span>โครงสร้าง</span></div>
+      <div class="work"><i></i>พื้น<span>โครงสร้าง</span></div>
+      <div class="work"><i></i>ผนัง<span>สถาปัตย์</span></div>
+      <div class="work"><i></i>พื้นผิว ฝ้า<span>สถาปัตย์</span></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 3 · ข้อ 3 — เร็วกว่าที่ทำอยู่แค่ไหน</span>
+    <div class="head"><h2>เทียบกับวิธีที่คุณทำอยู่</h2></div>
+    <div class="versus">
+      <div class="versus--now">
+        <h3>สเกล ดินสอ Excel</h3>
+        <div class="big">—</div>
+        <small>นาทีต่อห้อง · ต้องวัดของจริงก่อนใส่เลข</small>
+        <ol><li>วัดด้วยสเกลทีละด้าน</li><li>พิมพ์ลง Excel</li><li>แบบเปลี่ยน ทำใหม่ทั้งชุด</li><li>ถูกท้วง ไล่หาว่าเลขนี้มาจากหน้าไหน</li></ol>
+      </div>
+      <div>
+        <h3>นายช่างหมู</h3>
+        <div class="big">—</div>
+        <small>นาทีต่อห้อง · ต้องวัดของจริงก่อนใส่เลข</small>
+        <ol><li>ตั้งสเกลของหน้า หนึ่งครั้ง</li><li>ลากครอบ ตั้งชื่อ</li><li>ระบบหาตัวที่ขนาดเท่ากันทั้งแผ่น</li><li>กดตรวจ แล้วพิมพ์ Backup Sheet</li></ol>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 4 · ข้อ 4 — ถ้าถูกท้วงจะตอบยังไง</span>
+    <div class="proof">
+      <div>
+        <h2>ทุกตัวเลขกางที่มาของตัวเองได้</h2>
+        <p style="color:#666;margin:14px 0 22px;max-width:46ch">
+          กดที่ตัวเลขไหนก็ได้ แล้วมันจะตอบห้าคำถามที่คนท้วงจะถาม พิมพ์เป็น A4 เอาเข้าห้องประชุมได้
+        </p>
+        <a class="btn">ดูตัวอย่าง Backup Sheet</a>
+      </div>
+      <div class="sheet">
+        <dl style="margin:0">
+          <dt>รูปที่วัดอยู่ตรงไหนของแบบ</dt>
+          <dd>หน้า 7 · พื้นที่หลายเหลี่ยม 4 จุด</dd>
+          <dt>จุดบนกระดาษกลายเป็นเมตรได้ยังไง</dt>
+          <dd><code>51.5 จุด × 0.0442 = 2.276 ม.</code></dd>
+          <dt>สเกลที่ใช้เชื่อได้แค่ไหน</dt>
+          <dd>1:125.29 ตั้งจากคลิกสองจุดแล้วพิมพ์ระยะ</dd>
+          <dt>เลขที่รายงานคิดออกมาได้ยังไง</dt>
+          <dd><code>2.276 × 1.768 = 4.024 ตร.ม.</code></dd>
+          <dt>ตัวเลขนี้วัดถึงตรงไหน</dt>
+          <dd>ผิวผนังด้านใน ไม่ใช่กึ่งกลางผนัง</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 5 · ข้อ 5 — ราคา</span>
+    <div class="head"><h2>ราคาที่บอกครบตั้งแต่หน้านี้</h2><a class="btn">ดูรายละเอียด</a></div>
+    <div class="plans">
+      <div class="plan"><h3>ทดลอง</h3><b>ฟรี</b><p>7 วัน ไม่ต้องใส่บัตร</p><a class="btn btn--solid">เริ่มเลย</a></div>
+      <div class="plan"><h3>รายเดือน</h3><b>—</b><p>ใส่เมื่อเคาะราคาแล้ว</p><a class="btn">เลือกแผนนี้</a></div>
+      <div class="plan"><h3>องค์กร</h3><b>—</b><p>หลายโครงการ หลายคน</p><a class="btn">ขอใบเสนอราคา</a></div>
+    </div>
+  </section>
+
+  <section class="close">
+    <span class="tag">ตอน 6 · ปิดด้วยทางเดียว</span>
+    <h2 style="max-width:none;margin:0 auto 12px">เอาแบบที่คุณมีอยู่ตอนนี้มาลอง</h2>
+    <p style="color:#666;margin:0 0 24px">เปิดไฟล์ PDF ตั้งสเกล แล้วคลิกในห้อง</p>
+    <a class="btn btn--solid">ทดลองใช้ฟรี 7 วัน</a>
+  </section>
+
+  <div class="foot">ท้ายเว็บของ AppShell — ไม่วาดซ้ำในผืนนี้</div>
+
+  <p class="note">
+    <b>ช่องที่เว้นไว้เป็นขีดกลาง ต้องวัดของจริงก่อนใส่</b> — ตอน 3 คือหัวใจของหน้านี้
+    และเป็นตอนเดียวที่ยังตอบไม่ได้ เพราะเรายังไม่เคยจับเวลาเทียบกันจริง
+    <b>ห้ามใส่ตัวเลขที่คิดเอง</b> ถ้าวัดไม่ได้ให้ตัดตอนนี้ทิ้งทั้งตอน ดีกว่าใส่เลขที่เถียงไม่ได้ ·
+    ราคาในตอน 5 เหมือนกัน<br><br>
+    <b>สิ่งที่หน้านี้ตั้งใจไม่มี</b> — ไม่มีคำอธิบายว่าระบบทำงานยังไง
+    ไม่มีรูปตึกจากคลังภาพ ไม่มีรีวิวที่แต่งขึ้น ไม่มีตัวเลขงานภายใน
+  </p>
+
+</div>
+
+<div class="dock"><a class="btn">ทักแชท</a></div>
+
+</body>
+</html>

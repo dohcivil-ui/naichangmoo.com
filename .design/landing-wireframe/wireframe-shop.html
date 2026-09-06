@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก ตัวจริง — ร้านค้า ต่อจาก hero เดิม</title>
+<style>
+/*
+  โครงหน้าแรกตัวจริง  ·  2026-09-06
+  รวมคำตัดสินของเจ้าของงานทั้งหมดในบทสนทนาวันนี้
+
+    header ของเดิม        วาดตามของจริงที่ใช้อยู่ ไม่ออกแบบใหม่
+    hero ของเดิม          ข้อความเดิมทุกคำ ไม่แต่งใหม่
+    ทางร้านค้า            เพราะจะมีหลายแอป ชั้นวางจึงมีที่ให้โต
+    เลขสะสมไม่มีวันลด     ไม่ใช่เลขคนที่ออนไลน์อยู่ตอนนี้
+    แยกต่อแอป             ไม่มีการ์ดนับรวมมุมขวาแบบช่างคิด เลขไปอยู่บนการ์ดแอปแต่ละใบ
+    สมาชิกที่ใช้งาน        คำที่เจ้าของงานเลือกเอง
+    มีอะไรใหม่ให้เห็น      แถบอัปเดตอยู่เหนือชั้นวางของ
+
+  ของใหม่ทั้งหมดเริ่มหลัง hero  ส่วน hero กับ header ไม่แตะเลย
+
+  สีของส่วนใหม่เป็นเทาล้วนเพราะเป็น wireframe
+  ส่วน hero วาดด้วยโทนเข้มเพื่อให้เห็นว่ามันต่อกับของเดิมยังไง ไม่ใช่ค่าสีจริง
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#e9e9e9; --ghost-line:#dcdcdc; --band:#ededed;
+  --deep:#0f2b38; --deep-2:#14384a; --deep-line:#2a5468; --on-deep:#e8f1f4;
+  --r:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+.tag{position:absolute;top:6px;left:12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);font-weight:700;z-index:4}
+section{position:relative;padding:38px 0;border-top:1px dashed var(--ghost-line)}
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px;
+  text-align:center;padding:14px;line-height:1.7}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;
+  border:1px solid var(--line);border-radius:var(--r);background:#fff;font-weight:700;font-size:14px;
+  white-space:nowrap;text-decoration:none;color:inherit}
+.btn--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn--sm{min-height:40px;padding:0 16px;font-size:13.5px}
+
+/* ================= header ของเดิม · วาดตามภาพ "จาก code design" ================= */
+.site-nav{background:#fff;border-bottom:1px solid var(--line)}
+.site-nav__in{max-width:1400px;margin:0 auto;padding:14px 26px;display:flex;align-items:center;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 14px;border:1px solid var(--line);
+  border-radius:12px;background:#fff;font-weight:700;font-size:16px;flex:none}
+.brand i{width:34px;height:34px;border:1px dashed var(--ghost-line);border-radius:7px;display:block}
+.brand small{display:block;font-size:8.5px;letter-spacing:.14em;color:var(--muted);font-weight:700}
+/* ลิงก์เป็นตัวหนังสือเปล่า ไม่ใช่แคปซูล · หน้าที่อยู่ขีดเส้นใต้สีเน้น */
+.nav-links{display:flex;gap:30px;margin-inline:auto;flex-wrap:wrap;font-size:15px;font-weight:700}
+.nav-links span{position:relative;padding:6px 0}
+.nav-links .is-here::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:#e07b3c}
+.site-nav .signin{display:inline-flex;align-items:center;min-height:48px;padding:0 26px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;font-weight:700;font-size:14.5px;flex:none}
+.site-nav .quote{display:inline-flex;align-items:center;min-height:48px;padding:0 26px;border-radius:999px;
+  background:var(--deep);color:#fff;font-weight:700;font-size:14.5px;flex:none}
+
+/* ================= hero ของเดิม · ข้อความเดิมทุกคำ · โทนสว่างตามภาพ ================= */
+.hero{background:#f6f7f6;
+  background-image:linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,0,0,.035) 1px,transparent 1px);
+  background-size:38px 38px}
+.hero__in{max-width:1400px;margin:0 auto;padding:64px 26px 60px;
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:44px;align-items:center}
+.hero__badge{display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 20px;
+  border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:700;font-size:14.5px}
+.hero__badge i{width:9px;height:9px;border-radius:50%;background:#2f7d6b;flex:none}
+.hero h1{margin:26px 0 0;font-size:clamp(36px,4.6vw,60px);line-height:1.14;font-weight:400;color:#12303c}
+.hero h1 .strong{display:block;font-weight:800}
+.hero h1 .dot{color:#e07b3c}
+.hero__sub{margin:22px 0 0;max-width:44ch;color:#4a5b63;font-size:17px;line-height:1.7}
+.hero__cta{display:flex;align-items:center;gap:14px;margin-top:32px;flex-wrap:wrap}
+.hero__cta .pill{display:inline-flex;align-items:center;gap:10px;min-height:56px;padding:0 32px;
+  border-radius:999px;background:#e07b3c;color:#fff;font-weight:700;font-size:16px}
+.hero__cta .ghost{display:inline-flex;align-items:center;min-height:56px;padding:0 30px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;font-weight:700;font-size:16px}
+
+/* หน้าต่างสาธิต — ผู้ช่วยเสนอ แล้วคนกดรับหรือปฏิเสธ */
+.demo__scene{font-size:13px;color:var(--muted);text-align:right;margin-bottom:10px;font-weight:700}
+.demo{border:1px solid var(--line);border-radius:18px;background:#fff;padding:18px 20px;
+  box-shadow:0 20px 44px rgba(18,48,60,.08)}
+.demo__bar{display:flex;align-items:center;gap:9px;color:#5b6f77;font-size:13px;padding:0 0 16px}
+.demo__bar i{width:9px;height:9px;border-radius:50%;background:#dfe5e6;flex:none}
+.demo__bar b{font-weight:400;margin-inline:auto}
+.demo__bar em{font-style:normal;border-radius:999px;background:#eaf3f0;color:#2f7d6b;
+  padding:5px 13px;font-size:12px;font-weight:700}
+.demo__body{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px}
+.demo__list{display:grid;gap:10px;align-content:start}
+.demo__item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;font-size:15px}
+.demo__item.is-focus{border-color:#2f7d6b;box-shadow:0 0 0 1px #2f7d6b inset}
+.demo__item b{font-weight:400}
+.demo__item .qty{margin-left:auto;font-weight:700}
+.demo__item .ref{border:1px solid var(--line);border-radius:6px;padding:2px 7px;font-size:11.5px;
+  color:var(--muted);font-family:ui-monospace,monospace}
+.demo__acts{display:flex;gap:10px;margin-top:14px}
+.demo__acts span{display:inline-flex;align-items:center;min-height:48px;padding:0 24px;border-radius:999px;
+  font-weight:700;font-size:14.5px;border:1px solid var(--line);background:#fff}
+.demo__acts .take{background:var(--deep);color:#fff;border-color:var(--deep)}
+.demo__side h4{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:700}
+.demo__side p{margin:0 0 16px;font-size:14.5px;line-height:1.65;color:#3c4c54}
+.demo__side .barline{height:7px;border-radius:99px;background:#e6ebec;overflow:hidden}
+.demo__side .barline u{display:block;height:100%;width:62%;background:#2f7d6b;text-decoration:none}
+.demo__side .barfoot{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);
+  margin-top:7px;font-weight:700}
+
+/* ================= ของใหม่เริ่มตรงนี้ ================= */
+.searchrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px}
+.search{display:flex}
+.search input{flex:1;min-height:52px;padding:0 16px;border:1px solid var(--line);border-right:0;
+  border-radius:var(--r) 0 0 var(--r);font:inherit;font-size:15px;background:#fff}
+.search .btn{min-height:52px;border-radius:0 var(--r) var(--r) 0}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:14px 0 0}
+.chips span{display:inline-flex;align-items:center;min-height:38px;padding:0 14px;border:1px solid var(--line);
+  border-radius:999px;background:#fff;font-size:13.5px;font-weight:700}
+
+/* ===== หน้าร้าน · หมวดซ้าย + แบนเนอร์โฆษณาแอปเราขวา (ตามกรอบแดงของ TM Smart) ===== */
+.shopfront{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;align-items:start}
+/* การ์ดสมาชิกที่ใช้งาน · ย้ายมาจากแบบ จ แล้วแก้ตามที่เจ้าของงานขีดมา
+   เอาแถวชนิดงานออก เปลี่ยนเป็นรูปหรือไอคอนของแอป กับชื่อแอป
+   และตัดบรรทัดอธิบายท้ายการ์ดทิ้ง เพราะเป็นข้อความที่ไม่ได้ทำงาน */
+.cats{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:18px}
+.cats__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.cats h2{margin:0;font-size:16px;font-weight:700}
+.cats .pulse{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);font-weight:700}
+.cats .pulse i{width:8px;height:8px;border-radius:50%;background:#2f7d6b;flex:none}
+.cats a{display:flex;gap:12px;align-items:center;padding:14px 2px;border-top:1px solid var(--line);
+  font-size:14.5px;font-weight:700;color:inherit;text-decoration:none}
+/* ไอคอนของแต่ละแอปมีอยู่จริงใน public/brand แล้ว ไม่ต้องใช้อักษรย่อ */
+.cats a img{width:40px;height:40px;border-radius:9px;flex:none;object-fit:contain;background:var(--band)}
+.cats a b{margin-left:auto;font-size:16px;font-weight:400;white-space:nowrap}
+
+.ads{position:relative;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:#fff}
+.ads__track{display:flex;transition:transform 420ms cubic-bezier(.4,0,.2,1)}
+.ads__slide{flex:0 0 100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  min-height:clamp(300px,32vw,420px)}
+/* เว้นซ้ายให้พอสำหรับลูกศร ไม่งั้นลูกศรทับหัวเรื่อง (เจอตอนวัดของจริง) */
+.ads__copy{padding:clamp(24px,3vw,44px);padding-left:76px;display:flex;flex-direction:column;
+  justify-content:center;gap:14px;background:var(--band)}
+.ads__ribbon{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+  padding:6px 16px;border-radius:4px;background:var(--deep);color:#fff;font-size:12.5px;
+  font-weight:700;letter-spacing:.08em}
+.ads__copy h3{margin:0;font-size:clamp(22px,2.6vw,34px);font-weight:700;line-height:1.2}
+.ads__copy hr{width:96px;height:3px;border:0;background:var(--muted);margin:2px 0}
+.ads__copy p{margin:0;color:#4d5a60;font-size:14.5px;line-height:1.65;max-width:38ch}
+.ads__copy .btn{align-self:flex-start;margin-top:4px}
+.ads__art{border-left:1px dashed var(--ghost-line)}
+.ads__arrow{position:absolute;top:50%;translate:0 -50%;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer;
+  font-size:20px;color:#3c4c54;box-shadow:0 6px 18px rgba(0,0,0,.10);z-index:2}
+.ads__arrow:hover{background:var(--band)}
+.ads__arrow.prev{left:14px} .ads__arrow.next{right:14px}
+.ads__dots{position:absolute;left:50%;translate:-50% 0;bottom:14px;display:flex;gap:8px;z-index:2}
+.ads__dots button{width:9px;height:9px;padding:0;border-radius:50%;border:1px solid var(--muted);
+  background:#fff;cursor:pointer}
+.ads__dots button[aria-current="true"]{background:var(--deep);border-color:var(--deep);width:22px;border-radius:99px}
+
+.rowhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.rowhead h2{margin:0;font-size:20px;font-weight:700}
+.scroller{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(285px,1fr);gap:14px;
+  overflow-x:auto;padding-bottom:6px}
+.upd{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;flex-direction:column;gap:8px}
+.upd__top{display:flex;justify-content:space-between;gap:10px;font-size:12px}
+.upd__kind{font-weight:700}
+.upd__time{color:var(--muted)}
+.upd__app{font-size:12.5px;color:var(--muted);font-weight:700}
+.upd h3{margin:0;font-size:15px;font-weight:700;line-height:1.35}
+.upd p{margin:0;color:#666;font-size:13px}
+.upd a{margin-top:auto;font-weight:700;font-size:13.5px;text-decoration:none;color:inherit}
+
+.promo{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+.promo__big{border:1px solid var(--line);border-radius:var(--r);background:var(--band);padding:28px;
+  display:flex;flex-direction:column;justify-content:center;gap:10px;min-height:200px}
+.promo__big h3{margin:0;font-size:clamp(20px,2.4vw,28px);font-weight:700;line-height:1.2}
+.kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.promo__side{display:grid;gap:16px}
+.promo__side div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:20px}
+.promo__side h4{margin:0 0 4px;font-size:15px;font-weight:700}
+.promo__side p{margin:0;color:var(--muted);font-size:13px}
+
+.grid{display:grid;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.item{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden;
+  display:flex;flex-direction:column}
+.item .ph{border:0;border-radius:0;height:158px}
+/* ไอคอนแอปจริงจาก public/brand · ยังไม่ใช่ภาพหน้าจอ ซึ่งเป็นของที่ยังต้องถ่าย */
+.item .shot{width:100%;height:158px;object-fit:contain;background:var(--band);
+  border-bottom:1px solid var(--line);padding:14px}
+.item__body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.item h3{margin:0;font-size:15px;font-weight:700}
+.item p{margin:0;color:var(--muted);font-size:12.5px}
+.members{display:inline-flex;align-items:center;gap:7px;align-self:flex-start;margin-top:2px;
+  padding:5px 11px;border:1px solid var(--line);border-radius:999px;font-size:12.5px;font-weight:700;background:#fff}
+.members i{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+.item .foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:12px}
+.item .price{font-weight:700;font-size:14px}
+
+.trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.trust div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;gap:12px;align-items:center;font-size:13.5px;font-weight:700}
+.trust i{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;flex:none}
+
+.foot-note{padding:34px 0 84px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.note{max-width:1280px;margin:0 auto;padding:15px 20px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:10px;font-size:13px;line-height:1.7}
+.dock{position:fixed;right:16px;bottom:16px;z-index:8}
+.dock .btn{box-shadow:0 10px 26px rgba(0,0,0,.15)}
+
+@media (max-width:1080px){
+  .shopfront{grid-template-columns:1fr}
+  .ads__slide{grid-template-columns:1fr}
+  .ads__art{border-left:0;border-top:1px dashed var(--ghost-line);min-height:180px}
+  .hero__in{grid-template-columns:1fr;padding-top:36px}
+  .demo__body{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .promo{grid-template-columns:1fr}
+  .trust{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nav-links{display:none}
+}
+@media (max-width:600px){
+  .grid,.trust{grid-template-columns:1fr}
+  .searchrow{grid-template-columns:1fr}
+  .hero h1{font-size:38px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== header ของเดิม ไม่แตะ · ตามภาพจาก code design ===== -->
+<header class="site-nav">
+  <div class="site-nav__in">
+    <span class="brand"><i></i><span>นายช่างหมู<small>CIVIL APPS ASSISTANT</small></span></span>
+    <span class="nav-links">
+      <span class="is-here">หน้าแรก</span><span>แอปของเรา</span><span>Hermes 24/7</span>
+      <span>ราคา</span><span>คำถามที่พบบ่อย</span>
+    </span>
+    <span class="signin">เข้าสู่ระบบ</span>
+    <span class="quote">ขอใบเสนอราคา</span>
+  </div>
+</header>
+
+<!-- ===== hero ของเดิม ข้อความเดิมทุกคำ ไม่แต่งใหม่ ===== -->
+<header class="hero">
+  <div class="hero__in">
+    <div>
+      <span class="hero__badge"><i></i>ESTIMETR เปิดทดลองใช้ฟรี 7 วัน</span>
+      <h1>เสริมพลังให้แอป<span class="strong">ด้วยผู้ช่วย AI<span class="dot">.</span></span></h1>
+      <p class="hero__sub">
+        ไม่ใช่แค่ทำงานเร็วขึ้น — แต่เป็นผู้ช่วยคอยตรวจสอบความผิดพลาดของงานคุณ
+        ทุกตัวเลขย้อนกลับไปหาแบบและบัญชีราคาที่อ้างอิงได้
+      </p>
+      <div class="hero__cta">
+        <span class="pill">ดูแอปทั้งหมด →</span>
+        <span class="ghost">ดูตัวอย่างการทำงาน</span>
+      </div>
+    </div>
+
+    <div>
+      <!--
+        ฉากสาธิตต้องเป็นงานของแอปที่ป้ายข้างบนโฆษณาอยู่ คือ ESTIMETR ประมาณราคางานอาคาร
+        ของเดิมโชว์ "ผู้ช่วยสร้างแผนงาน · ร่างงวดงาน" พร้อมงานดินถมคันทาง ท่อระบายน้ำ
+        เครื่องหมายจราจร ซึ่งเป็นงานทางและเป็นงานแผนงาน ผิดทั้งชนิดงานและผิดแอป
+        เจ้าของงานสั่ง 2026-09-06 ว่า "แยกแอปให้ขาด ประมาณราคางานก่อสร้างอาคาร ก็อย่าพูดถึงแผนงาน"
+        ตัวเลขในฉากนี้เป็นของจริงจากแบบอาคารฟอกไต หน้า 7 สเกล 1:125.29
+      -->
+      <div class="demo__scene">ฉากสาธิตสด · จังหวะ 2 / 4</div>
+      <div class="demo">
+        <div class="demo__bar"><i></i><i></i><i></i><b>ESTIMETR · ถอดปริมาณงานอาคาร</b><em>ภาพสาธิต</em></div>
+        <div class="demo__body">
+          <div>
+            <div class="demo__list">
+              <div class="demo__item"><b>ห้องน้ำพยาบาล</b><span class="qty">3.37 ตร.ม.</span><span class="ref">หน้า 7</span></div>
+              <div class="demo__item is-focus"><b>ห้องน้ำผู้ป่วยชาย</b><span class="qty">4.02 ตร.ม.</span><span class="ref">หน้า 7</span></div>
+              <div class="demo__item"><b>ห้องแยก</b><span class="qty">7.34 ตร.ม.</span><span class="ref">หน้า 7</span></div>
+            </div>
+            <div class="demo__acts"><span class="take">ส่งเข้าถอดปริมาณ</span><span>ปฏิเสธ</span></div>
+          </div>
+          <div class="demo__side">
+            <h4>ผู้ช่วยเสนอ</h4>
+            <p>ห้องน้ำผู้ป่วยชาย 4.02 ตร.ม. ไล่ขอบจากหน้า 7 สเกล 1:125.29 วัดถึงผิวผนังด้านใน</p>
+            <div class="barline"><u></u></div>
+            <div class="barfoot"><span>ยืนยันแล้ว</span><span>3 จาก 4</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section style="border-top:0">
+    <span class="tag">ใหม่ · แถวค้นหา — แกนของทางร้านค้า</span>
+    <div class="searchrow">
+      <form class="search" onsubmit="return false">
+        <input placeholder="ค้นหาแอป หรือพิมพ์งานที่อยากทำ เช่น ถอดแบบฐานราก">
+        <span class="btn btn--solid">ค้นหา</span>
+      </form>
+      <span class="btn" style="min-height:52px">ทดลองใช้ฟรี 7 วัน</span>
+    </div>
+    <div class="chips">
+      <span>ถอดปริมาณ · BOQ</span><span>ราคาวัสดุ · ค่าแรง</span><span>งานโครงสร้าง</span>
+      <span>งานสถาปัตยกรรม</span><span>งานเอกสาร</span><span>เรียนรู้การใช้งาน</span>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ใหม่ · หมวดซ้าย + แบนเนอร์โฆษณาแอปเรา เลื่อนได้</span>
+    <div class="shopfront">
+      <aside class="cats">
+        <div class="cats__head">
+          <h2>สมาชิกที่ใช้งาน</h2>
+          <span class="pulse"><i></i>อัปเดตสด</span>
+        </div>
+        <a><img src="/brand/naichangmoo-estimetr-badge.webp" alt="">ESTIMETR<b>— คน</b></a>
+        <a><img src="/brand/naichangmoo-pricemetr-badge.webp" alt="">PRICEMETR<b>— คน</b></a>
+        <a><img src="/brand/naichangmoo-work-plan-badge.webp" alt="">ผู้ช่วยสร้างแผนงาน<b>— คน</b></a>
+        <a><img src="/brand/naichangmoo-escalation-k-badge.webp" alt="">ESCALATION K<b>— คน</b></a>
+      </aside>
+
+      <div class="ads" id="ads">
+        <div class="ads__track" id="adsTrack">
+
+          <article class="ads__slide">
+            <div class="ads__copy">
+              <span class="ads__ribbon">NEW</span>
+              <h3>ถอดแบบงานโครงสร้าง<br>ลากครอบครั้งเดียว</h3>
+              <hr>
+              <p>ตั้งสเกล ลากครอบเสาหนึ่งตัว ตั้งชื่อ แล้วให้ระบบไล่หาตัวที่ขนาดเท่ากันทั้งแผ่น</p>
+              <span class="btn btn--solid">เปิด ESTIMETR</span>
+            </div>
+            <div class="ph ads__art">ภาพหน้าจอ ESTIMETR ตอนลากครอบเสา</div>
+          </article>
+
+          <article class="ads__slide">
+            <div class="ads__copy">
+              <span class="ads__ribbon">ของใหม่</span>
+              <h3>Backup Sheet<br>พิมพ์เป็น A4 ได้แล้ว</h3>
+              <hr>
+              <p>กางที่มาของทุกตัวเลขทั้งโครงการในแผ่นเดียว เอาเข้าห้องประชุมได้</p>
+              <span class="btn btn--solid">ดูตัวอย่าง</span>
+            </div>
+            <div class="ph ads__art">ภาพกระดาษ Backup Sheet จริง</div>
+          </article>
+
+          <article class="ads__slide">
+            <div class="ads__copy">
+              <span class="ads__ribbon">แอป</span>
+              <h3>ราคาวัสดุและค่าแรง<br>ที่อ้างแหล่งได้ทุกบรรทัด</h3>
+              <hr>
+              <p>ทุกบรรทัดพาแหล่ง เดือนประกาศ และเลขหน้าเอกสารมาด้วย</p>
+              <span class="btn btn--solid">เปิด PRICEMETR</span>
+            </div>
+            <div class="ph ads__art">ภาพหน้าจอ PRICEMETR</div>
+          </article>
+
+          <article class="ads__slide">
+            <div class="ads__copy">
+              <span class="ads__ribbon">โปรโมชั่น</span>
+              <h3>ทดลองใช้ฟรี 7 วัน<br>ไม่ต้องใส่บัตร</h3>
+              <hr>
+              <p>เอาแบบที่คุณมีอยู่ตอนนี้มาลองได้เลย</p>
+              <span class="btn btn--solid">เริ่มทดลอง</span>
+            </div>
+            <div class="ph ads__art">ภาพแบบก่อสร้างจริงที่กำลังถูกถอด</div>
+          </article>
+
+        </div>
+        <button type="button" class="ads__arrow prev" id="adsPrev" aria-label="แผ่นก่อนหน้า">‹</button>
+        <button type="button" class="ads__arrow next" id="adsNext" aria-label="แผ่นถัดไป">›</button>
+        <div class="ads__dots" id="adsDots" role="tablist" aria-label="เลือกแผ่นโฆษณา"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ใหม่ · มีอะไรใหม่ เลื่อนแนวนอน</span>
+    <div class="rowhead"><h2>อัปเดตล่าสุด</h2><span class="btn btn--sm">ดูทั้งหมด</span></div>
+    <div class="scroller">
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">ของใหม่</span><span class="upd__time">วันนี้ 13:35 น.</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>Backup Sheet พิมพ์เป็น A4 ได้แล้ว</h3>
+        <p>กางที่มาของทุกตัวเลขทั้งโครงการในแผ่นเดียว</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">แม่นขึ้น</span><span class="upd__time">วันนี้ 12:19 น.</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>ห้องรูปตัว L บอกเองว่ากินในกรอบกี่เปอร์เซ็นต์</h3>
+        <p>กรอบที่ครอบรูปไม่ใช่ด้านของห้อง ตอนนี้แผงบอกให้ชัด</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">แก้บั๊ก</span><span class="upd__time">เมื่อวาน</span></div>
+        <span class="upd__app">ESTIMETR</span>
+        <h3>ขอบห้องนั่งกึ่งกลางเส้นผิวผนัง</h3>
+        <p>พื้นที่ที่เคยขาดราว 4% กลับมาครบทั้ง 14 ห้องบนหน้าเดียว</p>
+        <a>เปิดแอป →</a>
+      </article>
+      <article class="upd">
+        <div class="upd__top"><span class="upd__kind">—</span><span class="upd__time">—</span></div>
+        <span class="upd__app">—</span>
+        <h3>ใบถัดไปเว้นไว้</h3>
+        <p>เติมเมื่อมีของจริง ห้ามแต่งอัปเดตให้ดูคึกคัก</p>
+        <a>—</a>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ใหม่ · โปรโมชั่นช่วงนี้</span>
+    <div class="promo">
+      <div class="promo__big">
+        <span class="kicker">ช่วงนี้</span>
+        <h3>ทดลองใช้ฟรี 7 วัน<br>ไม่ต้องใส่บัตร</h3>
+        <p style="margin:0;color:#555;font-size:14px">เอาแบบที่มีอยู่มาลองได้เลย</p>
+        <span class="btn btn--solid" style="align-self:start">เริ่มทดลอง</span>
+      </div>
+      <div class="promo__side">
+        <div><h4>แพ็กหลายโครงการ</h4><p>ราคายังไม่เคาะ — เว้นไว้</p></div>
+        <div><h4>สำหรับองค์กร</h4><p>หลายคน หลายโครงการ ขอใบเสนอราคา</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ใหม่ · ชั้นวางแอป · เลขสมาชิกอยู่บนการ์ดแต่ละใบ</span>
+    <div class="rowhead"><h2>แอปทั้งหมด</h2><span class="btn btn--sm">ดูทั้งหมด</span></div>
+    <!--
+      ชื่อแอป คำบรรยาย และประโยคสถานะ ลอกมาจากทะเบียนจริง src/lib/platform.ts ทั้งหมด
+      ไม่ได้แต่งขึ้นเอง · ไอคอนก็เป็นไฟล์จริงใน public/brand
+      ทะเบียนมีเจ็ดแอป ไม่ใช่สองแอปอย่างที่ AI เคยบอกผิดไปก่อนหน้านี้
+    -->
+    <div class="grid">
+      <div class="item"><img class="shot" src="/brand/naichangmoo-estimetr-badge.webp" alt=""><div class="item__body">
+        <h3>ESTIMETR</h3><p>ประมาณราคางานอาคาร</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">ทดลองใช้ฟรี 7 วัน</span><span class="btn btn--sm">เปิดแอป</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-pricemetr-badge.webp" alt=""><div class="item__body">
+        <h3>PRICEMETR</h3><p>ราคาวัสดุและค่าแรงงานก่อสร้าง</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">กำลังพัฒนา</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-work-plan-badge.webp" alt=""><div class="item__body">
+        <h3>ผู้ช่วยสร้างแผนงาน</h3><p>แผนงาน งวดงาน แผนกำลังคน Gantt และ S-Curve</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">กำลังพัฒนา</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-escalation-k-badge.webp" alt=""><div class="item__body">
+        <!-- เจ้าของงานอธิบายเอง 2026-09-06 ว่าค่า K ไปได้สองทาง ไม่ใช่แค่ได้เงินชดเชย
+             ทะเบียนใน platform.ts ยังเขียนทางเดียว ยังไม่ได้แก้ ดูแผน landing-shop-layout -->
+        <h3>ESCALATION K</h3><p>คำนวณค่า K ว่าต้องคืนเงินหลวง หรือได้เงินเพิ่ม</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">กำลังพัฒนา</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-retaining-wall-badge.webp" alt=""><div class="item__body">
+        <h3>Retaining Wall Cantilever</h3><p>ออกแบบกำแพงกันดินแบบ cantilever</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">สมาชิกใช้ฟรี</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-traffic-sign-badge.webp" alt=""><div class="item__body">
+        <h3>TRAFFIC SIGN</h3><p>คำนวณวัสดุป้ายจราจรจนถึง BOQ</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">สมาชิกใช้ฟรี</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <div class="item"><img class="shot" src="/brand/naichangmoo-land-acquisition-badge.webp" alt=""><div class="item__body">
+        <h3>LAND ACQUISITION V2</h3><p>งานจัดกรรมสิทธิ์ที่ดิน กรมทางหลวง</p>
+        <span class="members"><i></i>สมาชิกที่ใช้งาน — คน</span>
+        <div class="foot"><span class="price">ตามสิทธิ์ที่ได้รับ</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+
+      <!--
+        Hermes ไม่ได้อยู่ใน platformApps มันเป็นบริการ ไม่ใช่แอปในทะเบียน
+        ใบนี้เป็นของที่ AI เติมเข้ามาเอง ยังไม่ได้ให้เจ้าของงานตัดสินว่าควรอยู่ในชั้นวางหรือไม่
+      -->
+      <div class="item"><img class="shot" src="/brand/naichangmoo-hermes-badge.webp" alt=""><div class="item__body">
+        <h3>Hermes 24/7</h3><p>ผู้ช่วยที่เสนอได้ แต่คนกดรับ</p>
+        <div class="foot"><span class="price">ส่ง use case</span><span class="btn btn--sm">ดูรายละเอียด</span></div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ใหม่ · ทำไมเชื่อตัวเลขได้</span>
+    <div class="trust">
+      <div><i></i>ทุกบรรทัดกางที่มาได้</div>
+      <div><i></i>คนยืนยันสเกลทุกหน้า</div>
+      <div><i></i>AI เสนอ คนกดรับ</div>
+      <div><i></i>พิมพ์ Backup Sheet เป็น A4</div>
+    </div>
+  </section>
+
+  <div class="foot-note">ท้ายเว็บของ AppShell — ไม่วาดซ้ำในผืนนี้</div>
+
+  <p class="note">
+    <b>header กับ hero ในผืนนี้เป็นของเดิมทั้งหมด</b> ข้อความไม่แต่งใหม่สักคำ
+    วาดไว้เพื่อให้เห็นว่าของใหม่ต่อจากมันยังไงเท่านั้น ·
+    ของใหม่เริ่มที่แถวค้นหาลงมา<br><br>
+    <b>นิยามของ "สมาชิกที่ใช้งาน" เจ้าของงานเคาะแล้ว</b> —
+    <b>จำนวนคนในองค์กรที่มีสิทธิ์ใช้แอปนั้น</b> คือนับจาก <code>app_entitlements</code>
+    คู่กับ <code>organization_members</code> ซึ่งเป็นของที่ระบบรู้อยู่แล้ว ไม่ต้องเดา ·
+    เขาปฏิเสธข้อเสนอเดิมของ AI ที่ให้นับ "คนที่เคยเปิดแอป" เพราะนั่นคือการนับคนที่แค่กดเข้ามาดู
+    ซึ่งเป็นเลขปลอมแบบมีข้ออ้าง<br><br>
+    <b>การ์ดขึ้นตั้งแต่สมาชิกคนแรก</b> ไม่ตั้งเกณฑ์ขั้นต่ำ — AI ทักไว้ว่าเลขหลักหน่วยบนหน้าขาย
+    อาจทำร้ายมากกว่าช่วย เจ้าของงานรับทราบและเลือกโชว์ตามจริง<br><br>
+    <b>ทุกเลขเป็นขีดกลางจนกว่าจะต่อกับฐานจริง</b> ห้ามใส่เลขที่คิดเอง ·
+    การ์ดอัปเดตสามใบแรกเป็นของจริงจากงานวันนี้ ใบที่สี่เว้นไว้ตั้งใจ
+  </p>
+
+</div>
+<div class="dock"><a class="btn">ทักแชท</a></div>
+
+<script>
+/*
+  แบนเนอร์โฆษณาแอปเรา — ลูกเล่นเดียวกับแบนเนอร์ในกรอบแดงของ TM Smart
+  ลูกศรซ้ายขวา  จุดบอกตำแหน่ง  เลื่อนเองทุก 6 วินาที  หยุดเมื่อเอาเมาส์ไปวาง
+  เขียนเองไม่ใช้ไลบรารี เพราะเป็นแค่การเลื่อน transform ชั้นเดียว
+*/
+(function () {
+  var box = document.getElementById('ads');
+  if (!box) return;
+  var track = document.getElementById('adsTrack');
+  var dots = document.getElementById('adsDots');
+  var slides = track.children.length;
+  var at = 0;
+  var timer = null;
+
+  for (var i = 0; i < slides; i++) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', 'แผ่นที่ ' + (i + 1));
+    b.addEventListener('click', (function (n) { return function () { go(n); }; })(i));
+    dots.appendChild(b);
+  }
+
+  function paint() {
+    track.style.transform = 'translateX(' + (-at * 100) + '%)';
+    for (var i = 0; i < dots.children.length; i++) {
+      dots.children[i].setAttribute('aria-current', i === at ? 'true' : 'false');
+    }
+  }
+  function go(n) { at = (n + slides) % slides; paint(); restart(); }
+  function restart() {
+    if (timer) clearInterval(timer);
+    // หยุดเลื่อนเองถ้าเครื่องตั้งค่าว่าไม่ชอบการเคลื่อนไหว
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    timer = setInterval(function () { go(at + 1); }, 6000);
+  }
+
+  document.getElementById('adsPrev').addEventListener('click', function () { go(at - 1); });
+  document.getElementById('adsNext').addEventListener('click', function () { go(at + 1); });
+  box.addEventListener('mouseenter', function () { if (timer) clearInterval(timer); });
+  box.addEventListener('mouseleave', restart);
+
+  paint();
+  restart();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>โครงหน้าแรก แบบ ข — ร้านค้า วางตาม TM SMART</title>
+<style>
+/*
+  ผืนโครงหน้าแรก แบบ ข  ·  2026-09-06
+
+  วางตามจังหวะของ tmsmartonline.com ซึ่งเป็นเว็บร้านค้าไทย คนละสายกับแบบ ก
+  ค่าที่วัดจากเว็บต้นทาง  ฟอนต์ Kanit 16px  ·  มุม 5px เป็นหลัก 119 จุด
+  สีแบรนด์เดียวใช้ทั่วทั้งเว็บ  ·  65 รูปในหน้าเดียว  ·  หน้าสูง 10,921px
+
+  แกนของแบบนี้คือ  ค้นหาก่อน  หมวดหมู่อยู่ซ้ายตลอด  แบนเนอร์อยู่ขวา  ของเยอะแน่น
+  ไม่ใช่การเล่าเรื่อง แต่เป็นการวางของให้หยิบ
+
+  สีในผืนนี้เป็นเทาล้วนเพราะเป็น wireframe  สีจริงใช้ตัวแปรธีมของเราเท่านั้น
+  ไม่เอาสีแดงของเขามา
+*/
+:root{
+  --paper:#fafafa; --ink:#111; --line:#d8d8d8; --muted:#8a8a8a;
+  --ghost:#eee; --ghost-line:#dcdcdc; --band:#e6e6e6;
+  --r:5px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Prompt",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.tag{position:absolute;top:6px;left:12px;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);font-weight:700}
+section{position:relative;padding:40px 0;border-top:1px dashed var(--ghost-line)}
+.ph{background:var(--ghost);border:1px dashed var(--ghost-line);border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;
+  text-align:center;padding:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 20px;
+  border:1px solid var(--line);border-radius:var(--r);background:#fff;font-weight:700;font-size:14px;white-space:nowrap}
+.btn--solid{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* แถวบนสุด ค้นหาเป็นพระเอก */
+.utility{display:grid;grid-template-columns:auto minmax(240px,1fr) auto auto auto;gap:18px;
+  align-items:center;padding:14px 0}
+.brand{font-weight:700;font-size:18px}
+.search{display:flex}
+.search input{flex:1;min-height:48px;padding:0 14px;border:1px solid var(--line);
+  border-right:0;border-radius:var(--r) 0 0 var(--r);font:inherit;background:#fff}
+.search .btn{border-radius:0 var(--r) var(--r) 0}
+.util{font-size:13px;color:var(--muted);line-height:1.25}
+.util b{display:block;color:var(--ink);font-size:14px}
+
+/* แถบหมวดหมู่เต็มความกว้าง */
+.menubar{background:var(--band);border-radius:var(--r)}
+.menubar ul{display:flex;gap:26px;align-items:center;margin:0;padding:0 18px;list-style:none;
+  min-height:52px;font-weight:700;font-size:14px;flex-wrap:wrap}
+.menubar li:last-child{margin-inline-start:auto}
+
+/* ตอนเปิด ซ้ายเป็นหมวด ขวาเป็นแบนเนอร์ */
+.top{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px;align-items:start}
+.cats{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:18px}
+.cats h2{margin:0 0 12px;font-size:18px;font-weight:700;text-align:center}
+.cats a{display:flex;gap:12px;align-items:center;padding:14px 4px;border-bottom:1px solid var(--line);
+  font-size:14px;color:var(--ink);text-decoration:none}
+.cats a:last-child{border-bottom:0}
+.cats i{width:26px;height:26px;border:1px solid var(--line);border-radius:var(--r);flex:none;display:block}
+.banner{position:relative;height:clamp(280px,34vw,470px)}
+.banner__in{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  gap:14px;padding:clamp(20px,4vw,52px);max-width:60%}
+.banner h1{margin:0;font-size:clamp(26px,3.4vw,44px);font-weight:700;line-height:1.12}
+.banner p{margin:0;color:#555;font-size:14px}
+.arrow{position:absolute;top:50%;translate:0 -50%;width:34px;height:34px;border:1px solid var(--line);
+  border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--muted)}
+.arrow.l{left:12px} .arrow.r{right:12px}
+
+/* แถวการ์ดแบบร้านค้า แน่น ๆ */
+.rowhead{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}
+.rowhead h2{margin:0;font-size:20px;font-weight:700}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.item{border:1px solid var(--line);border-radius:var(--r);background:#fff;overflow:hidden}
+.item .ph{border:0;border-radius:0;height:150px}
+.item div:last-child{padding:12px}
+.item h3{margin:0 0 4px;font-size:14px;font-weight:700}
+.item p{margin:0;color:var(--muted);font-size:12.5px}
+.item .price{margin-top:8px;font-weight:700;font-size:15px}
+
+.band{background:var(--band);border-radius:var(--r);padding:28px 20px}
+
+.trust{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.trust div{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:16px;
+  display:flex;gap:12px;align-items:center;font-size:13.5px;font-weight:700}
+.trust i{width:30px;height:30px;border:1px solid var(--line);border-radius:var(--r);flex:none}
+
+.foot{padding:36px 0 56px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+.note{max-width:1240px;margin:0 auto;padding:14px 20px;color:#7a5a2a;background:#fff8ec;
+  border:1px solid #f0dcb8;border-radius:10px;font-size:13px;line-height:1.6}
+
+@media (max-width:1000px){
+  .utility{grid-template-columns:auto 1fr;row-gap:12px}
+  .util{display:none}
+  .top{grid-template-columns:1fr}
+  .g6{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .trust{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .g4,.g3,.g6{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .banner__in{max-width:100%}
+  .trust{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="utility">
+    <span class="brand">นายช่างหมู</span>
+    <form class="search" onsubmit="return false">
+      <input placeholder="ค้นหาแอป หรือพิมพ์งานที่อยากทำ เช่น ถอดแบบฐานราก">
+      <span class="btn btn--solid">ค้นหา</span>
+    </form>
+    <span class="util">ปรึกษาการใช้งาน<b>08 xxxx xxxx</b></span>
+    <span class="util">เข้าสู่ระบบ<b>Login</b></span>
+    <span class="btn">ขอใบเสนอราคา</span>
+  </div>
+
+  <nav class="menubar">
+    <ul>
+      <li>แอปทั้งหมด</li>
+      <li>ถอดแบบและปริมาณ</li>
+      <li>ราคาวัสดุและค่าแรง</li>
+      <li>งานเอกสาร</li>
+      <li>Hermes 24/7</li>
+      <li><span class="btn">ทดลองใช้ฟรี 7 วัน</span></li>
+    </ul>
+  </nav>
+
+  <section>
+    <span class="tag">ตอน 1 · เปิด — หมวดซ้าย แบนเนอร์ขวา</span>
+    <div class="top">
+      <aside class="cats">
+        <h2>เลือกจากงานที่ทำ</h2>
+        <a><i></i>ถอดแบบงานโครงสร้าง</a>
+        <a><i></i>ถอดแบบงานสถาปัตยกรรม</a>
+        <a><i></i>ราคาวัสดุและค่าแรง</a>
+        <a><i></i>ออก BOQ และ ปร.</a>
+        <a><i></i>งานเอกสารหน้างาน</a>
+      </aside>
+      <div class="banner ph">
+        <div class="banner__in">
+          <h1>ถอดแบบงานฐานราก<br>ลากครอบครั้งเดียว</h1>
+          <p>ตั้งสเกล ลากครอบเสาหนึ่งตัว ตั้งชื่อ แล้วให้ระบบไล่หาตัวที่ขนาดเท่ากันทั้งแผ่น</p>
+          <span class="btn btn--solid" style="align-self:start">เปิด ESTIMETR</span>
+        </div>
+        <span class="arrow l">‹</span><span class="arrow r">›</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 2 · แอปทั้งหมด วางเป็นชั้นวางของ</span>
+    <div class="rowhead"><h2>แอปของเรา</h2><span class="btn">ดูทั้งหมด</span></div>
+    <div class="grid g4">
+      <div class="item"><div class="ph">ภาพหน้าจอจริงของแอป</div><div>
+        <h3>ESTIMETR</h3><p>ถอดแบบ ถอดปริมาณ ออก BOQ</p><div class="price">ทดลองฟรี 7 วัน</div></div></div>
+      <div class="item"><div class="ph">ภาพหน้าจอจริงของแอป</div><div>
+        <h3>PRICEMETR</h3><p>ราคาวัสดุและค่าแรงที่อ้างแหล่งได้</p><div class="price">ทดลองฟรี 7 วัน</div></div></div>
+      <div class="item"><div class="ph">ภาพหน้าจอจริงของแอป</div><div>
+        <h3>แอปถัดไป</h3><p>เว้นช่องไว้ ไม่ต้องเติมให้เต็ม</p><div class="price">เร็ว ๆ นี้</div></div></div>
+      <div class="item"><div class="ph">ภาพหน้าจอจริงของแอป</div><div>
+        <h3>Hermes 24/7</h3><p>ผู้ช่วยที่เสนอได้ แต่คนกดรับ</p><div class="price">ส่ง use case</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 3 · แถบสี สลับจังหวะ</span>
+    <div class="band">
+      <div class="rowhead"><h2>เริ่มจากงานที่ทำอยู่ตอนนี้</h2><span class="btn">ดูวิธีทำงาน</span></div>
+      <div class="grid g6">
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>ฐานราก</h3></div></div>
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>เสา</h3></div></div>
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>คาน</h3></div></div>
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>พื้น</h3></div></div>
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>ผนัง</h3></div></div>
+        <div class="item"><div class="ph" style="height:96px">ไอคอน</div><div><h3>ฝ้า พื้นผิว</h3></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 4 · ทำไมต้องเชื่อตัวเลขนี้</span>
+    <div class="trust">
+      <div><i></i>ทุกบรรทัดกางที่มาได้</div>
+      <div><i></i>คนยืนยันสเกลทุกหน้า</div>
+      <div><i></i>AI เสนอ คนกดรับ</div>
+      <div><i></i>พิมพ์ Backup Sheet เป็น A4</div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 5 · ตัวอย่างงานจริง</span>
+    <div class="rowhead"><h2>งานที่ถอดด้วยเครื่องมือนี้</h2><span class="btn">ดูทั้งหมด</span></div>
+    <div class="grid g3">
+      <div class="item"><div class="ph">ภาพงานจริง</div><div><h3>อาคารฟอกไต</h3><p>ถอดแบบสถาปัตย์ 32 หน้า</p></div></div>
+      <div class="item"><div class="ph">ภาพงานจริง</div><div><h3>—</h3><p>ใส่เมื่อมีงานจริงให้อ้าง</p></div></div>
+      <div class="item"><div class="ph">ภาพงานจริง</div><div><h3>—</h3><p>ห้ามแต่งผลงานที่ไม่มีอยู่จริง</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="tag">ตอน 6 · ปิด</span>
+    <div class="band" style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap">
+      <div><h2 style="margin:0 0 6px;font-size:22px">เริ่มวันนี้ ทดลองฟรี 7 วัน</h2>
+        <p style="margin:0;color:#555;font-size:14px">ไม่ต้องใส่บัตร</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span class="btn btn--solid">ทดลองใช้ฟรี</span><span class="btn">ขอใบเสนอราคา</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">ท้ายเว็บของ AppShell — ไม่วาดซ้ำในผืนนี้</div>
+
+  <p class="note">
+    <b>ข้อต่างที่ต้องตัดสิน</b> — แบบนี้ <b>ค้นหาเป็นพระเอก</b> และวางแอปเป็นชั้นวางของ
+    เหมาะถ้าคิดว่าคนมาเว็บนี้เพื่อ "หาแอปที่ตรงงาน" ·
+    ส่วนแบบ ก เล่าเรื่องทีละตอน เหมาะถ้าคิดว่าคนมาเพื่อ "ตัดสินใจว่าจะเชื่อเราไหม" ·
+    เว็บต้นทางมี 65 รูปในหน้าเดียว ถ้าเอาแบบนี้ <b>ต้องมีภาพหน้าจอจริงของแอปจำนวนมาก</b>
+    ซึ่งวันนี้ยังไม่มี · และตอน 5 ห้ามแต่งผลงานที่ไม่มีอยู่จริง
+  </p>
+
+</div>
+</body>
+</html>
