@@ -36,8 +36,13 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  *
  * ระดับ `.btn-secondary` ของผืนออกแบบ **ไม่ยกข้ามมา** เพราะนับแล้วไม่มีใครใช้เลยสักจุด
  * เป็นบทเรียนเดียวกับ `micro-button` ที่เคยติดอยู่ 71 จุดโดยไม่มีกฎ CSS สักบรรทัด
+ *
+ * **`line` เป็นระดับเดียวที่สีไม่ได้มาจากธีมของเรา** เขียวคู่นั้นเป็นสีของเจ้าของช่องทาง
+ * เหมือนน้ำเงินของ Facebook · เจ้าของงานเคาะ 2026-09-06 ให้มันเข้าระบบปุ่มแทนที่จะเป็น
+ * ลิงก์แบรนด์ลอย ๆ เพราะมันทำหน้าที่เป็นปุ่มเต็มตัว คือเป็นทางเดียวที่ลูกค้าเริ่มคุยกับเรา
+ * · ตราวงกลมขาวส่งเข้ามาทาง `icon` ตามปกติ ไม่ต้องมีโครงพิเศษ
  */
-export type Tone = "primary" | "ink" | "quiet" | "plain" | "shop" | "shopNav";
+export type Tone = "primary" | "ink" | "quiet" | "plain" | "shop" | "shopNav" | "line";
 
 const toneClass: Record<Tone, string> = {
   primary: "button button--orange",
@@ -45,7 +50,8 @@ const toneClass: Record<Tone, string> = {
   quiet: "button button--ghost",
   plain: "button button--text",
   shop: "button button--shop",
-  shopNav: "button button--shop-nav"
+  shopNav: "button button--shop-nav",
+  line: "button button--line"
 };
 
 /**
