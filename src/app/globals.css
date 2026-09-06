@@ -3218,9 +3218,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    หมึกเข้มบนเขียวคู่เดิมได้ **8.29:1 ที่ `#5fd36a` และ 5.85:1 ที่ `#3fb350`** ผ่านทั้งไล่เฉด
    โดยไม่ต้องแตะสีแบรนด์แม้แต่ค่าเดียว · เจ้าของงานเคาะทางนี้ 2026-09-06
 
-   ตัวอักษร LINE ในวงกลมขาวเป็นคนละเรื่อง มันคือตราของแบรนด์ ซึ่งเกณฑ์คอนทราสต์
-   ยกเว้นให้อยู่แล้ว · วัดได้ 3.46:1 บนวงขาว ต่ำกว่าเกณฑ์ตัวหนังสือทั่วไป แต่ไม่ใช่ตัวหนังสือ
-   ถ้าไปดันให้เข้ม มันจะไม่ใช่ตรา LINE อีกต่อไป
+   ตัวอักษร LINE ในวงกลมขาวเป็นคนละเรื่อง มันคือตราของแบรนด์ ไม่ใช่ตัวหนังสือที่คนต้องอ่าน
+   **และมันผ่านเกณฑ์อยู่แล้ว** วัดได้ 3.46:1 ซึ่งเกินเกณฑ์ 3:1 ที่ใช้กับกราฟิก
+   ไม่ต้องแก้และไม่ใช่ของค้าง · จดไว้เพราะเลข 3.46 ดูต่ำจนคนที่มาอ่านทีหลังอาจนึกว่า
+   เป็นของที่ลืมแก้ แล้วเสียเวลาไปตามแก้สิ่งที่ถูกอยู่แล้ว
 
    เลขทั้งหมดคำนวณจากค่าสีที่ประกาศในไฟล์นี้ **ยังไม่ได้วัดด้วย `getComputedStyle`
    บนของจริง** เพราะคอมโพเนนต์ยังไม่มี · ต้องวัดซ้ำตอนแถบ Hermes ขึ้นจริง */
@@ -3232,7 +3233,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   border-color: transparent;
   font-weight: 700;
 }
-.button--line:hover { filter: brightness(1.06); transform: translateY(-2px); }
+.button--line:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: 0 12px 26px var(--v3-black-a28); }
 .button--line:active { transform: translateY(0) scale(.98); }
 /* ตรากลมขาว — ตัวอักษร LINE ข้างในเป็นสีเขียวเข้มสุดของชุด ให้อ่านออกบนวงขาว */
 .button--line .button__icon {
@@ -3256,13 +3257,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    วงแหวนโฟกัสไม่ประกาศซ้ำที่นี่ — ของกลางที่ต้นไฟล์คุม a กับ button อยู่แล้ว
    ประกาศทับจะกลายเป็นสองกฎที่ต้องแก้พร้อมกันทุกครั้ง */
 
-.v3-nl { transition: transform .18s var(--ease-out), color .18s var(--ease-out); }
+.v3-nl { display: inline-flex; align-items: center; border-radius: 8px; text-decoration: none; color: inherit; cursor: pointer; transition: transform .18s var(--ease-out), background .18s var(--ease-out), color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
 .v3-nl:hover { transform: translateY(-1px); }
 .v3-nl:active { transform: scale(.95); }
 .v3-nl-item .v3-hd { transition: color .18s var(--ease-out); }
 .v3-nl-item:hover .v3-hd { color: var(--v3-red); }
 .v3-nl-icon { transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out); }
-.v3-nl-icon:hover { transform: translateY(-2px) scale(1.08); box-shadow: 0 6px 14px var(--v3-red-a25); }
+/* เงาใต้ไอคอนโซเชียลเป็น **เงาดำ ไม่ใช่เงาแดง** — วงไอคอนแต่ละวงเป็นสีของเจ้าของช่องทาง
+   น้ำเงิน เขียว แดง เงาแดงจะไปย้อมวงที่ไม่ใช่สีแดงให้เพี้ยน เงาดำจางเป็นกลางกับทุกวง */
+.v3-nl-icon:hover { transform: translateY(-2px) scale(1.08); box-shadow: 0 6px 14px var(--v3-black-a18); }
 .v3-nl-tab { transition: background .18s var(--ease-out), color .18s var(--ease-out); white-space: nowrap; }
 .v3-nl-tab:hover { background: var(--v3-red-100); color: var(--v3-red-dark); }
 
@@ -3277,10 +3280,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    **ห้ามเติมขั้นที่สามกลับมาโดยไม่มีคอลัมน์ใหม่ในทะเบียนที่ตอบได้จริง**
 
    คลาสอยู่ที่นี่ แล้ว TSX เลือกคลาสจากทะเบียน จึงไม่มีตัวเลขอยู่ใน TSX เลย
-   แอปที่ทะเบียนยังไม่ประกาศ ไม่มีแถบเลย ไม่ใช่แถบว่าง                        */
+   แอปที่ทะเบียนยังไม่ประกาศ ไม่มีแถบเลย ไม่ใช่แถบว่าง
 
-.v3-progress--s1 { width: 50%; }
-.v3-progress--s2 { width: 100%; }
+   **ชื่อคลาสเรียกตามสถานะในทะเบียน ไม่ใช่ตามลำดับขั้น** เดิมชื่อ `--s1` กับ `--s2`
+   ซึ่งอ่านเป็นบันไดที่ยังมีขั้นสามรออยู่ ทั้งที่ขั้นสามถูกตัดทิ้งไปแล้วเพราะทะเบียนตอบไม่ได้
+   ชื่อที่บอกลำดับเป็นคำเชิญให้คนเติมขั้นถัดไป ส่วนชื่อที่บอกสถานะบังคับให้คนที่จะเติม
+   ต้องหาสถานะใหม่ในทะเบียนมาก่อน ซึ่งเป็นด่านที่เราต้องการพอดี                */
+
+.v3-progress--announced { width: 50%; }
+.v3-progress--open { width: 100%; }
 
 /* --- การ์ด Hermes ----------------------------------------------------------
    ขีดแดงยืดตอนชี้ และบรรทัดรองที่ซ่อนอยู่โผล่ขึ้นมา เป็นสองอย่างที่บอกว่าการ์ดกดได้
