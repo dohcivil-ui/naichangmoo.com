@@ -3030,3 +3030,190 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ความกว้างไป 396px คิดตามจอจึงพับช้าไปหนึ่งจังหวะเสมอ (`.assistant-dock-push--active`) */
 @container eh (max-width: 1000px) { .eh__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container eh (max-width: 560px) { .eh__steps { grid-template-columns: 1fr; } }
+
+/* ============================================================================
+   หน้าแรกรุ่นสาม — ธีมขาว–แดง
+   ============================================================================
+
+   บล็อกนี้เป็นชั้นของตัวเอง ต่อท้ายไฟล์ ไม่แตะ token หรือคลาสเดิมสักตัว
+   ชื่อทุกตัวขึ้นต้นด้วย `v3-` เพื่อกันชนกับธีมหมึก–เขียว–ส้มที่ใช้อยู่ทั้งเว็บ
+
+   **ทำไมสีทุกค่าต้องอยู่ตรงนี้** ADR 0021 ให้เลขสีจริงประกาศได้ที่ไฟล์นี้ที่เดียว
+   ดีไซน์รุ่นสามเขียนเป็น inline style ที่ฝัง hex กับ rgba ไว้เกือบทุกบรรทัด
+   ถ้ายกไปวางใน TSX ตรง ๆ ด่านตรวจสีจะแดงเป็นร้อยจุด สีทุกค่าจึงมาจบที่นี่
+   แล้ว TSX ถือแค่ชื่อคลาส
+
+   **ค่าโปร่งใสประกาศเป็นช่องสีก่อน แล้วค่อยผสมความจาง** เพราะดีไซน์ใช้แดงตัวเดียวกัน
+   ที่ความจางเก้าระดับ ถ้าเขียนเป็น rgba เต็มตัวเก้าครั้ง วันที่เปลี่ยนเฉดแดงต้องไล่แก้เก้าที่
+   และจะลืมที่หนึ่งเสมอ                                                        */
+
+:root {
+  /* --- เนื้อสีหลัก ------------------------------------------------------- */
+  --v3-red: #d32f2f;
+  --v3-red-dark: #a81f1f;
+  --v3-red-deep: #b91c1c;
+  --v3-red-bright: #ff3d3d;
+  --v3-red-soft: #ff6b6b;
+  --v3-red-100: #fdecec;
+  --v3-pink-100: #ffe3e3;
+  --v3-pink-200: #ffd6d6;
+  --v3-ink: #1f2328;
+  --v3-slate: #374151;
+  --v3-muted: #6b7280;
+  --v3-line: #e5e7eb;
+  --v3-bg2: #f6f7f9;
+  --v3-white: #ffffff;
+  --v3-black: #000000;
+  --v3-night: #0b1b2b;
+  --v3-night-2: #12263a;
+  --v3-banner-bg: #1a1416;
+
+  /* รางของแถบความพร้อม — เทาอมฟ้าสามเฉดที่ดีไซน์ใช้ไล่จากบนลงล่างในราง */
+  --v3-track-top: #eceef2;
+  --v3-track-bottom: #f7f8fa;
+  --v3-track-edge: #e8eaee;
+
+  /* สีประจำช่องทางภายนอก ห้ามเลือกเอง เป็นสีที่เจ้าของช่องกำหนด */
+  --v3-line-brand: #06c755;
+  --v3-line-green: #5fd36a;
+  --v3-line-green-dark: #3fb350;
+  --v3-line-green-deep: #2e9e3e;
+  --v3-facebook: #1877f2;
+  --v3-youtube: #ff0000;
+
+  /* --- ช่องสีสำหรับผสมความจาง -------------------------------------------- */
+  --v3-red-rgb: 211 47 47;
+  --v3-white-rgb: 255 255 255;
+  --v3-ink-rgb: 31 35 40;
+  --v3-banner-rgb: 20 14 16;
+  --v3-black-rgb: 0 0 0;
+
+  /* --- แดงจาง ใช้กับเงา ขอบเรือง และปลายไล่สีที่ต้องจางหายไป -------------- */
+  --v3-red-a0: rgb(var(--v3-red-rgb) / 0);
+  --v3-red-a18: rgb(var(--v3-red-rgb) / .18);
+  --v3-red-a25: rgb(var(--v3-red-rgb) / .25);
+  --v3-red-a35: rgb(var(--v3-red-rgb) / .35);
+  --v3-red-a45: rgb(var(--v3-red-rgb) / .45);
+  --v3-red-a50: rgb(var(--v3-red-rgb) / .5);
+  --v3-red-a55: rgb(var(--v3-red-rgb) / .55);
+  --v3-red-a70: rgb(var(--v3-red-rgb) / .7);
+  --v3-red-a85: rgb(var(--v3-red-rgb) / .85);
+
+  /* --- ขาวจาง ใช้กับตัวหนังสือบนพื้นเข้มและขอบปุ่มรอง --------------------- */
+  --v3-white-a22: rgb(var(--v3-white-rgb) / .22);
+  --v3-white-a45: rgb(var(--v3-white-rgb) / .45);
+  --v3-white-a60: rgb(var(--v3-white-rgb) / .6);
+  --v3-white-a70: rgb(var(--v3-white-rgb) / .7);
+  --v3-white-a75: rgb(var(--v3-white-rgb) / .75);
+  --v3-white-a85: rgb(var(--v3-white-rgb) / .85);
+  --v3-white-a88: rgb(var(--v3-white-rgb) / .88);
+
+  /* --- หมึกจาง เป็นเนื้อของเงาทั้งสามระดับ ------------------------------- */
+  --v3-ink-a06: rgb(var(--v3-ink-rgb) / .06);
+  --v3-ink-a08: rgb(var(--v3-ink-rgb) / .08);
+  --v3-ink-a12: rgb(var(--v3-ink-rgb) / .12);
+  --v3-ink-a16: rgb(var(--v3-ink-rgb) / .16);
+
+  /* --- พื้นแบนเนอร์จาง ใช้ทำม่านทับภาพให้ตัวหนังสือขาวอ่านออก ------------- */
+  --v3-banner-a0: rgb(var(--v3-banner-rgb) / 0);
+  --v3-banner-a20: rgb(var(--v3-banner-rgb) / .2);
+  --v3-banner-a55: rgb(var(--v3-banner-rgb) / .55);
+  --v3-banner-a75: rgb(var(--v3-banner-rgb) / .75);
+  --v3-banner-a85: rgb(var(--v3-banner-rgb) / .85);
+
+  /* --- ดำจาง เงาใต้ภาพและใต้ปุ่มบนพื้นเข้ม ------------------------------- */
+  --v3-black-a18: rgb(var(--v3-black-rgb) / .18);
+  --v3-black-a22: rgb(var(--v3-black-rgb) / .22);
+  --v3-black-a28: rgb(var(--v3-black-rgb) / .28);
+  --v3-black-a30: rgb(var(--v3-black-rgb) / .3);
+
+  /* --- เงาสามระดับ ------------------------------------------------------- */
+  --v3-sh-sm: 0 1px 2px var(--v3-ink-a06);
+  --v3-sh-md: 0 6px 18px var(--v3-ink-a08);
+  --v3-sh-lg: 0 24px 60px var(--v3-ink-a16);
+}
+
+/* --- จังหวะเคลื่อนไหว ------------------------------------------------------
+   คู่ A/B ของ rise กับ fade ไม่ใช่ของซ้ำซ้อน — สไลด์เปลี่ยนภาพโดยไม่เปลี่ยน
+   อิลิเมนต์ เบราว์เซอร์จึงไม่เล่น animation ซ้ำถ้าชื่อเดิม ดีไซน์แก้ด้วยการสลับ
+   ชื่อไปมาทุกครั้งที่เปลี่ยนสไลด์ ชั้นนี้จึงต้องมีสองชื่อที่เนื้อในเหมือนกันเป๊ะ */
+
+@keyframes v3-riseA { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes v3-riseB { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes v3-fadeA { from { opacity: 0; transform: translateX(60px) scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes v3-fadeB { from { opacity: 0; transform: translateX(60px) scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes v3-shimmer { from { transform: translateX(-120%); } to { transform: translateX(320%); } }
+@keyframes v3-glow { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.14); } }
+@keyframes v3-pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: .72; } }
+@keyframes v3-badgePop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes v3-badgeGlow { 0%, 100% { box-shadow: 0 0 0 0 var(--v3-red-a45); } 50% { box-shadow: 0 0 0 6px var(--v3-red-a0); } }
+@keyframes v3-sparkle { 0%, 100% { opacity: 1; transform: scale(1) rotate(0); } 50% { opacity: .55; transform: scale(1.25) rotate(18deg); } }
+@keyframes v3-tick { 0%, 49% { opacity: 1; } 50%, 100% { opacity: .25; } }
+
+/* --- ช่องตัวเลข ------------------------------------------------------------
+   ฟอนต์หลักของเว็บคือ Prompt ซึ่งไม่มี `tnum` และเลข 0-9 กว้างไม่เท่ากันจริง
+   ทุกช่องที่เป็นตัวเลขเรียงให้คนเทียบด้วยตา — นาฬิกา ราคา เบอร์โทร เลขกลุ่มงาน
+   จึงต้องมาจากฟอนต์ตัวเลข ส่วนคำไทยที่นั่งอยู่ในช่องเดียวกัน เช่น "/ เดือน"
+   ต้องดึงกลับเป็นฟอนต์เดิม ไม่งั้นมันจะถูกฟอนต์ตัวเลขลากไปด้วยทั้งที่ไม่มีหลักให้เรียง */
+
+.v3-hd { font-family: var(--font-numeric), sans-serif; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.v3-hd small, .v3-hd em { font-family: var(--font-prompt), sans-serif; font-variant-numeric: normal; }
+
+/* --- การ์ด ---------------------------------------------------------------- */
+
+.v3-card { border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-white); box-shadow: var(--v3-sh-sm); }
+.v3-card-hi { border: 1px solid var(--v3-line); border-radius: 14px; background: var(--v3-white); box-shadow: var(--v3-sh-md); }
+
+.v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+
+/* --- ลิงก์ที่ตอบมือ --------------------------------------------------------
+   เจ้าของงานสั่งว่าทุกปุ่มและทุกไอคอนในแถบบนต้องกดได้จริงและต้องรู้สึกว่ากดได้
+   วงแหวนโฟกัสไม่ประกาศซ้ำที่นี่ — ของกลางที่ต้นไฟล์คุม a กับ button อยู่แล้ว
+   ประกาศทับจะกลายเป็นสองกฎที่ต้องแก้พร้อมกันทุกครั้ง */
+
+.v3-nl { transition: transform .18s var(--ease-out), color .18s var(--ease-out); }
+.v3-nl:hover { transform: translateY(-1px); }
+.v3-nl:active { transform: scale(.95); }
+.v3-nl-item .v3-hd { transition: color .18s var(--ease-out); }
+.v3-nl-item:hover .v3-hd { color: var(--v3-red); }
+.v3-nl-icon { transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+.v3-nl-icon:hover { transform: translateY(-2px) scale(1.08); box-shadow: 0 6px 14px var(--v3-red-a25); }
+.v3-nl-tab { transition: background .18s var(--ease-out), color .18s var(--ease-out); white-space: nowrap; }
+.v3-nl-tab:hover { background: var(--v3-red-100); color: var(--v3-red-dark); }
+
+/* --- แถบความพร้อม ----------------------------------------------------------
+   **สองขั้น ไม่ใช่สาม** เพราะทะเบียนแอปพูดได้แค่สองอย่าง คือประกาศแล้วหรือยัง
+   และเปิดให้ใช้แล้วหรือยัง · ตอนแรกเขียนไว้สามขั้นตามผืนออกแบบ แต่ขั้นกลาง
+   แยกออกจากขั้นแรกไม่ได้ด้วยข้อมูลที่มีจริง เจ้าของงานจึงเคาะ 2026-09-06 ให้เหลือสอง
+
+   ความกว้างเป็นขั้น ไม่ใช่เปอร์เซ็นต์ที่พิมพ์เอง — ADR 0015 ปฏิเสธเลข % ความคืบหน้า
+   ด้วยเหตุผลว่ามันค้างที่ 90% เสมอ และปฏิเสธ "คาดว่าเปิดเมื่อ" ด้วยเหตุผลเดียวกัน
+   เพราะวันที่คาดการณ์คือเปอร์เซ็นต์ความคืบหน้าที่เปลี่ยนหน่วย
+   **ห้ามเติมขั้นที่สามกลับมาโดยไม่มีคอลัมน์ใหม่ในทะเบียนที่ตอบได้จริง**
+
+   คลาสอยู่ที่นี่ แล้ว TSX เลือกคลาสจากทะเบียน จึงไม่มีตัวเลขอยู่ใน TSX เลย
+   แอปที่ทะเบียนยังไม่ประกาศ ไม่มีแถบเลย ไม่ใช่แถบว่าง                        */
+
+.v3-progress--s1 { width: 50%; }
+.v3-progress--s2 { width: 100%; }
+
+/* --- การ์ด Hermes ----------------------------------------------------------
+   ขีดแดงยืดตอนชี้ และบรรทัดรองที่ซ่อนอยู่โผล่ขึ้นมา เป็นสองอย่างที่บอกว่าการ์ดกดได้
+   โปสเตอร์ห้ามมี ken-burns หรือซูม เจ้าของงานสั่งไว้ชัดว่าต้องอ่านตัวอักษรในโปสเตอร์ได้ครบ */
+
+.v3-hline { inline-size: 36px; block-size: 3px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
+.v3-hcard:hover .v3-hline { inline-size: 64px; }
+.v3-htext { transition: transform .3s var(--ease-out); }
+.v3-hcard:hover .v3-htext { transform: translateY(-4px); }
+.v3-hsub { opacity: 0; transform: translateY(8px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
+.v3-hcard:hover .v3-hsub, .v3-hcard:focus-within .v3-hsub { opacity: 1; transform: none; }
+
+/* --- คนที่ตั้งเครื่องให้ลดการเคลื่อนไหว ------------------------------------
+   กฎกลางที่ต้นไฟล์บีบ animation ทั้งเว็บเหลือ .01ms อยู่แล้ว บล็อกนี้เขียนซ้ำ
+   เฉพาะของรุ่นสามที่ "หยุด" กับ "เร็วมาก" ไม่เหมือนกัน — ประกายที่วิ่งเร็วมาก
+   ยังกวนสายตา ต้องสั่งให้ไม่เล่นเลย                                          */
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-hline, .v3-htext, .v3-hsub, .v3-nl, .v3-nl-icon { transition: none; }
+  .v3-hsub { opacity: 1; transform: none; }
+}
