@@ -102,10 +102,6 @@ export function MenuIcon(props: IconProps) {
   return <BaseIcon {...props}><path d="M9 15h30" /><path d="M9 24h30" /><path d="M9 33h30" /></BaseIcon>;
 }
 
-export function SearchIcon(props: IconProps) {
-  return <BaseIcon {...props}><circle cx="21" cy="21" r="12" /><path d="m30 30 9 9" /></BaseIcon>;
-}
-
 export function MailIcon(props: IconProps) {
   return <BaseIcon {...props}><rect x="7" y="11" width="34" height="26" rx="3" /><path d="m8 14 16 12 16-12" /></BaseIcon>;
 }
