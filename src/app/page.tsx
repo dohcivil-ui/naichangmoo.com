@@ -62,6 +62,10 @@ export default async function LandingPage() {
       subtitle: slide.subtitle,
       body: slide.body,
       tagLabel: says.access?.label ?? null,
+      /* ถ้อยคำปุ่มหลักมาจากทะเบียนตัวเดียวกับที่การ์ดแอปทั้งเว็บใช้ ไม่ใช่ `Shop now!`
+         ของผืนออกแบบ ซึ่งเป็นคำอังกฤษที่ `copy-th.md` หมวดสามห้าม และสัญญาว่าซื้อได้ทันที
+         ทั้งที่ปุ่มพาไปหน้ารายละเอียด · ทะเบียนตอบตามสถานะจริงอยู่แล้ว ไม่ต้องคิดคำใหม่ */
+      primaryLabel: says.cta.label,
       detailHref: interaction.detailHref,
       entryHref: interaction.entryHref,
       entryLabel: slide.secondaryCtaLabel
