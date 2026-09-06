@@ -3164,6 +3164,38 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-card { border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-white); box-shadow: var(--v3-sh-sm); }
 .v3-card-hi { border: 1px solid var(--v3-line); border-radius: 14px; background: var(--v3-white); box-shadow: var(--v3-sh-md); }
 
+/* --- ปุ่มบนหน้าร้าน --------------------------------------------------------
+   **ไม่ใช่ปุ่มชนิดใหม่** เป็นสองระดับที่ต่อจาก `.button` ตัวเดิม จึงรับ `min-height: 48px`
+   มาเองโดยไม่ต้องประกาศซ้ำ และเปลี่ยนแค่สีกับทรงมุม
+
+   ดีไซน์รุ่นสามวาดปุ่มไว้สี่ความสูง 36 40 44 56 เจ้าของงานเคาะ 2026-09-06 ให้ยึด 48
+   ทั้งเว็บตามคำสั่งเดิมของเขาเองที่หัวไฟล์ `button.tsx` ว่าไม่มีข้อยกเว้น
+   **ความสูงจึงไม่ประกาศที่นี่เลยแม้แต่ค่าเดียว** ถ้าวันไหนมีคนเติม height ลงมา
+   แปลว่ากำลังจะพาปุ่มทั้งเว็บกลับไปสูงไม่เท่ากันอีกรอบ
+
+   ขอบขาวซ้อนในขอบแดงทำด้วยเงาด้านในสองชั้น ไม่ใช่ border เพราะ border กินพื้นที่จริง
+   ปุ่มจะโตกว่าปุ่มอื่นทั้งที่ `min-height` เท่ากัน                              */
+
+.button--shop, .button--shop-nav { background: var(--v3-red); color: var(--v3-white); border-color: transparent; font-weight: 600; }
+.button--shop:hover, .button--shop-nav:hover { background: var(--v3-red-dark); transform: translateY(-2px); }
+.button--shop:active, .button--shop-nav:active { transform: translateY(0) scale(.98); }
+
+/* ปุ่มลงมือ — เริ่มใช้ สมัคร ซื้อ · ห้าจุดในดีไซน์ ขอบขาวซ้อนเป็นเครื่องหมายของหน้าที่นี้
+
+   **มุม 4px ตรงนี้ห้ามจัดให้เท่าปุ่มอื่น** ขอบขาวที่ซ้อนอยู่ข้างในหนา 3px จะอ่านเป็นกรอบ
+   ได้ก็ต่อเมื่อมุมคม · พอดันมุมขึ้นเป็น 10px เท่าปุ่มทั้งเว็บ เส้นขาวจะโค้งจนกลืนไปกับ
+   พื้นแดงและเอฟเฟกต์หายทั้งอัน · เจ้าของงานเคาะ 2026-09-06 ให้แยกมุมตามหน้าที่ */
+.button--shop { border-radius: 4px; box-shadow: inset 0 0 0 1px var(--v3-red), inset 0 0 0 3px var(--v3-white); }
+.button--shop:hover { box-shadow: inset 0 0 0 1px var(--v3-red-dark), inset 0 0 0 3px var(--v3-white), 0 8px 18px var(--v3-red-a35); }
+.button--shop:active { box-shadow: inset 0 0 0 1px var(--v3-red-dark), inset 0 0 0 3px var(--v3-white); }
+
+/* ปุ่มพาไปหน้าอื่น — ขอใบเสนอราคา ดูทั้งหมด · สี่จุดในดีไซน์ แดงเรียบ ไม่มีขอบซ้อน
+
+   ตัวนี้ทำหน้าที่เดียวกับ `.button--orange` คือพาไปที่อื่น จึงใช้มุม 10px เท่าปุ่มพาไป
+   ทั้งเว็บ ไม่ใช่ 8px ตามผืนออกแบบ · ไม่มีขอบซ้อนให้เสีย จึงไม่มีเหตุผลให้ต่างจากของเดิม */
+.button--shop-nav { border-radius: 10px; }
+.button--shop-nav:hover { box-shadow: 0 8px 18px var(--v3-red-a35); }
+
 .v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
 
 /* --- ลิงก์ที่ตอบมือ --------------------------------------------------------
@@ -3215,5 +3247,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 @media (prefers-reduced-motion: reduce) {
   .v3-hline, .v3-htext, .v3-hsub, .v3-nl, .v3-nl-icon { transition: none; }
+  .button--shop, .button--shop-nav { transition: none; }
+  .button--shop:hover, .button--shop-nav:hover { transform: none; }
   .v3-hsub { opacity: 1; transform: none; }
 }
