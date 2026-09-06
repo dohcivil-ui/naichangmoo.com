@@ -695,3 +695,118 @@ export async function saveViewState(input: {
     return { ok: true, value: undefined };
   });
 }
+
+/** แบบหนึ่งไฟล์ พร้อมสเกลทุกหน้าและรอยวัดทุกหน้าของมัน — วัตถุดิบของหน้าหลักฐานการคำนวณ */
+export type ProjectEvidenceDocument = {
+  documentId: string;
+  /**
+   * ลายนิ้วมือของไฟล์ที่เบราว์เซอร์คิดตอนเปิด · ไม่ใช่ชื่อไฟล์
+   *
+   * เอกสารหลักฐานต้องบอกได้ว่าตัวเลขชุดนี้อ่านมาจากไฟล์ไหน แต่ระบบไม่เก็บชื่อไฟล์เลย
+   * เพราะชื่อไฟล์ของลูกค้าพาข้อมูลส่วนบุคคลมาด้วยได้ (ดูหัวข้อของ `registerDrawingDocument`)
+   * ลายนิ้วมือจึงเป็นสิ่งเดียวที่ใช้อ้างถึงแบบฉบับนั้นได้ และมันตรงกันทุกครั้งที่เปิดไฟล์เดิม
+   */
+  checksum: string;
+  pageCount: number | null;
+  calibrations: PageCalibrationView[];
+  /** รอยที่วาดไว้ แยกตามเลขหน้า — หน้าที่ jsonb อ่านไม่ผ่านเป็น [] ไม่ใช่หายไปจาก key */
+  marks: Record<number, StoredMark[]>;
+};
+
+/**
+ * อ่านทุกอย่างที่หน้าหลักฐานการคำนวณต้องใช้ ของทั้งโครงการในครั้งเดียว (IP-243)
+ *
+ * **ต่างจาก `loadDrawingState` ตรงที่ไม่ต้องรู้ว่าเป็นไฟล์ไหน** ตัวนั้นเริ่มจาก `documentId`
+ * ซึ่งเบราว์เซอร์ได้มาจากการคิดลายนิ้วมือของไฟล์ที่คนเพิ่งเปิด · หน้าหลักฐานเปิดจากที่ไหนก็ได้
+ * โดยไม่ต้องเปิดไฟล์แบบก่อน มันจึงต้องเริ่มจาก `projectId` แล้วไล่ลงไปเอง
+ *
+ * **นับรวมทุกไฟล์แบบในโครงการ** ด้วยเหตุผลเดียวกับ `summarizeDrawingProgress` คือหนึ่งโครงการ
+ * เปิดแบบได้หลายไฟล์ (สถาปัตย์ โครงสร้าง งานระบบ) และหลักฐานของโครงการต้องครบทั้งโครงการ
+ *
+ * **ไม่แตะสถานะมุมมองของผู้ใช้** เพราะมุมมองคือเรื่องของคนที่กำลังทำงาน ไม่ใช่หลักฐาน
+ * เอกสารที่พิมพ์ออกไปต้องเหมือนกันไม่ว่าใครสั่งพิมพ์
+ *
+ * การ join กลับไปที่ `projects` คือรั้วขององค์กร เหมือนที่ `loadDocumentScoped` ทำ —
+ * `drawing_documents` ไม่มีคอลัมน์องค์กรของตัวเอง ข้ามการ join นี้เมื่อไรก็เปิดงานแบบ
+ * ขององค์กรอื่นให้คนที่รู้ id ทันที
+ */
+export async function loadProjectEvidence(
+  organizationId: string,
+  projectId: string
+): Promise<ProjectEvidenceDocument[]> {
+  const db = getDb();
+  const documents = await db
+    .select({
+      id: drawingDocuments.id,
+      checksum: drawingDocuments.checksum,
+      pageCount: drawingDocuments.pageCount,
+      createdAt: drawingDocuments.createdAt
+    })
+    .from(drawingDocuments)
+    .innerJoin(projects, eq(projects.id, drawingDocuments.projectId))
+    .where(and(eq(drawingDocuments.projectId, projectId), eq(projects.organizationId, organizationId)))
+    .orderBy(asc(drawingDocuments.createdAt));
+
+  if (documents.length === 0) return [];
+
+  const documentIds = documents.map((row) => row.id);
+
+  const calibrationRows = await db
+    .select({
+      id: drawingCalibrations.id,
+      documentId: drawingCalibrations.documentId,
+      pageNumber: drawingCalibrations.pageNumber,
+      metresPerPoint: drawingCalibrations.metresPerPoint,
+      method: drawingCalibrations.method,
+      referenceGeometry: drawingCalibrations.referenceGeometry,
+      grid: drawingCalibrations.grid,
+      dimensions: drawingCalibrations.dimensions,
+      confirmedAt: drawingCalibrations.confirmedAt
+    })
+    .from(drawingCalibrations)
+    .where(inArray(drawingCalibrations.documentId, documentIds))
+    .orderBy(asc(drawingCalibrations.pageNumber));
+
+  const markRows = await db
+    .select({
+      documentId: drawingMarks.documentId,
+      pageNumber: drawingMarks.pageNumber,
+      marks: drawingMarks.marks
+    })
+    .from(drawingMarks)
+    .where(inArray(drawingMarks.documentId, documentIds))
+    .orderBy(asc(drawingMarks.pageNumber));
+
+  return documents.map((document) => {
+    const calibrations: PageCalibrationView[] = [];
+    for (const row of calibrationRows) {
+      if (row.documentId !== document.id) continue;
+      // วิธีตั้งสเกลที่อยู่นอกทะเบียนคือแถวที่รุ่นนี้อ่านไม่เข้าใจ · แสดงเหมือนเข้าใจแล้วแย่กว่าไม่แสดง
+      if (!isCalibrationMethod(row.method)) continue;
+      calibrations.push({
+        id: row.id,
+        pageNumber: row.pageNumber,
+        metresPerPoint: Number(row.metresPerPoint),
+        method: row.method,
+        reference: parseCalibrationReference(row.referenceGeometry),
+        grid: parseGridPayload(row.grid)?.lines ?? [],
+        dimensions: parseDimensionsPayload(row.dimensions)?.items ?? [],
+        confirmedAt: row.confirmedAt
+      });
+    }
+
+    const marks: Record<number, StoredMark[]> = {};
+    for (const row of markRows) {
+      if (row.documentId !== document.id) continue;
+      marks[row.pageNumber] = parseMarksPayload(row.marks)?.items ?? [];
+    }
+
+    return {
+      documentId: document.id,
+      checksum: document.checksum,
+      pageCount: document.pageCount,
+      calibrations,
+      marks
+    };
+  });
+}

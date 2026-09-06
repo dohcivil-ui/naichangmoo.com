@@ -277,3 +277,131 @@
     font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums;
   }
 }
+
+/* ============================================================================
+   หน้าหลักฐานการคำนวณของโครงการ (IP-243)
+
+   **ต่างจากเอกสารแนบสัญญาข้างบนตรงที่ไม่ใช้แผ่นกระดาษความสูงคงที่** เอกสารนั้นเป็นแบบฟอร์ม
+   ที่ต้องลงตำแหน่งตรงกับไฟล์ต้นแบบทุกมิลลิเมตร จึงต้องวัดความสูงจริงแล้วให้ `paginate`
+   ตัดสินว่าอะไรอยู่หน้าไหน · ส่วนฉบับนี้เป็นรายงานที่ไหลไปเรื่อย ๆ ยาวเท่าที่งานมี
+   เบราว์เซอร์แบ่งหน้าให้เองได้ถูกต้องกว่า และไม่ต้องมีตัวคำนวณฝั่งเบราว์เซอร์มาคอยวัด
+
+   **ขอบกระดาษใช้ @page แบบตั้งชื่อ** เพราะ `@page` ตัวกลางข้างบนตั้ง margin เป็นศูนย์ไว้
+   เพื่อให้เอกสารแนบสัญญาคุมตำแหน่งด้วย padding ของแผ่นเอง · ถ้าฉบับนี้ยืมค่าศูนย์นั้นมาใช้
+   หน้าที่สองเป็นต้นไปจะเริ่มพิมพ์ชิดขอบกระดาษ เพราะ padding บนของกล่องมีผลแค่ชิ้นแรก
+   ที่แตกออกมา · วัดกับ Edge 152 บนเครื่องนี้แล้วว่าอ่านกฎแบบตั้งชื่อได้จริง
+   (`CSSPageRule.selectorText` คืนชื่อกลับมา และ `getComputedStyle().page` คืนค่าตามที่ตั้ง)
+
+   **ระยะขอบเท่ากับเอกสารแนบสัญญา** บน 15 ขวา 15 ล่าง 15 ซ้าย 25 มม. เพื่อให้กระดาษ
+   สองชนิดของเว็บนี้เข้าแฟ้มเดียวกันแล้วขอบเย็บตรงกัน
+
+   สีดำบนขาวตรง ๆ ไม่ผ่านตัวแปรธีม ด้วยเหตุผลเดียวกับที่ `src/palette-fence.test.ts`
+   ยกเว้นไฟล์นี้ไว้ทั้งไฟล์ — กระดาษที่พิมพ์ออกไปไม่ได้อยู่ในธีมของเว็บ
+   ============================================================================ */
+
+@page evidence-sheet {
+  size: A4 portrait;
+  margin: 15mm 15mm 15mm 25mm;
+}
+
+.evidence-doc {
+  page: evidence-sheet;
+  box-sizing: border-box;
+  max-width: var(--page-w);
+  margin: 0 auto;
+  padding: var(--page-pad-top) var(--page-pad-right) var(--page-pad-bottom) var(--page-pad-left);
+  background: #fff;
+  color: #000;
+  font-family: "TH Sarabun New", serif;
+  font-size: 16pt;
+  line-height: 1.15;
+}
+
+.evidence-doc h2,
+.evidence-doc h3,
+.evidence-doc p,
+.evidence-doc dt,
+.evidence-doc dd,
+.evidence-doc th,
+.evidence-doc td { font-size: 16pt; margin: 0; }
+
+/* หัวเรื่องต้องประกาศสีเองด้วย ไม่ใช่รับมาจาก `.evidence-doc`
+   `globals.css` ตั้ง `h2, h3 { color: var(--ink) }` ไว้ ซึ่งจำเพาะกว่าการรับสีต่อจากกล่องแม่
+   วัดแล้วได้ rgb(7,48,71) บนกระดาษที่ควรเป็นหมึกดำ · หมึกน้ำเงินบนเอกสารที่ถ่ายสำเนาขาวดำ
+   จะจางกว่าตัวอื่นโดยไม่มีใครตั้งใจ */
+.evidence-doc h2, .evidence-doc h3 { font-weight: 700; color: #000; }
+
+/* หัวเอกสาร — ชื่อโครงการอยู่ซ้าย ชื่อเอกสารกับวันที่ออกอยู่ขวา เหมือน .doc-masthead */
+.evidence-doc__masthead {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8mm; align-items: start;
+  padding-bottom: 2mm; border-bottom: 1px solid #000;
+}
+.evidence-doc__masthead h2 { margin-bottom: 1mm; }
+.evidence-doc__masthead div:last-child { text-align: right; }
+
+/* หัวข้อของหน้าแบบหนึ่งหน้า ต้องไม่ค้างท้ายกระดาษโดยเนื้อหาไปอยู่แผ่นถัดไป */
+.evidence-doc__page { margin-top: 6mm; break-inside: auto; }
+.evidence-doc__page > h2 { break-after: avoid; margin-bottom: 1mm; }
+.evidence-doc__scale { margin-bottom: 2mm; }
+
+/* หนึ่งรายการวัด ห้ามตัดกลาง — หลักฐานครึ่งท่อนที่ต้องพลิกหน้าไปอ่านต่อคือหลักฐานที่อ่านยาก */
+.evidence-doc__row {
+  break-inside: avoid;
+  margin-bottom: 3mm; padding: 2mm;
+  border: 1px solid #000;
+}
+.evidence-doc__row > h3 { margin-bottom: 1mm; }
+.evidence-doc__row dl { margin: 0; }
+.evidence-doc__row dt { font-weight: 700; }
+.evidence-doc__row dd { margin: 0 0 1.5mm; padding-left: 4mm; }
+.evidence-doc__row dd:last-child { margin-bottom: 0; }
+/* บรรทัดคูณขึ้นบรรทัดใหม่ของตัวเอง และคงการขึ้นบรรทัดที่ต้นทางเขียนไว้ */
+.evidence-doc__working { display: block; white-space: pre-line; font-variant-numeric: tabular-nums; }
+
+.evidence-doc__totals { width: 100%; border-collapse: collapse; margin-top: 2mm; }
+.evidence-doc__totals th,
+.evidence-doc__totals td { border: 1px solid #000; padding: 1mm 2mm; text-align: left; font-weight: 400; }
+.evidence-doc__totals td { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* สิ่งที่ยังตอบไม่ได้ · กรอบทึบเพราะพื้นสีอ่อนหายไปกับเครื่องพิมพ์ขาวดำ */
+.evidence-doc__open { margin-top: 3mm; padding: 2mm; border: 2px solid #000; break-inside: avoid; }
+.evidence-doc__open ul { margin: 1mm 0 0; padding-left: 6mm; }
+
+.evidence-doc__empty { margin-top: 4mm; }
+
+/* แถบบนจอที่อธิบายว่าเอกสารนี้คืออะไรและปุ่มสั่งพิมพ์ · ไม่ติดไปกับกระดาษ
+   ใช้ตัวแปรธีมเพราะส่วนนี้อยู่บนเว็บ ไม่ได้อยู่บนกระดาษ */
+@media screen {
+  .evidence-screen { max-width: 210mm; margin: 24px auto 16px; color: var(--ink); }
+  .evidence-screen h2 { margin: 0 0 6px; }
+  .evidence-screen p { margin: 0 0 12px; color: var(--ink-body); }
+  .evidence-screen__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .evidence-doc { box-shadow: 0 18px 44px rgba(5, 31, 47, .45); margin-bottom: 32px; }
+}
+
+/* จอที่แคบกว่ากระดาษ A4 — ตัวอย่างบนจอต้องอ่านออก ส่วนกระดาษจริงยังเป็น A4 เหมือนเดิม
+   ที่ 390 px ระยะขอบของกระดาษกิน 151 px จาก 362 px ที่มี เหลือเนื้อที่ 211 px
+   ซึ่งไม่พอให้หัวเอกสารสองคอลัมน์ · วัดแล้วคอลัมน์ชื่อโครงการยุบเหลือกว้างศูนย์
+   ทั้งคอลัมน์ ชื่อโครงการจึงหายไปจากจอทั้งที่อยู่ใน DOM */
+@media screen and (max-width: 230mm) {
+  .evidence-doc { padding: 16px 18px; }
+  .evidence-doc__masthead { grid-template-columns: minmax(0, 1fr); gap: 2mm 0; }
+  .evidence-doc__masthead div:last-child { text-align: left; }
+}
+
+@media print {
+  /* กระดาษของฉบับนี้คือของเดียวที่ต้องติดเครื่องพิมพ์ไป
+     กฎ `body * { visibility: hidden }` ข้างบนซ่อนทั้งหน้าไว้แล้ว ตรงนี้จึงเปิดเฉพาะเอกสาร
+     ส่วนเปลือกของเว็บต้อง display: none ไม่ใช่แค่ซ่อน เพราะของที่ซ่อนแต่ยังกินที่
+     จะดันเอกสารลงไปและแถมกระดาษเปล่ามาให้ · จำกัดขอบเขตด้วย :has() เพื่อไม่ให้ไปแตะ
+     การพิมพ์ของหน้าอื่นที่ยังไม่มีใครออกแบบว่าจะพิมพ์อย่างไร */
+  body:has(.evidence-doc) .site-nav,
+  body:has(.evidence-doc) .app-shell__context,
+  body:has(.evidence-doc) .app-identity,
+  body:has(.evidence-doc) .assistant-dock,
+  body:has(.evidence-doc) .footer,
+  .evidence-screen { display: none !important; }
+
+  .evidence-doc, .evidence-doc * { visibility: visible; }
+  .evidence-doc { max-width: none; margin: 0; padding: 0; box-shadow: none; }
+}
