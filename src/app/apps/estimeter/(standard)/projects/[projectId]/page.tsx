@@ -323,11 +323,11 @@ export default async function EstimeterProjectPage({ params }: { params: Promise
 
         {/* เคยห่อด้วย `hero__actions` ซึ่งเป็นคลาสของแถบปุ่มบนหน้าขาย ไม่ใช่หน้าทำงาน
             คลาสที่ยืมมาจากหน้าคนละชนิด คือทางที่หน้าสองหน้าเริ่มขยับตามกันโดยไม่มีใครตั้งใจ */}
-        {/* ทางเข้าหน้าหลักฐานการคำนวณ (IP-243) · อยู่ตรงนี้เพราะมันคือของที่หยิบไปใช้
+        {/* ทางเข้า backup sheet (IP-243) · อยู่ตรงนี้เพราะมันคือของที่หยิบไปใช้
             หลังทำงานเสร็จ ไม่ใช่ขั้นตอนหนึ่งของงาน จึงไม่ควรไปแทรกในบันไดสี่ขั้นข้างบน */}
         <div className="workspace-foot">
-          <Button tone="quiet" href={`/apps/estimeter/projects/${project.id}/evidence`} arrow>
-            หลักฐานการคำนวณ พิมพ์ออกได้
+          <Button tone="quiet" href={`/apps/estimeter/projects/${project.id}/backup-sheet`} arrow>
+            Backup Sheet
           </Button>
           <Button tone="quiet" href="/apps/estimeter">กลับหน้าโครงการทั้งหมด</Button>
         </div>

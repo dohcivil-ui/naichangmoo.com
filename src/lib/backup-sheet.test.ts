@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
-  buildProjectEvidence,
+  buildBackupSheet,
   pagesAwaitingScale,
-  type EvidenceSourceDocument
-} from "@/lib/project-evidence";
+  type BackupSheetSourceDocument
+} from "@/lib/backup-sheet";
 import { measure, type Measurement } from "@/lib/drawing-measurement";
 import type { PageScale } from "@/lib/drawing-scale";
 
@@ -28,7 +28,7 @@ function room(id: string, name: string): Measurement {
   };
 }
 
-function page(overrides: Partial<EvidenceSourceDocument["pages"][number]> = {}) {
+function page(overrides: Partial<BackupSheetSourceDocument["pages"][number]> = {}) {
   return {
     pageNumber: 7,
     scale,
@@ -40,26 +40,26 @@ function page(overrides: Partial<EvidenceSourceDocument["pages"][number]> = {}) 
   };
 }
 
-const document = (pages: EvidenceSourceDocument["pages"]): EvidenceSourceDocument => ({
+const document = (pages: BackupSheetSourceDocument["pages"]): BackupSheetSourceDocument => ({
   documentId: "doc1",
   checksum: "a1b2c3",
   pages
 });
 
-describe("การรวมหลักฐานการคำนวณของทั้งโครงการ", () => {
+describe("การรวม backup sheet ของทั้งโครงการ", () => {
   it("ตัวเลขในเอกสารต้องเป็นตัวเดียวกับที่หน้าแบบคำนวณ ไม่ใช่เลขชุดที่สอง", () => {
     const mark = room("m1", "ห้องน้ำผู้ป่วยชาย");
-    const evidence = buildProjectEvidence([document([page({ marks: [mark] })])]);
-    const row = evidence.documents[0].pages[0].rows[0];
+    const sheet = buildBackupSheet([document([page({ marks: [mark] })])]);
+    const row = sheet.drawings[0].pages[0].rows[0];
     expect(row.value).toEqual(measure(mark, scale));
-    expect(evidence.totalAreaSquareMetres).toBe(measure(mark, scale).areaSquareMetres);
+    expect(sheet.totalAreaSquareMetres).toBe(measure(mark, scale).areaSquareMetres);
   });
 
   it("กางวิธีคิดให้ทุกแถว ไม่ใช่เฉพาะแถวแรก", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page({ marks: [room("m1", "ห้องหนึ่ง"), room("m2", "ห้องสอง")] })])
     ]);
-    const rows = evidence.documents[0].pages[0].rows;
+    const rows = sheet.drawings[0].pages[0].rows;
     expect(rows).toHaveLength(2);
     for (const row of rows) {
       expect(row.evidence?.steps.map((step) => step.question)).toContain("เลขที่รายงานคิดออกมาได้ยังไง");
@@ -72,11 +72,11 @@ describe("การรวมหลักฐานการคำนวณขอ�
    */
   it("ไม่นับรอยที่ยังวาดไม่ครบเข้ายอดรวม", () => {
     const halfDrawn: Measurement = { ...room("m2", "ยังวาดไม่เสร็จ"), points: [{ x: 0, y: 0 }] };
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page({ marks: [room("m1", "ห้องน้ำผู้ป่วยชาย"), halfDrawn] })])
     ]);
-    expect(evidence.rowCount).toBe(1);
-    expect(evidence.documents[0].pages[0].rows.map((row) => row.id)).toEqual(["m1"]);
+    expect(sheet.rowCount).toBe(1);
+    expect(sheet.drawings[0].pages[0].rows.map((row) => row.id)).toEqual(["m1"]);
   });
 
   /**
@@ -84,40 +84,40 @@ describe("การรวมหลักฐานการคำนวณขอ�
    * จะอ่านเหมือนงานเสร็จครบแล้ว ซึ่งเป็นการโกหกด้วยการละเว้น
    */
   it("หน้าที่มีรอยวัดแต่ยังไม่มีสเกล ยังต้องอยู่ในเอกสารและถูกชี้ว่าค้าง", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page({ pageNumber: 9, scale: null, method: null, confirmedAt: null })])
     ]);
-    expect(evidence.documents[0].pages.map((p) => p.pageNumber)).toEqual([9]);
-    expect(pagesAwaitingScale(evidence)).toEqual([9]);
-    expect(evidence.openQuestions.join(" ")).toContain("ยังไม่ได้ตั้งสเกล");
+    expect(sheet.drawings[0].pages.map((p) => p.pageNumber)).toEqual([9]);
+    expect(pagesAwaitingScale(sheet)).toEqual([9]);
+    expect(sheet.openQuestions.join(" ")).toContain("ยังไม่ได้ตั้งสเกล");
     // และยอดของหน้านั้นยังเป็นศูนย์ เพราะยังคูณเป็นเมตรไม่ได้
-    expect(evidence.totalAreaSquareMetres).toBe(0);
+    expect(sheet.totalAreaSquareMetres).toBe(0);
   });
 
   it("หน้าที่ไม่มีทั้งรอยวัดและสเกล ไม่ต้องกินที่ในเอกสาร", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page(), page({ pageNumber: 8, scale: null, method: null, confirmedAt: null, marks: [] })])
     ]);
-    expect(evidence.documents[0].pages.map((p) => p.pageNumber)).toEqual([7]);
+    expect(sheet.drawings[0].pages.map((p) => p.pageNumber)).toEqual([7]);
   });
 
   it("ไฟล์แบบที่ยังไม่มีใครแตะเลย ไม่ขึ้นเป็นหัวข้อว่าง", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page()]),
       { documentId: "doc2", checksum: "ffff", pages: [] }
     ]);
-    expect(evidence.documents.map((d) => d.documentId)).toEqual(["doc1"]);
+    expect(sheet.drawings.map((d) => d.documentId)).toEqual(["doc1"]);
   });
 
   it("เรียงหน้าตามเลขหน้าเสมอ ไม่ใช่ตามลำดับที่ฐานส่งมา", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([
         page({ pageNumber: 12 }),
         page({ pageNumber: 3 }),
         page({ pageNumber: 7 })
       ])
     ]);
-    expect(evidence.documents[0].pages.map((p) => p.pageNumber)).toEqual([3, 7, 12]);
+    expect(sheet.drawings[0].pages.map((p) => p.pageNumber)).toEqual([3, 7, 12]);
   });
 
   /**
@@ -125,7 +125,7 @@ describe("การรวมหลักฐานการคำนวณขอ�
    * · และข้อเดียวกันที่ค้างอยู่สิบแถวต้องขึ้นครั้งเดียว ไม่ใช่สิบครั้ง
    */
   it("รวมสิ่งที่ยังตอบไม่ได้ไว้ที่เดียว แล้วตัดตัวซ้ำออก", () => {
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([
         page({
           pageNumber: 9,
@@ -136,24 +136,24 @@ describe("การรวมหลักฐานการคำนวณขอ�
         })
       ])
     ]);
-    const awaiting = evidence.openQuestions.filter((q) => q.includes("ยังไม่ได้ตั้งสเกล"));
+    const awaiting = sheet.openQuestions.filter((q) => q.includes("ยังไม่ได้ตั้งสเกล"));
     expect(awaiting).toHaveLength(1);
   });
 
   it("รวมยอดข้ามหน้าและข้ามไฟล์แบบ", () => {
     const one = measure(room("m1", "ห้อง"), scale).areaSquareMetres ?? 0;
-    const evidence = buildProjectEvidence([
+    const sheet = buildBackupSheet([
       document([page(), page({ pageNumber: 8 })]),
       { documentId: "doc2", checksum: "ffff", pages: [page({ pageNumber: 2 })] }
     ]);
-    expect(evidence.rowCount).toBe(3);
-    expect(evidence.totalAreaSquareMetres).toBeCloseTo(one * 3, 6);
+    expect(sheet.rowCount).toBe(3);
+    expect(sheet.totalAreaSquareMetres).toBeCloseTo(one * 3, 6);
   });
 
   it("โครงการที่ยังไม่เคยเปิดแบบ ได้เอกสารเปล่าที่ไม่พัง", () => {
-    const evidence = buildProjectEvidence([]);
-    expect(evidence.documents).toEqual([]);
-    expect(evidence.rowCount).toBe(0);
-    expect(pagesAwaitingScale(evidence)).toEqual([]);
+    const sheet = buildBackupSheet([]);
+    expect(sheet.drawings).toEqual([]);
+    expect(sheet.rowCount).toBe(0);
+    expect(pagesAwaitingScale(sheet)).toEqual([]);
   });
 });
