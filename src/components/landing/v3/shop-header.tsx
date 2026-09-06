@@ -65,13 +65,13 @@ export async function ShopHeader() {
         ) : (
           <>
             <HeaderSlot icon={<DoorEnterIcon />} caption="เข้าสู่ระบบ">
-              <SignInButton tone="plain" label="Login" />
+              <SignInButton tone="plain" size="fit" label="Login" />
             </HeaderSlot>
             <HeaderSlot icon={<PersonIcon />} caption="สมัครสมาชิก">
               {/* เว็บนี้เข้าระบบด้วย Google อย่างเดียว การสมัครกับการเข้าสู่ระบบจึงเป็นปุ่มเดียวกัน
                   ผืนออกแบบสั่งให้มีสองช่อง และเอกสารสั่งไว้ว่าถ้าไม่มีเส้นทางสมัครแยก
                   ให้ชี้ที่เดียวกับเข้าสู่ระบบ ซึ่ง grep แล้วว่าไม่มีจริง */}
-              <SignInButton tone="plain" label="Register" />
+              <SignInButton tone="plain" size="fit" label="Register" />
             </HeaderSlot>
           </>
         )}
@@ -105,7 +105,7 @@ export async function ShopHeader() {
           </div>
         ) : null}
 
-        <Button tone="shopNav" href={quoteHref}>ขอใบเสนอราคา</Button>
+        <Button tone="shopNav" size={40} href={quoteHref}>ขอใบเสนอราคา</Button>
       </div>
     </header>
   );

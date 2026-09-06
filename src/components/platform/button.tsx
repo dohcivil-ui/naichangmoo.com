@@ -14,8 +14,24 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  * design เหมือนกัน" · คำตอบคือปุ่มต้องเป็น component สตริงที่พิมพ์มือจะเพี้ยนวันหนึ่งแน่นอน
  * ส่วน component ตัวเดียวเพี้ยนไม่ได้ · `src/button-fence.test.ts` เฝ้าไม่ให้ใครพิมพ์มืออีก
  *
- * **ขนาดเดียว สูง 48px ไม่มีข้อยกเว้น** เขาสั่งเอง · ความสูงกับทรงอยู่ใน `globals.css`
- * กฎ `.button` ที่เดียว ไฟล์นี้ตัดสินแค่ว่าปุ่มหนึ่งตัวเป็นระดับไหนและเป็น element อะไร
+ * **เรื่องความสูง — คำสั่งเปลี่ยนแล้ว 2026-09-07 อ่านให้จบก่อนไปดัน 48 กลับมา**
+ *
+ * คำสั่งเดิมคือ "สูง 48px ทั้งเว็บ ไม่มีข้อยกเว้น" · เจ้าของงานเคาะใหม่เมื่อ 2026-09-07 ว่า
+ * **ขนาดและทรงทุกค่ายึดผืนออกแบบรุ่นสาม กฎ 48 ไม่ชนะผืนอีกต่อไป** คำสั่งใหม่ทับคำสั่งเดิม
+ * ถ้าไฟล์นี้ยังเขียนว่า 48 ไม่มีข้อยกเว้น คนถัดไปจะอ่านแล้วไปดัน 48 กลับมาอีกรอบ
+ *
+ * ที่ยังไม่เปลี่ยนคือ **ที่อยู่ของเลข** ความสูงยังต้องมาจากครัวกลาง ไม่ใช่จากหน้าที่เอื้อมมือ
+ * มาเขียนทับด้วย selector ลูกหลาน — วิธีนั้น `button-fence` มองไม่เห็น และเป็นทางที่ปุ่ม
+ * ทั้งเว็บเคยเพี้ยนมาแล้ว · เลขมาจากผืน ที่อยู่ของเลขยังเป็นระบบปุ่ม
+ *
+ * **ผืนไม่ผูกความสูงกับระดับปุ่ม** นับในผืนแล้ว `.btn` ไม่ประกาศ `height` เลยสักบรรทัด
+ * ความสูงเป็น inline style ต่อจุด และมีห้าค่า 32 36 40 44 กับ 44 แบบเต็มกว้าง ·
+ * ระดับเดียวกันสูงไม่เท่ากันตามที่มันนั่งอยู่ — `btn-primary` เป็นทั้ง 40 และ 44
+ * ส่วน `btn-shop` เป็น 44 40 36 และ 32 · ความสูงจึงผูกกับ tone ไม่ได้ ต้องเป็นมิติที่สอง
+ *
+ * `size` คือมิติที่สองนั้น **tone บอกหน้าที่ size บอกขนาด** ทั้งคู่แปลงเป็นคลาสที่ครัวกลาง
+ * **ไม่ส่ง `size` = 48 เหมือนเดิม** ทั้งเว็บนอกหน้าร้านจึงไม่ขยับแม้แต่ปุ่มเดียว
+ * คำตัดสิน 2026-09-07 เป็นเรื่องของผืนรุ่นสาม ไม่ใช่การยกเลิกความสูงมาตรฐานของแพลตฟอร์ม
  */
 
 /**
@@ -25,10 +41,9 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  * `button--primary` เป็นสีหมึก ส่วนปุ่มหลักจริง ๆ คือ `button--orange` · ไม่เปลี่ยนชื่อคลาส
  * เพราะมันแตะทุกที่ที่เขียนสไตล์ทับไว้ **ที่นี่คือที่เดียวที่ต้องรู้เรื่องนี้** ข้างนอกเห็นแค่หน้าที่
  *
- * **สองระดับล่างเป็นของหน้าร้าน ธีมขาว–แดง** เจ้าของงานเคาะ 2026-09-06 ว่าให้ขยายปุ่มตัวนี้
- * รับทรงใหม่ แทนการสร้างปุ่มอีกชุดของหน้าแรก · ผืนออกแบบวาดปุ่มไว้สี่ความสูง 36 40 44 56
- * แต่คำสั่งของเขาที่หัวไฟล์นี้ว่า **48px ไม่มีข้อยกเว้น** ใหม่กว่าและชนะ ทั้งสองระดับจึงรับ
- * ความสูงจาก `.button` เหมือนอีกสี่ระดับ และเปลี่ยนแค่สีกับทรงมุม
+ * **สามระดับล่างเป็นของหน้าร้าน ธีมขาว–แดง** เจ้าของงานเคาะ 2026-09-06 ว่าให้ขยายปุ่มตัวนี้
+ * รับทรงใหม่ แทนการสร้างปุ่มอีกชุดของหน้าแรก · ความสูงของแต่ละจุดมาจากผืนผ่าน `size`
+ * ตามคำตัดสิน 2026-09-07 ที่หัวไฟล์ ไม่ได้รับความสูงเดียวจาก `.button` เหมือนสี่ระดับบน
  *
  * ที่แยกเป็นสองระดับไม่ใช่เพราะสวยคนละแบบ แต่เพราะ**หน้าที่ต่างกัน** — นับในผืนออกแบบแล้ว
  * ขอบขาวซ้อนขึ้นเฉพาะปุ่มลงมือห้าจุด (เริ่มใช้ สมัคร ซื้อ) ส่วนปุ่มพาไปหน้าอื่นสี่จุดเป็นแดงเรียบ
@@ -46,13 +61,41 @@ import type { AnchorHTMLAttributes, ButtonHTMLAttributes, LabelHTMLAttributes, R
  * และแคปซูลแดงในการ์ด Hermes บนพื้นน้ำเงินเข้ม · เจ้าของงานเคาะให้ใช้เขียวตัวเดียวทั้งคู่
  * ปุ่มที่พาไปที่เดียวกันไม่ควรมีสองสีให้คนต้องเรียนรู้สองรอบ และสีเขียวคือสิ่งที่คนจำได้ว่าคือ LINE
  * ส่วนแดงเป็นสีของเราเอง ซึ่งบนปุ่มนี้ไม่ได้บอกอะไรเพิ่ม
- * **`slideNav` เป็นระดับที่แปด สำหรับปุ่มเลื่อนสไลด์บนแบนเนอร์** ผืนออกแบบวาดไว้ 36×36
- * แต่กฎ 48 ชนะเหมือนทุกระดับ ตัวมันจึงเป็นวงกลม **48×48** ไม่ใช่ 36 · ที่ต้องเป็นระดับใหม่
- * แทนการเขียน `className` ทับ เพราะปุ่มปกติได้ `padding: 0 22px` กับ `border-radius: 10px`
- * ติดมาด้วย ซึ่งทำให้ปุ่มที่มีแค่ไอคอนตัวเดียวยืดเป็นแคปซูลกว้างราว 61px ไม่ใช่วงกลม ·
- * การเขียนทับด้วยคลาสข้างนอกจะกลายเป็นปุ่มชุดที่สองที่ `button-fence` มองไม่เห็น
+ *
+ * **`slideNav` เป็นระดับที่แปด สำหรับปุ่มเลื่อนสไลด์บนแบนเนอร์** เป็นวงกลม ขนาดมาจาก
+ * `size` เหมือนระดับอื่น · ที่ต้องเป็นระดับใหม่แทนการเขียน `className` ทับ เพราะปุ่มปกติได้
+ * `padding: 0 22px` กับ `border-radius: 10px` ติดมาด้วย ซึ่งทำให้ปุ่มที่มีแค่ไอคอนตัวเดียว
+ * ยืดเป็นแคปซูลแทนที่จะเป็นวงกลม · การเขียนทับด้วยคลาสข้างนอกจะกลายเป็นปุ่มชุดที่สอง
+ * ที่ `button-fence` มองไม่เห็น
+ *
+ * **`slideDot` เป็นระดับที่เก้า สำหรับขีดบอกตำแหน่งสไลด์** ผืนวาดไว้ 22×3 ซึ่งเป็นทรง
+ * ไม่ใช่แค่ความสูง จึงต้องเป็นระดับของตัวเอง ไม่ใช่ `plain` ที่หน้าเอื้อมมือมาบีบให้เล็ก ·
+ * เขตกดของมันขยายเกินขีดที่ตาเห็นด้วย `::after` ที่ไม่กินพื้นที่ layout — ภาพเหมือนผืน
+ * ทุกพิกเซล แต่ขนาดเป้ากดผ่านเกณฑ์ ซึ่งเป็นคนละเรื่องกับขนาดที่มองเห็น
  */
-export type Tone = "primary" | "ink" | "quiet" | "plain" | "shop" | "shopNav" | "line" | "slideNav";
+export type Tone =
+  | "primary" | "ink" | "quiet" | "plain"
+  | "shop" | "shopNav" | "line" | "slideNav" | "slideDot";
+
+/**
+ * ความสูงของปุ่มหนึ่งตัว — **ชุดปิด ไม่ใช่ตัวเลขอิสระ**
+ *
+ * ค่าทั้งสามมาจากผืนออกแบบรุ่นสาม ไม่ได้เลือกเอง · 32 ที่ผืนใช้ในการ์ดโปรโมชั่นยังไม่มีในชุดนี้
+ * เพราะบล็อกนั้นเป็นงานขั้นที่ 3 ที่ยังไม่ลง ให้เติมตอนที่มีคนเรียกมันจริง ไม่ใช่เติมดักไว้
+ *
+ * `"fit"` ไม่ใช่ความสูง แต่คือ **ไม่มีความสูงบังคับ** สำหรับปุ่มที่เป็นบรรทัดข้อความในช่อง
+ * หรือเป็นขีดบอกตำแหน่ง ซึ่งผืนไม่ได้ให้ความสูงมาเพราะมันไม่ใช่กล่องที่คนเล็ง
+ *
+ * **ไม่ส่งเลย = 48px** ความสูงมาตรฐานของแพลตฟอร์ม ซึ่งปุ่มทุกตัวนอกหน้าร้านยังใช้อยู่
+ */
+export type Size = 36 | 40 | 44 | "fit";
+
+const sizeClass: Record<Size, string> = {
+  36: "button--h36",
+  40: "button--h40",
+  44: "button--h44",
+  fit: "button--hfit"
+};
 
 const toneClass: Record<Tone, string> = {
   primary: "button button--orange",
@@ -62,7 +105,8 @@ const toneClass: Record<Tone, string> = {
   shop: "button button--shop",
   shopNav: "button button--shop-nav",
   line: "button button--line",
-  slideNav: "button button--slide-nav"
+  slideNav: "button button--slide-nav",
+  slideDot: "button button--slide-dot"
 };
 
 /**
@@ -99,6 +143,8 @@ function Spinner() {
 
 type Shared = {
   tone?: Tone;
+  /** ความสูงตามผืนออกแบบ — ไม่ส่ง = 48px ความสูงมาตรฐานของแพลตฟอร์ม */
+  size?: Size;
   /**
    * ไอคอนหน้าคำ ที่สื่อความเดียวกับคำบนปุ่ม
    *
@@ -144,8 +190,10 @@ type AsLabel = Shared & {
   pending?: never;
 } & Omit<LabelHTMLAttributes<HTMLLabelElement>, "className" | "children">;
 
-function classesFor(tone: Tone, block: boolean, extra?: string): string {
-  return [toneClass[tone], block ? "button--block" : "", extra ?? ""].filter(Boolean).join(" ");
+function classesFor(tone: Tone, size: Size | undefined, block: boolean, extra?: string): string {
+  return [toneClass[tone], size === undefined ? "" : sizeClass[size], block ? "button--block" : "", extra ?? ""]
+    .filter(Boolean)
+    .join(" ");
 }
 
 /**
@@ -175,9 +223,10 @@ type Internal = Shared & {
 };
 
 function split(props: Internal) {
-  const { tone, icon, arrow, block, className, children, pending, pendingLabel, ...rest } = props;
+  const { tone, size, icon, arrow, block, className, children, pending, pendingLabel, ...rest } = props;
   return {
     tone: tone ?? "primary",
+    size,
     icon,
     arrow: arrow ?? false,
     block: block ?? false,
@@ -190,10 +239,10 @@ function split(props: Internal) {
 }
 
 export function Button(props: AsLink | AsButton | AsLabel) {
-  const { tone, icon, arrow, block, className: extra, children, pending, pendingLabel, rest } = split(
+  const { tone, size, icon, arrow, block, className: extra, children, pending, pendingLabel, rest } = split(
     props as Internal
   );
-  const className = classesFor(tone, block, extra);
+  const className = classesFor(tone, size, block, extra);
   const body = (
     <>
       {icon ? <span className="button__icon">{icon}</span> : null}

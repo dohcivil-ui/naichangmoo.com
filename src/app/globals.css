@@ -282,6 +282,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ระดับที่สาม — ปุ่มตัวหนังสือ สำหรับ action ที่ไม่ใช่ทั้งหลักและรอง เช่นยกเลิกหรือเปิดเมนู
    (เกณฑ์ข้อสามของเจ้าของงาน 2026-09-05 ที่ระบบเรายังขาดไป) · สูง 48px เท่ากันตามกฎเดิม */
+/* ความสูงของปุ่ม — **มิติที่สองต่อจากระดับ** เลขมาจากผืนออกแบบรุ่นสาม
+
+   เจ้าของงานเคาะ 2026-09-07 ว่าขนาดและทรงยึดผืน กฎ 48 ไม่ชนะผืนอีกต่อไป · แต่ที่อยู่
+   ของเลขยังเป็นที่นี่ ไม่ใช่ให้แต่ละหน้าเอื้อมมือมาเขียนทับด้วย selector ลูกหลาน
+   ซึ่ง `button-fence` มองไม่เห็นและเป็นทางที่ปุ่มทั้งเว็บเคยเพี้ยนมาแล้ว
+
+   **ปุ่มที่ไม่ได้สั่งขนาดยังสูง 48 เท่าเดิม** ทั้งเว็บนอกหน้าร้านจึงไม่ขยับสักปุ่ม
+
+   `hfit` ไม่ใช่ความสูง แต่คือไม่มีความสูงบังคับ สำหรับปุ่มที่เป็นบรรทัดข้อความในช่อง
+   หรือเป็นขีดบอกตำแหน่ง ซึ่งเขตกดของมันคือตัวหนังสือ ไม่ใช่กล่องที่คนเล็ง */
+.button--h36 { min-height: 36px; }
+.button--h40 { min-height: 40px; }
+.button--h44 { min-height: 44px; }
+.button--hfit { min-height: 0; padding: 0; }
+
 .button--text { background: transparent; border-color: transparent; color: var(--teal-deep); box-shadow: none; padding: 0 12px; }
 .button--text:hover { background: var(--teal-wash); color: var(--teal-deep); }
 .button--text:active { background: var(--teal-wash); }
@@ -3262,7 +3277,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    วันที่มีคนเปลี่ยนภาพสไลด์ */
 
 .button--slide-nav {
-  inline-size: 48px;
+  inline-size: 36px;
+  min-block-size: 36px;
   padding: 0;
   border-radius: 50%;
   background: var(--v3-banner-a55);
@@ -3274,6 +3290,29 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button--slide-nav:hover { background: var(--v3-banner-a85); transform: scale(1.08); }
 .button--slide-nav:active { transform: scale(.94); }
 .button--slide-nav svg { inline-size: 26px; block-size: 26px; }
+
+/* ขีดบอกตำแหน่งสไลด์ — 22×3 ตามผืน (`PROMPT:259`) ซึ่งเป็นทรง ไม่ใช่แค่ความสูง
+
+   **ขนาดที่ตาเห็นกับขนาดเป้ากดเป็นคนละเรื่อง** ขีดกว้าง 22 สูง 3 ตรงผืนทุกพิกเซล
+   และไม่กินพื้นที่มากกว่านั้นใน layout · ส่วนเขตกดขยายออกไปรอบตัวด้วย `::after`
+   ที่วางแบบ absolute จึงไม่ดันของข้าง ๆ ให้ขยับเลยสักพิกเซล
+   ถ้าปล่อยให้เป้ากดเท่าขีดจริง มันจะกดไม่ติดบนมือถือและกดยากบนเมาส์ */
+.button--slide-dot {
+  position: relative;
+  inline-size: 22px;
+  min-block-size: 3px;
+  block-size: 3px;
+  padding: 0;
+  border-radius: 2px;
+  border-color: transparent;
+  background: var(--v3-white-a45);
+}
+/* `-13px` ไม่ใช่เลขสุ่ม — วัดแล้วเขตกดต้องได้อย่างน้อย 24x24 ตามเกณฑ์ขนาดเป้ากด
+   ขีดสูง 3 บวกส่วนที่แผ่ออกบนล่างข้างละ 13 แล้วหักขอบปุ่มที่กินไป 2 เหลือ 27
+   ส่วนแนวนอน 22 บวกข้างละ 3 หักขอบ 2 เหลือ 26 · เคยตั้งไว้ 11 แล้ววัดได้ 23 ซึ่งขาดไปหนึ่ง */
+.button--slide-dot::after { content: ""; position: absolute; inset: -13px -3px; }
+.button--slide-dot:hover { background: var(--v3-white); }
+.button--slide-dot[aria-current="true"] { background: var(--v3-red); }
 
 .v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
 
@@ -3368,14 +3407,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    เป็น `<button>` จริงทุกขีด ไม่ใช่ `<span>` ที่ผูก onClick เพราะมันเปลี่ยนสิ่งที่คนเห็น
    คนที่ใช้คีย์บอร์ดต้องแท็บถึงได้ · `button-fence` บังคับให้ปุ่มมาจาก `<Button>` อยู่แล้ว
    ตรงนี้จึงใช้ระดับ `plain` แล้วล้างระยะในทิ้ง */
-.v3-banner__dots { position: absolute; inset-block-end: 18px; inset-inline-start: 96px; display: flex; gap: 6px; }
-/* **เขตกดใหญ่กว่าขีดที่ตาเห็น** ผืนออกแบบวาดขีดไว้ 22x3 ซึ่งถ้าทำให้ปุ่มสูงสามพิกเซลจริง
-   จะกดไม่ติดบนมือถือและกดยากบนเมาส์ · ปุ่มจึงสูง 20px โปร่งใส แล้ววาดขีดด้วย `::before`
-   ตรงกลาง ได้ทั้งขนาดตามผืนและเขตกดที่นิ้วเล็งถูก */
-.v3-banner__dots .button--text { position: relative; min-block-size: 0; inline-size: 22px; block-size: 20px; padding: 0; background: none; }
-.v3-banner__dots .button--text::before { content: ""; position: absolute; inset-block-start: 50%; inset-inline: 0; block-size: 3px; margin-block-start: -1.5px; border-radius: 2px; background: var(--v3-white-a45); transition: background .18s var(--ease-out); }
-.v3-banner__dots .button--text:hover::before { background: var(--v3-white); }
-.v3-banner__dots .button--text[aria-current="true"]::before { background: var(--v3-red); }
+/* ทรงของขีดอยู่ที่ `.button--slide-dot` ในระบบปุ่ม ที่นี่บอกแค่ตำแหน่งกับระยะห่าง
+   ซึ่งเป็นเรื่องของหน้า ไม่ใช่เรื่องของปุ่ม */
+.v3-banner__dots { position: absolute; inset-block-end: 18px; inset-inline-start: 96px; display: flex; align-items: center; gap: 6px; }
 /* --- จังหวะเข้าของสไลด์ ----------------------------------------------------
    ภาพเลื่อนเข้าจากขวาแล้วซูมลง ตัวหนังสือวิ่งขึ้นทีละชิ้นตามลำดับการอ่าน
    ป้าย .7s หัวเรื่อง .85s เนื้อความ 1s ปุ่ม 1.15s ตามผืนออกแบบ
@@ -3436,10 +3470,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-hslot__caption { font-size: 12px; color: var(--v3-muted); line-height: 1.3; }
 .v3-hslot__value { font-size: 18px; font-weight: 700; color: var(--v3-ink); text-decoration: none; white-space: nowrap; line-height: 1.25; }
 
-/* ปุ่มเข้าสู่ระบบกับสมัครสมาชิกนั่งอยู่ในช่องสองบรรทัด จึงต้องไม่สูง 48 เท่าปุ่มทั่วไป
-   **ไม่ได้ยกเว้นกฎความสูง** เพราะระดับ `plain` เป็นปุ่มตัวหนังสือที่ไม่มีพื้นและไม่มีขอบ
-   เขตกดของมันคือบรรทัดข้อความ ไม่ใช่กล่องที่คนเล็งเหมือนปุ่มทึบ */
-.v3-hslot .button--text { min-block-size: 0; padding: 0; font-size: 18px; font-weight: 700; color: var(--v3-ink); justify-content: start; }
+/* ปุ่มเข้าสู่ระบบกับสมัครสมาชิกนั่งอยู่ในช่องสองบรรทัด **ความสูงกับระยะในมาจาก `size="fit"`
+   ที่ระบบปุ่ม ไม่ได้ทับจากที่นี่** — ที่นี่เหลือแค่หน้าตาของตัวหนังสือในบริบทนี้
+   ซึ่งเป็นเรื่องของหน้า ไม่ใช่ขนาดของปุ่ม · 18px หนา 700 มาจากผืน (`PROMPT:213`) */
+.v3-hslot .button--text { font-size: 18px; font-weight: 700; color: var(--v3-ink); justify-content: start; }
 .v3-hslot .button--text:hover { background: none; color: var(--v3-red); }
 .v3-hslot .sign-in-preview { display: grid; gap: 2px; }
 .v3-hslot .sign-in-preview [role="status"] { font-size: 11px; color: var(--v3-muted); }

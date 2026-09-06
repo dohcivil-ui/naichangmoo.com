@@ -61,7 +61,7 @@ export async function HermesCard({ requestHref }: { requestHref: string }) {
           <p className="v3-hcard__lead">รับออกแบบตาม USE CASE คุณ</p>
           {line ? (
             <div className="v3-hcard__action">
-              <Button tone="line" href={line.href} target="_blank" rel="noreferrer noopener" icon={<span>LINE</span>}>
+              <Button tone="line" size={40} href={line.href} target="_blank" rel="noreferrer noopener" icon={<span>LINE</span>}>
                 ปรึกษาฟรี คลิกเลย
               </Button>
             </div>
