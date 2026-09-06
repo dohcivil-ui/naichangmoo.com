@@ -2,12 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { FacebookMark, LineMark } from "@/components/icons/brand-icons";
-import { CartIcon, DoorEnterIcon, MailIcon, PersonIcon, PhoneIcon } from "@/components/icons/platform-icons";
+import { CartIcon, DoorEnterIcon, MailIcon, PersonIcon } from "@/components/icons/platform-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { AccountMenu } from "@/components/platform/account-menu";
 import { Button } from "@/components/platform/button";
 import { readViewer } from "@/components/platform/site-header";
-import { contactPlaceholders } from "@/lib/landing-v3-data";
 import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { readPublishedChannels } from "@/server/platform-channels";
@@ -16,7 +15,7 @@ import { readPublishedChannels } from "@/server/platform-channels";
  * แถบบนของหน้าร้าน — โครงจากผืนออกแบบรุ่นสาม ส่วนที่ 5 ข้อ 1
  *
  * **แทน `SiteHeader` เฉพาะหน้าแรก** หน้าอื่นทั้งเว็บยังใช้แถบเดิม เพราะแถบเดิมเป็นแถบนำทาง
- * ของแพลตฟอร์ม ส่วนตัวนี้เป็นแถบของหน้าร้าน ซึ่งมีเบอร์โทร ตะกร้า และช่องทางติดต่ออยู่ในตัว
+ * ของแพลตฟอร์ม ส่วนตัวนี้เป็นแถบของหน้าร้าน ซึ่งมีตะกร้าและช่องทางติดต่ออยู่ในตัว
  *
  * อ่าน session ฝั่ง server ตัวเดียวผ่าน `readViewer` ของแถบเดิม ไม่ได้อ่านซ้ำเป็นชุดที่สอง
  * เหตุผลเดียวกับที่ `site-header.tsx` เขียนไว้ — สองชุดคือจุดที่มันจะเริ่มตอบไม่ตรงกัน
@@ -53,9 +52,11 @@ export async function ShopHeader() {
           <Image src={visualAssetUrl("brand_wordmark")} alt="" width={154} height={44} priority />
         </Link>
 
-        <HeaderSlot icon={<PhoneIcon />} caption="บริการลูกค้า">
-          <a className="v3-hslot__value v3-hd v3-nl" href={contactPlaceholders.phoneHref}>{contactPlaceholders.phoneDisplay}</a>
-        </HeaderSlot>
+        {/* ผืนออกแบบ (`PROMPT.md:214`) วางช่องโทรศัพท์ไว้เป็นช่องแรก แต่ทะเบียนช่องทางติดต่อ
+            ยังไม่รู้จักชนิด `phone` จึงยังไม่มีเบอร์ที่เจ้าของงานยืนยัน · เบอร์ต่างจากราคาตรงที่
+            ติดป้าย "ตัวอย่าง รอยืนยัน" ไม่ได้ คนเห็นเบอร์แล้วโทร ไม่ได้อ่านป้าย และปลายสาย
+            เป็นคนจริงที่ไม่รู้เรื่องด้วย · กติกาเดียวกับ YouTube ข้างล่าง คือยังไม่มีในทะเบียน
+            ก็ยังไม่ขึ้น · วันที่ทะเบียนรับชนิด `phone` ช่องนี้กลับมาโดยอ่านจากทะเบียน */}
 
         {viewer.user ? (
           <div className="v3-header__account">

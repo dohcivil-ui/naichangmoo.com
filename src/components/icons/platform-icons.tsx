@@ -86,10 +86,6 @@ export function ArrowRightIcon(props: IconProps) {
  * ส่ง`strokeWidth={3}` ตอนเรียกได้เลย `BaseIcon` เปิดทางไว้แล้วโดยไม่ต้องแก้ตัวมัน
  */
 
-export function PhoneIcon(props: IconProps) {
-  return <BaseIcon {...props}><path d="M9 12a3 3 0 0 1 3-3h6l3 8-4 3a24 24 0 0 0 11 11l3-4 8 3v6a3 3 0 0 1-3 3C20 39 9 28 9 12z" /></BaseIcon>;
-}
-
 export function DoorEnterIcon(props: IconProps) {
   return <BaseIcon {...props}><path d="M27 8h9a3 3 0 0 1 3 3v26a3 3 0 0 1-3 3h-9" /><path d="M9 24h19" /><path d="m21 17 7 7-7 7" /></BaseIcon>;
 }
