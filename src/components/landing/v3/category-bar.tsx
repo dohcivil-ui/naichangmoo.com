@@ -21,7 +21,9 @@ export function CategoryBar() {
         <span className="v3-hd">{platformApps.length}</span>
       </Link>
 
-      <Link className="v3-catbar__tab v3-nl-tab" href="#promo">โปรโมชั่น</Link>
+      {/* ผืนออกแบบ (`PROMPT.md:227`) มีแท็บโปรโมชั่นชี้ไป `#promo` แต่บล็อกโปรโมชั่นเป็นงาน
+          ขั้นที่ 3 ยังไม่ลงหน้า ในหน้าจึงยังไม่มี id นั้น · แท็บที่กดแล้วไม่ไปไหนคือญาติของ
+          route ปลอมที่เจ้าของงานห้ามไว้ · แท็บนี้กลับมาในก้อนเดียวกับที่บล็อกโปรโมชั่นลงจริง */}
       <Link className="v3-catbar__tab v3-nl-tab" href="#hermes">Hermes 24/7</Link>
     </nav>
   );
