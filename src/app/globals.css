@@ -3301,6 +3301,60 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-hsub { opacity: 0; transform: translateY(8px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
 .v3-hcard:hover .v3-hsub, .v3-hcard:focus-within .v3-hsub { opacity: 1; transform: none; }
 
+/* --- แถบบนของหน้าร้าน ------------------------------------------------------
+   ค่าทุกตัวมาจากผืนออกแบบรุ่นสาม ส่วนที่ 5 ข้อ 1 · ยกเว้นความสูงปุ่มขอใบเสนอราคา
+   ที่ผืนวาดไว้ 40 แต่ทั้งเว็บใช้ 48 ซึ่งชนะตามคำสั่งเจ้าของงาน                   */
+
+.v3-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; min-block-size: 92px; padding: 12px 36px; border-block-end: 1px solid var(--v3-line); background: var(--v3-white); color: var(--v3-ink); }
+.v3-header__left { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+.v3-header__right { display: flex; align-items: center; gap: 16px; }
+.v3-header__brand img { display: block; block-size: 44px; inline-size: auto; }
+
+.v3-hslot { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; }
+.v3-hslot__icon { display: inline-flex; color: var(--v3-red); }
+.v3-hslot__icon svg { inline-size: 34px; block-size: 34px; }
+.v3-hslot__text { display: grid; gap: 1px; }
+.v3-hslot__caption { font-size: 12px; color: var(--v3-muted); line-height: 1.3; }
+.v3-hslot__value { font-size: 18px; font-weight: 700; color: var(--v3-ink); text-decoration: none; white-space: nowrap; line-height: 1.25; }
+
+/* ปุ่มเข้าสู่ระบบกับสมัครสมาชิกนั่งอยู่ในช่องสองบรรทัด จึงต้องไม่สูง 48 เท่าปุ่มทั่วไป
+   **ไม่ได้ยกเว้นกฎความสูง** เพราะระดับ `plain` เป็นปุ่มตัวหนังสือที่ไม่มีพื้นและไม่มีขอบ
+   เขตกดของมันคือบรรทัดข้อความ ไม่ใช่กล่องที่คนเล็งเหมือนปุ่มทึบ */
+.v3-hslot .button--text { min-block-size: 0; padding: 0; font-size: 18px; font-weight: 700; color: var(--v3-ink); justify-content: start; }
+.v3-hslot .button--text:hover { background: none; color: var(--v3-red); }
+.v3-hslot .sign-in-preview { display: grid; gap: 2px; }
+.v3-hslot .sign-in-preview [role="status"] { font-size: 11px; color: var(--v3-muted); }
+
+.v3-header__cart { position: relative; display: inline-flex; color: var(--v3-red); }
+.v3-header__cart svg { inline-size: 28px; block-size: 28px; }
+.v3-header__cart-count { position: absolute; inset-block-start: -6px; inset-inline-end: -10px; min-inline-size: 18px; padding: 0 5px; border-radius: 999px; background: var(--v3-red); color: var(--v3-white); font-size: 13px; line-height: 18px; text-align: center; }
+.v3-header__rule { inline-size: 1px; block-size: 28px; background: var(--v3-line); }
+
+.v3-header__channels { display: flex; align-items: center; gap: 8px; }
+.v3-header__channel { display: inline-flex; align-items: center; justify-content: center; inline-size: 32px; block-size: 32px; border-radius: 50%; color: var(--v3-white); }
+.v3-header__channel svg { inline-size: 18px; block-size: 18px; }
+/* วงไอคอนใช้สีของเจ้าของช่องทาง ไม่ใช่สีของธีมเรา — อีเมลไม่มีเจ้าของแบรนด์ จึงใช้หมึกของเว็บ */
+.v3-channel--facebook { background: var(--v3-facebook); }
+.v3-channel--line_oa { background: var(--v3-line-brand); }
+.v3-channel--email { background: var(--v3-ink); }
+
+.v3-header__account { display: flex; align-items: center; }
+
+/* --- แถบหมวด ---------------------------------------------------------------
+   ส่วนที่ 5 ข้อ 2 · แท็บซ้ายมุมบนโค้ง มุมล่างเหลี่ยม เพื่อให้อ่านว่ามันต่อลงมาจากแถบบน */
+
+.v3-catbar { display: flex; align-items: stretch; gap: 6px; min-block-size: 44px; padding: 0 48px; border-block-end: 1px solid var(--v3-line); background: var(--v3-white); font-size: 13px; overflow-x: auto; }
+.v3-catbar__all { display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 8px 8px 0 0; background: var(--v3-red); color: var(--v3-white); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.v3-catbar__all svg { inline-size: 16px; block-size: 16px; }
+.v3-catbar__tab { display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; color: var(--v3-red-dark); font-weight: 600; text-decoration: none; }
+
+@media (max-width: 760px) {
+  /* โครงมือถือจริงเป็นงานของขั้นถัดไป ตรงนี้กันไม่ให้แถบล้นออกนอกจอระหว่างทางเท่านั้น */
+  .v3-header { padding: 12px 16px; gap: 14px; }
+  .v3-header__left { gap: 16px; }
+  .v3-catbar { padding: 0 16px; }
+}
+
 /* --- คนที่ตั้งเครื่องให้ลดการเคลื่อนไหว ------------------------------------
    กฎกลางที่ต้นไฟล์บีบ animation ทั้งเว็บเหลือ .01ms อยู่แล้ว บล็อกนี้เขียนซ้ำ
    เฉพาะของรุ่นสามที่ "หยุด" กับ "เร็วมาก" ไม่เหมือนกัน — ประกายที่วิ่งเร็วมาก

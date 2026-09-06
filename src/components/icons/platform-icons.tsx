@@ -76,3 +76,40 @@ export function NotIncludedIcon(props: IconProps) {
 export function ArrowRightIcon(props: IconProps) {
   return <BaseIcon {...props} />;
 }
+
+/**
+ * ไอคอนของแถบบนหน้าร้าน — วาดบนกริด 48 หน่วยเดียวกับที่เหลือ ไม่ได้แยกชุด
+ *
+ * ผืนออกแบบรุ่นสามวาดไอคอนพวกนี้ไว้บนกริด 24 ที่ความหนาเส้น 1.5 ซึ่งคิดเป็นสัดส่วน
+ * 0.0625 ของกรอบ ส่วนของเราคือ 2.4 บนกริด 48 คิดเป็น 0.05 · **เส้นของเราบางกว่าเล็กน้อย**
+ * เลือกตามบ้านไว้ก่อนเพื่อให้ไอคอนทั้งเว็บหนาเท่ากัน ถ้าอยากได้เท่าผืนออกแบบเป๊ะ
+ * ส่ง`strokeWidth={3}` ตอนเรียกได้เลย `BaseIcon` เปิดทางไว้แล้วโดยไม่ต้องแก้ตัวมัน
+ */
+
+export function PhoneIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M9 12a3 3 0 0 1 3-3h6l3 8-4 3a24 24 0 0 0 11 11l3-4 8 3v6a3 3 0 0 1-3 3C20 39 9 28 9 12z" /></BaseIcon>;
+}
+
+export function DoorEnterIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M27 8h9a3 3 0 0 1 3 3v26a3 3 0 0 1-3 3h-9" /><path d="M9 24h19" /><path d="m21 17 7 7-7 7" /></BaseIcon>;
+}
+
+export function PersonIcon(props: IconProps) {
+  return <BaseIcon {...props}><circle cx="24" cy="17" r="7" /><path d="M11 40c0-7.2 5.8-13 13-13s13 5.8 13 13" /></BaseIcon>;
+}
+
+export function CartIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M8 9h4.5l4.6 20.5A3 3 0 0 0 20 32h16a3 3 0 0 0 2.9-2.3L42 17H14" /><circle cx="21" cy="38" r="2.5" /><circle cx="35" cy="38" r="2.5" /></BaseIcon>;
+}
+
+export function MenuIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M9 15h30" /><path d="M9 24h30" /><path d="M9 33h30" /></BaseIcon>;
+}
+
+export function SearchIcon(props: IconProps) {
+  return <BaseIcon {...props}><circle cx="21" cy="21" r="12" /><path d="m30 30 9 9" /></BaseIcon>;
+}
+
+export function MailIcon(props: IconProps) {
+  return <BaseIcon {...props}><rect x="7" y="11" width="34" height="26" rx="3" /><path d="m8 14 16 12 16-12" /></BaseIcon>;
+}

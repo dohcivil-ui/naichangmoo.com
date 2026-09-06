@@ -5,7 +5,8 @@ import { HeroLiveDemo } from "@/components/landing/hero-live-demo";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import Image from "next/image";
 import { PlatformFooter } from "@/components/platform/platform-footer";
-import { SiteHeader } from "@/components/platform/site-header";
+import { CategoryBar } from "@/components/landing/v3/category-bar";
+import { ShopHeader } from "@/components/landing/v3/shop-header";
 import { accessLabel, marketCategories, platformApps } from "@/lib/platform";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { landingActionContract, landingNavigationContract } from "@/lib/landing-interactions";
@@ -43,7 +44,10 @@ export default async function LandingPage() {
   return (
     <main className="site-shell">
       <LandingMotion />
-      <SiteHeader />
+      {/* หน้าแรกรุ่นสามใช้แถบของหน้าร้านแทนแถบนำทางของแพลตฟอร์ม หน้าอื่นทั้งเว็บยังใช้
+          `SiteHeader` เหมือนเดิม · ส่วนที่เหลือของหน้ายังเป็นของเดิม จะทยอยเปลี่ยนทีละบล็อก */}
+      <ShopHeader />
+      <CategoryBar />
 
       <section className="hero" id="top">
         <div className="hero__signals" aria-hidden="true"><span /><span /><span /></div>

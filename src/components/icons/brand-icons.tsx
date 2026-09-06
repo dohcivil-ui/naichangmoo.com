@@ -1,0 +1,55 @@
+import type { SVGProps } from "react";
+
+/**
+ * ตราของช่องทางภายนอก — Facebook, LINE, YouTube
+ *
+ * **แยกไฟล์จาก `platform-icons.tsx` โดยตั้งใจ** ไอคอนในไฟล์นั้นเป็นสัญลักษณ์ที่เราออกแบบเอง
+ * เป็นลายเส้นบนกริดเดียวกัน ความหนาเดียวกัน และเปลี่ยนสีตามปุ่มที่มันไปนั่งอยู่ได้เสมอ
+ * ส่วนตราสามตัวนี้เป็นทรงตันที่เจ้าของแบรนด์กำหนดรูปมาแล้ว เราไม่มีสิทธิ์ปรับสัดส่วน
+ * ไม่มีสิทธิ์เปลี่ยนความหนา และมันไม่มีความหนาให้เปลี่ยนตั้งแต่แรกเพราะไม่ใช่ลายเส้น
+ *
+ * ถ้ายัดสองอย่างนี้เข้าไฟล์เดียวกัน วันหนึ่งจะมีคนสั่งความหนาเส้นให้ทั้งชุดแล้วตราเหล่านี้
+ * ไม่ขยับ กลายเป็นของที่ดูเหมือนพังทั้งที่ทำงานถูก · เส้นแบ่งคือ **ลายเส้นของเรา
+ * กับทรงตันของคนอื่น** ไม่ใช่แค่คนละหมวดในเมนู
+ *
+ * ใช้ `currentColor` เหมือนกัน จึงรับสีจากวงที่มันนั่งอยู่ได้ตามปกติ
+ */
+
+type BrandIconProps = SVGProps<SVGSVGElement> & { title?: string };
+
+function BrandMark({ title, children, ...props }: BrandIconProps) {
+  return (
+    <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden={title ? undefined : true} role={title ? "img" : undefined} {...props}>
+      {title ? <title>{title}</title> : null}
+      {children}
+    </svg>
+  );
+}
+
+export function FacebookMark(props: BrandIconProps) {
+  return (
+    <BrandMark {...props}>
+      <path d="M24 4C12.95 4 4 12.95 4 24c0 9.98 7.31 18.25 16.87 19.76V29.78h-5.08V24h5.08v-4.41c0-5.01 2.99-7.78 7.56-7.78 2.19 0 4.48.39 4.48.39v4.92h-2.52c-2.48 0-3.26 1.54-3.26 3.13V24h5.55l-.89 5.78h-4.66v13.98C36.69 42.25 44 33.98 44 24 44 12.95 35.05 4 24 4z" />
+    </BrandMark>
+  );
+}
+
+export function LineMark(props: BrandIconProps) {
+  return (
+    <BrandMark {...props}>
+      <path d="M24 6C13.5 6 5 12.9 5 21.4c0 7.62 6.7 14 15.76 15.2.61.13 1.45.4 1.66.92.19.47.12 1.2.06 1.68l-.27 1.6c-.08.47-.37 1.85 1.63.99 2-.87 10.79-6.35 14.72-10.87C41.24 27.98 43 24.94 43 21.4 43 12.9 34.5 6 24 6z" />
+    </BrandMark>
+  );
+}
+
+export function YouTubeMark(props: BrandIconProps) {
+  return (
+    <BrandMark {...props}>
+      <path
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M43.2 15.4a5 5 0 0 0-3.5-3.6C36.6 11 24 11 24 11s-12.6 0-15.7.8a5 5 0 0 0-3.5 3.6C4 18.6 4 24 4 24s0 5.4.8 8.6a5 5 0 0 0 3.5 3.6C11.4 37 24 37 24 37s12.6 0 15.7-.8a5 5 0 0 0 3.5-3.6C44 29.4 44 24 44 24s0-5.4-.8-8.6zM20 30V18l10.4 6z"
+      />
+    </BrandMark>
+  );
+}

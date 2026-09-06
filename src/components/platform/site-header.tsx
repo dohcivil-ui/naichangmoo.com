@@ -14,7 +14,7 @@ import { resolvePlatformAdmin } from "@/server/platform-admin";
  * draw a shortcut. `/admin` still refuses on its own — ADR 0012 puts that check on the server, in
  * the layout, precisely so that no drawn or undrawn link is load-bearing.
  */
-async function readViewer() {
+export async function readViewer() {
   const user = await getPlatformSessionUser(await headers());
   if (!user) return { user: null, isPlatformAdmin: false, apps: [] };
 
