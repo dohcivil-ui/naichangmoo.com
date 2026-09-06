@@ -3319,7 +3319,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ขีดแดงยืดตอนชี้ และบรรทัดรองที่ซ่อนอยู่โผล่ขึ้นมา เป็นสองอย่างที่บอกว่าการ์ดกดได้
    โปสเตอร์ห้ามมี ken-burns หรือซูม เจ้าของงานสั่งไว้ชัดว่าต้องอ่านตัวอักษรในโปสเตอร์ได้ครบ */
 
-.v3-hline { inline-size: 36px; block-size: 3px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
+/* **`display: block` ไม่ใช่ของเกิน** ขีดนี้เป็น `<span>` ซึ่งเป็นอิลิเมนต์แนวบรรทัด
+   และอิลิเมนต์แนวบรรทัดไม่รับความกว้างความสูง · วัดบนของจริงแล้วได้ **0x0** ทั้งที่
+   กฎประกาศ 36x3 ไว้ครบ · กฎที่ประกาศแล้วไม่มีผลคือกฎที่ไม่มีใครเห็นว่าตาย */
+.v3-hline { display: block; inline-size: 36px; block-size: 3px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
 .v3-hcard:hover .v3-hline { inline-size: 64px; }
 .v3-htext { transition: transform .3s var(--ease-out); }
 .v3-hcard:hover .v3-htext { transform: translateY(-4px); }
@@ -3345,7 +3348,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-banner__scrim--y { background: linear-gradient(180deg, var(--v3-banner-a0) 40%, var(--v3-banner-a75)); }
 .v3-banner__text { position: relative; flex: none; inline-size: 560px; max-inline-size: 100%; }
 .v3-banner .v3-tag { background: var(--v3-red); color: var(--v3-white); }
-.v3-banner__title { margin: 12px 0 0; font-size: 56px; line-height: 1.08; letter-spacing: -.02em; }
+/* **สีต้องประกาศตรงนี้ จะพึ่งการสืบทอดจาก `.v3-banner` ไม่ได้** กฎกลางบรรทัด 150
+   `h1, h2, h3, h4, h5, h6 { color: var(--ink) }` เลือกที่ตัวอิลิเมนต์เอง ซึ่งชนะค่าที่
+   สืบทอดลงมาเสมอ ไม่ว่าพ่อจะสั่งสีอะไรไว้ · วัดบนของจริงแล้วหัวเรื่องออกมาเป็นหมึกเข้ม
+   ของธีมเก่าบนพื้นแบนเนอร์เข้ม ได้คอนทราสต์ **1.32:1** ซึ่งแทบมองไม่เห็น
+   หัวเรื่องทุกตัวที่นั่งบนพื้นเข้มของรุ่นสามต้องประกาศสีของตัวเอง */
+.v3-banner__title { margin: 12px 0 0; font-size: 56px; line-height: 1.08; letter-spacing: -.02em; color: var(--v3-white); }
 .v3-banner__title span { display: block; white-space: nowrap; }
 .v3-banner__title span + span { margin-block-start: 10px; font-size: 34px; font-weight: 600; line-height: 1.3; }
 .v3-banner__body { margin: 14px 0 26px; max-inline-size: 44ch; font-size: 16px; line-height: 26px; color: var(--v3-white-a88); }
@@ -3402,7 +3410,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-hcard__poster { display: block; inline-size: 100%; block-size: auto; }
 .v3-hcard__panel { position: relative; padding: 18px 20px 20px; background: linear-gradient(180deg, var(--v3-night), var(--v3-night-2)); }
 .v3-hcard__eyebrow { display: block; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--v3-pink-200); }
-.v3-hcard__title { margin: 6px 0 0; font-size: 34px; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; }
+/* สีประกาศตรงนี้ด้วยเหตุผลเดียวกับ `.v3-banner__title` — วัดได้ 1.26:1 ก่อนแก้ */
+.v3-hcard__title { margin: 6px 0 0; font-size: 34px; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; color: var(--v3-white); }
 .v3-hcard__lead { margin: 0; font-size: 16px; line-height: 1.4; font-weight: 600; white-space: nowrap; }
 /* ลิงก์ที่หัวเรื่องแผ่แผ่นใสปูทับทั้งการ์ด ทำให้ทั้งใบกดได้โดยไม่ต้องซ้อน `<a>` ใน `<a>`
    ปุ่ม LINE ยกตัวขึ้นเหนือแผ่นด้วย `z-index` จึงยังเป็นลิงก์ของตัวเองที่กดได้แยก */
