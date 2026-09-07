@@ -100,7 +100,7 @@ const sizeClass: Record<Size, string> = {
 /**
  * ความสูงที่ใช้เมื่อจอกว้างพอ — คลาสชุดที่สองของมิติเดียวกัน ไม่ใช่มิติที่สาม
  *
- * กฎจริงอยู่ใน `globals.css` ใต้ `@media (min-width: 761px)` ที่นี่แค่แปลงค่าเป็นชื่อคลาส
+ * กฎจริงอยู่ใน `globals.css` ใต้ `@media (min-width: 760.02px)` ที่นี่แค่แปลงค่าเป็นชื่อคลาส
  */
 const wideSizeClass: Record<Size, string> = {
   36: "button--wide-h36",
