@@ -1,12 +1,20 @@
 /**
- * เทียบผืนออกแบบรุ่นสามกับหน้าจริง แล้วแยกผลเป็นสามกอง
+ * เทียบผืนออกแบบรุ่นสามกับหน้าจริง แล้วแยกผลเป็นสามกอง — **ทั้งเดสก์ท็อปและมือถือ**
  *
  *   ตรง                  ต่างไม่เกินเกณฑ์ ไม่ต้องทำอะไร
  *   ต่างแต่มีเหตุผล        อยู่ในสมุดข้อยกเว้น พร้อมเหตุผลและวันที่ตัดสิน
- *   ต่างโดยไม่มีใครรู้      กองนี้คือบั๊ก **ต้องว่างก่อนบอกว่าบล็อกไหนเสร็จ**
+ *   ต่างโดยไม่มีใครรู้      กองนี้คือบั๊ก **ต้องว่างทั้งสองความกว้างก่อนบอกว่าบล็อกไหนเสร็จ**
  *
- * แผนที่จับคู่จำเป็นเพราะผืนกับโค้ดตั้งชื่อคนละแบบ — ผืนใช้ `.nl` เราใช้ `.v3-nl`
- * และของหลายชิ้นในผืนไม่มีคลาสเลยเพราะเป็น inline style ล้วน
+ * **ทำไมต้องสองความกว้าง** `extract-canvas.mjs` ถอดผืนไว้ทั้ง 1280 และ 390 ตั้งแต่วันแรก
+ * แต่ตัวเทียบตรึงไว้ที่ 1280 อย่างเดียว `canvas-390.json` จึงถูกถอดทิ้งไว้โดยไม่มีใครเปิดอ่าน
+ * สักครั้ง · ผลคือเลข "ตรง 25 จุด กองที่สามว่าง" ที่รายงานกันมาตลอด เป็นเลขของเดสก์ท็อปล้วน
+ * และไม่มีใครรู้เลยว่ามือถือตรงผืนไหม เจ้าของงานสั่ง 2026-09-07 ให้มือถือเข้าขอบเขต
+ * เครื่องมือจึงต้องมองเห็นมันก่อน — **ทำมือถือโดยไม่มีตัววัด คือทำแล้วไม่มีใครรู้ว่าตรงไหม**
+ *
+ * **ผืนมือถือไม่ใช่ผืนเดสก์ท็อปที่ถูกบีบให้แคบ มันเป็นคนละโครง** นับคลาสในอาร์ตบอร์ด 390
+ * แล้วไม่มี `.nl` `.nl-item` `.nl-icon` `.nl-tab` `.scp0` `.hcard` `.hline` เลยสักตัว ·
+ * แบนเนอร์มือถือเป็น `.card` ไม่ใช่ `.card-hi` และไม่มีสไลด์ · นาฬิกาเป็นข้อความเดียว
+ * ไม่ใช่สี่ช่อง · แผนที่จับคู่จึงต้องบอกเป็นรายแถวว่าแถวนี้วัดที่ใบไหน ด้วย selector ของใบนั้น
  *
  * **สมุดข้อยกเว้นเน่าไม่ได้** ตัวเทียบจึงตรวจด้วยว่าทุกข้อในสมุดยังชี้ความต่างที่มีอยู่จริง
  * วันที่ทะเบียนช่องทางถูกกรอก ข้อ "วงไอคอนช่องทาง ไม่มีสักวง" จะกลายเป็นเท็จทันที
@@ -27,45 +35,71 @@ const LEDGER = "docs/design/v3-deliberate-differences.json";
 /** เกินเท่านี้ถือว่าต่าง — หนึ่งพิกเซลเป็นเรื่องของการปัดเศษ ไม่ใช่ความต่างของการออกแบบ */
 const TOLERANCE = 1;
 
+/** อาร์ตบอร์ดที่ผืนวาดไว้ · เรียงจากกว้างไปแคบ เพราะรายงานอ่านจากบนลงล่าง */
+const WIDTHS = [1280, 390];
+
 /**
- * แผนที่จับคู่ · `canvas` คือ selector ในผืน `live` คือ selector ในหน้าจริง
+ * ทางลัดไปยังบล็อกลำดับที่ n ของอาร์ตบอร์ด
+ *
+ * ผืนแทบไม่ใช้คลาสเลย เกือบทุกชิ้นเป็น inline style ล้วน การอ้างตำแหน่งจึงเป็นทางเดียว
+ * ที่มีสำหรับบล็อกระดับบน · **ลำดับบล็อกของสองใบไม่ตรงกัน** ใบมือถือมีแถบประกาศบาง ๆ
+ * เป็นบล็อกแรก ทุกอย่างจึงเลื่อนลงหนึ่ง — นี่คือเหตุผลที่แต่ละแถวต้องเขียน selector แยกต่อใบ
+ * ไม่ใช่ใช้ตัวเดียวกันแล้วหวังว่าจะตรง
+ */
+const section = (n) => `:scope > div:nth-child(2) > div:nth-child(${n})`;
+
+/**
+ * แผนที่จับคู่ · `canvas` บอกว่าแต่ละความกว้างใช้ selector ไหนในผืน
+ * `live` คือ selector ในหน้าจริง ซึ่งใช้ตัวเดียวได้ทั้งสองความกว้าง เพราะหน้าจริงเป็น DOM เดียว
+ * ที่เปลี่ยนหน้าตาด้วย CSS ส่วนผืนเป็นสองใบที่วาดแยกกัน
  * `keys` คือสิ่งที่ต้องเท่ากัน ไม่ใส่ = เทียบทั้งกว้างและสูง
  *
- * เพิ่มบรรทัดตอนบล็อกใหม่ลง · เปิด `out/canvas-1280.json` ที่ `extract-canvas.mjs`
- * เขียนไว้ ดูว่ามีอะไรอยู่ตรงไหนก่อนเขียน selector ของฝั่งผืน
+ * **ไม่มีคีย์ของความกว้างไหน = ผืนใบนั้นไม่มีของชิ้นนี้** ซึ่งเป็นคำตอบที่ถูก ไม่ใช่ช่องที่ลืมกรอก
+ * รายงานจะบอกว่าแถวนั้นไม่ได้วัดที่ใบนั้น เพื่อไม่ให้เงียบหายไปเฉย ๆ
+ *
+ * เพิ่มบรรทัดตอนบล็อกใหม่ลง · เปิด `out/canvas-1280.json` กับ `out/canvas-390.json`
+ * ที่ `extract-canvas.mjs` เขียนไว้ ดูว่ามีอะไรอยู่ตรงไหนก่อนเขียน selector ของฝั่งผืน
  */
 const MAP = [
-  { name: "แถบบน", canvas: ":scope > div:nth-child(2) > div:nth-child(1)", live: ".v3-header", keys: ["h"] },
-  { name: "แถบหมวด", canvas: ":scope > div:nth-child(2) > div:nth-child(2)", live: ".v3-catbar", keys: ["h"] },
-  { name: "ตราคำ", canvas: ".nl img", live: ".v3-header__brand img" },
-  { name: "ช่องสองบรรทัดในแถบบน", canvas: ".nl-item", live: ".v3-hslot", keys: ["h"] },
-  { name: "ไอคอนของช่อง", canvas: ".nl-item svg", live: ".v3-hslot__icon svg" },
-  { name: "วงไอคอนช่องทาง", canvas: ".nl-icon", live: ".v3-header__channel" },
-  { name: "ปุ่มขอใบเสนอราคา", canvas: ".btn-primary", live: ".v3-header__right .button", keys: ["h"] },
-  { name: "แท็บแอปทั้งหมด", canvas: ".scp0", live: ".v3-catbar__all", keys: ["h"] },
-  { name: "แท็บในแถบหมวด", canvas: ".nl-tab", live: ".v3-catbar__tab", keys: ["h"] },
-  { name: "แบนเนอร์", canvas: ".card-hi", live: ".v3-banner" },
-  { name: "กล่องข้อความบนแบนเนอร์", canvas: ".card-hi > div:has(h1)", live: ".v3-banner__text", keys: ["w"] },
-  { name: "ป้ายสิทธิ์บนแบนเนอร์", canvas: ".tag", live: ".v3-banner .v3-tag", keys: ["h"] },
-  { name: "หัวเรื่องสไลด์", canvas: ".card-hi h1", live: ".v3-banner__title", keys: ["w"] },
-  { name: "ปุ่มหลักบนแบนเนอร์", canvas: ".btn-shop", live: ".v3-banner__actions .button", keys: ["h"] },
-  { name: "การ์ด Hermes", canvas: ".hcard", live: ".v3-hcard" },
-  { name: "โปสเตอร์", canvas: ".hcard img", live: ".v3-hcard__poster" },
-  { name: "ขีดแดงในการ์ด", canvas: ".hline", live: ".v3-hline" },
-  { name: "หัวเรื่องการ์ด", canvas: ".hcard h3", live: ".v3-hcard__title", keys: ["h"] },
-  { name: "หัวบล็อกโปรโมชั่น", canvas: "#promo > div:first-child", live: ".v3-promo__head", keys: ["h"] },
-  { name: "ช่องนาฬิกา", canvas: "#promo .hd", live: ".v3-promo__clock-cell", keys: ["h"] },
-  { name: "การ์ดโปรโมชั่น", canvas: "#promo .card", live: ".v3-promo__card" },
-  { name: "ภาพบนการ์ดโปรโมชั่น", canvas: "#promo .card img", live: ".v3-promo__image" },
-  { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", canvas: "#promo .card span", live: ".v3-promo__badge", keys: ["h"] },
-  { name: "ปุ่มบนการ์ดโปรโมชั่น", canvas: "#promo .btn-shop", live: ".v3-promo__action .button", keys: ["h"] }
+  { name: "แถบบน", live: ".v3-header", keys: ["h"], canvas: { 1280: section(1), 390: section(2) } },
+  { name: "แถบหมวด", live: ".v3-catbar", keys: ["h"], canvas: { 1280: section(2), 390: section(3) } },
+  { name: "ตราคำ", live: ".v3-header__brand img", canvas: { 1280: ".nl img", 390: `${section(2)} img` } },
+  { name: "ช่องสองบรรทัดในแถบบน", live: ".v3-hslot", keys: ["h"], canvas: { 1280: ".nl-item" } },
+  { name: "ไอคอนของช่อง", live: ".v3-hslot__icon svg", canvas: { 1280: ".nl-item svg" } },
+  { name: "วงไอคอนช่องทาง", live: ".v3-header__channel", canvas: { 1280: ".nl-icon" } },
+  { name: "ปุ่มขอใบเสนอราคา", live: ".v3-header__right .button", keys: ["h"], canvas: { 1280: ".btn-primary" } },
+  { name: "แท็บแอปทั้งหมด", live: ".v3-catbar__all", keys: ["h"], canvas: { 1280: ".scp0" } },
+  { name: "แท็บในแถบหมวด", live: ".v3-catbar__tab", keys: ["h"], canvas: { 1280: ".nl-tab", 390: `${section(3)} span` } },
+  { name: "แบนเนอร์", live: ".v3-banner", canvas: { 1280: ".card-hi", 390: `${section(4)} .card` } },
+  { name: "กล่องข้อความบนแบนเนอร์", live: ".v3-banner__text", keys: ["w"], canvas: { 1280: ".card-hi > div:has(h1)" } },
+  { name: "ป้ายสิทธิ์บนแบนเนอร์", live: ".v3-banner .v3-tag", keys: ["h"], canvas: { 1280: ".tag", 390: ".tag" } },
+  { name: "หัวเรื่องสไลด์", live: ".v3-banner__title", keys: ["w"], canvas: { 1280: ".card-hi h1", 390: `${section(4)} .card h1` } },
+  { name: "ปุ่มหลักบนแบนเนอร์", live: ".v3-banner__actions .button", keys: ["h"], canvas: { 1280: ".btn-shop", 390: ".btn-block" } },
+  { name: "การ์ด Hermes", live: ".v3-hcard", canvas: { 1280: ".hcard" } },
+  { name: "โปสเตอร์", live: ".v3-hcard__poster", canvas: { 1280: ".hcard img" } },
+  { name: "ขีดแดงในการ์ด", live: ".v3-hline", canvas: { 1280: ".hline" } },
+  { name: "หัวเรื่องการ์ด", live: ".v3-hcard__title", keys: ["h"], canvas: { 1280: ".hcard h3" } },
+  { name: "หัวบล็อกโปรโมชั่น", live: ".v3-promo__head", keys: ["h"], canvas: { 1280: "#promo > div:first-child", 390: `${section(5)} > div:nth-child(1)` } },
+  { name: "ช่องนาฬิกา", live: ".v3-promo__clock-cell", keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
+  { name: "การ์ดโปรโมชั่น", live: ".v3-promo__card", canvas: { 1280: "#promo .card", 390: `${section(5)} .card` } },
+  { name: "ภาพบนการ์ดโปรโมชั่น", live: ".v3-promo__image", canvas: { 1280: "#promo .card img", 390: `${section(5)} .card img` } },
+  { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", live: ".v3-promo__badge", keys: ["h"], canvas: { 1280: "#promo .card span", 390: `${section(5)} .card span` } },
+  { name: "ปุ่มบนการ์ดโปรโมชั่น", live: ".v3-promo__action .button", keys: ["h"], canvas: { 1280: "#promo .btn-shop", 390: `${section(5)} .btn-shop` } }
 ];
 
+/**
+ * วัดกล่องของ selector ที่ให้มา
+ *
+ * `boardWidth` มีเฉพาะฝั่งผืน เพราะผืนวางอาร์ตบอร์ดสองใบเรียงกันในหน้าเดียว และคลาสเดียวกัน
+ * มีอยู่ในทั้งสองใบ · ฝั่งหน้าจริงไม่ต้องหา ทั้งหน้าคือของที่วัด
+ *
+ * **ของที่หาเจอแต่กล่องเป็นศูนย์ ไม่เหมือนของที่หาไม่เจอ** อย่างแรกคือของที่มีในหน้าแต่ถูก
+ * ซ่อนที่ความกว้างนี้ ซึ่งเป็นคำตอบคนละอย่างกับ "ไม่มีของชิ้นนี้เลย" · แยกไว้ตั้งแต่ตอนวัด
+ * ไม่งั้นของที่ถูกซ่อนจะรายงานว่าต่างจากผืนเท่ากับความสูงเต็มของมัน ซึ่งอ่านแล้วไขว้เขว
+ */
 async function boxes(page, selectors, boardWidth) {
   return page.evaluate(
     ({ selectors, boardWidth }) => {
-      /* ในผืนต้องหาอาร์ตบอร์ดก่อนแล้วค้นเฉพาะข้างใน เพราะผืนมีสองอาร์ตบอร์ดวางเรียงกัน
-         และคลาสเดียวกันมีอยู่ในทั้งสองใบ */
       let root = document;
       if (boardWidth) {
         const board = [...document.querySelectorAll("div")].find((el) => {
@@ -83,7 +117,11 @@ async function boxes(page, selectors, boardWidth) {
           continue;
         }
         const box = el.getBoundingClientRect();
-        out[selector] = { w: Number(box.width.toFixed(2)), h: Number(box.height.toFixed(2)) };
+        out[selector] = {
+          w: Number(box.width.toFixed(2)),
+          h: Number(box.height.toFixed(2)),
+          hidden: box.width === 0 && box.height === 0
+        };
       }
       return out;
     },
@@ -94,10 +132,25 @@ async function boxes(page, selectors, boardWidth) {
 const ledger = JSON.parse(await readFile(LEDGER, "utf8"));
 const excused = new Map(ledger.map((entry) => [entry.name, entry]));
 
+/**
+ * ข้อยกเว้นหนึ่งข้อยกเว้นให้ที่ความกว้างไหนบ้าง
+ *
+ * **ไม่เขียน `widths` ไว้ = ยกเว้นเฉพาะ 1280** เพราะทุกข้อที่อยู่ในสมุดวันนี้เขียนขึ้นจาก
+ * การวัดเดสก์ท็อปล้วน ตอนที่ตัวเทียบยังมองไม่เห็น 390 เลย · เหตุผลของมันจึงพูดแทนมือถือไม่ได้
+ *
+ * รอบแรกที่ตัวเทียบเห็นสองความกว้าง มันยกเว้นข้ามใบให้ทันทีสามข้อ แล้วรายงานว่า
+ * แบนเนอร์มือถือที่กว้างผิดไป 166 พิกเซล เป็น "ต่างแต่มีเหตุผล" โดยอ้างเหตุผลเรื่อง
+ * `align-items: stretch` ของเดสก์ท็อป ซึ่งไม่ได้อธิบายอะไรเลยที่ความกว้างนั้น ·
+ * **ข้อยกเว้นที่ยกเว้นให้เรื่องที่มันไม่ได้พูดถึง อันตรายกว่าไม่มีข้อยกเว้น** เพราะมันกลบ
+ * บั๊กจริงด้วยประโยคที่อ่านแล้วน่าเชื่อ · ความต่างที่ตั้งใจของมือถือต้องเขียนของมันเอง
+ */
+const coversWidth = (entry, width) => (entry.widths ?? [1280]).includes(width);
+
 const browser = await chromium.launch({ channel: "msedge" });
 const canvasPage = await browser.newPage({ viewport: { width: 1900, height: 1400 } });
 await canvasPage.goto(CANVAS, { waitUntil: "networkidle" });
 await canvasPage.waitForTimeout(1200);
+
 const livePage = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 /* `networkidle` ใช้กับ dev server ไม่ได้ มันเปิด websocket ของ HMR ค้างไว้ตลอด
    เครือข่ายจึงไม่มีวันเงียบ · รอสิ่งที่จะวัดจริงแทน ซึ่งตรงกับที่ต้องการมากกว่าอยู่แล้ว */
@@ -107,8 +160,68 @@ await livePage.locator(".v3-hcard__poster").waitFor({ state: "visible" });
    ไม่ใช่แค่ส่วนที่ server เขียนมา · ถ้าบล็อกโปรโมชั่นหมดอายุแล้วจะไม่มีนาฬิกา จึงไม่รอค้าง */
 await livePage.locator(".v3-promo__clock-cell").first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
 
-const canvas = await boxes(canvasPage, MAP.map((row) => row.canvas), 1280);
-const live = await boxes(livePage, MAP.map((row) => row.live), null);
+/** ผลของทุกความกว้าง เก็บไว้ก่อนเพราะการตรวจสมุดต้องดูภาพรวมทุกใบพร้อมกัน */
+const perWidth = [];
+/** ชื่อข้อยกเว้นที่ตัวเทียบยืนยันได้ว่ายังชี้ความต่างจริง — ต่างที่ใบใดใบหนึ่งก็ถือว่ายังจริง */
+const stillTrue = new Set();
+
+for (const width of WIDTHS) {
+  const rows = MAP.filter((row) => row.canvas[width]);
+  const skipped = MAP.filter((row) => !row.canvas[width]).map((row) => row.name);
+
+  await livePage.setViewportSize({ width, height: 900 });
+  /* ให้ CSS ตอบสนองความกว้างใหม่และให้ภาพที่ปรับขนาดเข้าที่ก่อนวัด */
+  await livePage.waitForTimeout(500);
+
+  const canvas = await boxes(canvasPage, rows.map((row) => row.canvas[width]), width);
+  const live = await boxes(livePage, rows.map((row) => row.live), null);
+
+  const same = [];
+  const excusedRows = [];
+  const unknown = [];
+
+  for (const row of rows) {
+    const fromCanvas = canvas[row.canvas[width]];
+    const fromLive = live[row.live];
+    const named = excused.get(row.name);
+    const entry = named && coversWidth(named, width) ? named : null;
+
+    let detail = null;
+    if (!fromCanvas) detail = "หาในผืนไม่เจอ";
+    else if (!fromLive) detail = "หาในหน้าจริงไม่เจอ";
+    else if (fromLive.hidden && !fromCanvas.hidden) detail = "ผืนมีของชิ้นนี้ แต่หน้าจริงซ่อนไว้ที่ความกว้างนี้";
+    else if (fromCanvas.hidden && !fromLive.hidden) detail = "ผืนซ่อนของชิ้นนี้ แต่หน้าจริงแสดงอยู่";
+
+    if (!detail) {
+      const keys = row.keys ?? ["w", "h"];
+      const diffs = keys
+        .map((key) => ({ key, canvas: fromCanvas[key], live: fromLive[key], gap: Number((fromLive[key] - fromCanvas[key]).toFixed(2)) }))
+        .filter((diff) => Math.abs(diff.gap) > TOLERANCE);
+
+      if (diffs.length === 0) {
+        same.push(row.name);
+        continue;
+      }
+      detail = diffs
+        .map((diff) => `${diff.key}: ผืน ${diff.canvas} → จริง ${diff.live} (${diff.gap > 0 ? "+" : ""}${diff.gap})`)
+        .join(" · ");
+    }
+
+    if (entry) {
+      stillTrue.add(row.name);
+      excusedRows.push({ name: row.name, detail, why: entry.why });
+    } else {
+      unknown.push({ name: row.name, detail });
+    }
+  }
+
+  perWidth.push({ width, same, excusedRows, unknown, skipped });
+}
+
+/* ตัวตรวจในตัวและการทวงสัญญาเป็นเรื่องของโครงสร้างหน้า ไม่ใช่ของความกว้าง
+   จึงตรวจครั้งเดียวที่ 1280 · ตั้งความกว้างกลับก่อน เพราะรอบสุดท้ายทิ้งไว้ที่ 390 */
+await livePage.setViewportSize({ width: 1280, height: 900 });
+await livePage.waitForTimeout(500);
 
 /**
  * ตัวตรวจในตัวสำหรับข้อที่วัดด้วยกล่องไม่ได้ แต่วัดด้วยวิธีอื่นได้
@@ -175,58 +288,18 @@ for (const entry of ledger.filter((row) => row.checkedBy?.startsWith("compare.mj
 
 await browser.close();
 
-const same = [];
-const excusedRows = [];
-const unknown = [];
-/** ชื่อข้อยกเว้นที่ตัวเทียบยืนยันได้ว่ายังชี้ความต่างจริง */
-const stillTrue = new Set();
-
-for (const row of MAP) {
-  const fromCanvas = canvas[row.canvas];
-  const fromLive = live[row.live];
-  const entry = excused.get(row.name);
-
-  if (!fromCanvas || !fromLive) {
-    const detail = !fromCanvas ? "หาในผืนไม่เจอ" : "หาในหน้าจริงไม่เจอ";
-    if (entry) {
-      stillTrue.add(row.name);
-      excusedRows.push({ name: row.name, detail, why: entry.why });
-    } else {
-      unknown.push({ name: row.name, detail });
-    }
-    continue;
-  }
-
-  const keys = row.keys ?? ["w", "h"];
-  const diffs = keys
-    .map((key) => ({ key, canvas: fromCanvas[key], live: fromLive[key], gap: Number((fromLive[key] - fromCanvas[key]).toFixed(2)) }))
-    .filter((diff) => Math.abs(diff.gap) > TOLERANCE);
-
-  if (diffs.length === 0) {
-    same.push(row.name);
-    continue;
-  }
-
-  const detail = diffs
-    .map((diff) => `${diff.key}: ผืน ${diff.canvas} → จริง ${diff.live} (${diff.gap > 0 ? "+" : ""}${diff.gap})`)
-    .join(" · ");
-
-  if (entry) {
-    stillTrue.add(row.name);
-    excusedRows.push({ name: row.name, detail, why: entry.why });
-  } else {
-    unknown.push({ name: row.name, detail });
-  }
-}
-
 /**
  * ทุกข้อในสมุดต้องพิสูจน์ตัวเองได้ด้วยทางใดทางหนึ่ง ห้ามยืนยันด้วยประโยคเฉย ๆ
  *
- *   อยู่ในแผนที่          วัดเป็นกล่องได้ ต้องยังต่างจริง ไม่งั้นหมดอายุ
+ *   อยู่ในแผนที่          วัดเป็นกล่องได้ ต้องยังต่างจริงที่ความกว้างใดความกว้างหนึ่ง
  *   `checkedBy`         มีตัวตรวจอยู่ที่อื่น ไฟล์นั้นต้องมีจริง หรือตัวตรวจในตัวต้องผ่าน
  *   `effectOf`          เป็นผลของข้ออื่น ชื่อที่อ้างต้องมีในสมุดและต้องยังต่างจริง
  *   `dueWith`           สัญญาว่าจะมีตัวตรวจตอนบล็อกนั้นลง ครบกำหนดแล้วต้องทวง
  *   `unmeasured`        วัดไม่ได้จริง ๆ ต้องมีเหตุผลกำกับ
+ *
+ * **นับเฉพาะความกว้างที่ข้อนั้นบอกว่าตัวเองยกเว้นให้** ตามที่ `coversWidth` อธิบายไว้ ·
+ * ข้อที่ยกเว้นให้แค่ 1280 แล้วที่ 1280 วัดได้ว่าไม่ต่างแล้ว ถือว่าหมดอายุ แม้ที่ 390 จะยังต่างอยู่
+ * เพราะความต่างที่ 390 ไม่ใช่สิ่งที่ข้อนั้นพูดถึง
  */
 const mapped = new Set(MAP.map((row) => row.name));
 const named = new Set(ledger.map((entry) => entry.name));
@@ -263,15 +336,29 @@ for (const entry of ledger) {
 }
 
 const heading = (text) => console.log(`\n${text}\n${"-".repeat(text.length)}`);
+const banner = (text) => console.log(`\n${"=".repeat(text.length)}\n${text}\n${"=".repeat(text.length)}`);
 
-heading(`ตรง — ${same.length} จุด`);
-for (const name of same) console.log(` ${name}`);
+let unknownTotal = 0;
 
-heading(`ต่างแต่มีเหตุผล — ${excusedRows.length} จุด`);
-for (const row of excusedRows) console.log(` ${row.name}\n   ${row.detail}\n   เหตุผล: ${row.why}`);
+for (const result of perWidth) {
+  banner(`ความกว้าง ${result.width}`);
 
-heading(`ต่างโดยไม่มีใครรู้ — ${unknown.length} จุด`);
-for (const row of unknown) console.log(` ${row.name}\n   ${row.detail}`);
+  heading(`ตรง — ${result.same.length} จุด`);
+  for (const name of result.same) console.log(` ${name}`);
+
+  heading(`ต่างแต่มีเหตุผล — ${result.excusedRows.length} จุด`);
+  for (const row of result.excusedRows) console.log(` ${row.name}\n   ${row.detail}\n   เหตุผล: ${row.why}`);
+
+  heading(`ต่างโดยไม่มีใครรู้ — ${result.unknown.length} จุด`);
+  for (const row of result.unknown) console.log(` ${row.name}\n   ${row.detail}`);
+
+  heading(`ผืนใบนี้ไม่มีของชิ้นนี้ — ${result.skipped.length} จุด`);
+  for (const name of result.skipped) console.log(` ${name}`);
+
+  unknownTotal += result.unknown.length;
+}
+
+banner("ทั้งสองความกว้าง");
 
 heading(`ตัวตรวจในตัว — ${Object.keys(hitChecks).length} ข้อ`);
 for (const [name, result] of Object.entries(hitChecks)) console.log(` ${result.ok ? "ผ่าน" : "ตก  "} ${name} — ${result.detail}`);
@@ -286,4 +373,4 @@ heading(`สมุดที่พิสูจน์ตัวเองไม่�
 for (const problem of problems) console.log(` ${problem}`);
 
 console.log("");
-process.exitCode = unknown.length + problems.length === 0 ? 0 : 1;
+process.exitCode = unknownTotal + problems.length === 0 ? 0 : 1;
