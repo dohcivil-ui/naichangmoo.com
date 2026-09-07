@@ -1,0 +1,2 @@
+ALTER TABLE "apps" ADD COLUMN "expected_open_month" text;--> statement-breakpoint
+ALTER TABLE "apps" ADD CONSTRAINT "apps_expected_open_month_format" CHECK ("apps"."expected_open_month" IS NULL OR "apps"."expected_open_month" ~ '^[0-9]{4}-(0[1-9]|1[0-2])$');

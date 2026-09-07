@@ -151,9 +151,29 @@ export const apps = pgTable("apps", {
   availabilityNote: text("availability_note"),
   announcedAt: timestamp("announced_at", { withTimezone: true }),
   announcedBy: text("announced_by").references(() => users.id),
+  /**
+   * The month an administrator expects the app to open, as `YYYY-MM`, or null when nobody has
+   * said (ADR 0025). Null and a month that has already passed both mean the same thing to a
+   * reader: the platform has no month to offer. They are not the same thing in this column,
+   * because the passed month is evidence that a claim was once made, and only a person may
+   * clear it. Nothing in the system writes null here on a schedule; expiry happens when the
+   * value is read, never when it is stored.
+   */
+  expectedOpenMonth: text("expected_open_month"),
   createdAt,
   updatedAt
-}, (table) => [uniqueIndex("apps_slug_unique").on(table.slug)]);
+}, (table) => [
+  uniqueIndex("apps_slug_unique").on(table.slug),
+  /**
+   * The shape is enforced here and not only in the application (ADR 0025, ADR 0024). Validating
+   * in the write path guards the doors we know about; a data fix-up script, a restore, or hand
+   * typed SQL walks straight past it. `YYYY-MM` is a shape a regular expression can hold.
+   */
+  check(
+    "apps_expected_open_month_format",
+    sql`${table.expectedOpenMonth} IS NULL OR ${table.expectedOpenMonth} ~ '^[0-9]{4}-(0[1-9]|1[0-2])$'`
+  )
+]);
 
 export const appEntitlements = pgTable("app_entitlements", {
   id: text("id").primaryKey(),
