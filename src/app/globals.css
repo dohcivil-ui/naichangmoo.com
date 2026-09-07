@@ -3297,6 +3297,10 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    และไม่กินพื้นที่มากกว่านั้นใน layout · ส่วนเขตกดขยายออกไปรอบตัวด้วย `::after`
    ที่วางแบบ absolute จึงไม่ดันของข้าง ๆ ให้ขยับเลยสักพิกเซล
    ถ้าปล่อยให้เป้ากดเท่าขีดจริง มันจะกดไม่ติดบนมือถือและกดยากบนเมาส์ */
+/* **กฎนี้ชนะ `min-height: 48px` ของ `.button` ด้วยลำดับในไฟล์ ไม่ใช่ด้วยน้ำหนักตัวเลือก**
+   ทั้งคู่เป็นคลาสเดียวเท่ากัน เบราว์เซอร์จึงเลือกตัวที่มาทีหลัง · ถ้าวันไหนมีคนจัดลำดับบล็อก
+   ใน `globals.css` ใหม่แล้วบล็อกนี้ขึ้นไปอยู่ก่อน `.button` ขีดจะกลายเป็นสูง 48 ทันที
+   โดยไม่มีด่านไหนแดง · ย้ายบล็อกนี้เมื่อไร ต้องวัดขีดใหม่ทุกครั้ง */
 .button--slide-dot {
   position: relative;
   inline-size: 22px;
@@ -3361,7 +3365,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* **`display: block` ไม่ใช่ของเกิน** ขีดนี้เป็น `<span>` ซึ่งเป็นอิลิเมนต์แนวบรรทัด
    และอิลิเมนต์แนวบรรทัดไม่รับความกว้างความสูง · วัดบนของจริงแล้วได้ **0x0** ทั้งที่
    กฎประกาศ 36x3 ไว้ครบ · กฎที่ประกาศแล้วไม่มีผลคือกฎที่ไม่มีใครเห็นว่าตาย */
-.v3-hline { display: block; inline-size: 36px; block-size: 3px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
+.v3-hline { display: block; inline-size: 36px; block-size: 3px; margin-block: 10px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
 .v3-hcard:hover .v3-hline { inline-size: 64px; }
 .v3-htext { transition: transform .3s var(--ease-out); }
 .v3-hcard:hover .v3-htext { transform: translateY(-4px); }
@@ -3392,7 +3396,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    สืบทอดลงมาเสมอ ไม่ว่าพ่อจะสั่งสีอะไรไว้ · วัดบนของจริงแล้วหัวเรื่องออกมาเป็นหมึกเข้ม
    ของธีมเก่าบนพื้นแบนเนอร์เข้ม ได้คอนทราสต์ **1.32:1** ซึ่งแทบมองไม่เห็น
    หัวเรื่องทุกตัวที่นั่งบนพื้นเข้มของรุ่นสามต้องประกาศสีของตัวเอง */
-.v3-banner__title { margin: 12px 0 0; font-size: 56px; line-height: 1.08; letter-spacing: -.02em; color: var(--v3-white); }
+.v3-banner__title { margin: 12px 0 0; font-size: 56px; font-weight: 700; line-height: 1.08; letter-spacing: -.02em; color: var(--v3-white); }
 .v3-banner__title span { display: block; white-space: nowrap; }
 .v3-banner__title span + span { margin-block-start: 10px; font-size: 34px; font-weight: 600; line-height: 1.3; }
 .v3-banner__body { margin: 14px 0 26px; max-inline-size: 44ch; font-size: 16px; line-height: 26px; color: var(--v3-white-a88); }
@@ -3443,9 +3447,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-hcard { position: relative; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--v3-line); border-radius: 18px; overflow: hidden; background: var(--v3-night); box-shadow: var(--v3-sh-md); color: var(--v3-white); text-decoration: none; }
 .v3-hcard__poster { display: block; inline-size: 100%; block-size: auto; }
 .v3-hcard__panel { position: relative; padding: 18px 20px 20px; background: linear-gradient(180deg, var(--v3-night), var(--v3-night-2)); }
-.v3-hcard__eyebrow { display: block; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--v3-pink-200); }
+/* `inline-block` ไม่ใช่ `block` ตามผืน (`dc.html:69`) — ต่างกันจริงเจ็ดพิกเซล เพราะ
+   inline-block นั่งอยู่ในกล่องบรรทัดของแม่ ซึ่งสูงตาม line-height ของแม่ ไม่ใช่สูงเท่าตัวเอง */
+.v3-hcard__eyebrow { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--v3-pink-200); }
 /* สีประกาศตรงนี้ด้วยเหตุผลเดียวกับ `.v3-banner__title` — วัดได้ 1.26:1 ก่อนแก้ */
-.v3-hcard__title { margin: 6px 0 0; font-size: 34px; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; color: var(--v3-white); }
+.v3-hcard__title { margin: 6px 0 0; font-size: 34px; font-weight: 700; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; color: var(--v3-white); }
 .v3-hcard__lead { margin: 0; font-size: 16px; line-height: 1.4; font-weight: 600; white-space: nowrap; }
 /* ลิงก์ที่หัวเรื่องแผ่แผ่นใสปูทับทั้งการ์ด ทำให้ทั้งใบกดได้โดยไม่ต้องซ้อน `<a>` ใน `<a>`
    ปุ่ม LINE ยกตัวขึ้นเหนือแผ่นด้วย `z-index` จึงยังเป็นลิงก์ของตัวเองที่กดได้แยก */
