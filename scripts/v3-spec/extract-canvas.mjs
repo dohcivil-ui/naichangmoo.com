@@ -10,7 +10,7 @@
  *
  * รัน: node scripts/v3-spec/extract-canvas.mjs   (ต้องมี serve-canvas.mjs ที่ :4173)
  */
-import { loadPlaywright } from "./playwright.mjs";
+import { freezeAnimations, loadPlaywright } from "./playwright.mjs";
 import { writeFile } from "node:fs/promises";
 
 const { chromium } = await loadPlaywright();
@@ -23,6 +23,8 @@ const browser = await chromium.launch({ channel: "msedge" });
 const page = await browser.newPage({ viewport: { width: 1900, height: 1400 } });
 await page.goto(CANVAS, { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
+/* ต้องหยุดอนิเมชันก่อนวัด ไม่งั้นของที่ขยับขนาดจะถอดได้ไม่เท่ากันทุกรอบ — เหตุผลเต็มอยู่ที่ตัวฟังก์ชัน */
+await freezeAnimations(page);
 
 for (const boardWidth of BOARDS) {
   const rows = await page.evaluate((want) => {

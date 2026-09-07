@@ -24,7 +24,7 @@
  * ต้องมี `serve-canvas.mjs` ที่ :4173 และ dev server ที่ :3000
  * รัน: node scripts/v3-spec/compare.mjs
  */
-import { loadPlaywright } from "./playwright.mjs";
+import { freezeAnimations, loadPlaywright } from "./playwright.mjs";
 import { readFile } from "node:fs/promises";
 
 const { chromium } = await loadPlaywright();
@@ -150,6 +150,7 @@ const browser = await chromium.launch({ channel: "msedge" });
 const canvasPage = await browser.newPage({ viewport: { width: 1900, height: 1400 } });
 await canvasPage.goto(CANVAS, { waitUntil: "networkidle" });
 await canvasPage.waitForTimeout(1200);
+await freezeAnimations(canvasPage);
 
 const livePage = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 /* `networkidle` ใช้กับ dev server ไม่ได้ มันเปิด websocket ของ HMR ค้างไว้ตลอด
@@ -159,6 +160,8 @@ await livePage.locator(".v3-hcard__poster").waitFor({ state: "visible" });
 /* นาฬิกาโผล่หลัง hydrate เท่านั้น การรอมันจึงพิสูจน์ว่าหน้าพร้อมวัดครบทุกส่วน
    ไม่ใช่แค่ส่วนที่ server เขียนมา · ถ้าบล็อกโปรโมชั่นหมดอายุแล้วจะไม่มีนาฬิกา จึงไม่รอค้าง */
 await livePage.locator(".v3-promo__clock-cell").first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+/* หยุดอนิเมชันทั้งสองฝั่งก่อนวัด ปิดข้างเดียวจะกลายเป็นการเทียบขนาดที่ออกแบบไว้กับเฟรมสุ่ม */
+await freezeAnimations(livePage);
 
 /** ผลของทุกความกว้าง เก็บไว้ก่อนเพราะการตรวจสมุดต้องดูภาพรวมทุกใบพร้อมกัน */
 const perWidth = [];
@@ -226,44 +229,16 @@ await livePage.waitForTimeout(500);
 /**
  * ตัวตรวจในตัวสำหรับข้อที่วัดด้วยกล่องไม่ได้ แต่วัดด้วยวิธีอื่นได้
  *
- * `hitTarget` วัดเขตกดจริงของขีดบอกสไลด์ · กล่องของปุ่มคือ 22x3 ตามผืน ส่วนเขตกด
- * เป็น `::after` ที่ไม่กินพื้นที่ layout จึงไม่โผล่ใน `getBoundingClientRect` ของตัวปุ่ม
- * **แต่วัดได้** ด้วยการยิงจุดที่มุมของกล่องขนาดเกณฑ์ แล้วดูว่าโดนปุ่มตัวเดิมไหม
- * ซึ่งตรงกับความหมายของเกณฑ์มากกว่าการอ่านตัวเลข inset — เป้ากดคือที่ที่กดแล้วโดน
+ * **ว่างอยู่ตอนนี้** เคยมี `hitTarget` ที่วัดเขตกดจริงของขีดบอกสไลด์ ด้วยการยิงจุดที่มุม
+ * ของกล่องขนาดเกณฑ์แล้วดูว่าโดนปุ่มตัวเดิมไหม · มันพิสูจน์ตัวเองแล้วว่าจับได้จริง โดยจับได้
+ * ทันทีตอนถอย `inset` กลับไปค่าที่เคยพลาด · **ถูกลบเมื่อ 2026-09-07 เพราะเจ้าของงาน
+ * สั่งให้เขตกดเท่าขีดที่ตาเห็นตามผืน เกณฑ์ที่มันเฝ้าจึงไม่มีอยู่แล้ว** ตัวตรวจที่ไม่มีเกณฑ์
+ * คือโค้ดตาย กฎเดียวกับที่ใช้กับ `SearchIcon`
  *
- * เลขนี้เคยพลาดมาแล้วหนึ่งพิกเซล และถอยลงเงียบ ๆ ได้ทุกครั้งที่มีคนแตะขอบปุ่มหรือ inset
+ * โครงยังอยู่เพราะช่อง `checkedBy` ในสมุดยังอ้างรูปแบบ `compare.mjs:ชื่อ` ได้อยู่
+ * วันที่มีข้อใหม่ต้องการตัวตรวจแบบนี้ ให้เติมเข้ามาที่นี่
  */
-const builtIn = {
-  async hitTarget(entry) {
-    const size = entry.minHitTarget ?? 24;
-    const result = await livePage.evaluate((want) => {
-      const dot = document.querySelector(".button--slide-dot");
-      if (!dot) return { ok: false, detail: "หาขีดบอกสไลด์ในหน้าไม่เจอ" };
-      const box = dot.getBoundingClientRect();
-      const cx = box.x + box.width / 2;
-      const cy = box.y + box.height / 2;
-      const half = want / 2;
-      /* ยิงสี่มุมของกล่องขนาดเกณฑ์ ถ้ามุมไหนไม่โดนปุ่มตัวเดิม แปลว่าเป้ากดเล็กกว่าเกณฑ์ */
-      const corners = [
-        [cx - half + 0.5, cy - half + 0.5],
-        [cx + half - 0.5, cy - half + 0.5],
-        [cx - half + 0.5, cy + half - 0.5],
-        [cx + half - 0.5, cy + half - 0.5]
-      ];
-      const missed = corners.filter(([x, y]) => {
-        const hit = document.elementFromPoint(x, y);
-        return hit !== dot && !dot.contains(hit);
-      });
-      return {
-        ok: missed.length === 0,
-        detail: missed.length === 0
-          ? `กดโดนครบทั้งสี่มุมของกล่อง ${want}x${want}`
-          : `กดไม่โดน ${missed.length} มุมจากสี่ ของกล่อง ${want}x${want} — เป้ากดเล็กกว่าเกณฑ์`
-      };
-    }, size);
-    return result;
-  }
-};
+const builtIn = {};
 
 /**
  * ตรวจว่าสัญญาในสมุดยังครบกำหนดไหม

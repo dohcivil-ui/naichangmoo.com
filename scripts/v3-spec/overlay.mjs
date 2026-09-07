@@ -14,7 +14,7 @@
  * ต้องมี `serve-canvas.mjs` ที่ :4173 และ dev server ที่ :3000
  * รัน: node scripts/v3-spec/overlay.mjs [ความสูง]
  */
-import { loadPlaywright } from "./playwright.mjs";
+import { freezeAnimations, loadPlaywright } from "./playwright.mjs";
 import { readFile } from "node:fs/promises";
 
 const { chromium } = await loadPlaywright();
@@ -29,11 +29,14 @@ const browser = await chromium.launch({ channel: "msedge" });
 const canvasPage = await browser.newPage({ viewport: { width: 1900, height: 1400 } });
 await canvasPage.goto("http://localhost:4173/", { waitUntil: "networkidle" });
 await canvasPage.waitForTimeout(1200);
+await freezeAnimations(canvasPage);
 
 const livePage = await browser.newPage({ viewport: { width: 1280, height: HEIGHT } });
 /* dev server เปิด websocket ของ HMR ค้างไว้ เครือข่ายจึงไม่มีวันเงียบ รอภาพแทน */
 await livePage.goto("http://localhost:3000/", { waitUntil: "domcontentloaded" });
 await livePage.locator(".v3-hcard__poster").waitFor({ state: "visible" });
+/* ภาพซ้อนต้องซ้ำรอบต่อรอบได้ ไม่งั้นเปอร์เซ็นต์ที่รายงานเป็นเรื่องของจังหวะถ่าย ไม่ใช่ของงาน */
+await freezeAnimations(livePage);
 
 /* ฝังภาพเป็น data URI แทนการเสิร์ฟไฟล์ เพราะการดักเส้นทางหลังตั้งเนื้อหาหน้าแล้วไม่ทัน */
 const asData = async (file) => `data:image/png;base64,${(await readFile(file)).toString("base64")}`;
