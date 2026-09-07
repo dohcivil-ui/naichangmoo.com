@@ -8,7 +8,7 @@
  * การตรวจโฮสต์ของลิงก์เข้มไว้ก่อน — ลิงก์ผิดตัวเดียวขึ้นทุกหน้าของเว็บพร้อมกัน
  */
 
-export type ChannelKey = "line_oa" | "facebook" | "email";
+export type ChannelKey = "phone" | "line_oa" | "facebook" | "email";
 
 export type ChannelKind = {
   key: ChannelKey;
@@ -18,6 +18,15 @@ export type ChannelKind = {
   hint: string;
   /** แปลงค่าที่เก็บเป็นลิงก์ที่กดได้ */
   toHref: (value: string) => string;
+  /**
+   * แปลงค่าที่เก็บเป็นรูปแบบที่อ่านบนจอ — ไม่ใส่ = แสดงค่าที่เก็บตรง ๆ
+   *
+   * มีเพราะเบอร์โทรเก็บเป็นตัวเลขล้วนเพื่อให้ตรวจและทำลิงก์ได้ แต่ตัวเลขสิบหลักติดกัน
+   * อ่านยากและจำผิดง่าย · **ค่าที่เก็บกับค่าที่อ่านเป็นคนละรูปของสิ่งเดียวกัน ไม่ใช่สองค่า**
+   * ถ้าเก็บรูปที่มีช่องไฟไว้เลย ผู้ดูแลจะต้องพิมพ์ช่องไฟให้ถูกเอง แล้ววันหนึ่งจะมีเบอร์
+   * ที่เว้นวรรคไม่เหมือนเบอร์อื่น โดยไม่มีอะไรบอกว่าผิด
+   */
+  toDisplay?: (value: string) => string;
 };
 
 const LINE_HOSTS = new Set(["line.me", "lin.ee", "page.line.me"]);
@@ -33,7 +42,28 @@ function hostOf(value: string): string | null {
   }
 }
 
+/**
+ * เบอร์โทรเก็บเป็นตัวเลขล้วนขึ้นต้นด้วยศูนย์ตามที่คนไทยพิมพ์
+ *
+ * **ลิงก์ตัด 0 นำแล้วเติม +66** เบอร์ที่ขึ้นต้นด้วย 0 เป็นรูปในประเทศ เครื่องที่ตั้งรหัสประเทศอื่น
+ * จะกดไม่ติด · ขีดคั่นก็เช่นกัน บางเครื่องอ่านเป็นการหยุด `tel:` จึงต้องเป็นตัวเลขกับ + เท่านั้น
+ */
+const phoneDigits = (value: string) => value.replace(/\D/g, "");
+
 export const channelKinds: readonly ChannelKind[] = [
+  {
+    key: "phone",
+    label: "โทรศัพท์",
+    hint: "เบอร์ในประเทศขึ้นต้นด้วย 0 เช่น 0849891456 หรือ 084-989-1456 (ระบบจัดช่องไฟให้เอง)",
+    toHref: (value) => `tel:+66${phoneDigits(value).slice(1)}`,
+    /* ผืนออกแบบวางไว้เป็น `08 9127 6525` — สองสี่สี่ คั่นด้วยช่องว่าง
+       ที่มา: `redesign/V3/Home Redesign v3.dc.html` บรรทัด 24 ช่อง `.hd` ขนาด 18px */
+    toDisplay: (value) => {
+      const digits = phoneDigits(value);
+      if (digits.length !== 10) return digits;
+      return `${digits.slice(0, 2)} ${digits.slice(2, 6)} ${digits.slice(6)}`;
+    }
+  },
   {
     key: "line_oa",
     label: "LINE Official Account",
@@ -70,6 +100,24 @@ export function validateChannelValue(key: ChannelKey, raw: string): ChannelValid
       return { ok: false, message: "รูปแบบอีเมลไม่ถูกต้อง เช่น contact@naichangmoo.com" };
     }
     return { ok: true, value };
+  }
+
+  /**
+   * **เบอร์เก็บเป็นตัวเลขล้วน ไม่ใช่ตามที่พิมพ์มา**
+   *
+   * ผู้ดูแลพิมพ์ `084-989-1456` หรือ `084 989 1456` หรือ `0849891456` ก็ได้ทั้งหมด
+   * แล้วเก็บเป็นรูปเดียว · ถ้าเก็บตามที่พิมพ์ เบอร์เดียวกันจะมีได้หลายรูปในตารางเดียว
+   * แล้ววันที่มีคนเทียบว่าเบอร์เปลี่ยนไหม จะเทียบไม่ได้เพราะข้อความไม่ตรงกันทั้งที่เบอร์เดิม
+   *
+   * รับเฉพาะสิบหลักขึ้นต้นด้วยศูนย์ ซึ่งเป็นรูปของเบอร์มือถือไทย · เบอร์บ้านเก้าหลักยังไม่รับ
+   * เพราะยังไม่มีใครขอ และการรับไว้ก่อนแปลว่ารับเบอร์ที่พิมพ์ตกไปหนึ่งหลักด้วย
+   */
+  if (key === "phone") {
+    const digits = value.replace(/\D/g, "");
+    if (!/^0\d{9}$/.test(digits)) {
+      return { ok: false, message: "ต้องเป็นเบอร์สิบหลักขึ้นต้นด้วย 0 เช่น 084-989-1456" };
+    }
+    return { ok: true, value: digits };
   }
 
   const host = hostOf(value);

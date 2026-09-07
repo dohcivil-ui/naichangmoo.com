@@ -1,9 +1,17 @@
 /**
  * ตรวจว่าสไลด์ของหน้าแรกหยุดหมุนถูกกรณี
  *
- * WCAG 2.2.2 บังคับว่าของที่ขยับเองนานเกินห้าวินาทีต้องหยุดได้ · กฎ CSS ที่ท้าย
- * `globals.css` สั่งได้แค่ animation ส่วนตัวหมุนเป็น JavaScript ซึ่ง CSS แตะไม่ถึง
- * ด่านในชุดเทสต์ก็จับไม่ได้ เพราะไม่มีเบราว์เซอร์จริงให้เวลาเดิน
+ * **เหลือสองกรณี ไม่ใช่สี่ — เจ้าของงานเคาะ 2026-09-07 ให้ยึดผืน**
+ *
+ * เดิมสไลด์หยุดสามทาง คือเมื่อชี้เมาส์ เมื่อโฟกัสเข้าแบนเนอร์ และเมื่อผู้ใช้ตั้งเครื่องให้ลด
+ * การเคลื่อนไหว · สองทางแรกถูกถอนออกตามคำสั่งยึดผืน ซึ่งวาดสไลด์ที่หมุนตลอด ·
+ * กรณีทดสอบของสองทางนั้นจึงถูกลบไปด้วย **ไม่ใช่เพราะมันสอบตก แต่เพราะสิ่งที่มันเฝ้า
+ * ไม่มีอยู่แล้ว** ตัวตรวจที่ไม่มีเกณฑ์คือโค้ดตาย กฎเดียวกับที่ใช้กับ `hitTarget`
+ *
+ * **ทางที่เหลือคือ `prefers-reduced-motion` และมันไม่ใช่ของที่ผืนวาด** มันคือคำสั่งที่
+ * ผู้ใช้ตั้งไว้ที่เครื่องของเขาเอง ผืนจึงพูดแทนไม่ได้ · กฎ CSS ที่ท้าย `globals.css`
+ * สั่งได้แค่ animation ส่วนตัวหมุนเป็น JavaScript ซึ่ง CSS แตะไม่ถึง และด่านในชุดเทสต์
+ * ก็จับไม่ได้เพราะไม่มีเบราว์เซอร์จริงให้เวลาเดิน · ตัวตรวจนี้จึงยังต้องมี
  *
  * ต้องมี dev server ที่ :3000
  * รัน: node scripts/v3-spec/motion.mjs
@@ -19,7 +27,7 @@ const WAIT = 6500;
 const browser = await chromium.launch({ channel: "msedge" });
 const titleOf = (page) => page.locator(".v3-banner__title span").first().innerText();
 
-async function check(label, expectMove, { reduced = false, hover = false, focus = false } = {}) {
+async function check(label, expectMove, { reduced = false } = {}) {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 },
     reducedMotion: reduced ? "reduce" : "no-preference"
@@ -30,12 +38,12 @@ async function check(label, expectMove, { reduced = false, hover = false, focus 
   await page.waitForLoadState("load");
 
   /**
-   * **ต้องพิสูจน์ว่าหน้าพร้อมรับเมาส์ก่อน แล้วค่อยเริ่มจับเวลา**
+   * **ต้องพิสูจน์ว่าหน้าพร้อมรับการกดก่อน แล้วค่อยเริ่มจับเวลา**
    *
    * สไลด์ใบแรกถูกเขียนมาจากฝั่ง server จึงมองเห็นตั้งแต่ก่อน React จะผูกตัวรับเหตุการณ์
-   * ถ้าเอาเมาส์ไปชี้ในช่วงนั้น `onMouseEnter` ไม่ยิง แล้วสไลด์จะหมุนต่อทั้งที่เมาส์ค้างอยู่
-   * ตัวตรวจจะรายงานว่าตกทั้งที่โค้ดถูก · กดลูกศรหนึ่งครั้งแล้วดูว่าสไลด์เปลี่ยนจริง
-   * เป็นการพิสูจน์ว่าตัวรับเหตุการณ์ผูกแล้ว ไม่ใช่การเดาด้วยการรอเป็นวินาที
+   * และตัวจับเวลาก็ยังไม่ได้ตั้งในช่วงนั้นเหมือนกัน · การจับเวลาก่อนหน้าจะพร้อมทำให้กรณี
+   * "ปกติ ควรเลื่อน" ตกได้ทั้งที่โค้ดถูก · กดลูกศรหนึ่งครั้งแล้วดูว่าสไลด์เปลี่ยนจริง
+   * เป็นการพิสูจน์ว่าหน้าพร้อมแล้ว ไม่ใช่การเดาด้วยการรอเป็นวินาที
    */
   const first = await titleOf(page);
   await page.locator(".v3-banner__nav--next .button").click();
@@ -48,16 +56,13 @@ async function check(label, expectMove, { reduced = false, hover = false, focus 
   /**
    * คืนหน้าสู่สภาพปกติก่อนเริ่มจับเวลา
    *
-   * การกดลูกศรทำให้ปุ่มนั้นได้โฟกัส ซึ่งทำให้สไลด์หยุดหมุนตามที่ตั้งใจไว้ — **และหยุดค้าง
-   * จนกว่าโฟกัสจะย้ายออก** ซึ่งเป็นพฤติกรรมที่ถูก คนที่กำลังเลือกดูเองไม่ควรถูกแย่งไป
-   * แต่ถ้าไม่ล้างโฟกัสตรงนี้ กรณี "ปกติ ควรเลื่อน" จะวัดสภาพที่ไม่ใช่สภาพปกติ
+   * **โฟกัสกับเมาส์ไม่หยุดสไลด์อีกแล้ว** การล้างจึงไม่จำเป็นต่อผลอีกต่อไป แต่ยังทำอยู่
+   * เพราะมันทำให้ตัวตรวจวัดสภาพเดียวกันทุกรอบ ไม่ใช่สภาพที่ค้างมาจากการกดลูกศรเมื่อครู่
    */
   await page.evaluate(() => document.activeElement?.blur());
   await page.mouse.move(10, 10);
 
   const before = await titleOf(page);
-  if (hover) await page.locator(".v3-banner").hover();
-  if (focus) await page.locator(".v3-banner__nav--next .button").focus();
   await page.waitForTimeout(WAIT);
   const after = await titleOf(page);
   const moved = before !== after;
@@ -69,13 +74,11 @@ async function check(label, expectMove, { reduced = false, hover = false, focus 
 
 const results = [
   await check("ปกติ ควรเลื่อน", true),
-  await check("ตั้งเครื่องลดการเคลื่อนไหว ควรหยุด", false, { reduced: true }),
-  await check("เมาส์ชี้ค้างไว้ ควรหยุด", false, { hover: true }),
-  await check("โฟกัสปุ่มด้วยคีย์บอร์ด ควรหยุด", false, { focus: true })
+  await check("ตั้งเครื่องลดการเคลื่อนไหว ควรหยุด", false, { reduced: true })
 ];
 
 await browser.close();
 
 const failed = results.filter((ok) => !ok).length;
-console.log(failed === 0 ? "\nครบทั้งสี่กรณี" : `\nตก ${failed} กรณี`);
+console.log(failed === 0 ? "\nครบทั้งสองกรณี" : `\nตก ${failed} กรณี`);
 process.exitCode = failed === 0 ? 0 : 1;

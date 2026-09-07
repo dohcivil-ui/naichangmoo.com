@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_Thai, Prompt } from "next/font/google";
+import { IBM_Plex_Sans_Thai, Noto_Sans_Thai, Prompt } from "next/font/google";
 import "@/app/globals.css";
 import "@/app/document-print.css";
 import { CookieNotice } from "@/components/platform/cookie-notice";
@@ -51,6 +51,27 @@ const plexNumeric = IBM_Plex_Sans_Thai({
   display: "swap"
 });
 
+/**
+ * ฟอนต์ของผืนออกแบบรุ่นสาม — **ใช้เฉพาะบล็อกหน้าร้านบนหน้าแรก ไม่ใช่ทั้งเว็บ**
+ *
+ * คำสั่งเดิม 2026-08-28 ห้ามเปลี่ยนฟอนต์ของเว็บและห้ามเพิ่ม Noto Sans Thai · เจ้าของงาน
+ * ทับคำสั่งนั้นเมื่อ 2026-09-07 ด้วยคำสั่งให้ยึดผืนรุ่นสามเป๊ะ **แต่ทับเฉพาะขอบเขตที่ผืนพูดถึง**
+ * ผืนรุ่นสามวาดหน้าแรกใบเดียว มันจึงพูดแทนหน้าอื่นไม่ได้ · หน้าที่เหลือทั้งเว็บยังเป็น Prompt
+ * และขอบเขตนั้นบังคับด้วยกฎใน `globals.css` ที่ผูกฟอนต์นี้กับ `.v3-page` เท่านั้น
+ *
+ * **ตัวเลขไม่ได้ใช้ฟอนต์นี้** ผืนใช้ฟอนต์เดียวกับทั้งใบสำหรับช่อง `.hd` ส่วนเราแยกฟอนต์ตัวเลข
+ * ไว้ตั้งแต่ IP-203 เพราะเลขที่กว้างไม่เท่ากันทำให้คอลัมน์ราคาเลิกตรงหลัก · `numeric-font-fence`
+ * ถือกฎนั้นไว้ และความต่างข้อนี้อยู่ในสมุดข้อยกเว้นพร้อมเหตุผล
+ *
+ * โหลดสี่น้ำหนักตามที่ผืนขอมาในบรรทัด `<link>` ของมันเอง คือ 400 500 600 700
+ */
+const canvasThai = Noto_Sans_Thai({
+  variable: "--font-canvas",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap"
+});
+
 /*
  * ฟอนต์ของเอกสารที่พิมพ์ไม่ได้อยู่ที่นี่แล้ว
  *
@@ -78,7 +99,7 @@ export function generateViewport(): Viewport {
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="th"><body className={`${prompt.variable} ${plexNumeric.variable}`}>
+  return <html lang="th"><body className={`${prompt.variable} ${plexNumeric.variable} ${canvasThai.variable}`}>
     {/* Everything carrying data-reveal starts at opacity 0 and is revealed by script. Without
         this, a visitor with no JavaScript gets a hero that never arrives. */}
     <noscript><style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style></noscript>

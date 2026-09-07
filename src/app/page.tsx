@@ -8,7 +8,7 @@ import { HeroSlider, type HeroSlideView } from "@/components/landing/v3/hero-sli
 import { HermesCard } from "@/components/landing/v3/hermes-card";
 import { PromoRow, type PromoCardView } from "@/components/landing/v3/promo-row";
 import { ShopHeader } from "@/components/landing/v3/shop-header";
-import { heroSlides, isPromoLive, promoEndsAt, promoOffers } from "@/lib/landing-v3-data";
+import { heroPrimaryCtaLabel, heroSlides, isPromoLive, promoEndsAt, promoOffers } from "@/lib/landing-v3-data";
 import { describeCardClaims } from "@/lib/catalogue-card";
 import { getAppInteractionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { marketCategories, platformApps } from "@/lib/platform";
@@ -63,10 +63,12 @@ export default async function LandingPage() {
       subtitle: slide.subtitle,
       body: slide.body,
       tagLabel: says.access?.label ?? null,
-      /* ถ้อยคำปุ่มหลักมาจากทะเบียนตัวเดียวกับที่การ์ดแอปทั้งเว็บใช้ ไม่ใช่ `Shop now!`
-         ของผืนออกแบบ ซึ่งเป็นคำอังกฤษที่ `copy-th.md` หมวดสามห้าม และสัญญาว่าซื้อได้ทันที
-         ทั้งที่ปุ่มพาไปหน้ารายละเอียด · ทะเบียนตอบตามสถานะจริงอยู่แล้ว ไม่ต้องคิดคำใหม่ */
-      primaryLabel: says.cta.label,
+      /* **ถ้อยคำปุ่มหลักบนแบนเนอร์มาจากผืน ไม่ใช่จากทะเบียน** เจ้าของงานเคาะ 2026-09-07
+         ให้ยึดผืนทุกอย่าง หลังได้รับแจ้งแล้วว่าคำนี้เป็นภาษาอังกฤษที่ `copy-th.md` หมวดสามห้าม
+         สัญญาว่าซื้อได้ทันทีทั้งที่พาไปหน้ารายละเอียด และหน้าซื้อที่มันสัญญาถึงไม่มีในเรพอ ·
+         เหตุผลเต็มกับที่มาของคำอยู่ที่ `heroPrimaryCtaLabel` · ปลายทางไม่เปลี่ยนตาม
+         ยังเป็นหน้ารายละเอียด และปุ่มรองยังอ่านจากทะเบียนเหมือนเดิม */
+      primaryLabel: heroPrimaryCtaLabel,
       detailHref: interaction.detailHref,
       entryHref: interaction.entryHref,
       entryLabel: slide.secondaryCtaLabel
@@ -108,7 +110,9 @@ export default async function LandingPage() {
   const promoIsLive = isPromoLive();
 
   return (
-    <main className="site-shell">
+    /* `v3-page` เป็นขอบเขตของฟอนต์ผืนออกแบบ อยู่บนหน้าแรกหน้าเดียวทั้งเว็บ
+       กฎกับเหตุผลอยู่ที่ `globals.css` ตรงหัวข้อฟอนต์ของผืนออกแบบ */
+    <main className="site-shell v3-page">
       <LandingMotion />
       {/* หน้าแรกรุ่นสามใช้แถบของหน้าร้านแทนแถบนำทางของแพลตฟอร์ม หน้าอื่นทั้งเว็บยังใช้
           `SiteHeader` เหมือนเดิม · ส่วนที่เหลือของหน้ายังเป็นของเดิม จะทยอยเปลี่ยนทีละบล็อก */}

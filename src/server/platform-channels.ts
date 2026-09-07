@@ -12,7 +12,14 @@ import { channelKinds, isChannelKey, validateChannelValue, type ChannelKey } fro
 const channelRowId = (key: ChannelKey) => `channel_${key}`;
 const REASON_MIN_LENGTH = 4;
 
-export type PublishedChannel = { key: ChannelKey; label: string; href: string; value: string };
+/**
+ * `value` คือค่าที่เก็บ `display` คือรูปที่เอาไปวางบนจอ
+ *
+ * สองช่องนี้เท่ากันทุกชนิดยกเว้นเบอร์โทร ซึ่งเก็บเป็นตัวเลขล้วนแต่แสดงเป็นสองสี่สี่ตามผืน ·
+ * แยกไว้เพื่อไม่ให้ที่เรียกใช้ต้องรู้ว่าชนิดไหนต้องจัดรูปเอง ซึ่งเป็นความรู้ที่จะกระจาย
+ * ไปอยู่ทุกที่ที่แสดงช่องทาง แล้วตอบไม่ตรงกันวันที่มีคนแก้ที่เดียว
+ */
+export type PublishedChannel = { key: ChannelKey; label: string; href: string; value: string; display: string };
 
 /**
  * เฉพาะช่องที่กรอกแล้ว สำหรับท้ายเว็บ — ฐานข้อมูลอ่านไม่ได้ให้คืนลิสต์ว่าง เพราะช่องทางติดต่อ
@@ -27,7 +34,13 @@ export async function readPublishedChannels(): Promise<PublishedChannel[]> {
     for (const kind of channelKinds) {
       const value = byKey.get(kind.key);
       if (!value) continue;
-      published.push({ key: kind.key, label: kind.label, href: kind.toHref(value), value });
+      published.push({
+        key: kind.key,
+        label: kind.label,
+        href: kind.toHref(value),
+        value,
+        display: kind.toDisplay ? kind.toDisplay(value) : value
+      });
     }
     return published;
   } catch {

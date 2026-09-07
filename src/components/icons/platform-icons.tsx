@@ -122,6 +122,17 @@ export function MenuIcon(props: IconProps) {
   return <BaseIcon {...props}><path d="M9 15h30" /><path d="M9 24h30" /><path d="M9 33h30" /></BaseIcon>;
 }
 
+/**
+ * หูฟังของฝ่ายบริการลูกค้า — ไอคอนของช่องโทรศัพท์ในแถบบนของหน้าร้าน
+ *
+ * ลอกรูปจากผืนออกแบบรุ่นสาม `redesign/V3/Home Redesign v3.dc.html` บรรทัด 24
+ * ซึ่งวาดบนตาราง 24 หน่วย · ที่นี่ใช้ตาราง 48 ตาม `BaseIcon` ทุกค่าจึงคูณสอง
+ * รวมทั้งรัศมีของส่วนโค้ง ไม่ใช่แค่พิกัด — คูณเฉพาะพิกัดจะได้หูที่แบนกว่าผืน
+ */
+export function HeadsetIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M6 36v-12a18 18 0 0 1 36 0v12" /><path d="M42 38a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-6a4 4 0 0 1 4-4h6z" /><path d="M6 38a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-6a4 4 0 0 0-4-4H6z" /><path d="M30 42h-6" /></BaseIcon>;
+}
+
 export function MailIcon(props: IconProps) {
   return <BaseIcon {...props}><rect x="7" y="11" width="34" height="26" rx="3" /><path d="m8 14 16 12 16-12" /></BaseIcon>;
 }

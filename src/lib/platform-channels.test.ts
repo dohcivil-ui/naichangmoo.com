@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateChannelValue } from "@/lib/platform-channels";
+import { channelKinds, validateChannelValue } from "@/lib/platform-channels";
 
 /**
  * ลิงก์ผิดตัวเดียวขึ้นทุกหน้าพร้อมกัน — กติกาตรวจจึงต้องมีเทสต์คุม โดยเฉพาะเคสหลอก:
@@ -31,5 +31,41 @@ describe("กติกาตรวจค่าช่องทางติดต�
 
   it("ค่าว่างถูกปัดไปทางปุ่มล้างค่า ไม่ใช่บันทึกเงียบ", () => {
     expect(validateChannelValue("email", "   ").ok).toBe(false);
+  });
+});
+
+/**
+ * เบอร์โทรเข้าทะเบียนเมื่อ 2026-09-07 · ต่างจากช่องทางอื่นตรงที่ **ผู้ดูแลพิมพ์ได้หลายรูป
+ * แต่ต้องเก็บรูปเดียว** ไม่งั้นเบอร์เดียวกันจะมีหลายรูปในตารางเดียว แล้ววันที่มีคนเทียบว่า
+ * เบอร์เปลี่ยนไหม จะเทียบไม่ได้เพราะข้อความไม่ตรงกันทั้งที่เบอร์เดิม
+ *
+ * และเบอร์เป็นช่องทางเดียวที่กดผิดแล้วไปโผล่ที่คนอื่นจริง ๆ ไม่ใช่แค่ลิงก์เสีย
+ */
+describe("เบอร์โทรในทะเบียนช่องทาง", () => {
+  const phoneKind = channelKinds.find((kind) => kind.key === "phone");
+
+  it("รับเบอร์ที่พิมพ์มาได้ทุกรูป แล้วเก็บเป็นตัวเลขล้วนรูปเดียว", () => {
+    for (const typed of ["0849891456", "084-989-1456", "084 989 1456", " 084-989-1456 "]) {
+      const result = validateChannelValue("phone", typed);
+      expect(result.ok, `พิมพ์ว่า ${typed}`).toBe(true);
+      if (result.ok) expect(result.value).toBe("0849891456");
+    }
+  });
+
+  it("ปฏิเสธเบอร์ที่หลักไม่ครบ ไม่ขึ้นต้นด้วยศูนย์ หรือไม่ใช่เบอร์", () => {
+    expect(validateChannelValue("phone", "084989145").ok).toBe(false);
+    expect(validateChannelValue("phone", "08498914567").ok).toBe(false);
+    expect(validateChannelValue("phone", "849891456").ok).toBe(false);
+    expect(validateChannelValue("phone", "โทรหาเราได้เลย").ok).toBe(false);
+  });
+
+  /* ขีดกับ 0 นำทำให้กดโทรจากเครื่องที่ตั้งรหัสประเทศอื่นไม่ติด — ลิงก์จึงต้องเป็นรูปสากล */
+  it("ลิงก์ตัดศูนย์นำแล้วเติมรหัสประเทศ", () => {
+    expect(phoneKind?.toHref("0849891456")).toBe("tel:+66849891456");
+  });
+
+  /* รูปสองสี่สี่มาจากผืนออกแบบ `redesign/V3/Home Redesign v3.dc.html` บรรทัด 24 */
+  it("รูปที่แสดงบนจอเป็นสองสี่สี่ตามผืนออกแบบ", () => {
+    expect(phoneKind?.toDisplay?.("0849891456")).toBe("08 4989 1456");
   });
 });
