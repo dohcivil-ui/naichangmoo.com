@@ -14,9 +14,25 @@ import { loadESLint } from "eslint";
 
 const FENCE_RULE = "@typescript-eslint/no-restricted-imports";
 
+/**
+ * สตาร์ต ESLint ครั้งเดียวแล้วใช้ซ้ำทั้งเจ็ดข้อ
+ *
+ * เดิมสร้างใหม่ทุกครั้งที่เรียก ซึ่งแปลว่าโหลด config ทั้งชุดเจ็ดรอบสำหรับงานเดียวกัน
+ * เวลาที่เสียไปกองอยู่ตรงนั้นทั้งหมด — รันเดี่ยวยังทัน แต่พอชุดเทสต์โตขึ้นอีกไฟล์เดียว
+ * มันก็ทะลุยี่สิบวินาทีและแดงโดยที่รั้วไม่ได้พังและโค้ดไม่ได้ผิด
+ *
+ * การขยายเพดานเวลาไปเรื่อย ๆ ไม่ใช่การแก้ มันแค่เลื่อนวันที่จะแดงออกไป · คอมเมนต์ข้างล่าง
+ * บันทึกไว้เองแล้วว่าเคยขยายจากห้าเป็นยี่สิบมาแล้วรอบหนึ่งด้วยเหตุผลเดียวกันเป๊ะ
+ */
+let shared: Promise<InstanceType<Awaited<ReturnType<typeof loadESLint>>>> | null = null;
+
+function eslintOnce() {
+  shared ??= loadESLint({ useFlatConfig: true }).then((ESLint) => new ESLint({ cwd: process.cwd() }));
+  return shared;
+}
+
 async function fenceErrors(filePath: string, code: string): Promise<string[]> {
-  const ESLint = await loadESLint({ useFlatConfig: true });
-  const eslint = new ESLint({ cwd: process.cwd() });
+  const eslint = await eslintOnce();
   const [result] = await eslint.lintText(code, { filePath, warnIgnored: true });
   return (result?.messages ?? [])
     .filter((message) => message.ruleId === FENCE_RULE)
