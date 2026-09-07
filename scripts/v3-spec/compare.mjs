@@ -100,6 +100,70 @@ await livePage.locator(".v3-hcard__poster").waitFor({ state: "visible" });
 
 const canvas = await boxes(canvasPage, MAP.map((row) => row.canvas), 1280);
 const live = await boxes(livePage, MAP.map((row) => row.live), null);
+
+/**
+ * ตัวตรวจในตัวสำหรับข้อที่วัดด้วยกล่องไม่ได้ แต่วัดด้วยวิธีอื่นได้
+ *
+ * `hitTarget` วัดเขตกดจริงของขีดบอกสไลด์ · กล่องของปุ่มคือ 22x3 ตามผืน ส่วนเขตกด
+ * เป็น `::after` ที่ไม่กินพื้นที่ layout จึงไม่โผล่ใน `getBoundingClientRect` ของตัวปุ่ม
+ * **แต่วัดได้** ด้วยการยิงจุดที่มุมของกล่องขนาดเกณฑ์ แล้วดูว่าโดนปุ่มตัวเดิมไหม
+ * ซึ่งตรงกับความหมายของเกณฑ์มากกว่าการอ่านตัวเลข inset — เป้ากดคือที่ที่กดแล้วโดน
+ *
+ * เลขนี้เคยพลาดมาแล้วหนึ่งพิกเซล และถอยลงเงียบ ๆ ได้ทุกครั้งที่มีคนแตะขอบปุ่มหรือ inset
+ */
+const builtIn = {
+  async hitTarget(entry) {
+    const size = entry.minHitTarget ?? 24;
+    const result = await livePage.evaluate((want) => {
+      const dot = document.querySelector(".button--slide-dot");
+      if (!dot) return { ok: false, detail: "หาขีดบอกสไลด์ในหน้าไม่เจอ" };
+      const box = dot.getBoundingClientRect();
+      const cx = box.x + box.width / 2;
+      const cy = box.y + box.height / 2;
+      const half = want / 2;
+      /* ยิงสี่มุมของกล่องขนาดเกณฑ์ ถ้ามุมไหนไม่โดนปุ่มตัวเดิม แปลว่าเป้ากดเล็กกว่าเกณฑ์ */
+      const corners = [
+        [cx - half + 0.5, cy - half + 0.5],
+        [cx + half - 0.5, cy - half + 0.5],
+        [cx - half + 0.5, cy + half - 0.5],
+        [cx + half - 0.5, cy + half - 0.5]
+      ];
+      const missed = corners.filter(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return hit !== dot && !dot.contains(hit);
+      });
+      return {
+        ok: missed.length === 0,
+        detail: missed.length === 0
+          ? `กดโดนครบทั้งสี่มุมของกล่อง ${want}x${want}`
+          : `กดไม่โดน ${missed.length} มุมจากสี่ ของกล่อง ${want}x${want} — เป้ากดเล็กกว่าเกณฑ์`
+      };
+    }, size);
+    return result;
+  }
+};
+
+/**
+ * ตรวจว่าสัญญาในสมุดยังครบกำหนดไหม
+ *
+ * ข้อที่เขียนว่า "ยังไม่มีตัวตรวจเพราะบล็อกนั้นยังไม่ลง" เป็นสัญญา ไม่ใช่ข้อยกเว้น
+ * วันที่บล็อกลงหน้าจริง สัญญานั้นครบกำหนด · ถ้าไม่มีอะไรเตือน คำว่า "ตอนขั้นที่ 3"
+ * จะกลายเป็น "ไม่เคย" อย่างเงียบ ๆ ซึ่งเป็นวิธีตายมาตรฐานของหนี้ทุกก้อน
+ */
+const blockLanded = {};
+for (const entry of ledger.filter((row) => row.dueWhen)) {
+  blockLanded[entry.name] = await livePage.evaluate(
+    (selector) => document.querySelector(selector) !== null,
+    entry.dueWhen
+  );
+}
+
+const hitChecks = {};
+for (const entry of ledger.filter((row) => row.checkedBy?.startsWith("compare.mjs:"))) {
+  const fn = builtIn[entry.checkedBy.split(":")[1]];
+  hitChecks[entry.name] = fn ? await fn(entry) : { ok: false, detail: `ไม่มีตัวตรวจในตัวชื่อ ${entry.checkedBy}` };
+}
+
 await browser.close();
 
 const same = [];
@@ -147,16 +211,47 @@ for (const row of MAP) {
 }
 
 /**
- * ข้อในสมุดที่ตัวเทียบยืนยันไม่ได้ แบ่งเป็นสองชนิด
+ * ทุกข้อในสมุดต้องพิสูจน์ตัวเองได้ด้วยทางใดทางหนึ่ง ห้ามยืนยันด้วยประโยคเฉย ๆ
  *
- * ชนิดแรกคือข้อที่มีชื่อตรงกับแผนที่ แต่รอบนี้วัดแล้วไม่ต่าง — **หมดอายุแล้ว** ต้องเอาออก
- * ชนิดที่สองคือข้อที่ไม่มีชื่อในแผนที่เลย เช่นเรื่องฟอนต์ทั้งหน้าหรือถ้อยคำ ซึ่งวัดเป็นกล่องไม่ได้
- * ข้อพวกนั้นต้องมี `"unmeasured": true` กำกับไว้ในสมุด เพื่อบอกว่าจงใจไม่มีตัวตรวจ
+ *   อยู่ในแผนที่          วัดเป็นกล่องได้ ต้องยังต่างจริง ไม่งั้นหมดอายุ
+ *   `checkedBy`         มีตัวตรวจอยู่ที่อื่น ไฟล์นั้นต้องมีจริง หรือตัวตรวจในตัวต้องผ่าน
+ *   `effectOf`          เป็นผลของข้ออื่น ชื่อที่อ้างต้องมีในสมุดและต้องยังต่างจริง
+ *   `dueWith`           สัญญาว่าจะมีตัวตรวจตอนบล็อกนั้นลง ครบกำหนดแล้วต้องทวง
+ *   `unmeasured`        วัดไม่ได้จริง ๆ ต้องมีเหตุผลกำกับ
  */
 const mapped = new Set(MAP.map((row) => row.name));
-const expired = ledger.filter((entry) => mapped.has(entry.name) && !stillTrue.has(entry.name));
-const unmeasured = ledger.filter((entry) => !mapped.has(entry.name));
-const undeclared = unmeasured.filter((entry) => entry.unmeasured !== true);
+const named = new Set(ledger.map((entry) => entry.name));
+const problems = [];
+
+for (const entry of ledger) {
+  if (mapped.has(entry.name)) {
+    if (!stillTrue.has(entry.name)) problems.push(`${entry.name} — อยู่ในแผนที่แต่วัดแล้วไม่ต่างอีกแล้ว หมดอายุ เอาออกจากสมุดได้`);
+    continue;
+  }
+  if (entry.checkedBy) {
+    if (entry.checkedBy.startsWith("compare.mjs:")) {
+      const result = hitChecks[entry.name];
+      if (!result?.ok) problems.push(`${entry.name} — ตัวตรวจในตัวไม่ผ่าน: ${result?.detail}`);
+    } else {
+      const path = new URL(entry.checkedBy, import.meta.url);
+      const exists = await readFile(path, "utf8").then(() => true).catch(() => false);
+      if (!exists) problems.push(`${entry.name} — อ้างว่าตรวจด้วย ${entry.checkedBy} แต่ไฟล์นั้นไม่มีแล้ว`);
+    }
+    continue;
+  }
+  if (entry.effectOf) {
+    const missing = entry.effectOf.filter((name) => !named.has(name));
+    if (missing.length > 0) problems.push(`${entry.name} — อ้างว่าเป็นผลของ ${missing.join(" กับ ")} ซึ่งไม่มีในสมุดแล้ว`);
+    const dead = entry.effectOf.filter((name) => named.has(name) && mapped.has(name) && !stillTrue.has(name));
+    if (dead.length > 0) problems.push(`${entry.name} — อ้างว่าเป็นผลของ ${dead.join(" กับ ")} ซึ่งวัดแล้วไม่ต่างอีกแล้ว`);
+    continue;
+  }
+  if (entry.dueWith) {
+    if (blockLanded[entry.name]) problems.push(`${entry.name} — บล็อก ${entry.dueWith} ลงหน้าแล้ว ครบกำหนดต้องมีตัวตรวจ ไม่ใช่ค้างเป็นหนี้ต่อ`);
+    continue;
+  }
+  if (entry.unmeasured !== true) problems.push(`${entry.name} — ไม่มีทางพิสูจน์ตัวเองสักทาง เพิ่มลงแผนที่ หรือใส่ checkedBy effectOf dueWith หรือ unmeasured`);
+}
 
 const heading = (text) => console.log(`\n${text}\n${"-".repeat(text.length)}`);
 
@@ -169,14 +264,17 @@ for (const row of excusedRows) console.log(` ${row.name}\n   ${row.detail}\n   �
 heading(`ต่างโดยไม่มีใครรู้ — ${unknown.length} จุด`);
 for (const row of unknown) console.log(` ${row.name}\n   ${row.detail}`);
 
-heading(`ข้อยกเว้นที่หมดอายุ — ${expired.length} ข้อ`);
-for (const entry of expired) console.log(` ${entry.name} — วัดแล้วไม่ต่างอีกแล้ว เอาออกจากสมุดได้`);
+heading(`ตัวตรวจในตัว — ${Object.keys(hitChecks).length} ข้อ`);
+for (const [name, result] of Object.entries(hitChecks)) console.log(` ${result.ok ? "ผ่าน" : "ตก  "} ${name} — ${result.detail}`);
 
-if (undeclared.length > 0) {
-  heading(`ข้อยกเว้นที่ไม่มีตัวตรวจและไม่ได้กำกับไว้ — ${undeclared.length} ข้อ`);
-  for (const entry of undeclared) console.log(` ${entry.name} — เพิ่มชื่อลงแผนที่ หรือใส่ "unmeasured": true พร้อมเหตุผล`);
+heading(`สัญญาที่ยังไม่ครบกำหนด — ${Object.keys(blockLanded).length} ข้อ`);
+for (const [name, landed] of Object.entries(blockLanded)) {
+  const entry = excused.get(name);
+  console.log(` ${landed ? "ครบกำหนดแล้ว" : "ยังไม่ถึง   "} ${name} — รอบล็อก ${entry.dueWith}`);
 }
 
+heading(`สมุดที่พิสูจน์ตัวเองไม่ได้ — ${problems.length} ข้อ`);
+for (const problem of problems) console.log(` ${problem}`);
+
 console.log("");
-const broken = unknown.length + expired.length + undeclared.length;
-process.exitCode = broken === 0 ? 0 : 1;
+process.exitCode = unknown.length + problems.length === 0 ? 0 : 1;
