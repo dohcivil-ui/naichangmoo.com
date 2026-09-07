@@ -55,9 +55,15 @@ function Clock({ endsAt }: { endsAt: string }) {
   if (left === null) return null;
 
   const seconds = Math.floor(left / 1000);
+  /**
+   * **ป้ายกำกับเป็นข้อความจริง ไม่ใช่ข้อความสำหรับโปรแกรมอ่านหน้าจออย่างเดียว**
+   * เดิมเป็น `visually-hidden` ตาคนจึงเห็นแต่ `04 : 08 : 19 : 04` ซึ่งอ่านไม่ออกว่า
+   * ช่องไหนคืออะไร · เจ้าของงานเคาะ 2026-09-07 ให้เติมป้ายใต้กล่อง และผืนถูกแก้ตามในวันเดียวกัน
+   * · คำย่อ `ชม.` มาจากผืน ไม่ใช่ `ชั่วโมง` ที่เคยใช้ตอนซ่อน
+   */
   const parts = [
     { key: "day", value: Math.floor(seconds / 86400), label: "วัน" },
-    { key: "hour", value: Math.floor(seconds / 3600) % 24, label: "ชั่วโมง" },
+    { key: "hour", value: Math.floor(seconds / 3600) % 24, label: "ชม." },
     { key: "minute", value: Math.floor(seconds / 60) % 60, label: "นาที" },
     { key: "second", value: seconds % 60, label: "วินาที" }
   ];
@@ -67,9 +73,9 @@ function Clock({ endsAt }: { endsAt: string }) {
       <span className="v3-promo__clock-caption">หมดเขตใน</span>
       {parts.map((part, index) => (
         <span key={part.key} className="v3-promo__clock-group">
-          <span className="v3-promo__clock-cell v3-hd">
-            <span className="visually-hidden">{part.label} </span>
-            {String(part.value).padStart(2, "0")}
+          <span className="v3-promo__clock-slot">
+            <span className="v3-promo__clock-cell v3-hd">{String(part.value).padStart(2, "0")}</span>
+            <span className="v3-promo__clock-unit">{part.label}</span>
           </span>
           {index < parts.length - 1 ? <span className="v3-promo__tick" aria-hidden="true">:</span> : null}
         </span>

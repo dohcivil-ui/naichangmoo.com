@@ -3582,10 +3582,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-promo__title { margin: 0; font-size: 28px; font-weight: 700; line-height: 1.2; }
 .v3-promo__note { margin: 0; font-size: 13px; color: var(--v3-muted); }
 
-.v3-promo__clock { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+/* ระยะบน 6px มาจากผืน ไม่ใช่ของเกิน · มันคือสิ่งที่ทำให้หัวบล็อกสูง 70 ไม่ใช่ 64
+   ผืนจัดชิดบนด้วย เพราะป้ายกำกับใต้กล่องต้องห้อยลงล่าง ไม่ใช่ดันทั้งแถบให้ลอยขึ้น */
+.v3-promo__clock { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; padding-block-start: 6px; }
 .v3-promo__clock-caption { font-size: 13px; color: var(--v3-muted); margin-inline-end: 4px; }
 .v3-promo__clock-group { display: inline-flex; align-items: center; gap: 6px; }
 .v3-promo__clock-cell { min-inline-size: 36px; padding: 2px 0; border-radius: 6px; background: var(--v3-red); color: var(--v3-white); font-size: 22px; text-align: center; }
+/* ช่องหนึ่งช่องคือกล่องเลขซ้อนป้ายกำกับ · ผืนวัดได้ 36×50 = กล่อง 37 บวกระยะ 3 บวกป้าย 10 */
+.v3-promo__clock-slot { display: grid; justify-items: center; gap: 3px; }
+.v3-promo__clock-unit { font-size: 10px; font-weight: 700; line-height: 10px; letter-spacing: .2px; color: var(--v3-muted); }
 .v3-promo__tick { animation: v3-tick 1s steps(1) infinite; color: var(--v3-red); font-weight: 700; }
 
 .v3-promo__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-block-start: 32px; }
@@ -3736,10 +3741,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .v3-promo__heading { display: block; }
   .v3-promo__note { margin-block-start: 2px; font-size: 11px; }
   /* ผืนมือถือไม่มีคำว่า "หมดเขตใน" และไม่มีกล่องแดงรอบตัวเลข เหลือแค่สายตัวเลข 16px */
-  .v3-promo__clock { gap: 0; font-size: 16px; letter-spacing: .04em; }
+  .v3-promo__clock { gap: 0; font-size: 16px; letter-spacing: .04em; align-items: center; padding-block-start: 0; }
   .v3-promo__clock-caption { display: none; }
   .v3-promo__clock-group { gap: 0; }
   .v3-promo__clock-cell { min-inline-size: 0; padding: 0; border-radius: 0; background: none; color: var(--v3-red); font-size: 16px; }
+  /* ผืนมือถือเป็นสายตัวเลขเดียว ไม่มีกล่องแดงและไม่มีป้ายกำกับ · ถอดช่องออกด้วย
+     `display: contents` ให้กล่องเลขกลับไปเป็นสมาชิกแถวโดยตรงเหมือนก่อนมีป้าย */
+  .v3-promo__clock-slot { display: contents; }
+  /* **ซ่อนจากตา ไม่ซ่อนจากโปรแกรมอ่านหน้าจอ** `display: none` จะซ่อนจากทั้งสองอย่าง
+     แล้วคนที่ฟังหน้าเว็บบนมือถือจะได้ยินแค่ 23 : 00 : 50 : 36 โดยไม่รู้ว่าเลขไหนคืออะไร ·
+     ก่อนมีป้ายที่ตาเห็น หน่วยเคยอยู่ในกล่องเลขเป็น `visually-hidden` อยู่แล้ว
+     ที่จอแคบจึงต้องคืนสภาพนั้น ไม่ใช่ตัดทิ้ง */
+  .v3-promo__clock-unit { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
   .v3-promo__tick { color: var(--v3-red); font-weight: 400; }
 
   .v3-promo__grid { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-block-start: 18px; }

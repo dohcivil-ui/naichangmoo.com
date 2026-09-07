@@ -91,7 +91,10 @@ const MAP = [
   { name: "หัวบล็อกโปรโมชั่น", live: ".v3-promo__head", keys: ["h"], canvas: { 1280: "#promo > div:first-child", 390: `${section(5)} > div:nth-child(1)` } },
   /* ผืนเดสก์ท็อปแยกนาฬิกาเป็นสี่ช่อง `#promo .hd` จึงชี้ช่องแรก · ผืนมือถือเขียนเป็นสายเดียว
      `.hd` ตัวเดียวกันจึงชี้ทั้งสาย · ฝั่งจริงต้องเปลี่ยนคู่ตาม ไม่งั้นเป็นการเทียบช่องกับทั้งสาย */
-  { name: "ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-cell", 390: ".v3-promo__clock" }, keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
+  // ที่ 1280 หนึ่งช่องคือกล่องเลขซ้อนป้ายกำกับ ไม่ใช่กล่องเลขเปล่า ตั้งแต่ผืนเพิ่มป้าย 2026-09-07
+  // ที่ 390 ผืนเป็นสายตัวเลขเดียว ไม่มีทั้งกล่องและป้าย จึงเทียบทั้งแถบ
+  { name: "ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-slot", 390: ".v3-promo__clock" }, keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
+  { name: "ป้ายกำกับใต้ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-unit" }, canvas: { 1280: "#promo .hd > span > span:last-child" } },
   { name: "การ์ดโปรโมชั่น", live: ".v3-promo__card", canvas: { 1280: "#promo .card", 390: `${section(5)} .card` } },
   { name: "ภาพบนการ์ดโปรโมชั่น", live: ".v3-promo__image", canvas: { 1280: "#promo .card img", 390: `${section(5)} .card img` } },
   { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", live: ".v3-promo__badge", keys: ["h"], canvas: { 1280: "#promo .card span", 390: `${section(5)} .card span` } },
