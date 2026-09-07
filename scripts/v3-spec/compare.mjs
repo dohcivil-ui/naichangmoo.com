@@ -229,7 +229,73 @@ for (const width of WIDTHS) {
     }
   }
 
-  perWidth.push({ width, same, excusedRows, unknown, skipped });
+  /* เก็บกล่องที่วัดได้ไว้ให้ตัวตรวจเหตุผลเอาไปเทียบซ้ำหลังแทรกแซง */
+  const measured = new Map(rows.map((row) => [row.name, { canvas: canvas[row.canvas[width]], live: live[liveSelector(row, width)], keys: row.keys ?? ["w", "h"] }]));
+  perWidth.push({ width, same, excusedRows, unknown, skipped, measured });
+}
+
+/**
+ * **ตรวจว่าเหตุผลในสมุดพิสูจน์ตัวเองได้ ไม่ใช่แค่ฟังดูน่าเชื่อ**
+ *
+ * สมุดเน่าได้สองทาง ทางแรกคือข้อที่เลิกต่างแล้ว ซึ่งตัวเทียบจับได้อยู่แล้ว · **ทางที่สอง
+ * คือข้อที่ยังต่างจริงแต่เหตุผลผิด** ซึ่งจับไม่ได้เลย และอันตรายกว่า เพราะข้อที่เหตุผลผิด
+ * จะพาคนไปแก้ผิดที่ · เกิดขึ้นจริงแล้วเมื่อ 2026-09-07 สองข้อเขียนว่าต่างเพราะฟอนต์
+ * พอเปลี่ยนฟอนต์ให้ตรงผืนแล้วยังต่างเท่าเดิม เหตุจริงคือความสูงบรรทัด
+ *
+ * วิธีพิสูจน์คือ **การทดลองแทรกแซง** ข้อไหนอ้างว่าต่างเพราะอะไร ต้องบอกมาว่าเปลี่ยน
+ * สิ่งนั้นบนหน้าจริงอย่างไร แล้วช่องว่างต้องเปลี่ยนตาม · ถ้าเปลี่ยนแล้วช่องว่างเท่าเดิม
+ * แปลว่าสิ่งที่มันชี้ไม่ใช่เหตุ ไม่ว่าประโยคจะเขียนไว้ดีแค่ไหน
+ *
+ * เขียนในสมุดเป็น `provedBy` — `selector` คือของที่จะแทรกแซง `declare` คือกฎ CSS
+ * ที่จะยัดใส่ให้เหมือนผืน และ `expect` คือสิ่งที่ต้องเกิด
+ *
+ *   "ปิดช่องว่าง"   แทรกแซงแล้วต้องเหลือต่างไม่เกินเกณฑ์ — เหตุนั้นอธิบายได้ทั้งหมด
+ *   "ช่องว่างขยับ"  แทรกแซงแล้วช่องว่างต้องเปลี่ยน — เหตุนั้นมีส่วนจริง แต่ไม่ใช่ทั้งหมด
+ *
+ * **ตัวตรวจนี้ไม่บังคับทุกข้อ** ข้อที่ไม่มี `provedBy` ยังผ่านได้ด้วยทางเดิมห้าทาง
+ * เพราะบางข้อไม่ได้อ้างเหตุที่แทรกแซงได้ เช่นทะเบียนที่ยังว่าง · แต่ข้อไหนที่เขียน
+ * `provedBy` ไว้แล้วสอบตก คือข้อที่พูดผิด และต้องแดง
+ */
+const causeChecks = [];
+for (const entry of ledger.filter((row) => row.provedBy)) {
+  for (const result of perWidth) {
+    if (!coversWidth(entry, result.width)) continue;
+    const before = result.measured.get(entry.name);
+    if (!before?.canvas || !before?.live) continue;
+
+    await livePage.setViewportSize({ width: result.width, height: 900 });
+    await livePage.waitForTimeout(300);
+    /* เขียนกฎเดียวหรือหลายกฎก็ได้ — บางข้อมีเหตุที่แผ่ไปหลายชิ้นในกล่องเดียว
+       และบางทีสองชิ้นนั้นต่างจากผืนคนละทิศ ซึ่งกฎเดียวทับให้ตรงพร้อมกันไม่ได้ */
+    const rules = entry.provedBy.rules ?? [{ selector: entry.provedBy.selector, declare: entry.provedBy.declare }];
+    const handle = await livePage.addStyleTag({
+      content: rules.map((rule) => `${rule.selector} { ${rule.declare} !important; }`).join("\n")
+    });
+    await livePage.waitForTimeout(200);
+
+    const row = MAP.find((item) => item.name === entry.name);
+    const after = (await boxes(livePage, [liveSelector(row, result.width)], null))[liveSelector(row, result.width)];
+    await handle.evaluate((node) => node.remove());
+
+    const gap = (live) => Math.max(...before.keys.map((key) => Math.abs(live[key] - before.canvas[key])));
+    const was = Number(gap(before.live).toFixed(2));
+    const now = after ? Number(gap(after).toFixed(2)) : null;
+
+    const ok = now === null
+      ? false
+      : entry.provedBy.expect === "ปิดช่องว่าง"
+        ? now <= TOLERANCE
+        : Math.abs(now - was) > 0.01;
+
+    causeChecks.push({
+      name: entry.name,
+      width: result.width,
+      ok,
+      detail: now === null
+        ? "แทรกแซงแล้ววัดไม่ได้ หาอิลิเมนต์ไม่เจอ"
+        : `แทรกแซง ${rules.map((rule) => rule.declare).join(" กับ ")} · ช่องว่าง ${was} -> ${now} (ต้อง${entry.provedBy.expect})`
+    });
+  }
 }
 
 /* ตัวตรวจในตัวและการทวงสัญญาเป็นเรื่องของโครงสร้างหน้า ไม่ใช่ของความกว้าง
@@ -355,8 +421,11 @@ for (const [name, landed] of Object.entries(blockLanded)) {
   console.log(` ${landed ? "ครบกำหนดแล้ว" : "ยังไม่ถึง   "} ${name} — รอบล็อก ${entry.dueWith}`);
 }
 
+heading(`เหตุผลในสมุดพิสูจน์ตัวเองได้ไหม — ${causeChecks.length} ข้อ`);
+for (const check of causeChecks) console.log(` ${check.ok ? "ผ่าน" : "ตก  "} ${check.name} ที่ ${check.width} — ${check.detail}`);
+
 heading(`สมุดที่พิสูจน์ตัวเองไม่ได้ — ${problems.length} ข้อ`);
 for (const problem of problems) console.log(` ${problem}`);
 
 console.log("");
-process.exitCode = unknownTotal + problems.length === 0 ? 0 : 1;
+process.exitCode = unknownTotal + problems.length + causeChecks.filter((check) => !check.ok).length === 0 ? 0 : 1;
