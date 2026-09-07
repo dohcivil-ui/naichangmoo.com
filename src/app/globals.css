@@ -297,6 +297,28 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button--h44 { min-height: 44px; }
 .button--hfit { min-height: 0; padding: 0; }
 
+/* **ความสูงของจอกว้าง — ชั้นที่สองของมิติเดียวกัน ไม่ใช่มิติที่สาม**
+
+   ผืนออกแบบให้ปุ่มจุดเดียวกันสูงไม่เท่ากันในสองอาร์ตบอร์ด ปุ่มบนการ์ดโปรโมชั่นเป็น 40
+   ที่ 1280 และ 36 ที่ 390 · เดิม `size` เป็นค่าเดียว เปลี่ยนตามความกว้างไม่ได้เลย
+   ทางที่เหลือคือให้หน้าเขียน CSS ทับด้วย selector ลูกหลาน ซึ่ง `button-fence` มองไม่เห็น
+   และเป็นทางที่ปุ่มทั้งเว็บเคยเพี้ยนมาแล้ว · **เลขจึงต้องอยู่ที่นี่ทั้งสองค่า**
+
+   ค่าแคบเป็นค่าตั้งต้นและใช้กับทุกความกว้าง ส่วนค่ากว้างทับเฉพาะเมื่อจอกว้างพอ ·
+   เขียนแบบนี้เพราะจอแคบคือกรณีที่ต้องถูกก่อน — ถ้าเขียนกลับกัน ปุ่มบนเครื่องที่ไม่รู้จัก
+   media query จะได้ขนาดของจอกว้างบนจอแคบ
+
+   จุดตัดที่ 761 เป็นคู่ของ `max-width: 760px` ที่บล็อกมือถือของรุ่นสามใช้อยู่
+   **ย้ายจุดตัดที่ไหน ต้องย้ายทั้งสองที่พร้อมกัน** ไม่งั้นจะมีช่วงความกว้างที่ปุ่มสูงตามจอกว้าง
+   แต่ของรอบตัวยังจัดแบบจอแคบ                                                       */
+
+@media (min-width: 761px) {
+  .button--wide-h36 { min-height: 36px; }
+  .button--wide-h40 { min-height: 40px; }
+  .button--wide-h44 { min-height: 44px; }
+  .button--wide-hfit { min-height: 0; padding: 0; }
+}
+
 .button--text { background: transparent; border-color: transparent; color: var(--teal-deep); box-shadow: none; padding: 0 12px; }
 .button--text:hover { background: var(--teal-wash); color: var(--teal-deep); }
 .button--text:active { background: var(--teal-wash); }
@@ -3639,6 +3661,57 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   }
   .v3-catbar__all { padding: 6px 14px; border-radius: 999px; }
   .v3-catbar__tab { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--v3-line); color: var(--v3-ink); }
+
+  /* --- แถวเปิดหน้า ---------------------------------------------------------
+     **ผืนมือถือวาดการ์ดนิ่งใบเดียว ไม่มีสไลด์** ไม่มีขีดบอกตำแหน่ง ไม่มีลูกศรเลื่อน
+     พื้นแดงอ่อนตัวหนังสือเข้ม ไม่ใช่ภาพถ่ายพื้นเข้ม · เจ้าของงานเคาะ 2026-09-07 ให้ตามผืน
+
+     **ซ่อนด้วย CSS ไม่ใช่ตัดคอมโพเนนต์ทิ้ง** DOM ยังเป็นชุดเดียวกันทั้งสองความกว้าง
+     ตัวหมุนอัตโนมัติยังทำงานอยู่ข้างใน แต่ไม่มีอะไรให้เห็นว่าเปลี่ยน เพราะสไลด์ที่สอง
+     กับสามไม่มีทางไปถึงด้วยมือแล้ว · คนใช้มือถือจึงเห็นแอปเดียวจากสามแอป
+     ซึ่งเป็นสิ่งที่ผืนเลือก ไม่ใช่ผลข้างเคียงที่หลุดมา — เข้าสมุดข้อยกเว้นพร้อมเหตุผล
+
+     ขอบ 1px มาจากผืน ที่ใช้คลาส `.card` ซึ่งมีขอบ · ไม่ใช่ของเกิน ถ้าไม่มีขอบ
+     คอลัมน์ซ้ายจะกว้าง 192 แทนที่จะเป็น 190 ที่ผืนวัดได้                          */
+  .v3-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 8px 16px 0; }
+  .v3-banner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 110px;
+    align-items: center;
+    /* ช่องไฟแนวตั้งเป็นศูนย์ เพราะระยะระหว่างแถวมาจาก margin ของแต่ละชิ้นตามที่ผืนสั่ง
+       ป้าย 12 ก่อนหัวเรื่อง และ 18 ก่อนปุ่ม · ถ้าใส่ gap ด้วยจะบวกกันเป็นสองเท่า */
+    gap: 0 16px;
+    min-block-size: 0;
+    padding: 22px 20px;
+    border: 1px solid var(--v3-line);
+    border-radius: 12px;
+    background: var(--v3-red-100);
+    color: var(--v3-ink);
+  }
+  /* **`display: contents` เพื่อให้ลูกของกล่องข้อความเป็นสมาชิกกริดโดยตรง**
+     ปุ่มกับป้ายต้องกินเต็มความกว้างของการ์ดตามผืน แต่ทั้งคู่อยู่ในกล่องข้อความ
+     ซึ่งถ้ายังเป็นกล่องอยู่ จะกินได้แค่คอลัมน์ซ้าย 190 แทนที่จะเป็น 316
+     · ทางเลือกอื่นคือย้ายตำแหน่งใน `page.tsx` ซึ่งกระทบเดสก์ท็อปด้วย */
+  .v3-banner__text { display: contents; }
+  /* **ระยะ 12 ที่ผืนวางระหว่างป้ายกับแถวภาพ ต้องอยู่ใต้ป้าย ไม่ใช่เหนือหัวเรื่อง**
+     หัวเรื่องอยู่แถวเดียวกับภาพซึ่งสูงกว่ามัน ระยะบนของหัวเรื่องจึงถูกกลืนหายไปในแถวนั้น
+     วัดแล้วการ์ดเตี้ยกว่าผืน 14.5 ก่อนย้าย */
+  .v3-banner .v3-tag { grid-column: 1 / -1; grid-row: 1; justify-self: start; margin-block-end: 12px; }
+  .v3-banner__title { grid-column: 1; grid-row: 2; margin: 0; }
+  /* ภาพเลิกเป็นพื้นหลังเต็มใบ กลายเป็นกล่องจัตุรัสข้างหัวเรื่องตามผืน
+     ม่านสองชั้นจึงไม่มีหน้าที่แล้ว มันมีไว้ให้ตัวหนังสือขาวอ่านออกบนภาพ */
+  .v3-banner__img { position: static; grid-column: 2; grid-row: 2; inline-size: 110px; block-size: 110px; border-radius: 14px; background: var(--v3-white); box-shadow: var(--v3-sh-md); }
+  .v3-banner__scrim { display: none; }
+  /* หัวเรื่องนั่งบนพื้นสว่างแล้ว ต้องประกาศสีเข้มของตัวเอง ด้วยเหตุผลเดียวกับที่
+     บรรทัด 150 บังคับให้ประกาศสีขาวตอนอยู่บนพื้นเข้ม */
+  .v3-banner__title { margin: 12px 0 0; font-size: 30px; line-height: 1.1; letter-spacing: 0; color: var(--v3-ink); }
+  .v3-banner__title span + span { margin-block-start: 0; font-size: 22px; font-weight: 600; line-height: 1.3; color: var(--v3-red-dark); }
+  /* ผืนมือถือไม่มีย่อหน้าอธิบายในการ์ด เหลือแค่ป้าย หัวเรื่อง ภาพ และปุ่ม */
+  .v3-banner__body { display: none; }
+  /* ปุ่มเต็มกว้างใต้ทั้งสองคอลัมน์ตามผืน */
+  .v3-banner__actions { grid-column: 1 / -1; grid-row: 3; margin-block-start: 18px; }
+  .v3-banner__actions .button { flex: 1 1 auto; }
+  .v3-banner__dots, .v3-banner__nav { display: none; }
 
   /* บล็อกโปรโมชั่น — คอลัมน์เดียว ภาพ 84 และนาฬิกาเป็นสายเดียวไม่มีกล่องแดง */
   .v3-promo { padding: 36px 16px 0; }

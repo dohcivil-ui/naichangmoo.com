@@ -97,6 +97,41 @@ const sizeClass: Record<Size, string> = {
   fit: "button--hfit"
 };
 
+/**
+ * ความสูงที่ใช้เมื่อจอกว้างพอ — คลาสชุดที่สองของมิติเดียวกัน ไม่ใช่มิติที่สาม
+ *
+ * กฎจริงอยู่ใน `globals.css` ใต้ `@media (min-width: 761px)` ที่นี่แค่แปลงค่าเป็นชื่อคลาส
+ */
+const wideSizeClass: Record<Size, string> = {
+  36: "button--wide-h36",
+  40: "button--wide-h40",
+  44: "button--wide-h44",
+  fit: "button--wide-hfit"
+};
+
+/**
+ * **ปุ่มจุดเดียวกันสูงไม่เท่ากันได้ในสองอาร์ตบอร์ด และนั่นคือสิ่งที่ผืนสั่ง**
+ *
+ * ปุ่มบนการ์ดโปรโมชั่นเป็น 40 ที่ 1280 และ 36 ที่ 390 · เดิม `size` รับค่าเดียว
+ * เปลี่ยนตามความกว้างไม่ได้เลย ทางที่เหลือคือให้หน้าเขียน CSS ทับด้วย selector ลูกหลาน
+ * ซึ่ง `button-fence` มองไม่เห็น และเป็นทางที่ปุ่มทั้งเว็บเคยเพี้ยนมาแล้ว ·
+ * **เลขทั้งสองค่าจึงต้องอยู่ในระบบปุ่ม** ไม่ใช่กระจายไปอยู่ที่หน้าที่เรียก
+ *
+ * เจ้าของงานเคาะ 2026-09-07 หลังวัดแล้วพบว่าสองจุดที่เหลือในกองต่างโดยไม่มีใครรู้ที่ 390
+ * มาจากสาเหตุนี้ทั้งคู่ และผืนมือถือใช้ความสูงปุ่มสามค่า คือ 44 36 และ 32
+ *
+ * **ชื่อบอกความกว้างของจอ ไม่ได้บอกลำดับ** `narrow` คือค่าตั้งต้นที่ใช้กับทุกความกว้าง
+ * ส่วน `wide` ทับเฉพาะเมื่อจอกว้างพอ · เขียนแบบนี้เพราะจอแคบคือกรณีที่ต้องถูกก่อน
+ */
+export type ResponsiveSize = { narrow: Size; wide: Size };
+
+/** `size` เขียนเป็นค่าเดียวเมื่อทั้งสองความกว้างเท่ากัน หรือเป็นคู่เมื่อไม่เท่า */
+function sizeClasses(size: Size | ResponsiveSize | undefined): string {
+  if (size === undefined) return "";
+  if (typeof size === "number" || size === "fit") return sizeClass[size];
+  return `${sizeClass[size.narrow]} ${wideSizeClass[size.wide]}`;
+}
+
 const toneClass: Record<Tone, string> = {
   primary: "button button--orange",
   ink: "button button--primary",
@@ -144,7 +179,7 @@ function Spinner() {
 type Shared = {
   tone?: Tone;
   /** ความสูงตามผืนออกแบบ — ไม่ส่ง = 48px ความสูงมาตรฐานของแพลตฟอร์ม */
-  size?: Size;
+  size?: Size | ResponsiveSize;
   /**
    * ไอคอนหน้าคำ ที่สื่อความเดียวกับคำบนปุ่ม
    *
@@ -190,8 +225,8 @@ type AsLabel = Shared & {
   pending?: never;
 } & Omit<LabelHTMLAttributes<HTMLLabelElement>, "className" | "children">;
 
-function classesFor(tone: Tone, size: Size | undefined, block: boolean, extra?: string): string {
-  return [toneClass[tone], size === undefined ? "" : sizeClass[size], block ? "button--block" : "", extra ?? ""]
+function classesFor(tone: Tone, size: Size | ResponsiveSize | undefined, block: boolean, extra?: string): string {
+  return [toneClass[tone], sizeClasses(size), block ? "button--block" : "", extra ?? ""]
     .filter(Boolean)
     .join(" ");
 }

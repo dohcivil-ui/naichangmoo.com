@@ -120,7 +120,9 @@ export function PromoRow({ cards, endsAt }: { cards: readonly PromoCardView[]; e
                 <small className="v3-promo__unit">{card.unit}</small>
               </p>
               <div className="v3-promo__action">
-                <Button tone="shop" size={40} href={card.detailHref}>{card.ctaLabel}</Button>
+                {/* ผืนให้ปุ่มนี้สูง 36 ที่ 390 และ 40 ที่ 1280 · เลขทั้งคู่มาจากระบบปุ่ม
+                    ไม่ใช่จาก CSS ที่หน้านี้เอื้อมมือไปเขียนทับ ซึ่ง `button-fence` มองไม่เห็น */}
+                <Button tone="shop" size={{ narrow: 36, wide: 40 }} href={card.detailHref}>{card.ctaLabel}</Button>
               </div>
             </div>
           </article>
