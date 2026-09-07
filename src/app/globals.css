@@ -3608,11 +3608,67 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .v3-catbar__all svg { inline-size: 16px; block-size: 16px; }
 .v3-catbar__tab { display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; color: var(--v3-red-dark); font-weight: 600; text-decoration: none; }
 
+/* --- มือถือ ----------------------------------------------------------------
+   **ผืนมือถือเป็นคนละโครง ไม่ใช่ผืนเดสก์ท็อปที่ถูกบีบให้แคบ** นับคลาสในอาร์ตบอร์ด 390
+   แล้วไม่มี `.nl` `.nl-item` `.nl-icon` `.nl-tab` `.scp0` `.hcard` `.hline` เลยสักตัว
+   ทุกค่าในบล็อกนี้ลอกจาก `redesign/V3/Home Redesign v3.dc.html` อาร์ตบอร์ด 390
+   แล้ววัดยืนยันด้วย `scripts/v3-spec/compare.mjs` ที่ความกว้าง 390
+
+   **สองบล็อกที่ยังไม่อยู่ในนี้คือแถบบนกับแถวเปิดหน้า** ทั้งคู่ผืนมือถือวาดองค์ประกอบ
+   คนละชุดกับที่หน้าจริงมี ไม่ใช่ขนาดคนละค่า จึงเป็นคำถามที่ต้องให้เจ้าของงานตัดสิน
+   ไม่ใช่ค่าที่ลอกมาได้ · ดูไม้ต่อ                                                */
+
 @media (max-width: 760px) {
-  /* โครงมือถือจริงเป็นงานของขั้นถัดไป ตรงนี้กันไม่ให้แถบล้นออกนอกจอระหว่างทางเท่านั้น */
+  /* แถบบนยังเป็นของเดิม ตรงนี้กันไม่ให้ล้นออกนอกจอระหว่างที่ยังรอคำตัดสินเรื่ององค์ประกอบ */
   .v3-header { padding: 12px 16px; gap: 14px; }
   .v3-header__left { gap: 16px; }
-  .v3-catbar { padding: 0 16px; }
+  /* ผืนมือถือให้ตราคำสูง 36 ส่วนเดสก์ท็อปให้ 44 */
+  .v3-header__brand img { block-size: 36px; inline-size: auto; }
+
+  /* แถบหมวด — ผืนมือถือเป็นแคปซูลเรียงแถว ไม่ใช่แท็บที่ติดขอบล่างเหมือนเดสก์ท็อป
+     `padding: 12px 16px` บวกแคปซูลสูง 32 ได้ 56 ซึ่งเป็นความสูงที่ผืนวัดได้
+     ผืนใช้ `mask-image` ให้ปลายขวาจางหายแทนแถบเลื่อน บอกว่ายังมีของต่อไปทางขวา */
+  .v3-catbar {
+    align-items: center;
+    gap: 8px;
+    min-block-size: 0;
+    padding: 12px 16px;
+    font-size: 12px;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  .v3-catbar__all { padding: 6px 14px; border-radius: 999px; }
+  .v3-catbar__tab { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--v3-line); color: var(--v3-ink); }
+
+  /* บล็อกโปรโมชั่น — คอลัมน์เดียว ภาพ 84 และนาฬิกาเป็นสายเดียวไม่มีกล่องแดง */
+  .v3-promo { padding: 36px 16px 0; }
+  .v3-promo__head { align-items: flex-end; gap: 12px; padding-block-end: 10px; }
+  .v3-promo__title { font-size: 22px; line-height: 1.1; }
+  /* หมายเหตุราคาตัวอย่างห้ามหาย มันคือสิ่งเดียวที่กันไม่ให้ราคาสมมติอ่านเป็นราคาจริง ·
+     ผืนมือถือไม่มีที่ให้วางข้างหัวเรื่อง จึงลงมาอยู่ใต้หัวเรื่องแทนการตัดทิ้ง */
+  .v3-promo__heading { display: block; }
+  .v3-promo__note { margin-block-start: 2px; font-size: 11px; }
+  /* ผืนมือถือไม่มีคำว่า "หมดเขตใน" และไม่มีกล่องแดงรอบตัวเลข เหลือแค่สายตัวเลข 16px */
+  .v3-promo__clock { gap: 0; font-size: 16px; letter-spacing: .04em; }
+  .v3-promo__clock-caption { display: none; }
+  .v3-promo__clock-group { gap: 0; }
+  .v3-promo__clock-cell { min-inline-size: 0; padding: 0; border-radius: 0; background: none; color: var(--v3-red); font-size: 16px; }
+  .v3-promo__tick { color: var(--v3-red); font-weight: 400; }
+
+  .v3-promo__grid { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-block-start: 18px; }
+  .v3-promo__card { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 14px; }
+  .v3-promo__frame { inline-size: 84px; block-size: 84px; }
+  /* ป้ายเล็กลงและขยับเข้ามุมตามผืน · ระยะในซ้ายยังน้อยกว่าขวาด้วยเหตุผลเดิม */
+  .v3-promo__badge { inset-block-start: 8px; inset-inline-start: 8px; padding: 4px 10px 4px 8px; font-size: 11px; }
+  /* **ผืนมือถือไม่มีบรรทัดกลุ่มงานบนการ์ด** วัดเนื้อในการ์ดของผืนแล้วมีสามชิ้น
+     หัวเรื่อง 20.7 แถวราคา 24 และปุ่ม 36 ไม่มีชิ้นที่สี่ · ของจริงมีบรรทัดกลุ่มงานเพิ่มมา
+     15.5 ซึ่งเป็นส่วนต่างที่วัดได้พอดี · จอแคบมีที่น้อยกว่า ผืนเลือกตัดบรรทัดที่บอกซ้ำกับ
+     ชื่อแอปออก ไม่ใช่ย่อทุกอย่างให้เล็กลง */
+  .v3-promo__group { display: none; }
+  .v3-promo__name { margin: 0 0 6px; font-size: 18px; line-height: 1.15; }
+  .v3-promo__price { margin: 0; font-size: 24px; }
+  .v3-promo__was { font-size: 12px; }
+  .v3-promo__action { margin-block-start: 10px; }
 }
 
 /* --- คนที่ตั้งเครื่องให้ลดการเคลื่อนไหว ------------------------------------

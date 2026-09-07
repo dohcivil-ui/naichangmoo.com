@@ -48,11 +48,20 @@ const WIDTHS = [1280, 390];
  */
 const section = (n) => `:scope > div:nth-child(2) > div:nth-child(${n})`;
 
+/** `live` เขียนเป็นสตริงเดียวหรือแยกรายความกว้างก็ได้ — ตัวนี้คลี่ให้เป็นค่าเดียว */
+const liveSelector = (row, width) => (typeof row.live === "string" ? row.live : row.live[width]);
+
 /**
  * แผนที่จับคู่ · `canvas` บอกว่าแต่ละความกว้างใช้ selector ไหนในผืน
- * `live` คือ selector ในหน้าจริง ซึ่งใช้ตัวเดียวได้ทั้งสองความกว้าง เพราะหน้าจริงเป็น DOM เดียว
- * ที่เปลี่ยนหน้าตาด้วย CSS ส่วนผืนเป็นสองใบที่วาดแยกกัน
+ * `live` คือ selector ในหน้าจริง เขียนเป็นสตริงเดียวได้เมื่อใช้ตัวเดียวกันทั้งสองความกว้าง
+ * หรือเขียนแยกรายความกว้างแบบเดียวกับ `canvas` เมื่อไม่ใช่
  * `keys` คือสิ่งที่ต้องเท่ากัน ไม่ใส่ = เทียบทั้งกว้างและสูง
+ *
+ * **ทำไม `live` ต้องแยกรายความกว้างได้ด้วย** ปกติหน้าจริงเป็น DOM เดียวที่เปลี่ยนหน้าตา
+ * ด้วย CSS จึงใช้ selector ตัวเดียวได้ · แต่ selector ของ**ผืน**ตัวเดียวกันอาจชี้ของคนละชิ้น
+ * ในสองใบ เช่น `#promo .hd` ที่ใบเดสก์ท็อปคือช่องนาฬิกาช่องแรก ส่วนใบมือถือคือนาฬิกาทั้งสาย
+ * เพราะผืนมือถือไม่ได้แยกเป็นช่อง · ถ้าฝั่งจริงยังใช้ selector เดิม จะกลายเป็นการเทียบ
+ * ช่องเดียวกับทั้งสาย ซึ่งได้ตัวเลขออกมาแต่ไม่ได้แปลว่าอะไรเลย
  *
  * **ไม่มีคีย์ของความกว้างไหน = ผืนใบนั้นไม่มีของชิ้นนี้** ซึ่งเป็นคำตอบที่ถูก ไม่ใช่ช่องที่ลืมกรอก
  * รายงานจะบอกว่าแถวนั้นไม่ได้วัดที่ใบนั้น เพื่อไม่ให้เงียบหายไปเฉย ๆ
@@ -80,7 +89,9 @@ const MAP = [
   { name: "ขีดแดงในการ์ด", live: ".v3-hline", canvas: { 1280: ".hline" } },
   { name: "หัวเรื่องการ์ด", live: ".v3-hcard__title", keys: ["h"], canvas: { 1280: ".hcard h3" } },
   { name: "หัวบล็อกโปรโมชั่น", live: ".v3-promo__head", keys: ["h"], canvas: { 1280: "#promo > div:first-child", 390: `${section(5)} > div:nth-child(1)` } },
-  { name: "ช่องนาฬิกา", live: ".v3-promo__clock-cell", keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
+  /* ผืนเดสก์ท็อปแยกนาฬิกาเป็นสี่ช่อง `#promo .hd` จึงชี้ช่องแรก · ผืนมือถือเขียนเป็นสายเดียว
+     `.hd` ตัวเดียวกันจึงชี้ทั้งสาย · ฝั่งจริงต้องเปลี่ยนคู่ตาม ไม่งั้นเป็นการเทียบช่องกับทั้งสาย */
+  { name: "ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-cell", 390: ".v3-promo__clock" }, keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
   { name: "การ์ดโปรโมชั่น", live: ".v3-promo__card", canvas: { 1280: "#promo .card", 390: `${section(5)} .card` } },
   { name: "ภาพบนการ์ดโปรโมชั่น", live: ".v3-promo__image", canvas: { 1280: "#promo .card img", 390: `${section(5)} .card img` } },
   { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", live: ".v3-promo__badge", keys: ["h"], canvas: { 1280: "#promo .card span", 390: `${section(5)} .card span` } },
@@ -169,15 +180,15 @@ const perWidth = [];
 const stillTrue = new Set();
 
 for (const width of WIDTHS) {
-  const rows = MAP.filter((row) => row.canvas[width]);
-  const skipped = MAP.filter((row) => !row.canvas[width]).map((row) => row.name);
+  const rows = MAP.filter((row) => row.canvas[width] && liveSelector(row, width));
+  const skipped = MAP.filter((row) => !(row.canvas[width] && liveSelector(row, width))).map((row) => row.name);
 
   await livePage.setViewportSize({ width, height: 900 });
   /* ให้ CSS ตอบสนองความกว้างใหม่และให้ภาพที่ปรับขนาดเข้าที่ก่อนวัด */
   await livePage.waitForTimeout(500);
 
   const canvas = await boxes(canvasPage, rows.map((row) => row.canvas[width]), width);
-  const live = await boxes(livePage, rows.map((row) => row.live), null);
+  const live = await boxes(livePage, rows.map((row) => liveSelector(row, width)), null);
 
   const same = [];
   const excusedRows = [];
@@ -185,7 +196,7 @@ for (const width of WIDTHS) {
 
   for (const row of rows) {
     const fromCanvas = canvas[row.canvas[width]];
-    const fromLive = live[row.live];
+    const fromLive = live[liveSelector(row, width)];
     const named = excused.get(row.name);
     const entry = named && coversWidth(named, width) ? named : null;
 
