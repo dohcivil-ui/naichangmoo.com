@@ -22,6 +22,25 @@ import { DocCompare } from "@/components/landing/doc-compare";
 import { EvidencePeek } from "@/components/landing/evidence-peek";
 import { Button } from "@/components/platform/button";
 
+/**
+ * **หน้านี้มีของที่หมดอายุตามเวลาจริง จึงเป็นหน้าที่ static ไม่ได้**
+ *
+ * บล็อกโปรโมชั่นหายไปเองเมื่อเลย `promoEndsAt` ซึ่งอ่านนาฬิกาตอนเรนเดอร์ · หน้าที่ถูก
+ * เขียนไว้ตอน build จะแช่แข็งคำตอบของนาฬิกานั้นไว้ตลอดกาล แล้วราคาขีดฆ่าที่หมดอายุแล้ว
+ * จะค้างอยู่บนหน้า ซึ่งคือการเสนอราคาที่ไม่มีอยู่จริง
+ *
+ * **บรรทัดนี้ไม่เปลี่ยนพฤติกรรมอะไรเลยในวันที่เขียน** วัดด้วย `pnpm build` เมื่อ 2026-09-07
+ * แล้วหน้านี้ขึ้นเป็น `ƒ (Dynamic)` อยู่แล้ว · แต่เหตุที่มันเป็น dynamic คือแถบบนของหน้าร้าน
+ * เรียก `readViewer()` ซึ่งอ่าน `headers()` — **เป็นคนละเรื่องกับโปรโมชั่นโดยสิ้นเชิง**
+ * วันที่มีคนย้าย `AccountMenu` ไปเป็นคอมโพเนนต์ฝั่ง client เพื่อความเร็ว หรือ cache session
+ * ไว้ ซึ่งเป็นสิ่งที่คนทำกันเป็นปกติ หน้านี้จะกลายเป็น static แล้วโปรโมชั่นจะค้างไม่หาย
+ * โดยไม่มีด่านไหนแดงและไม่มีใครทำอะไรผิด
+ *
+ * **กลไกที่ทำงานเพราะบังเอิญ ไม่ใช่กลไก** บรรทัดนี้เปลี่ยนอุบัติเหตุให้เป็นคำตัดสิน
+ * ในราคาศูนย์ · เจ้าของงานสั่ง 2026-09-07
+ */
+export const dynamic = "force-dynamic";
+
 export default async function LandingPage() {
   // ADR 0015: the cards below say what an app is from source, and what it costs or whether it is
   // open only as far as the registry has been made to say so. One read serves every category.
