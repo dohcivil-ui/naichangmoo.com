@@ -52,7 +52,13 @@ const MAP = [
   { name: "การ์ด Hermes", canvas: ".hcard", live: ".v3-hcard" },
   { name: "โปสเตอร์", canvas: ".hcard img", live: ".v3-hcard__poster" },
   { name: "ขีดแดงในการ์ด", canvas: ".hline", live: ".v3-hline" },
-  { name: "หัวเรื่องการ์ด", canvas: ".hcard h3", live: ".v3-hcard__title", keys: ["h"] }
+  { name: "หัวเรื่องการ์ด", canvas: ".hcard h3", live: ".v3-hcard__title", keys: ["h"] },
+  { name: "หัวบล็อกโปรโมชั่น", canvas: "#promo > div:first-child", live: ".v3-promo__head", keys: ["h"] },
+  { name: "ช่องนาฬิกา", canvas: "#promo .hd", live: ".v3-promo__clock-cell", keys: ["h"] },
+  { name: "การ์ดโปรโมชั่น", canvas: "#promo .card", live: ".v3-promo__card" },
+  { name: "ภาพบนการ์ดโปรโมชั่น", canvas: "#promo .card img", live: ".v3-promo__image" },
+  { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", canvas: "#promo .card span", live: ".v3-promo__badge", keys: ["h"] },
+  { name: "ปุ่มบนการ์ดโปรโมชั่น", canvas: "#promo .btn-shop", live: ".v3-promo__action .button", keys: ["h"] }
 ];
 
 async function boxes(page, selectors, boardWidth) {
@@ -97,6 +103,9 @@ const livePage = await browser.newPage({ viewport: { width: 1280, height: 900 } 
    เครือข่ายจึงไม่มีวันเงียบ · รอสิ่งที่จะวัดจริงแทน ซึ่งตรงกับที่ต้องการมากกว่าอยู่แล้ว */
 await livePage.goto(LIVE, { waitUntil: "domcontentloaded" });
 await livePage.locator(".v3-hcard__poster").waitFor({ state: "visible" });
+/* นาฬิกาโผล่หลัง hydrate เท่านั้น การรอมันจึงพิสูจน์ว่าหน้าพร้อมวัดครบทุกส่วน
+   ไม่ใช่แค่ส่วนที่ server เขียนมา · ถ้าบล็อกโปรโมชั่นหมดอายุแล้วจะไม่มีนาฬิกา จึงไม่รอค้าง */
+await livePage.locator(".v3-promo__clock-cell").first().waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
 
 const canvas = await boxes(canvasPage, MAP.map((row) => row.canvas), 1280);
 const live = await boxes(livePage, MAP.map((row) => row.live), null);

@@ -6,8 +6,9 @@ import { PlatformFooter } from "@/components/platform/platform-footer";
 import { CategoryBar } from "@/components/landing/v3/category-bar";
 import { HeroSlider, type HeroSlideView } from "@/components/landing/v3/hero-slider";
 import { HermesCard } from "@/components/landing/v3/hermes-card";
+import { PromoRow, type PromoCardView } from "@/components/landing/v3/promo-row";
 import { ShopHeader } from "@/components/landing/v3/shop-header";
-import { heroSlides } from "@/lib/landing-v3-data";
+import { heroSlides, isPromoLive, promoEndsAt, promoOffers } from "@/lib/landing-v3-data";
 import { describeCardClaims } from "@/lib/catalogue-card";
 import { getAppInteractionContract, landingNavigationContract } from "@/lib/landing-interactions";
 import { marketCategories, platformApps } from "@/lib/platform";
@@ -72,6 +73,36 @@ export default async function LandingPage() {
     }];
   });
 
+  /**
+   * การ์ดโปรโมชั่น — ราคามาจากไฟล์ค่าตัวอย่าง ส่วนป้ายกับถ้อยคำปุ่มมาจากทะเบียน
+   *
+   * ADR 0015 §2: ถ้อยคำปุ่มเป็นคำแถลง แอปที่ทะเบียนยังไม่บอกว่าเปิด ปุ่มต้องไม่ชวนให้เริ่มใช้
+   * `describeCardClaims().cta` ตอบตามสถานะจริงอยู่แล้ว จึงไม่มีถ้อยคำปุ่มพิมพ์ตายในไฟล์ข้อมูล
+   */
+  const promoCards: PromoCardView[] = promoOffers.flatMap((offer) => {
+    const app = platformApps.find((item) => item.slug === offer.slug);
+    if (!app) return [];
+    const says = describeCardClaims(claims[offer.slug]);
+    return [{
+      slug: offer.slug,
+      imageUrl: visualAssetUrl(offer.imageKey),
+      group: offer.group,
+      name: app.name,
+      priceBaht: offer.priceBaht,
+      wasBaht: offer.wasBaht,
+      unit: offer.unit,
+      accessLabel: says.access?.label ?? null,
+      ctaLabel: says.cta.label,
+      detailHref: getAppInteractionContract(app, says.readiness?.modifier === "available").detailHref
+    }];
+  });
+
+  /**
+   * **โปรโมชั่นที่หมดอายุแล้วไม่ใช่โปรโมชั่น** เลยวันสิ้นสุดแล้วทั้งบล็อกไม่ขึ้น
+   * ไม่ใช่แค่นาฬิกาหายแล้วปล่อยราคาขีดฆ่าค้างไว้ ซึ่งจะเป็นการเสนอราคาที่ไม่มีอยู่จริง
+   */
+  const promoIsLive = isPromoLive();
+
   return (
     <main className="site-shell">
       <LandingMotion />
@@ -86,6 +117,8 @@ export default async function LandingPage() {
         <HeroSlider slides={heroSlideViews} />
         <HermesCard requestHref={hermesRequestHref} />
       </section>
+
+      {promoIsLive ? <PromoRow cards={promoCards} endsAt={promoEndsAt} /> : null}
 
       <section className="section section--white stat-band" aria-label="แพลตฟอร์มในตัวเลข">
         <div className="container">

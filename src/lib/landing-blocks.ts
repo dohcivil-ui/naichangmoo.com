@@ -19,6 +19,7 @@ export type LandingBlockKey =
   | "header"
   | "category_bar"
   | "hero"
+  | "promo"
   | "workflow_band"
   | "principle_marquee"
   | "stat_band"
@@ -73,6 +74,15 @@ export const landingBlocks: readonly LandingBlock[] = [
     /* พื้นเขียวเข้มกับหน้าต่างสาธิตของรุ่นหนึ่งถูกทับทั้งบล็อกเมื่อ 2026-09-07
        ตัวที่วาดตอนนี้เป็นสองไฟล์คู่กัน ไม่ใช่ `page.tsx` ที่เขียนมาร์กอัปเองอีกแล้ว */
     renderedBy: "src/components/landing/v3/hero-slider.tsx กับ hermes-card.tsx"
+  },
+  {
+    key: "promo",
+    name: "โปรโมชั่นเดือนนี้",
+    where: "แถวการ์ดสามใบใต้แถวเปิดหน้า มีนาฬิกานับถอยหลังอยู่มุมขวาของหัวข้อ",
+    lockedReason: null,
+    /* ทั้งบล็อกหายไปเองเมื่อเลยวันสิ้นสุดที่ `promoEndsAt` โดยไม่ต้องมีใครมาปิด
+       เพราะโปรโมชั่นที่หมดอายุแล้วไม่ใช่โปรโมชั่น */
+    renderedBy: "src/components/landing/v3/promo-row.tsx"
   },
   {
     /**
