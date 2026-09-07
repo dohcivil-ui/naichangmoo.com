@@ -1,5 +1,25 @@
 [
   {
+    "title": "ผืนชนะทุกข้อ มือถือเหลือจุดเดียว และเครื่องมือที่เถียงกลับ",
+    "description": "ยึดผืน v3 เป๊ะจนเพิกถอนหกข้อในสมุด · ใช้หนี้มือถือของสี่บล็อกที่ลงแล้วจาก 13 จุดเหลือ 1 · ตัวเทียบวัดสองความกว้าง หยุดอนิเมชันก่อนวัด และบังคับให้เหตุผลในสมุดพิสูจน์ตัวเองด้วยการทดลอง · ADR 0025 เปิดทางให้เดือนที่คาดว่าเปิด โดยยังไม่มีโค้ด",
+    "scope": [
+      "src/app/globals.css · page.tsx · layout.tsx",
+      "src/components/landing/v3/* · src/components/platform/button.tsx",
+      "src/lib/platform-channels.ts · src/server/platform-channels.ts",
+      "scripts/v3-spec/* · docs/design/v3-deliberate-differences.json",
+      "docs/adr/0025-an-expected-month-is-a-claim-that-expires-by-itself.md"
+    ],
+    "verification": [
+      "pnpm lint · pnpm typecheck · pnpm test (1246 ผ่าน 85 ข้าม)",
+      "pnpm build ยืนยันหน้าแรกขึ้นเป็น dynamic",
+      "node scripts/v3-spec/compare.mjs (1280 กองที่สามว่าง · 390 เหลือ 1 คือแถบบน)",
+      "node scripts/v3-spec/motion.mjs (ผ่านสองกรณี)",
+      "node scripts/v3-spec/overlay.mjs (1280 16.87% · 390 55.13%)"
+    ],
+    "rollback": "ทุกก้อนอยู่บนกิ่ง feat/home-redesign-v3 ที่ push แล้ว trunk ยังนิ่งที่ 082853a ทิ้งกิ่งทั้งกิ่งได้ · ถอยทีละเรื่องด้วย git revert ตั้งแต่ ba94571 ถึง 2f07b14 · ก้อน ed44377 ถอยแล้วต้องคืนหกข้อในสมุดพร้อมกันทั้งชุด ไม่งั้นตัวเทียบจะรายงานว่าสมุดเน่า · ไม่มี migration และยังไม่ได้ deploy",
+    "path": "docs/handoff/2026-09-07-evening-the-canvas-wins-and-the-tool-argues-back.md"
+  },
+  {
     "title": "สี่บล็อกจากเก้า และเครื่องมือที่วัดผืนออกแบบแทนตา",
     "description": "หน้าแรกรุ่นสามขึ้นไปสี่บล็อกจากเก้า และเปลี่ยนวิธีทำงานถาวรด้วยเครื่องมือที่ถอดผืนออกแบบเป็นตารางแล้วเทียบกับหน้าจริงอัตโนมัติ พร้อมสมุดข้อยกเว้นที่ทุกข้อต้องพิสูจน์ตัวเองได้",
     "scope": [
