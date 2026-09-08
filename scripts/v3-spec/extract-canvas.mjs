@@ -55,6 +55,10 @@ for (const boardWidth of BOARDS) {
         color: s.color,
         bg: s.backgroundColor,
         font: `${px(s.fontSize)}/${s.fontWeight}`,
+        /* `font` อ่านง่ายตอนเปิดไฟล์ดูด้วยตา แต่เทียบทีละอย่างไม่ได้ · สองช่องนี้จึงมีไว้
+           ให้แถวใน `MAP` เขียน `keys: ["fontWeight"]` ได้ตรง ๆ โดยไม่ต้องแกะสตริง */
+        fontSize: px(s.fontSize),
+        fontWeight: s.fontWeight,
         lh: px(s.lineHeight),
         ls: s.letterSpacing,
         radius: s.borderRadius,

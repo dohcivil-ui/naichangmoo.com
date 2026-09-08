@@ -52,6 +52,18 @@ const section = (n) => `:scope > div:nth-child(2) > div:nth-child(${n})`;
 const liveSelector = (row, width) => (typeof row.live === "string" ? row.live : row.live[width]);
 
 /**
+ * `keys` เขียนเป็นรายการเดียวหรือแยกรายความกว้างก็ได้ — ตัวนี้คลี่ให้เป็นรายการเดียว
+ *
+ * แยกรายความกว้างจำเป็นเมื่อของชิ้นเดียวกันในสองใบมีของให้เทียบไม่เท่ากัน เช่นแถบนาฬิกา
+ * ที่ใบเดสก์ท็อปมีทั้งคำนำหน้าและระยะระหว่างชิ้น ส่วนใบมือถือเป็นสายตัวเลขเปล่า ๆ
+ * ที่ไม่มีทั้งสองอย่าง · เขียนคีย์ชุดเดียวจะบังคับให้ใบมือถือถูกเทียบกับของที่มันไม่มี
+ */
+const rowKeys = (row, width) => {
+  const keys = row.keys ?? ["w", "h"];
+  return Array.isArray(keys) ? keys : keys[width] ?? ["w", "h"];
+};
+
+/**
  * แผนที่จับคู่ · `canvas` บอกว่าแต่ละความกว้างใช้ selector ไหนในผืน
  * `live` คือ selector ในหน้าจริง เขียนเป็นสตริงเดียวได้เมื่อใช้ตัวเดียวกันทั้งสองความกว้าง
  * หรือเขียนแยกรายความกว้างแบบเดียวกับ `canvas` เมื่อไม่ใช่
@@ -89,12 +101,20 @@ const MAP = [
   { name: "ขีดแดงในการ์ด", live: ".v3-hline", canvas: { 1280: ".hline" } },
   { name: "หัวเรื่องการ์ด", live: ".v3-hcard__title", keys: ["h"], canvas: { 1280: ".hcard h3" } },
   { name: "หัวบล็อกโปรโมชั่น", live: ".v3-promo__head", keys: ["h"], canvas: { 1280: "#promo > div:first-child", 390: `${section(5)} > div:nth-child(1)` } },
-  /* ผืนเดสก์ท็อปแยกนาฬิกาเป็นสี่ช่อง `#promo .hd` จึงชี้ช่องแรก · ผืนมือถือเขียนเป็นสายเดียว
-     `.hd` ตัวเดียวกันจึงชี้ทั้งสาย · ฝั่งจริงต้องเปลี่ยนคู่ตาม ไม่งั้นเป็นการเทียบช่องกับทั้งสาย */
-  // ที่ 1280 หนึ่งช่องคือกล่องเลขซ้อนป้ายกำกับ ไม่ใช่กล่องเลขเปล่า ตั้งแต่ผืนเพิ่มป้าย 2026-09-07
-  // ที่ 390 ผืนเป็นสายตัวเลขเดียว ไม่มีทั้งกล่องและป้าย จึงเทียบทั้งแถบ
-  { name: "ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-slot", 390: ".v3-promo__clock" }, keys: ["h"], canvas: { 1280: "#promo .hd", 390: `${section(5)} .hd` } },
-  { name: "ป้ายกำกับใต้ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-unit" }, canvas: { 1280: "#promo .hd > span > span:last-child" } },
+  /* `#promo .hd` ที่ใบเดสก์ท็อปคือ**กลุ่มทั้งกลุ่ม** ไม่ใช่ช่องแรก · ช่องแรกต้องเขียนเป็น
+     `#promo .hd > span:first-child` · ส่วนใบมือถือ `.hd` ตัวเดียวกันคือสายตัวเลขทั้งสาย
+     เพราะผืนมือถือไม่ได้แยกช่อง · **เคยจับคู่กลุ่มกับช่องมาแล้วและมันขึ้นว่าตรง**
+     เพราะทั้งคู่สูง 50 เท่ากันพอดี ซึ่งเป็นความบังเอิญ ไม่ใช่ความถูกต้อง
+
+     **นาฬิกาแตกเป็นห้าแถว ไม่ใช่แถวเดียว** เดิมมีแถวเดียวที่เทียบแค่ความสูงของกล่องเลข
+     แล้วขึ้นว่า "ตรง" มาตลอด ทั้งที่ของจริงต่างจากผืนแปดอย่าง — น้ำหนักฟอนต์ ช่องไฟ
+     ขนาดกับสีของตัวคั่น สีของคำนำหน้า และระยะสองจุด · ทั้งแปดเป็นสีกับตัวอักษร
+     ซึ่งตัวเทียบมองไม่เห็นเลยจนถึง 2026-09-08 · **ของที่ไม่ถูกเทียบ ไม่มีอะไรเตือนตลอดกาล** */
+  { name: "แถบนาฬิกา", live: ".v3-promo__clock", keys: { 1280: ["w", "h", "color", "gap"], 390: ["w", "h"] }, canvas: { 1280: "#promo > div:first-child > div:last-child", 390: `${section(5)} .hd` } },
+  { name: "ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-slot" }, keys: ["w", "h", "gap"], canvas: { 1280: "#promo .hd > span:first-child" } },
+  { name: "กล่องเลขนาฬิกา", live: { 1280: ".v3-promo__clock-cell" }, keys: ["w", "h", "color", "bg", "fontWeight", "ls", "radius"], canvas: { 1280: "#promo .hd > span:first-child > span:first-child" } },
+  { name: "ตัวคั่นนาฬิกา", live: { 1280: ".v3-promo__tick" }, keys: ["color", "fontSize", "fontWeight"], canvas: { 1280: "#promo .hd > span:nth-child(2)" } },
+  { name: "ป้ายกำกับใต้ช่องนาฬิกา", live: { 1280: ".v3-promo__clock-unit" }, keys: ["w", "h", "color", "fontWeight", "ls", "lh"], canvas: { 1280: "#promo .hd > span > span:last-child" } },
   { name: "การ์ดโปรโมชั่น", live: ".v3-promo__card", canvas: { 1280: "#promo .card", 390: `${section(5)} .card` } },
   { name: "ภาพบนการ์ดโปรโมชั่น", live: ".v3-promo__image", canvas: { 1280: "#promo .card img", 390: `${section(5)} .card img` } },
   { name: "ป้ายสิทธิ์บนการ์ดโปรโมชั่น", live: ".v3-promo__badge", keys: ["h"], canvas: { 1280: "#promo .card span", 390: `${section(5)} .card span` } },
@@ -102,7 +122,21 @@ const MAP = [
 ];
 
 /**
- * วัดกล่องของ selector ที่ให้มา
+ * ระยะห่างของค่าหนึ่งช่อง — **ไม่ใช่ทุกช่องเป็นตัวเลข**
+ *
+ * `w` `h` `lh` เป็นตัวเลข ลบกันได้ · ส่วน `color` `fontWeight` `ls` `gap` เป็นข้อความ
+ * ซึ่งลบกันได้ `NaN` แล้ว `Math.abs(NaN) > TOLERANCE` เป็นเท็จเสมอ · **ถ้าปล่อยไว้
+ * แถวที่เฝ้าสีจะรายงานว่าตรงกันทุกครั้ง ไม่ว่าสีจะต่างแค่ไหน** ซึ่งแย่กว่าไม่เฝ้าเลย
+ * เพราะมันขึ้นในรายงานว่าถูกเฝ้าอยู่ · ข้อความจึงเทียบเท่ากับไม่เท่า และตอบเป็น
+ * `Infinity` เมื่อต่าง เพื่อให้ผ่านเกณฑ์หนึ่งพิกเซลไปเป็นความต่างจริงเสมอ
+ */
+function keyGap(live, canvas) {
+  if (typeof live === "number" && typeof canvas === "number") return Math.abs(live - canvas);
+  return live === canvas ? 0 : Infinity;
+}
+
+/**
+ * วัดกล่องและสไตล์ของ selector ที่ให้มา
  *
  * `boardWidth` มีเฉพาะฝั่งผืน เพราะผืนวางอาร์ตบอร์ดสองใบเรียงกันในหน้าเดียว และคลาสเดียวกัน
  * มีอยู่ในทั้งสองใบ · ฝั่งหน้าจริงไม่ต้องหา ทั้งหน้าคือของที่วัด
@@ -110,6 +144,10 @@ const MAP = [
  * **ของที่หาเจอแต่กล่องเป็นศูนย์ ไม่เหมือนของที่หาไม่เจอ** อย่างแรกคือของที่มีในหน้าแต่ถูก
  * ซ่อนที่ความกว้างนี้ ซึ่งเป็นคำตอบคนละอย่างกับ "ไม่มีของชิ้นนี้เลย" · แยกไว้ตั้งแต่ตอนวัด
  * ไม่งั้นของที่ถูกซ่อนจะรายงานว่าต่างจากผืนเท่ากับความสูงเต็มของมัน ซึ่งอ่านแล้วไขว้เขว
+ *
+ * **เดิมคืนแค่กว้าง สูง และซ่อนอยู่ไหม** สี น้ำหนักฟอนต์ ช่องไฟ และระยะจึงไม่เคยถูกเทียบเลย
+ * สักรอบ ทั้งที่ฝั่งผืนเก็บมาตั้งแต่วันแรก · เดสก์ท็อปเคยขึ้นว่า "ตรง" ทั้งที่นาฬิกาต่างจากผืน
+ * แปดอย่าง เพราะทั้งแปดเป็นสีกับตัวอักษร ไม่ใช่ขนาดกล่อง — 2026-09-08
  */
 async function boxes(page, selectors, boardWidth) {
   return page.evaluate(
@@ -131,10 +169,25 @@ async function boxes(page, selectors, boardWidth) {
           continue;
         }
         const box = el.getBoundingClientRect();
+        const s = getComputedStyle(el);
+        const px = (v) => (v && v.endsWith("px") ? +parseFloat(v).toFixed(2) : v);
         out[selector] = {
           w: Number(box.width.toFixed(2)),
           h: Number(box.height.toFixed(2)),
-          hidden: box.width === 0 && box.height === 0
+          hidden: box.width === 0 && box.height === 0,
+          /* **ชื่อช่องกับรูปแบบต้องตรงกับ `extract-canvas.mjs` ทุกตัวอักษร** ไม่งั้นแถวที่
+             เขียน `keys: ["color"]` จะเทียบของที่คนละหน่วยแล้วแดงตลอดกาลโดยไม่มีบั๊กจริง */
+          color: s.color,
+          bg: s.backgroundColor,
+          font: `${px(s.fontSize)}/${s.fontWeight}`,
+          fontSize: px(s.fontSize),
+          fontWeight: s.fontWeight,
+          lh: px(s.lineHeight),
+          ls: s.letterSpacing,
+          radius: s.borderRadius,
+          pad: s.padding,
+          gap: s.gap === "normal" ? null : s.gap,
+          display: s.display
         };
       }
       return out;
@@ -210,17 +263,21 @@ for (const width of WIDTHS) {
     else if (fromCanvas.hidden && !fromLive.hidden) detail = "ผืนซ่อนของชิ้นนี้ แต่หน้าจริงแสดงอยู่";
 
     if (!detail) {
-      const keys = row.keys ?? ["w", "h"];
+      const keys = rowKeys(row, width);
       const diffs = keys
-        .map((key) => ({ key, canvas: fromCanvas[key], live: fromLive[key], gap: Number((fromLive[key] - fromCanvas[key]).toFixed(2)) }))
-        .filter((diff) => Math.abs(diff.gap) > TOLERANCE);
+        .map((key) => ({ key, canvas: fromCanvas[key], live: fromLive[key], gap: keyGap(fromLive[key], fromCanvas[key]) }))
+        .filter((diff) => diff.gap > TOLERANCE);
 
       if (diffs.length === 0) {
         same.push(row.name);
         continue;
       }
       detail = diffs
-        .map((diff) => `${diff.key}: ผืน ${diff.canvas} → จริง ${diff.live} (${diff.gap > 0 ? "+" : ""}${diff.gap})`)
+        .map((diff) =>
+          Number.isFinite(diff.gap) && typeof diff.live === "number"
+            ? `${diff.key}: ผืน ${diff.canvas} → จริง ${diff.live} (${diff.live - diff.canvas > 0 ? "+" : ""}${Number((diff.live - diff.canvas).toFixed(2))})`
+            : `${diff.key}: ผืน ${diff.canvas} → จริง ${diff.live}`
+        )
         .join(" · ");
     }
 
@@ -233,7 +290,7 @@ for (const width of WIDTHS) {
   }
 
   /* เก็บกล่องที่วัดได้ไว้ให้ตัวตรวจเหตุผลเอาไปเทียบซ้ำหลังแทรกแซง */
-  const measured = new Map(rows.map((row) => [row.name, { canvas: canvas[row.canvas[width]], live: live[liveSelector(row, width)], keys: row.keys ?? ["w", "h"] }]));
+  const measured = new Map(rows.map((row) => [row.name, { canvas: canvas[row.canvas[width]], live: live[liveSelector(row, width)], keys: rowKeys(row, width) }]));
   perWidth.push({ width, same, excusedRows, unknown, skipped, measured });
 }
 
@@ -280,7 +337,9 @@ for (const entry of ledger.filter((row) => row.provedBy)) {
     const after = (await boxes(livePage, [liveSelector(row, result.width)], null))[liveSelector(row, result.width)];
     await handle.evaluate((node) => node.remove());
 
-    const gap = (live) => Math.max(...before.keys.map((key) => Math.abs(live[key] - before.canvas[key])));
+    /* ใช้ `keyGap` ตัวเดียวกับตอนจัดกอง ไม่งั้นแถวที่เฝ้าสีจะได้ `NaN`
+       แล้วการทดลองแทรกแซงจะตัดสินจากค่าที่ไม่มีความหมาย */
+    const gap = (live) => Math.max(...before.keys.map((key) => keyGap(live[key], before.canvas[key])));
     const was = Number(gap(before.live).toFixed(2));
     const now = after ? Number(gap(after).toFixed(2)) : null;
 
