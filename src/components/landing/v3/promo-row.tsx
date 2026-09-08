@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Button } from "@/components/platform/button";
 
 /**
@@ -71,15 +71,20 @@ function Clock({ endsAt }: { endsAt: string }) {
   return (
     <div className="v3-promo__clock">
       <span className="v3-promo__clock-caption">หมดเขตใน</span>
-      {parts.map((part, index) => (
-        <span key={part.key} className="v3-promo__clock-group">
-          <span className="v3-promo__clock-slot">
-            <span className="v3-promo__clock-cell v3-hd">{String(part.value).padStart(2, "0")}</span>
-            <span className="v3-promo__clock-unit">{part.label}</span>
-          </span>
-          {index < parts.length - 1 ? <span className="v3-promo__tick" aria-hidden="true">:</span> : null}
-        </span>
-      ))}
+      {/* **กลุ่มเดียวครอบทุกช่อง ไม่ใช่กลุ่มต่อหนึ่งช่อง** ผืนวางไว้แบบนี้ และระยะสองระดับ
+          ก็มาจากโครงนี้ — 10px ระหว่างคำนำหน้ากับกลุ่ม และ 4px ระหว่างชิ้นในกลุ่ม ·
+          โครงเดิมที่ห่อเป็นคู่ทำให้ไม่มีอิลิเมนต์ไหนเทียบกับกลุ่มของผืนได้เลย */}
+      <span className="v3-promo__clock-group">
+        {parts.map((part, index) => (
+          <Fragment key={part.key}>
+            <span className="v3-promo__clock-slot">
+              <span className="v3-promo__clock-cell v3-hd">{String(part.value).padStart(2, "0")}</span>
+              <span className="v3-promo__clock-unit">{part.label}</span>
+            </span>
+            {index < parts.length - 1 ? <span className="v3-promo__tick" aria-hidden="true">:</span> : null}
+          </Fragment>
+        ))}
+      </span>
     </div>
   );
 }

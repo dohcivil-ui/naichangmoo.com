@@ -3584,14 +3584,16 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ระยะบน 6px มาจากผืน ไม่ใช่ของเกิน · มันคือสิ่งที่ทำให้หัวบล็อกสูง 70 ไม่ใช่ 64
    ผืนจัดชิดบนด้วย เพราะป้ายกำกับใต้กล่องต้องห้อยลงล่าง ไม่ใช่ดันทั้งแถบให้ลอยขึ้น */
-.v3-promo__clock { display: flex; align-items: flex-start; gap: 6px; flex-wrap: wrap; padding-block-start: 6px; }
-.v3-promo__clock-caption { font-size: 13px; color: var(--v3-muted); margin-inline-end: 4px; }
-.v3-promo__clock-group { display: inline-flex; align-items: center; gap: 6px; }
+.v3-promo__clock { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; padding-block-start: 6px; color: var(--v3-slate); }
+.v3-promo__clock-caption { font-size: 13px; }
+/* ระยะ 4px เป็นของในกลุ่ม ส่วน 10px ข้างบนเป็นระยะจากคำนำหน้าถึงกลุ่ม สองระดับตามผืน
+   น้ำหนักกับช่องไฟตั้งที่กลุ่มเพื่อให้ทั้งกล่องเลขและตัวคั่นรับไปเหมือนกัน แบบเดียวกับที่ผืนทำ */
+.v3-promo__clock-group { display: inline-flex; align-items: center; gap: 4px; font-size: 22px; font-weight: 700; letter-spacing: .04em; }
 .v3-promo__clock-cell { min-inline-size: 36px; padding: 2px 0; border-radius: 6px; background: var(--v3-red); color: var(--v3-white); font-size: 22px; text-align: center; }
 /* ช่องหนึ่งช่องคือกล่องเลขซ้อนป้ายกำกับ · ผืนวัดได้ 36×50 = กล่อง 37 บวกระยะ 3 บวกป้าย 10 */
 .v3-promo__clock-slot { display: grid; justify-items: center; gap: 3px; }
 .v3-promo__clock-unit { font-size: 10px; font-weight: 700; line-height: 10px; letter-spacing: .2px; color: var(--v3-muted); }
-.v3-promo__tick { animation: v3-tick 1s steps(1) infinite; color: var(--v3-red); font-weight: 700; }
+.v3-promo__tick { animation: v3-tick 1s steps(1) infinite; color: var(--v3-slate); font-size: 22px; }
 
 .v3-promo__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-block-start: 32px; }
 .v3-promo__card { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; padding: 22px; }
@@ -3743,7 +3745,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   /* ผืนมือถือไม่มีคำว่า "หมดเขตใน" และไม่มีกล่องแดงรอบตัวเลข เหลือแค่สายตัวเลข 16px */
   .v3-promo__clock { gap: 0; font-size: 16px; letter-spacing: .04em; align-items: center; padding-block-start: 0; }
   .v3-promo__clock-caption { display: none; }
-  .v3-promo__clock-group { gap: 0; }
+  /* จอแคบเป็นสายตัวเลข 16px ทั้งสาย กลุ่มจึงรับขนาดจากแถบ ไม่ใช่ 22px ของกล่องเดสก์ท็อป
+     ช่องไฟ .04em คิดจากขนาดของตัวเอง ขนาดผิดเมื่อไรช่องไฟผิดตาม */
+  .v3-promo__clock-group { gap: 0; font-size: inherit; }
   .v3-promo__clock-cell { min-inline-size: 0; padding: 0; border-radius: 0; background: none; color: var(--v3-red); font-size: 16px; }
   /* ผืนมือถือเป็นสายตัวเลขเดียว ไม่มีกล่องแดงและไม่มีป้ายกำกับ · ถอดช่องออกด้วย
      `display: contents` ให้กล่องเลขกลับไปเป็นสมาชิกแถวโดยตรงเหมือนก่อนมีป้าย */
@@ -3753,7 +3757,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
      ก่อนมีป้ายที่ตาเห็น หน่วยเคยอยู่ในกล่องเลขเป็น `visually-hidden` อยู่แล้ว
      ที่จอแคบจึงต้องคืนสภาพนั้น ไม่ใช่ตัดทิ้ง */
   .v3-promo__clock-unit { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-  .v3-promo__tick { color: var(--v3-red); font-weight: 400; }
+  /* จอแคบเป็นสายตัวเลขเดียว ตัวคั่นจึงตัวเท่าเลข ไม่ใช่ 22px ของกล่องแบบเดสก์ท็อป */
+  .v3-promo__tick { color: var(--v3-red); font-weight: 400; font-size: 16px; }
 
   .v3-promo__grid { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-block-start: 18px; }
   .v3-promo__card { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 14px; }
