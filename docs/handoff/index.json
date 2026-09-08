@@ -1,5 +1,26 @@
 [
   {
+    "title": "เครื่องมือมองเห็นสีแล้ว คอลัมน์เดือนลงฐานจริง และเพดานที่ค้างมานานที่สุด",
+    "description": "ตัวเทียบเคยเทียบแค่กว้างกับสูง นาฬิกาจึงขึ้นว่าตรงมาตลอดทั้งที่ต่างจากผืนแปดอย่าง · เติม getComputedStyle แล้วแก้ทั้งแปดให้ตรง · คอลัมน์เดือนที่คาดว่าเปิดลงฐานพร้อม CHECK และตรรกะสามขั้นที่อ่านเดือนตามนาฬิกากรุงเทพ · เพดานความกว้าง 1280 ที่เจ้าของงานเคาะ ปิดเรื่องที่ค้างนานที่สุด",
+    "scope": [
+      "scripts/v3-spec/compare.mjs · extract-canvas.mjs · serve-canvas.mjs · canvas-provenance.mjs (ใหม่)",
+      "src/lib/app-readiness.ts (ใหม่) · app-readiness.test.ts (ใหม่) · thai-format.ts · thai-date.ts",
+      "src/db/schema.ts · drizzle/0017_colossal_firebrand.sql · src/server/app-registry.ts",
+      "src/app/globals.css · src/components/landing/v3/promo-row.tsx · src/app/page.tsx",
+      "docs/adr/0025-*.md · docs/design/v3-deliberate-differences.json · CONTEXT.md"
+    ],
+    "verification": [
+      "pnpm lint · pnpm typecheck · pnpm test (1259 ผ่าน 85 ข้าม)",
+      "pnpm db:generate แล้ว db:migrate ลงฐานจริง · ยิงสิบเอ็ดค่าใส่ CHECK ในทรานแซกชันที่ถอยกลับ รับสี่ ปฏิเสธเจ็ด",
+      "node scripts/v3-spec/compare.mjs (1280 ตรง 22 กองที่สามว่าง · 390 ตรง 9 เหลือแถบบนจุดเดียว)",
+      "node scripts/v3-spec/canvas-provenance.mjs (กฎ CSS 36 · keyframes 12 · ข้อความ 51 กับ 48)",
+      "รันเทสต์เวลาสามเขต UTC · Asia/Bangkok · America/New_York ผ่านทุกเขต",
+      "วัดเพดานด้วยมือที่ 1280 · 1516 · 1920 ได้เนื้อใน 1183.99 เท่าผืนที่จอกว้าง"
+    ],
+    "rollback": "ทุกก้อนอยู่บนกิ่ง feat/home-redesign-v3 ที่ push แล้ว trunk ยังนิ่งที่ 082853a ทิ้งกิ่งทั้งกิ่งได้ · ถอยทีละเรื่องด้วย git revert ตั้งแต่ 404ada7 ถึง e56c84f · **มี migration รอบนี้** 0017 เพิ่มคอลัมน์ apps.expected_open_month กับ CHECK ถอยต้องเขียน SQL เอง เพราะ drizzle-kit ไม่มีคำสั่งถอย · ยังไม่ได้ deploy ไม่มีอะไรที่ผู้ใช้จริงเห็น",
+    "path": "docs/handoff/2026-09-08-the-tool-learns-to-see-colour.md"
+  },
+  {
     "title": "ผืนชนะทุกข้อ มือถือเหลือจุดเดียว และเครื่องมือที่เถียงกลับ",
     "description": "ยึดผืน v3 เป๊ะจนเพิกถอนหกข้อในสมุด · ใช้หนี้มือถือของสี่บล็อกที่ลงแล้วจาก 13 จุดเหลือ 1 · ตัวเทียบวัดสองความกว้าง หยุดอนิเมชันก่อนวัด และบังคับให้เหตุผลในสมุดพิสูจน์ตัวเองด้วยการทดลอง · ADR 0025 เปิดทางให้เดือนที่คาดว่าเปิด โดยยังไม่มีโค้ด",
     "scope": [
