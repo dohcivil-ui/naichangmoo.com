@@ -305,7 +305,7 @@ describe("the catalogue card says nothing the registry has not said", () => {
 
     expect(Object.keys(claims).sort()).toEqual(platformApps.map((app) => app.slug).sort());
     for (const app of platformApps) {
-      expect(claims[app.slug]).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null });
+      expect(claims[app.slug]).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null });
     }
   });
 
@@ -317,7 +317,7 @@ describe("the catalogue card says nothing the registry has not said", () => {
     const { readCatalogueClaims } = await import("@/server/app-registry");
     const claims = await readCatalogueClaims();
 
-    expect(claims.rcopt).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null });
+    expect(claims.rcopt).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null });
   });
 
   it("gives an unreadable database exactly the same answer as an empty registry", async () => {
@@ -339,7 +339,7 @@ describe("the catalogue card says nothing the registry has not said", () => {
     const claims = await readCatalogueClaims();
 
     expect(platformApps.find((app) => app.slug === "estimeter")?.seededAccess).toBe("paid_trial");
-    expect(claims.estimeter).toEqual({ announced: true, access: "member_free", open: false, announcedAt, availabilityNote: null });
+    expect(claims.estimeter).toEqual({ announced: true, access: "member_free", open: false, announcedAt, availabilityNote: null, expectedOpenMonth: null });
   });
 
   it("carries the registry's availability sentence only while announced (ADR 0018)", async () => {
@@ -362,7 +362,7 @@ describe("the catalogue card says nothing the registry has not said", () => {
 
     expect(claims.estimeter.availabilityNote).toBe("ทดลองใช้งานฟรี 7 วัน");
     // Revoked means silent: the sentence must not survive the announcement it belonged to.
-    expect(claims.rcopt).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null });
+    expect(claims.rcopt).toEqual({ announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null });
   });
 
   it("ignores a row whose slug left the catalogue instead of inventing a card for it", async () => {

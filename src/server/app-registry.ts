@@ -93,12 +93,18 @@ export type AppClaim = {
   announcedAt: Date | null;
   /** ADR 0018: the pre-entry availability sentence. Null means the platform says nothing. */
   availabilityNote: string | null;
+  /**
+   * ADR 0025: the month an administrator expects the app to open, as `YYYY-MM`, or null when
+   * nobody has said. Whether that month has passed is decided when the page reads it, never
+   * when it is stored — see `describeReadiness`.
+   */
+  expectedOpenMonth: string | null;
 };
 
 /** Keyed by slug, and holding an entry for every app in the catalogue, so no caller handles a miss. */
 export type CatalogueClaims = Record<string, AppClaim>;
 
-const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null };
+const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null };
 
 /**
  * Reads the registry for the public catalogue surfaces — the landing page cards and the app detail
@@ -125,7 +131,8 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         accessModel: apps.accessModel,
         enabled: apps.enabled,
         availabilityNote: apps.availabilityNote,
-        announcedAt: apps.announcedAt
+        announcedAt: apps.announcedAt,
+        expectedOpenMonth: apps.expectedOpenMonth
       })
       .from(apps);
 
@@ -138,7 +145,8 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         access: row.accessModel,
         open: row.enabled,
         announcedAt: row.announcedAt,
-        availabilityNote: row.availabilityNote ?? null
+        availabilityNote: row.availabilityNote ?? null,
+        expectedOpenMonth: row.expectedOpenMonth ?? null
       };
     }
   } catch {
