@@ -436,6 +436,14 @@ for (const entry of ledger) {
     continue;
   }
   if (entry.effectOf) {
+    /* **ผิดชนิดต้องกลายเป็นรายงาน ไม่ใช่กลายเป็นการล้ม** เขียน `effectOf` เป็นสตริงเดี่ยว
+       แล้ว `.filter` จะโยน TypeError ทั้งตัวเทียบ · วันที่มันโยนคือวันที่แถวนั้นถูกถอด
+       ออกจากแผนที่หรือถูกเปลี่ยนชื่อ ซึ่งเป็นวันที่มีคนกำลังรื้ออะไรอยู่พอดี
+       คือวันที่ต้องการเครื่องมือมากที่สุด · เกิดขึ้นจริงแล้วครั้งหนึ่ง 2026-09-08 */
+    if (!Array.isArray(entry.effectOf)) {
+      problems.push(`${entry.name} — ช่อง effectOf ต้องเป็นรายการของชื่อ ไม่ใช่ชื่อเดี่ยว`);
+      continue;
+    }
     const missing = entry.effectOf.filter((name) => !named.has(name));
     if (missing.length > 0) problems.push(`${entry.name} — อ้างว่าเป็นผลของ ${missing.join(" กับ ")} ซึ่งไม่มีในสมุดแล้ว`);
     const dead = entry.effectOf.filter((name) => named.has(name) && mapped.has(name) && !stillTrue.has(name));

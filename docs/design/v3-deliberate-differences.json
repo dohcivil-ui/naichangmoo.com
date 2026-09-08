@@ -120,7 +120,9 @@
     "widths": [
       390
     ],
-    "effectOf": "ฟอนต์ของช่องตัวเลข",
+    "effectOf": [
+      "ฟอนต์ของช่องตัวเลข"
+    ],
     "provedBy": {
       "rules": [
         { "selector": ".v3-promo__clock-cell", "declare": "font-family: \"Noto Sans Thai\", sans-serif" }
