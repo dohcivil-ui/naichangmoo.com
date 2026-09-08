@@ -57,15 +57,20 @@ function Clock({ endsAt }: { endsAt: string }) {
   const seconds = Math.floor(left / 1000);
   /**
    * **ป้ายกำกับเป็นข้อความจริง ไม่ใช่ข้อความสำหรับโปรแกรมอ่านหน้าจออย่างเดียว**
-   * เดิมเป็น `visually-hidden` ตาคนจึงเห็นแต่ `04 : 08 : 19 : 04` ซึ่งอ่านไม่ออกว่า
-   * ช่องไหนคืออะไร · เจ้าของงานเคาะ 2026-09-07 ให้เติมป้ายใต้กล่อง และผืนถูกแก้ตามในวันเดียวกัน
-   * · คำย่อ `ชม.` มาจากผืน ไม่ใช่ `ชั่วโมง` ที่เคยใช้ตอนซ่อน
+   * เดิมซ่อนไว้ทั้งหมด ตาคนจึงเห็นแต่ `04 : 08 : 19 : 04` ซึ่งอ่านไม่ออกว่าช่องไหนคืออะไร
+   * · เจ้าของงานเคาะ 2026-09-07 ให้เติมป้ายใต้กล่อง และผืนถูกแก้ตามในวันเดียวกัน
+   *
+   * **คำที่ตาเห็นกับคำที่หูได้ยินเป็นคนละคำ และต้องเป็นคนละสตริง** ผืนกำหนดคำย่อ `ชม.`
+   * ซึ่งถูกสำหรับสายตา แต่ที่จอแคบป้ายถูกซ่อนจากตา สตริงนี้จึงกลายเป็นสิ่งเดียวที่คนฟัง
+   * ได้ยิน · โปรแกรมอ่านหน้าจออาจสะกด `ชม.` ทีละตัว ทั้งที่ของเดิมเคยพูดว่า "ชั่วโมง"
+   * · **ผืนเป็นภาพ มันไม่มีความเห็นเรื่องเสียง** สตริงเดียวจึงรับใช้สองผู้ฟังที่ต้องการ
+   * คนละอย่างไม่ได้ · `label` มาจากผืน ส่วน `spoken` เป็นคำเต็มที่ใช้ทั้งสองความกว้าง
    */
   const parts = [
-    { key: "day", value: Math.floor(seconds / 86400), label: "วัน" },
-    { key: "hour", value: Math.floor(seconds / 3600) % 24, label: "ชม." },
-    { key: "minute", value: Math.floor(seconds / 60) % 60, label: "นาที" },
-    { key: "second", value: seconds % 60, label: "วินาที" }
+    { key: "day", value: Math.floor(seconds / 86400), label: "วัน", spoken: "วัน" },
+    { key: "hour", value: Math.floor(seconds / 3600) % 24, label: "ชม.", spoken: "ชั่วโมง" },
+    { key: "minute", value: Math.floor(seconds / 60) % 60, label: "นาที", spoken: "นาที" },
+    { key: "second", value: seconds % 60, label: "วินาที", spoken: "วินาที" }
   ];
 
   return (
@@ -79,7 +84,8 @@ function Clock({ endsAt }: { endsAt: string }) {
           <Fragment key={part.key}>
             <span className="v3-promo__clock-slot">
               <span className="v3-promo__clock-cell v3-hd">{String(part.value).padStart(2, "0")}</span>
-              <span className="v3-promo__clock-unit">{part.label}</span>
+              <span className="v3-promo__clock-unit" aria-hidden="true">{part.label}</span>
+              <span className="visually-hidden">{part.spoken}</span>
             </span>
             {index < parts.length - 1 ? <span className="v3-promo__tick" aria-hidden="true">:</span> : null}
           </Fragment>
