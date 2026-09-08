@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { announceApp, isAppAccess, revokeAnnouncement } from "@/server/app-registry";
+import { announceApp, isAppAccess, revokeAnnouncement, setExpectedOpenMonth } from "@/server/app-registry";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
 import type { AppAccess } from "@/lib/platform";
 
@@ -53,6 +53,55 @@ export async function declareApp(
   revalidatePath("/admin/apps");
   revalidatePath("/pricing");
   return { ok: true, message: "ประกาศแล้ว และเขียนบันทึกการเปลี่ยนแปลงไว้เรียบร้อย" };
+}
+
+/**
+ * เดือนที่คาดว่าเปิด — ADR 0025
+ *
+ * **ช่องว่างคือการลบเดือนออก ไม่ใช่การไม่ได้กรอก** ฟอร์มนี้ส่งค่าเดือนมาเสมอ ส่งว่างมาแปลว่า
+ * ผู้ดูแลตั้งใจลบ ซึ่งทำให้แอปถอยกลับขั้นที่หนึ่งทันที และเป็นการกระทำที่ต้องมีเหตุผล
+ * และลงบันทึกเท่ากับการกรอก · ตัวเขียนใน `app-registry.ts` เป็นคนบังคับเรื่องนี้ ที่นี่แค่ส่งต่อ
+ *
+ * `revalidatePath` ครอบ `/` ด้วย เพราะแถบความพร้อมบนหน้าแรกอ่านค่านี้ ไม่ใช่แค่หน้าราคา
+ */
+export async function setAppExpectedMonth(
+  _previous: AppRegistryFormState | undefined,
+  formData: FormData
+): Promise<AppRegistryFormState> {
+  const auth = await resolvePlatformAdmin();
+  if (!auth.ok) return { ok: false, message: "ไม่มีสิทธิ์ดำเนินการนี้" };
+
+  const slug = String(formData.get("slug") ?? "").trim();
+  const month = String(formData.get("expected_open_month") ?? "");
+  const reason = String(formData.get("reason") ?? "");
+  if (!slug) return { ok: false, message: "ไม่พบแอปที่จะบันทึกเดือน" };
+
+  let result;
+  try {
+    result = await setExpectedOpenMonth({ slug, month, reason, actorId: auth.admin.userId });
+  } catch {
+    return { ok: false, message: "บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง" };
+  }
+
+  if (!result.ok) {
+    if (result.reason === "reason_required") return { ok: false, message: "ต้องระบุเหตุผลอย่างน้อย 4 ตัวอักษร" };
+    if (result.reason === "invalid_month") return { ok: false, message: "เดือนต้องอยู่ในรูป ปี ค.ศ. สี่หลัก ขีดกลาง เดือนสองหลัก เช่น 2026-10" };
+    if (result.reason === "not_announced") {
+      return { ok: false, message: "ต้องประกาศแอปนี้ก่อน เพราะขั้นกลางคือประกาศแล้วและบอกเดือนที่คาด" };
+    }
+    return { ok: false, message: "ไม่พบแอปที่จะบันทึกเดือน" };
+  }
+
+  revalidatePath("/admin/apps");
+  revalidatePath("/pricing");
+  revalidatePath("/");
+  const cleared = month.trim() === "";
+  return {
+    ok: true,
+    message: cleared
+      ? "ลบเดือนออกแล้ว แอปนี้ถอยกลับไปเป็นประกาศแล้วโดยไม่มีเดือน และบันทึกการลบไว้เรียบร้อย"
+      : "บันทึกเดือนที่คาดว่าเปิดแล้ว พร้อมเขียนบันทึกการเปลี่ยนแปลงไว้"
+  };
 }
 
 export async function withdrawApp(

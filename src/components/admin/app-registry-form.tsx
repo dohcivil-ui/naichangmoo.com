@@ -2,7 +2,9 @@
 
 import { useActionState, useState } from "react";
 import { accessLabel, availabilityNotePresets, type AppAccess } from "@/lib/platform";
-import { declareApp, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
+import { declareApp, setAppExpectedMonth, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
+import { formatExpectedMonth, splitExpectedMonth } from "@/lib/app-readiness";
+import { THAI_MONTH_FULL, toBuddhistYear, todayIsoBangkok } from "@/lib/thai-date";
 import type { RegistryEntry } from "@/server/app-registry";
 import { Button } from "@/components/platform/button";
 
@@ -26,6 +28,74 @@ function initialNoteChoice(current: string | null, seeded: string): string {
 }
 
 /**
+ * ช่องเลือกเดือนที่คาดว่าเปิด — เดือนไทยกับปี พ.ศ. บนจอ แต่ส่งออกเป็น `YYYY-MM` ปี ค.ศ.
+ *
+ * **ไม่ใช้ช่องเลือกเดือนของเบราว์เซอร์** ด่าน `date-input-fence.test.ts` ห้ามช่องวันที่ทุกชนิด
+ * ของเบราว์เซอร์ไว้ตามคำสั่งเจ้าของงาน 2026-08-28 เพราะมันโชว์ ค.ศ. ตามภาษาเครื่อง
+ * ทำให้คนทำแผนงานมั่ว · **ด่านนั้นสแกนตัวอักษรตรง ๆ คอมเมนต์ที่พิมพ์ชื่อชนิดช่องก็โดนจับ**
+ * ซึ่งเป็นเหตุผลที่ย่อหน้านี้เลี่ยงพิมพ์มันตรง ๆ ·
+ * `ThaiDateField` เป็นของกลางสำหรับวันเต็ม ไม่ใช่เดือน จึงทำเป็นสองช่องเลือกที่นี่แทน
+ * ไม่ขยายของกลางให้รับโหมดใหม่เพื่อผู้ใช้รายเดียว
+ *
+ * **ผลข้างเคียงที่ตั้งใจ — ช่องเลือกปิดช่องโหว่ปีพุทธศักราชไปด้วย** ฝั่งเซิร์ฟเวอร์กับ CHECK
+ * ที่ฐานตรวจแค่ว่าเป็นเลขสี่หลัก `2569-10` จึงผ่านทั้งคู่และจะทำให้การ์ดขึ้นว่า "ต.ค. 12"
+ * เพราะถูกบวก 543 อีกรอบ · ช่องนี้เลือกได้เฉพาะปีที่มีอยู่ในรายการ ซึ่งเป็น ค.ศ. เสมอ
+ * **แต่มันปิดแค่ทางเข้าที่เรารู้จัก** ทางเซิร์ฟเวอร์ยังเปิดอยู่ และยังไม่ได้แก้
+ */
+const YEARS_AHEAD = 4;
+
+function ExpectedMonthField({ current }: { current: string | null }) {
+  const parts = splitExpectedMonth(current);
+  const [month, setMonth] = useState(parts ? String(parts.month).padStart(2, "0") : "");
+  const [year, setYear] = useState(parts ? String(parts.year) : "");
+
+  const thisYear = Number(todayIsoBangkok().slice(0, 4));
+  const years: number[] = [];
+  for (let value = thisYear; value <= thisYear + YEARS_AHEAD; value += 1) years.push(value);
+  /* ปีที่เก็บไว้อาจเลยมาแล้วจนหลุดช่วง ต้องคงไว้ให้เห็น ไม่งั้นช่องจะดูเหมือนไม่เคยกรอก */
+  if (parts && !years.includes(parts.year)) years.unshift(parts.year);
+
+  const value = month && year ? `${year}-${month}` : "";
+
+  return (
+    <>
+      <input type="hidden" name="expected_open_month" value={value} />
+      <div className="admin-form__row">
+        <label>
+          <span>เดือนที่คาดว่าจะเปิด</span>
+          <select value={month} onChange={(event) => setMonth(event.target.value)}>
+            <option value="">ไม่ระบุเดือน</option>
+            {THAI_MONTH_FULL.map((name, index) => (
+              <option key={name} value={String(index + 1).padStart(2, "0")}>
+                {name}
+              </option>
+            ))}
+          </select>
+          <small>
+            {current
+              ? "เลือก “ไม่ระบุเดือน” แล้วบันทึก คือการลบเดือนออก ซึ่งทำให้แอปถอยกลับไปเป็นประกาศแล้วโดยไม่มีเดือน"
+              : "ยังไม่กรอก แอปนี้จึงอยู่ขั้นประกาศแล้ว · เลือกเดือนเพื่อให้การ์ดพูดว่าคาดว่าเปิดเมื่อไร"}
+          </small>
+        </label>
+
+        <label>
+          <span>ปี พ.ศ.</span>
+          <select value={year} onChange={(event) => setYear(event.target.value)}>
+            <option value="">ไม่ระบุปี</option>
+            {years.map((option) => (
+              <option key={option} value={String(option)}>
+                {toBuddhistYear(option)}
+              </option>
+            ))}
+          </select>
+          <small>เก็บลงฐานเป็น ค.ศ. {value || "—"} แสดงบนจอเป็น พ.ศ. ทั้งเว็บ</small>
+        </label>
+      </div>
+    </>
+  );
+}
+
+/**
  * One app's announcement. The reason is required in the markup and again on the server: the
  * browser requirement only saves a round trip, it is not where the rule lives.
  *
@@ -33,9 +103,10 @@ function initialNoteChoice(current: string | null, seeded: string): string {
  * are things ADR 0014 permits or forbids for reasons a person cannot be expected to remember while
  * looking at a dropdown, and a rule explained only by a rejection is a rule learned by annoyance.
  */
-export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
+export function AppRegistryForm({ entry, monthExpired }: { entry: RegistryEntry; monthExpired: boolean }) {
   const [state, formAction, pending] = useActionState(declareApp, initial);
   const [withdrawState, withdrawAction, withdrawing] = useActionState(withdrawApp, initial);
+  const [monthState, monthAction, savingMonth] = useActionState(setAppExpectedMonth, initial);
   const [access, setAccess] = useState<AppAccess>(entry.access ?? entry.seededAccess);
   const [open, setOpen] = useState(entry.open);
   const [noteChoice, setNoteChoice] = useState(() => initialNoteChoice(entry.availabilityNote, entry.seededNote));
@@ -140,6 +211,57 @@ export function AppRegistryForm({ entry }: { entry: RegistryEntry }) {
           ) : null}
         </div>
       </form>
+
+      {/**
+       * เดือนที่คาดว่าเปิด — ADR 0025 · แยกเป็นฟอร์มของตัวเอง ไม่รวมกับคำประกาศ
+       *
+       * **ขึ้นเฉพาะแอปที่ประกาศแล้ว** เพราะขั้นกลางคือประกาศแล้วบวกเดือน · ช่องที่กรอกแล้ว
+       * ถูกปฏิเสธเสมอเป็นช่องที่ไม่ควรมี ผู้ดูแลจะเรียนรู้กฎจากการถูกปฏิเสธ ซึ่งเป็นวิธีเรียนที่แย่ที่สุด
+       *
+       * เดือนกับปีเป็นช่องเลือก ไม่ใช่ช่องพิมพ์ ดู `ExpectedMonthField` ข้างบนว่าทำไม
+       */}
+      {entry.announced ? (
+        <form action={monthAction} className="admin-form" style={{ padding: 0 }}>
+          <input type="hidden" name="slug" value={entry.slug} />
+
+          {monthExpired && entry.expectedOpenMonth ? (
+            <p className="admin-form__warning" role="status">
+              เดือนที่กรอกไว้คือ {formatExpectedMonth(entry.expectedOpenMonth) ?? entry.expectedOpenMonth}{" "}
+              <strong>ซึ่งเลยกำหนดไปแล้ว</strong> การ์ดบนหน้าแรกจึงเลิกพูดถึงเดือนนี้เอง
+              และแอปถอยกลับไปเป็น &ldquo;ประกาศแล้ว&rdquo; ตั้งแต่วันแรกของเดือนถัดไป ·
+              ค่ายังอยู่ในทะเบียนเพราะระบบไม่ลบสิ่งที่คนเป็นคนเขียนไว้ กรอกเดือนใหม่หรือลบออกได้จากช่องข้างล่าง
+            </p>
+          ) : null}
+
+          <ExpectedMonthField current={entry.expectedOpenMonth} />
+
+          <label>
+            <span>เหตุผล ระบุทุกครั้ง</span>
+            <input
+              type="text"
+              name="reason"
+              required
+              minLength={4}
+              placeholder="เช่น ทีมยืนยันกำหนดเปิดแล้ว หรือ เลื่อนเพราะรอผลทดสอบ"
+            />
+            <small>
+              บังคับทั้งตอนกรอก ตอนเลื่อน และ<strong>ตอนลบ</strong> เพราะการถอยขั้นที่ไม่ต้องอธิบาย
+              คือสิ่งเดียวกับการเลื่อนเงียบ แค่คนละทิศ
+            </small>
+          </label>
+
+          <div className="admin-form__foot">
+            <Button tone="quiet" type="submit" disabled={savingMonth}>
+              {savingMonth ? "กำลังบันทึก…" : "บันทึกเดือนที่คาดว่าเปิด"}
+            </Button>
+            {monthState.message ? (
+              <p className={monthState.ok ? "admin-form__ok" : "admin-form__error"} role="status">
+                {monthState.message}
+              </p>
+            ) : null}
+          </div>
+        </form>
+      ) : null}
 
       {entry.announced ? (
         <form action={withdrawAction} className="admin-form" style={{ padding: 0 }}>

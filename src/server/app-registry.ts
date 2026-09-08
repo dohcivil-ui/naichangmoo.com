@@ -172,6 +172,15 @@ export type RegistryEntry = {
   seededNote: string;
   /** True when the administrator announced something other than what the source seeded. */
   conflictsWithSeed: boolean;
+  /**
+   * **ค่าดิบที่เก็บไว้ ไม่ใช่คำตอบว่าวันนี้มันยังพูดอยู่ไหม** ADR 0025
+   *
+   * ส่งค่าดิบไปให้หน้าหลังบ้านตัดสินเอง ด้วยฟังก์ชันตัวเดียวกับที่หน้าเว็บใช้ ·
+   * ถ้าที่นี่ตัดสินให้แล้วส่งไปแต่คำตอบ ผู้ดูแลจะเห็นช่องว่างในวันที่เดือนหมดอายุ
+   * แล้วแยกไม่ออกระหว่างเคยกรอกแล้วเลยกำหนด กับไม่เคยกรอกเลย ซึ่งเป็นสิ่งที่
+   * ADR 0025 ห้ามไว้ตรง ๆ ใน Consequences
+   */
+  expectedOpenMonth: string | null;
 };
 
 export type RegistryResult = { ok: true; entries: RegistryEntry[] } | { ok: false; reason: "unavailable" };
@@ -191,6 +200,7 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         enabled: apps.enabled,
         availabilityNote: apps.availabilityNote,
         announcedAt: apps.announcedAt,
+        expectedOpenMonth: apps.expectedOpenMonth,
         // Who said it, by the name they are known by here. An announcement with a time but no
         // author is half a record, and the half it is missing is the one worth having.
         announcedByEmail: users.email
@@ -216,7 +226,10 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         announcedByEmail: announced ? row?.announcedByEmail ?? null : null,
         availabilityNote: announced ? row?.availabilityNote ?? null : null,
         seededNote: app.marketDetail.availabilityNote,
-        conflictsWithSeed: announced && access !== null && access !== app.seededAccess
+        conflictsWithSeed: announced && access !== null && access !== app.seededAccess,
+        /* ส่งค่าที่เก็บไว้ไปเสมอแม้แอปยังไม่ประกาศ ต่างจากช่องอื่นข้างบนที่กรองด้วย `announced`
+           เพราะช่องนี้มีไว้ให้ผู้ดูแลเห็นสิ่งที่ตัวเองเคยกรอก ไม่ใช่สิ่งที่หน้าเว็บกำลังพูด */
+        expectedOpenMonth: row?.expectedOpenMonth ?? null
       } satisfies RegistryEntry;
     });
 
@@ -519,12 +532,36 @@ export type RecentAnnouncement = {
   reason: string;
   createdAt: Date;
   actorEmail: string | null;
+  /**
+   * เดือนก่อนและหลัง สำหรับเหตุการณ์เดือนที่คาดว่าเปิดเท่านั้น · `null` สำหรับเหตุการณ์อื่น
+   *
+   * **ADR 0025 อ้างการลงบันทึกเป็นเหตุขออนุญาตให้มีคอลัมน์นี้** บันทึกที่ไม่มีใครเห็น
+   * ทำหน้าที่นั้นไม่ได้ · ตารางต้องบอกได้ว่าแถวนี้คือการกรอก การเลื่อน หรือ**การลบ**
+   * ซึ่งเป็นแถวที่ ADR เรียกว่าอันตรายที่สุด · ถ้าทั้งสามอย่างขึ้นเป็นคำเดียวกัน
+   * การถอยขั้นก็ยังเงียบอยู่ดี แค่เงียบอยู่ในตารางแทนที่จะเงียบอยู่ในฐาน
+   */
+  monthChange: { before: string | null; after: string | null } | null;
 };
+
+export const EXPECTED_MONTH_EVENT = "app.expected_open_month_set_by_administrator";
 
 const ANNOUNCEMENT_EVENTS = [
   "app.announced_by_administrator",
-  "app.announcement_revoked_by_administrator"
+  "app.announcement_revoked_by_administrator",
+  EXPECTED_MONTH_EVENT
 ];
+
+/** อ่านเดือนก่อนและหลังจาก metadata โดยไม่เชื่อรูปของมัน เพราะแถวเก่าถูกเขียนด้วยโค้ดคนละรุ่น */
+function readMonthChange(metadata: unknown): { before: string | null; after: string | null } | null {
+  if (typeof metadata !== "object" || metadata === null) return null;
+  const side = (key: "before" | "after") => {
+    const block = (metadata as Record<string, unknown>)[key];
+    if (typeof block !== "object" || block === null) return null;
+    const value = (block as Record<string, unknown>).expectedOpenMonth;
+    return typeof value === "string" ? value : null;
+  };
+  return { before: side("before"), after: side("after") };
+}
 
 export async function readRecentAnnouncements(limit = 8): Promise<RecentAnnouncement[]> {
   try {
@@ -550,7 +587,8 @@ export async function readRecentAnnouncements(limit = 8): Promise<RecentAnnounce
       eventType: row.eventType,
       reason: readReason(row.metadata),
       createdAt: row.createdAt,
-      actorEmail: row.actorEmail ?? null
+      actorEmail: row.actorEmail ?? null,
+      monthChange: row.eventType === EXPECTED_MONTH_EVENT ? readMonthChange(row.metadata) : null
     }));
   } catch {
     return [];
