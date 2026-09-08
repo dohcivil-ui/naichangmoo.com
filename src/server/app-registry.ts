@@ -384,6 +384,103 @@ export async function revokeAnnouncement(input: RevocationInput): Promise<Revoca
   return { ok: true };
 }
 
+export type ExpectedMonthInput = {
+  slug: string;
+  /** `YYYY-MM` หรือ `null` เมื่อผู้ดูแลลบเดือนออก ซึ่งเป็นการกระทำที่ถูกต้อง ไม่ใช่ค่าที่ขาด */
+  month: string | null;
+  reason: string;
+  actorId: string;
+};
+
+export type ExpectedMonthResult =
+  | { ok: true }
+  | { ok: false; reason: "unknown_app" | "reason_required" | "invalid_month" | "not_announced" };
+
+/** รูปแบบเดียวกับ CHECK ที่ `drizzle/0017_colossal_firebrand.sql` บังคับไว้ที่ฐาน */
+const EXPECTED_MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+/**
+ * เดือนที่คาดว่าจะเปิด — ADR 0025
+ *
+ * **คอลัมน์นี้ได้รับอนุญาตเพราะมันเลื่อนเงียบไม่ได้** ADR 0015 เคยปฏิเสธมันไว้ด้วยเหตุผลว่า
+ * ผู้ดูแลจะเลื่อนจากตุลาคมเป็นพฤศจิกายนแล้วธันวาคมเงียบ ๆ จนกลายเป็นเปอร์เซ็นต์ที่ค้างอยู่ที่ 90
+ * ในรูปของวันที่ · ADR 0025 ข้อ 3 รับข้อกลัวนั้นแล้วตอบด้วยการบังคับให้**ทุกการเขียนลงบันทึก** ·
+ * **ถ้าวันหนึ่งมีคนถอดการลงบันทึกออก ข้ออนุญาตนี้หมดอายุพร้อมกัน** ไม่ใช่เหลือคอลัมน์ไว้เฉย ๆ
+ *
+ * **การลบเดือนออกคือแถวที่อันตรายที่สุดในสามแถว** มันทำให้แอปถอยกลับขั้นที่หนึ่งทันที
+ * ซึ่งเป็นการถอยขั้นที่จะเงียบได้ง่ายที่สุดถ้าไม่มีใครเฝ้า · การลบจึงเดินทางเดียวกับการกรอก
+ * ทุกประการ คือต้องมีเหตุผล ต้องมีผู้กระทำ และต้องลงบันทึก
+ *
+ * **ต้องประกาศแล้วก่อน** ขั้นกลางตาม ADR 0025 ข้อ 1 คือ *ประกาศแล้ว และทะเบียนบอกเดือน*
+ * เดือนบนแอปที่ยังไม่ถูกประกาศจึงไม่มีความหมายตามนิยามของ ADR เอง และไม่มีที่ไหนแสดงมัน
+ * เพราะ `describeReadiness` คืน `null` ทันทีเมื่อยังไม่ประกาศ · ปฏิเสธที่นี่แทนการเขียนแถวเงียบ ๆ
+ *
+ * **ไม่มีการเขียนค่าจากที่อื่นเลย** ADR 0025 ข้อ 5 ห้าม seed และไม่มีงานตามเวลามาล้างค่าที่
+ * เลยกำหนด เพราะนั่นคือการเขียนฐานโดยไม่มีผู้กระทำ · การหมดอายุเกิดตอนอ่านที่ `app-readiness.ts`
+ */
+export async function setExpectedOpenMonth(input: ExpectedMonthInput): Promise<ExpectedMonthResult> {
+  const reason = input.reason.trim();
+  if (reason.length < REASON_MIN_LENGTH) return { ok: false, reason: "reason_required" };
+
+  /* ช่องว่างเปล่าจากฟอร์มแปลว่าลบเดือนออก ไม่ใช่ค่าผิดรูปแบบ · ส่วนค่าที่กรอกมาแล้วผิดรูป
+     ต้องตกที่นี่ ไม่ใช่ปล่อยให้ CHECK ที่ฐานเป็นคนตอบ เพราะข้อความที่ผู้ดูแลจะได้เห็น
+     จากการที่ทรานแซกชันระเบิด คือ "บันทึกไม่สำเร็จ" ซึ่งไม่บอกว่าเขาพิมพ์อะไรผิด */
+  const raw = input.month?.trim() ?? "";
+  const month = raw === "" ? null : raw;
+  if (month !== null && !EXPECTED_MONTH_PATTERN.test(month)) return { ok: false, reason: "invalid_month" };
+
+  const app = platformApps.find((item) => item.slug === input.slug);
+  if (!app) return { ok: false, reason: "unknown_app" };
+
+  const db = getDb();
+
+  const [existing] = await db
+    .select({ expectedOpenMonth: apps.expectedOpenMonth, announcedAt: apps.announcedAt })
+    .from(apps)
+    .where(eq(apps.slug, input.slug))
+    .limit(1);
+
+  if (!existing?.announcedAt) return { ok: false, reason: "not_announced" };
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(apps)
+      .set({ expectedOpenMonth: month, updatedAt: new Date() })
+      .where(eq(apps.slug, input.slug));
+
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: null,
+      actorId: input.actorId,
+      eventType: "app.expected_open_month_set_by_administrator",
+      resourceType: "app",
+      resourceId: app.slug,
+      /**
+       * **`before` กับ `after` เป็นออบเจกต์เสมอ และช่องในนั้นเป็น `null` ได้**
+       * ไม่ใช่ตัวก้อนเองที่หายไปหรือเป็น `null`
+       *
+       * ADR 0025 ข้อ 3 บอกว่าทั้งสองช่องเป็นค่าว่างได้ ซึ่งอ่านได้สองทาง ·
+       * ทางที่เลือกคือ **"ว่าง" หมายถึงช่องที่มีชื่อและมีค่าเป็น `null`** ไม่ใช่ก้อนที่หายไป ·
+       * **เหตุผลคือต้องแยก "ไม่มีค่า" ออกจาก "ไม่ได้เขียน" ให้ได้จากในฐาน ไม่ใช่จากในโค้ด**
+       * ถ้าการลบเดือนเขียน `after: null` แถวนั้นจะหน้าตาเหมือนกันเป๊ะกับแถวที่โค้ดลืมเขียน
+       * `after` · แล้วเทสต์ที่ถามแค่ว่ามีแถวไหม จะผ่านด้วยเหตุผลผิด และวันที่มีบั๊กจริง
+       * ก็จะไม่มีใครแยกออก · ก้อนที่หายไปเป็นบั๊กเสมอ ค่า `null` ในช่องเป็นข้อมูลเสมอ
+       *
+       * ต่างจาก `announceApp` ที่เขียน `before: null` ได้ เพราะที่นั่น `null` ตอบคำถาม
+       * คนละข้อ คือ *ยังไม่มีแถวในทะเบียนเลย* ส่วนที่นี่แถวมีแน่นอนแล้ว เพราะแอปต้อง
+       * ถูกประกาศมาก่อนถึงจะมาถึงบรรทัดนี้ได้
+       */
+      metadata: {
+        reason,
+        before: { expectedOpenMonth: existing.expectedOpenMonth ?? null },
+        after: { expectedOpenMonth: month }
+      }
+    });
+  });
+
+  return { ok: true };
+}
+
 /**
  * Readiness for the app entry page, and deliberately three-valued.
  *
