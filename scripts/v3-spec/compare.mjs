@@ -368,16 +368,44 @@ await livePage.waitForTimeout(500);
 /**
  * ตัวตรวจในตัวสำหรับข้อที่วัดด้วยกล่องไม่ได้ แต่วัดด้วยวิธีอื่นได้
  *
- * **ว่างอยู่ตอนนี้** เคยมี `hitTarget` ที่วัดเขตกดจริงของขีดบอกสไลด์ ด้วยการยิงจุดที่มุม
- * ของกล่องขนาดเกณฑ์แล้วดูว่าโดนปุ่มตัวเดิมไหม · มันพิสูจน์ตัวเองแล้วว่าจับได้จริง โดยจับได้
- * ทันทีตอนถอย `inset` กลับไปค่าที่เคยพลาด · **ถูกลบเมื่อ 2026-09-07 เพราะเจ้าของงาน
- * สั่งให้เขตกดเท่าขีดที่ตาเห็นตามผืน เกณฑ์ที่มันเฝ้าจึงไม่มีอยู่แล้ว** ตัวตรวจที่ไม่มีเกณฑ์
- * คือโค้ดตาย กฎเดียวกับที่ใช้กับ `SearchIcon`
+ * `hitTarget` วัดเขตกดจริง **ไม่ใช่อ่านตัวเลข `inset`** เพราะเขตกดที่แผ่ด้วย `::after`
+ * ไม่โผล่ใน `getBoundingClientRect` ของปุ่มเลย · มันยิงสี่มุมของกล่องขนาดเกณฑ์ด้วย
+ * `elementFromPoint` แล้วดูว่าโดนปุ่มตัวเดิมไหม ซึ่งตรงกับความหมายของเกณฑ์มากกว่า —
+ * **เป้ากดคือที่ที่กดแล้วโดน**
  *
- * โครงยังอยู่เพราะช่อง `checkedBy` ในสมุดยังอ้างรูปแบบ `compare.mjs:ชื่อ` ได้อยู่
- * วันที่มีข้อใหม่ต้องการตัวตรวจแบบนี้ ให้เติมเข้ามาที่นี่
+ * **มันพิสูจน์ตัวเองแล้วว่าจับได้จริง** จับได้ทันทีตอนถอย `inset` กลับไปค่าที่เคยพลาด ·
+ * เคยถูกลบเมื่อ 2026-09-07 ตอนที่เกณฑ์ถูกถอน แล้วคืนกลับ 2026-09-09 พร้อมเกณฑ์
  */
-const builtIn = {};
+const builtIn = {
+  async hitTarget(entry) {
+    const size = entry.minHitTarget ?? 24;
+    return livePage.evaluate((want) => {
+      const dot = document.querySelector(".button--slide-dot");
+      if (!dot) return { ok: false, detail: "หาขีดบอกสไลด์ในหน้าไม่เจอ" };
+      const box = dot.getBoundingClientRect();
+      const cx = box.x + box.width / 2;
+      const cy = box.y + box.height / 2;
+      const half = want / 2;
+      /* ยิงสี่มุมของกล่องขนาดเกณฑ์ ถ้ามุมไหนไม่โดนปุ่มตัวเดิม แปลว่าเป้ากดเล็กกว่าเกณฑ์ */
+      const corners = [
+        [cx - half + 0.5, cy - half + 0.5],
+        [cx + half - 0.5, cy - half + 0.5],
+        [cx - half + 0.5, cy + half - 0.5],
+        [cx + half - 0.5, cy + half - 0.5]
+      ];
+      const missed = corners.filter(([x, y]) => {
+        const hit = document.elementFromPoint(x, y);
+        return hit !== dot && !dot.contains(hit);
+      });
+      return {
+        ok: missed.length === 0,
+        detail: missed.length === 0
+          ? `กดโดนครบทั้งสี่มุมของกล่อง ${want}x${want}`
+          : `กดไม่โดน ${missed.length} มุมจากสี่ ของกล่อง ${want}x${want} — เป้ากดเล็กกว่าเกณฑ์`
+      };
+    }, size);
+  }
+};
 
 /**
  * ตรวจว่าสัญญาในสมุดยังครบกำหนดไหม
