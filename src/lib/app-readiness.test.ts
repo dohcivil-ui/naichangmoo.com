@@ -14,8 +14,15 @@ import { describeReadiness, formatExpectedMonth, isMonthStillAhead, splitExpecte
  */
 describe("แถบความพร้อมสามขั้น", () => {
   const announced = { announced: true, open: false, expectedOpenMonth: null as string | null };
-  /** กลางเดือนตุลาคม 2026 — เลือกกลางเดือนเพื่อไม่ให้ผลพลิกเพราะเขตเวลาที่ขอบเดือน */
-  const october = new Date(2026, 9, 15, 12, 0, 0);
+  /**
+   * **ทุกเวลาในไฟล์นี้เขียนเป็น UTC ชัด ๆ ห้ามใช้ `new Date(2026, 9, 15)`**
+   *
+   * คอนสตรักเตอร์แบบนั้นสร้างเวลาตามเขตเวลาของเครื่องที่รัน · เทสต์ชุดแรกของไฟล์นี้ใช้มัน
+   * ทั้งสิบเอ็ดข้อ แล้วโค้ดก็อ่านเดือนตามเขตเวลาเครื่องเหมือนกัน · **สองข้อผิดหักล้างกันพอดี
+   * เทสต์จึงเขียวในทุกเขตเวลา ทั้งที่ของจริงพังบนเซิร์ฟเวอร์ UTC** · เขียนเป็น `Z`
+   * บังคับให้เทสต์ตอบคำถามว่า "ณ เวลานี้ ที่กรุงเทพเป็นเดือนอะไร" ซึ่งเป็นคำถามจริง
+   */
+  const october = new Date("2026-10-15T05:00:00Z");
 
   it("เดือนในอนาคตทำให้อยู่ขั้นกลาง", () => {
     const readiness = describeReadiness({ ...announced, expectedOpenMonth: "2026-12" }, october);
@@ -44,14 +51,42 @@ describe("แถบความพร้อมสามขั้น", () => {
    * **เดือนที่กำลังอยู่ยังไม่ผ่าน** ตุลาคมใช้ได้ตลอดเดือนตุลาคม และหมดอายุเมื่อขึ้นพฤศจิกายน
    * ถ้าตัดตั้งแต่วันแรกของเดือนนั้น คำแถลงจะตายก่อนถึงกำหนดของตัวเอง
    */
-  it("เดือนปัจจุบันยังอยู่ขั้นกลางจนหมดเดือน", () => {
-    const firstDay = new Date(2026, 9, 1, 0, 0, 0);
-    const lastMoment = new Date(2026, 9, 31, 23, 59, 59);
-    const nextMonth = new Date(2026, 10, 1, 0, 0, 1);
+  it("เดือนปัจจุบันยังอยู่ขั้นกลางจนหมดเดือน ตามนาฬิกากรุงเทพ", () => {
     const claim = { ...announced, expectedOpenMonth: "2026-10" };
-    expect(describeReadiness(claim, firstDay)?.stage).toBe("expected");
-    expect(describeReadiness(claim, lastMoment)?.stage).toBe("expected");
-    expect(describeReadiness(claim, nextMonth)?.stage).toBe("announced");
+    /* 1 ต.ค. 00:00 กรุงเทพ = 30 ก.ย. 17:00 UTC — วันแรกของเดือนต้องยังอยู่ */
+    expect(describeReadiness(claim, new Date("2026-09-30T17:00:00Z"))?.stage).toBe("expected");
+    /* 31 ต.ค. 23:59 กรุงเทพ = 31 ต.ค. 16:59 UTC — วินาทีสุดท้ายก็ยังอยู่ */
+    expect(describeReadiness(claim, new Date("2026-10-31T16:59:59Z"))?.stage).toBe("expected");
+    /* 1 พ.ย. 00:00 กรุงเทพ = 31 ต.ค. 17:00 UTC — พ้นเดือนเมื่อไรต้องตกทันที */
+    expect(describeReadiness(claim, new Date("2026-10-31T17:00:00Z"))?.stage).toBe("announced");
+  });
+
+  /**
+   * **ข้อนี้คือข้อที่เทสต์ชุดแรกมองไม่เห็น** เพราะมันเขียนด้วยคอนสตรักเตอร์เวลาท้องถิ่น
+   * เหมือนที่โค้ดอ่านเวลาท้องถิ่น · ของจริงรันบนเซิร์ฟเวอร์ที่เป็น UTC ซึ่งช้ากว่าไทยเจ็ดชั่วโมง
+   * ถ้าอ่านเดือนจากเขตเวลาเครื่อง การ์ดจะพูดว่า "คาดว่าเปิด ต.ค." ต่อไปอีกเจ็ดชั่วโมง
+   * หลังตุลาคมจบแล้วในเขตเวลาเดียวที่กิจการนี้อยู่ ซึ่งชน ADR 0025 ข้อ 4 ตรง ๆ
+   */
+  it("พ้นเดือนตามเวลากรุงเทพ ไม่ใช่ตามเขตเวลาของเครื่องที่รัน", () => {
+    const claim = { ...announced, expectedOpenMonth: "2026-10" };
+    /* 1 พ.ย. 05:00 กรุงเทพ ซึ่งยังเป็น 31 ต.ค. 22:00 ที่ UTC */
+    const fiveAmInBangkok = new Date("2026-10-31T22:00:00Z");
+    expect(describeReadiness(claim, fiveAmInBangkok)).toEqual({ stage: "announced", label: "ประกาศแล้ว" });
+    expect(isMonthStillAhead("2026-10", fiveAmInBangkok)).toBe(false);
+  });
+
+  /**
+   * ทางกลับกันก็ต้องถูก — ต้นเดือนที่กรุงเทพยังเป็นเดือนก่อนหน้าที่ UTC
+   * ถ้าอ่านผิดเขต เดือนที่เพิ่งเริ่มจะถูกนับว่ายังไม่เริ่ม
+   */
+  it("เข้าเดือนใหม่ตามเวลากรุงเทพ ไม่ใช่ตามเขตเวลาของเครื่อง", () => {
+    /* 1 พ.ย. 03:00 กรุงเทพ = 31 ต.ค. 20:00 UTC · เดือน พ.ย. คือเดือนปัจจุบัน ยังไม่ผ่าน */
+    const inNovember = new Date("2026-10-31T20:00:00Z");
+    expect(isMonthStillAhead("2026-11", inNovember)).toBe(true);
+    expect(describeReadiness({ ...announced, expectedOpenMonth: "2026-11" }, inNovember)).toEqual({
+      stage: "expected",
+      label: "คาดว่าเปิด พ.ย. 69"
+    });
   });
 
   /**
@@ -103,6 +138,6 @@ describe("การแสดงเดือนที่คาดว่าเป�
   });
 
   it("เดือนว่างไม่นับว่าอยู่ข้างหน้า", () => {
-    expect(isMonthStillAhead(null, new Date(2026, 0, 1))).toBe(false);
+    expect(isMonthStillAhead(null, new Date("2026-01-01T00:00:00Z"))).toBe(false);
   });
 });
