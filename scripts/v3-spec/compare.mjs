@@ -482,7 +482,20 @@ for (const entry of ledger) {
     if (blockLanded[entry.name]) problems.push(`${entry.name} — บล็อก ${entry.dueWith} ลงหน้าแล้ว ครบกำหนดต้องมีตัวตรวจ ไม่ใช่ค้างเป็นหนี้ต่อ`);
     continue;
   }
-  if (entry.unmeasured !== true) problems.push(`${entry.name} — ไม่มีทางพิสูจน์ตัวเองสักทาง เพิ่มลงแผนที่ หรือใส่ checkedBy effectOf dueWith หรือ unmeasured`);
+  if (entry.unmeasured !== true) {
+    problems.push(`${entry.name} — ไม่มีทางพิสูจน์ตัวเองสักทาง เพิ่มลงแผนที่ หรือใส่ checkedBy effectOf dueWith หรือ unmeasured`);
+    continue;
+  }
+  /* **`unmeasured` เป็นทางเดียวในห้าทางที่ไม่มีอะไรมาพิสูจน์แทนได้** อีกสี่ทางมีของจริง
+     ค้ำอยู่ คือกล่องที่วัดได้ ไฟล์ที่ต้องมีอยู่ ชื่อที่ต้องอยู่ในสมุด หรือ selector ที่ต้อง
+     ยังไม่โผล่ · ส่วนทางนี้แปลว่า "เชื่อผมเถอะว่าวัดไม่ได้" ซึ่งถ้าไม่บังคับให้เขียนเหตุผล
+     มันจะกลายเป็นประตูหลังที่ข้อไหนก็เดินผ่านได้โดยไม่ต้องพิสูจน์อะไรเลย
+
+     กติกาข้อนี้เขียนไว้สองที่มาตั้งแต่ต้น คือตารางข้างบนกับ `README.md` แต่ไม่มีโค้ด
+     บังคับสักบรรทัด · **เขียนไว้สองที่ บังคับศูนย์ที่** และข้อแรกที่ใช้ประตูนี้จริงคือ
+     `เพดานความกว้างของหน้า` ซึ่งเป็นข้อที่กำลังถูกตรวจสอบพอดี · เติมด่านเมื่อ 2026-09-09 */
+  const why = typeof entry.unmeasuredWhy === "string" ? entry.unmeasuredWhy.trim() : "";
+  if (why === "") problems.push(`${entry.name} — เขียน unmeasured ไว้แต่ไม่มี unmeasuredWhy กำกับ ข้อที่บอกว่าวัดไม่ได้ต้องบอกด้วยว่าทำไม`);
 }
 
 const heading = (text) => console.log(`\n${text}\n${"-".repeat(text.length)}`);
