@@ -56,13 +56,17 @@ vi.mock("@/db", () => ({ getDb: () => getDb() }));
 
 const ANNOUNCED = new Date("2026-09-01T00:00:00.000Z");
 
-async function setMonth(input: { month: string | null; reason?: string; slug?: string }) {
+/** ตรึงเวลาไว้ที่ 2026-09-09 ตามเวลากรุงเทพ ช่วงปีที่รับได้จึงเป็น ค.ศ. 2026 ถึง 2030 */
+const NOW = new Date("2026-09-09T03:00:00.000Z");
+
+async function setMonth(input: { month: string | null; reason?: string; slug?: string; now?: Date }) {
   const { setExpectedOpenMonth } = await import("@/server/app-registry");
   return setExpectedOpenMonth({
     slug: input.slug ?? "rcopt",
     month: input.month,
     reason: input.reason ?? "ทีมยืนยันกำหนดเปิดแล้ว",
-    actorId: "admin-1"
+    actorId: "admin-1",
+    now: input.now ?? NOW
   });
 }
 
@@ -175,15 +179,6 @@ describe("การปฏิเสธเกิดก่อนแตะฐาน"
     expect(transactionRan).toBe(false);
   });
 
-  /**
-   * **`2569-10` ไม่ได้อยู่ในรายการนี้ และนั่นคือช่องโหว่ที่ยังเปิดอยู่ ไม่ใช่การมองข้าม**
-   *
-   * ปีพุทธศักราชผ่านทั้งด่านที่แอปและ CHECK ที่ฐาน เพราะทั้งคู่ตรวจแค่ว่าเป็นเลขสี่หลัก ·
-   * ถ้ามันหลุดเข้าไป การ์ดจะขึ้นว่า "คาดว่าเปิด ต.ค. 12" เพราะ `formatExpectedMonth`
-   * บวก 543 ให้อีกรอบ · **รายงานไว้แล้ว ยังไม่แก้ เพราะการเพิ่มช่วงปีที่ยอมรับเป็นกฎใหม่
-   * ที่ ADR 0025 ไม่ได้ตัดสิน** และการเขียนกฎเองเงียบ ๆ คือสิ่งที่ทั้งวันนี้ใช้ไปกับการแก้ ·
-   * ทางกันชั้นแรกคือช่องกรอกเป็น `type="month"` ซึ่งคืนค่าเป็น ค.ศ. เสมอ
-   */
   it("เดือนผิดรูปแบบถูกปฏิเสธที่แอป ไม่ปล่อยให้ CHECK ที่ฐานเป็นคนตอบ", async () => {
     for (const month of ["2026-13", "2026-00", "10-2026", "2026-1", "ตุลาคม", "2026-10-01"]) {
       updates = [];
@@ -204,6 +199,62 @@ describe("การปฏิเสธเกิดก่อนแตะฐาน"
 
     expect(result).toEqual({ ok: false, reason: "not_announced" });
     expect(transactionRan).toBe(false);
+  });
+
+  /**
+   * **เซิร์ฟเวอร์ต้องไม่รับค่าที่หน้าจอของตัวเองสร้างไม่ได้** — เจ้าของงานเคาะ 2026-09-09
+   *
+   * ก่อนหน้านี้ฝั่งเซิร์ฟเวอร์รับเลขสี่หลักอะไรก็ได้ เท่ากับ CHECK ที่ฐานพอดี · `2569-10`
+   * จึงผ่านทั้งสองด่าน แล้วการ์ดจะขึ้นว่า "ต.ค. 12" เพราะถูกบวก 543 อีกรอบ ·
+   * **มันตกเพราะไกลเกินขอบ ไม่ใช่เพราะเราเดาว่ามันเป็น พ.ศ.** ซึ่งเป็นเหตุผลที่ตรวจสอบได้
+   */
+  it("ปีในช่วงผ่าน ปีเกินช่วงตก และปีพุทธศักราชตกเพราะไกลเกินขอบ", async () => {
+    const cases: Array<[string, boolean]> = [
+      ["2026-10", true],
+      ["2030-01", true],
+      ["2031-01", false],
+      ["2025-12", false],
+      ["2569-10", false]
+    ];
+
+    for (const [month, allowed] of cases) {
+      updates = [];
+      audits = [];
+      transactionRan = false;
+
+      const result = await setMonth({ month });
+
+      if (allowed) {
+        expect(result, `${month} ต้องผ่าน`).toEqual({ ok: true });
+        expect(audits, `${month} ต้องลงบันทึก`).toHaveLength(1);
+      } else {
+        expect(result, `${month} ต้องตก`).toEqual({ ok: false, reason: "year_out_of_range" });
+        expect(transactionRan, `${month} ต้องไม่แตะฐาน`).toBe(false);
+      }
+    }
+  });
+
+  /** ช่วงเดินตามนาฬิกา ไม่ใช่ตรึงไว้ที่ปีที่เขียนโค้ด · ปีเดียวกันจึงตกได้เมื่อเวลาผ่านไป */
+  it("ช่วงปีขยับตามนาฬิกากรุงเทพ ไม่ใช่ตามปีที่พิมพ์ไว้ในโค้ด", async () => {
+    const later = new Date("2031-01-01T03:00:00.000Z");
+
+    expect(await setMonth({ month: "2026-10", now: later })).toEqual({ ok: false, reason: "year_out_of_range" });
+
+    updates = [];
+    audits = [];
+    expect(await setMonth({ month: "2035-01", now: later })).toEqual({ ok: true });
+  });
+
+  /** การลบไม่ผ่านด่านช่วงปี เพราะไม่มีปีให้ตรวจ · ค่าที่หลุดช่วงจึงลบออกได้เสมอ */
+  it("ลบเดือนออกได้แม้ค่าเดิมจะหลุดช่วงไปแล้ว", async () => {
+    appRows = [{ slug: "rcopt", expectedOpenMonth: "2569-10", announcedAt: ANNOUNCED }];
+
+    const result = await setMonth({ month: null, reason: "ลบค่าที่กรอกผิดปีออก" });
+
+    expect(result).toEqual({ ok: true });
+    expect(audits[0]).toMatchObject({
+      metadata: { before: { expectedOpenMonth: "2569-10" }, after: { expectedOpenMonth: null } }
+    });
   });
 
   it("แอปที่ไม่มีในสารบบถูกปฏิเสธ", async () => {

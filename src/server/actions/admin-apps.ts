@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { announceApp, isAppAccess, revokeAnnouncement, setExpectedOpenMonth } from "@/server/app-registry";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
+import { expectedMonthYearRange } from "@/lib/app-readiness";
+import { toBuddhistYear } from "@/lib/thai-date";
 import type { AppAccess } from "@/lib/platform";
 
 export type AppRegistryFormState = { ok: boolean; message: string };
@@ -86,6 +88,19 @@ export async function setAppExpectedMonth(
   if (!result.ok) {
     if (result.reason === "reason_required") return { ok: false, message: "ต้องระบุเหตุผลอย่างน้อย 4 ตัวอักษร" };
     if (result.reason === "invalid_month") return { ok: false, message: "เดือนต้องอยู่ในรูป ปี ค.ศ. สี่หลัก ขีดกลาง เดือนสองหลัก เช่น 2026-10" };
+    /**
+     * **ข้อความต้องบอกว่าปีอยู่นอกช่วง ไม่ใช่ว่าบันทึกไม่สำเร็จ** — คำสั่งเจ้าของงาน 2026-09-09
+     *
+     * คนที่เจอข้อความนี้บ่อยที่สุดคือคนที่กรอกปี พ.ศ. เข้ามา · ถ้าบอกแค่ว่าล้มเหลว
+     * เขาจะกดซ้ำด้วยค่าเดิม · ช่วงที่บอกเป็น พ.ศ. เพราะทั้งเว็บแสดง พ.ศ.
+     */
+    if (result.reason === "year_out_of_range") {
+      const { first, last } = expectedMonthYearRange(new Date());
+      return {
+        ok: false,
+        message: `ปีที่ส่งมาอยู่นอกช่วงที่รับได้ · รับเฉพาะ พ.ศ. ${toBuddhistYear(first)} ถึง ${toBuddhistYear(last)} ซึ่งเป็นช่วงเดียวกับที่ช่องเลือกปีในหน้านี้ยื่นให้`
+      };
+    }
     if (result.reason === "not_announced") {
       return { ok: false, message: "ต้องประกาศแอปนี้ก่อน เพราะขั้นกลางคือประกาศแล้วและบอกเดือนที่คาด" };
     }

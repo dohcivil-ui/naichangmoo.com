@@ -3,6 +3,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { apps, auditEvents, users } from "@/db/schema";
 import { platformApps, type AppAccess } from "@/lib/platform";
+import { isExpectedMonthWritable } from "@/lib/app-readiness";
 
 /**
  * The one way in and out of the app registry. See ADR 0014.
@@ -403,11 +404,13 @@ export type ExpectedMonthInput = {
   month: string | null;
   reason: string;
   actorId: string;
+  /** รับเวลาเข้ามาได้เพื่อให้เขียนเทสต์ช่วงปีได้โดยไม่ต้องรอให้ถึงปีนั้นจริง */
+  now?: Date;
 };
 
 export type ExpectedMonthResult =
   | { ok: true }
-  | { ok: false; reason: "unknown_app" | "reason_required" | "invalid_month" | "not_announced" };
+  | { ok: false; reason: "unknown_app" | "reason_required" | "invalid_month" | "year_out_of_range" | "not_announced" };
 
 /** รูปแบบเดียวกับ CHECK ที่ `drizzle/0017_colossal_firebrand.sql` บังคับไว้ที่ฐาน */
 const EXPECTED_MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/;
@@ -441,6 +444,24 @@ export async function setExpectedOpenMonth(input: ExpectedMonthInput): Promise<E
   const raw = input.month?.trim() ?? "";
   const month = raw === "" ? null : raw;
   if (month !== null && !EXPECTED_MONTH_PATTERN.test(month)) return { ok: false, reason: "invalid_month" };
+
+  /**
+   * **เซิร์ฟเวอร์ต้องไม่รับค่าที่หน้าจอของตัวเองสร้างไม่ได้**
+   *
+   * กล่องเลือกปีในหน้าหลังบ้านยื่นให้เฉพาะปีนี้ถึงปีนี้บวก `EXPECTED_MONTH_YEARS_AHEAD`
+   * ตามนาฬิกากรุงเทพ · ก่อนหน้านี้ฝั่งนี้รับเลขสี่หลักอะไรก็ได้ ทั้งที่ CHECK ที่ฐานก็ตรวจ
+   * แค่รูปแบบเหมือนกัน · **ผลคือ `2569-10` ผ่านทั้งสองด่าน** แล้วการ์ดจะขึ้นว่า "ต.ค. 12"
+   * เพราะ `formatExpectedMonth` บวก 543 ให้อีกรอบ
+   *
+   * **มันตกเพราะไกลเกินขอบ ไม่ใช่เพราะเราเดาว่ามันเป็น พ.ศ.** ซึ่งเป็นเหตุผลที่ตรวจสอบได้
+   * และไม่ต้องเดาใจคนกรอก · เจ้าของงานเคาะขอบเขตนี้เมื่อ 2026-09-09
+   *
+   * **บังคับตอนเขียนเท่านั้น** ค่าที่บันทึกไว้แล้วและวันนี้หลุดช่วง ยังอ่านได้ แสดงได้
+   * และแก้ได้ตามปกติ · การลบก็ไม่ผ่านด่านนี้เพราะ `month` เป็น `null` ไปแล้ว
+   */
+  if (month !== null && !isExpectedMonthWritable(month, input.now ?? new Date())) {
+    return { ok: false, reason: "year_out_of_range" };
+  }
 
   const app = platformApps.find((item) => item.slug === input.slug);
   if (!app) return { ok: false, reason: "unknown_app" };

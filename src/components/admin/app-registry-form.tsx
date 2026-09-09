@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { accessLabel, availabilityNotePresets, type AppAccess } from "@/lib/platform";
 import { declareApp, setAppExpectedMonth, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
-import { formatExpectedMonth, splitExpectedMonth } from "@/lib/app-readiness";
+import { expectedMonthYearRange, formatExpectedMonth, splitExpectedMonth } from "@/lib/app-readiness";
 import { THAI_MONTH_FULL, toBuddhistYear, todayIsoBangkok } from "@/lib/thai-date";
 import type { RegistryEntry } from "@/server/app-registry";
 import { Button } from "@/components/platform/button";
@@ -42,17 +42,19 @@ function initialNoteChoice(current: string | null, seeded: string): string {
  * เพราะถูกบวก 543 อีกรอบ · ช่องนี้เลือกได้เฉพาะปีที่มีอยู่ในรายการ ซึ่งเป็น ค.ศ. เสมอ
  * **แต่มันปิดแค่ทางเข้าที่เรารู้จัก** ทางเซิร์ฟเวอร์ยังเปิดอยู่ และยังไม่ได้แก้
  */
-const YEARS_AHEAD = 4;
-
 function ExpectedMonthField({ current }: { current: string | null }) {
   const parts = splitExpectedMonth(current);
   const [month, setMonth] = useState(parts ? String(parts.month).padStart(2, "0") : "");
   const [year, setYear] = useState(parts ? String(parts.year) : "");
 
-  const thisYear = Number(todayIsoBangkok().slice(0, 4));
+  /* **ช่วงปีมาจาก `app-readiness.ts` ที่เดียว** ตัวเดียวกับที่ `setExpectedOpenMonth` บังคับ ·
+     ถ้าพิมพ์เลขไว้ทั้งสองที่ วันที่ใครแก้ที่หนึ่ง เซิร์ฟเวอร์จะปฏิเสธค่าที่กล่องนี้เพิ่งยื่นให้
+     ซึ่งผู้ใช้แก้เองไม่ได้เลย เพราะเขาเลือกได้เฉพาะสิ่งที่กล่องมี */
+  const { first, last } = expectedMonthYearRange(new Date(`${todayIsoBangkok()}T00:00:00Z`));
   const years: number[] = [];
-  for (let value = thisYear; value <= thisYear + YEARS_AHEAD; value += 1) years.push(value);
-  /* ปีที่เก็บไว้อาจเลยมาแล้วจนหลุดช่วง ต้องคงไว้ให้เห็น ไม่งั้นช่องจะดูเหมือนไม่เคยกรอก */
+  for (let value = first; value <= last; value += 1) years.push(value);
+  /* ปีที่เก็บไว้อาจเลยมาแล้วจนหลุดช่วง ต้องคงไว้ให้เห็น ไม่งั้นช่องจะดูเหมือนไม่เคยกรอก ·
+     ค่าที่หลุดช่วงยังแสดงได้และแก้ได้ ตามคำสั่งที่ว่าห้ามบังคับช่วงตอนอ่าน */
   if (parts && !years.includes(parts.year)) years.unshift(parts.year);
 
   const value = month && year ? `${year}-${month}` : "";
