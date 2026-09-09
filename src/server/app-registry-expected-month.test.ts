@@ -208,30 +208,32 @@ describe("การปฏิเสธเกิดก่อนแตะฐาน"
    * จึงผ่านทั้งสองด่าน แล้วการ์ดจะขึ้นว่า "ต.ค. 12" เพราะถูกบวก 543 อีกรอบ ·
    * **มันตกเพราะไกลเกินขอบ ไม่ใช่เพราะเราเดาว่ามันเป็น พ.ศ.** ซึ่งเป็นเหตุผลที่ตรวจสอบได้
    */
-  it("ปีในช่วงผ่าน ปีเกินช่วงตก และปีพุทธศักราชตกเพราะไกลเกินขอบ", async () => {
-    const cases: Array<[string, boolean]> = [
-      ["2026-10", true],
-      ["2030-01", true],
-      ["2031-01", false],
-      ["2025-12", false],
-      ["2569-10", false]
-    ];
-
-    for (const [month, allowed] of cases) {
+  it("ปีในช่วงผ่าน ทั้งปลายต้นและปลายท้ายของช่วง", async () => {
+    for (const month of ["2026-10", "2030-01"]) {
       updates = [];
       audits = [];
+
+      expect(await setMonth({ month }), `${month} ต้องผ่าน`).toEqual({ ok: true });
+      expect(audits, `${month} ต้องลงบันทึก`).toHaveLength(1);
+    }
+  });
+
+  it("ปีเกินช่วงตก ทั้งไกลไปข้างหน้าและย้อนไปข้างหลัง", async () => {
+    for (const month of ["2031-01", "2025-12"]) {
       transactionRan = false;
 
-      const result = await setMonth({ month });
-
-      if (allowed) {
-        expect(result, `${month} ต้องผ่าน`).toEqual({ ok: true });
-        expect(audits, `${month} ต้องลงบันทึก`).toHaveLength(1);
-      } else {
-        expect(result, `${month} ต้องตก`).toEqual({ ok: false, reason: "year_out_of_range" });
-        expect(transactionRan, `${month} ต้องไม่แตะฐาน`).toBe(false);
-      }
+      expect(await setMonth({ month }), `${month} ต้องตก`).toEqual({ ok: false, reason: "year_out_of_range" });
+      expect(transactionRan, `${month} ต้องไม่แตะฐาน`).toBe(false);
     }
+  });
+
+  it("ปีพุทธศักราชตก และตกด้วยเหตุผลว่าไกลเกินขอบ ไม่ใช่ว่ารูปแบบผิด", async () => {
+    const result = await setMonth({ month: "2569-10" });
+
+    /* **เหตุผลที่คืนกลับสำคัญเท่าการตก** `invalid_month` จะพาผู้ดูแลไปแก้รูปแบบ
+       ซึ่งเขาพิมพ์ถูกอยู่แล้ว · `year_out_of_range` พาไปที่ปี ซึ่งเป็นที่ที่ผิดจริง */
+    expect(result).toEqual({ ok: false, reason: "year_out_of_range" });
+    expect(transactionRan).toBe(false);
   });
 
   /** ช่วงเดินตามนาฬิกา ไม่ใช่ตรึงไว้ที่ปีที่เขียนโค้ด · ปีเดียวกันจึงตกได้เมื่อเวลาผ่านไป */

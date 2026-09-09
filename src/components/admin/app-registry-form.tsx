@@ -4,7 +4,7 @@ import { useActionState, useState } from "react";
 import { accessLabel, availabilityNotePresets, type AppAccess } from "@/lib/platform";
 import { declareApp, setAppExpectedMonth, withdrawApp, type AppRegistryFormState } from "@/server/actions/admin-apps";
 import { expectedMonthYearRange, formatExpectedMonth, splitExpectedMonth } from "@/lib/app-readiness";
-import { THAI_MONTH_FULL, toBuddhistYear, todayIsoBangkok } from "@/lib/thai-date";
+import { THAI_MONTH_FULL, toBuddhistYear } from "@/lib/thai-date";
 import type { RegistryEntry } from "@/server/app-registry";
 import { Button } from "@/components/platform/button";
 
@@ -49,8 +49,13 @@ function ExpectedMonthField({ current }: { current: string | null }) {
 
   /* **ช่วงปีมาจาก `app-readiness.ts` ที่เดียว** ตัวเดียวกับที่ `setExpectedOpenMonth` บังคับ ·
      ถ้าพิมพ์เลขไว้ทั้งสองที่ วันที่ใครแก้ที่หนึ่ง เซิร์ฟเวอร์จะปฏิเสธค่าที่กล่องนี้เพิ่งยื่นให้
-     ซึ่งผู้ใช้แก้เองไม่ได้เลย เพราะเขาเลือกได้เฉพาะสิ่งที่กล่องมี */
-  const { first, last } = expectedMonthYearRange(new Date(`${todayIsoBangkok()}T00:00:00Z`));
+     ซึ่งผู้ใช้แก้เองไม่ได้เลย เพราะเขาเลือกได้เฉพาะสิ่งที่กล่องมี
+
+     **ส่ง `new Date()` ตรง ๆ เหมือนฝั่งเซิร์ฟเวอร์ ไม่แปลงเป็นวันกรุงเทพก่อน**
+     `expectedMonthYearRange` แปลงเขตเวลาให้อยู่แล้วข้างใน · เดิมที่นี่แปลงเองก่อนส่ง
+     ซึ่งได้ผลเท่ากันแต่เป็นวิธีหา "ตอนนี้" คนละทางกับที่ `admin-apps.ts` ใช้
+     หลักการเดียวกับตัวเลข คือเหลือทางเดียว ไม่ใช่สองทางที่บังเอิญตรงกันวันนี้ */
+  const { first, last } = expectedMonthYearRange(new Date());
   const years: number[] = [];
   for (let value = first; value <= last; value += 1) years.push(value);
   /* ปีที่เก็บไว้อาจเลยมาแล้วจนหลุดช่วง ต้องคงไว้ให้เห็น ไม่งั้นช่องจะดูเหมือนไม่เคยกรอก ·
