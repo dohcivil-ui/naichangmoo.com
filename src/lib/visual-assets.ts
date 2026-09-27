@@ -36,7 +36,10 @@ export const visualAssets = {
   /* โปสเตอร์แนวตั้ง 1122x1402 ไม่ใช่ตราสี่เหลี่ยม 640 เหมือนตัวอื่นในตารางนี้ ·
      วาดจริงกว้าง 338px ในคอลัมน์ 340 ต้นฉบับจึงใหญ่พอสำหรับจอสามเท่าอยู่แล้ว ไม่ต้องขยาย ·
      **ห้ามครอปและห้าม ken-burns** ตัวหนังสือในโปสเตอร์ต้องอ่านออกครบทั้งใบ */
-  hermes_poster: { file: "naichangmoo-hermes-poster.webp" }
+  hermes_poster: { file: "naichangmoo-hermes-poster.webp" },
+  /* หน้าแรกรุ่นสี่ — ภาพหน้าเว็บ Lekza Works ที่ลบปุ่มปลอมออกแล้ว ห้ามใช้ต้นฉบับที่ยังมีปุ่ม */
+  lekza_hero: { file: "naichangmoo-lekza-hero.png" },
+  lekza_mockups: { file: "naichangmoo-lekza-mockups.png" }
 } as const;
 
 export type VisualAssetKey = keyof typeof visualAssets;

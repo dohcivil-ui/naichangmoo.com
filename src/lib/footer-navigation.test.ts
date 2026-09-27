@@ -18,7 +18,24 @@ function evidenceOf(href: string): { pagePath: string; anchor: string | null } {
   return { pagePath: join(process.cwd(), "src", "app", ...segments, "page.tsx"), anchor: anchor ?? null };
 }
 
-const allLinks = footerNavigationContract.flatMap((column) =>
+/**
+ * ข้อความของหน้า รวมกับคอมโพเนนต์ `@/components/...` ที่หน้านั้น import ตรง ๆ (ชั้นเดียว)
+ *
+ * หน้าแรกรุ่นสี่ (2026-09-24) ย้าย `id="apps"` ไปอยู่ในคอมโพเนนต์เชลฟ์ ไม่ได้เขียนใน page.tsx
+ * แล้ว · anchor ยังอยู่บนหน้าจริงเหมือนเดิม ด่านจึงต้องตามไปอ่านที่คอมโพเนนต์ที่หน้าเรนเดอร์
+ * ไม่ใช่อ่านแค่ไฟล์ page.tsx
+ */
+function pageAndComponents(pagePath: string): string {
+  const page = readFileSync(pagePath, "utf8");
+  const imports = [...page.matchAll(/from\s+"@\/(components\/[^"]+)"/g)].map((match) => match[1]);
+  const parts = imports.flatMap((spec) => {
+    const file = join(process.cwd(), "src", `${spec}.tsx`);
+    return existsSync(file) ? [readFileSync(file, "utf8")] : [];
+  });
+  return [page, ...parts].join("\n");
+}
+
+const allLinks =footerNavigationContract.flatMap((column) =>
   column.links.map((link) => ({ ...link, column: column.heading }))
 );
 
@@ -31,7 +48,7 @@ describe("ด่านตรวจท้ายเว็บ (IP-200)", () => {
         offenders.push(`${link.column} → ${link.href} ไม่มีหน้า ${pagePath}`);
         continue;
       }
-      if (anchor && !readFileSync(pagePath, "utf8").includes(`id="${anchor}"`)) {
+      if (anchor && !pageAndComponents(pagePath).includes(`id="${anchor}"`)) {
         offenders.push(`${link.column} → ${link.href} หน้าไม่มี id="${anchor}"`);
       }
     }

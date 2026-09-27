@@ -295,6 +295,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .button--h36 { min-height: 36px; }
 .button--h40 { min-height: 40px; }
 .button--h44 { min-height: 44px; }
+/* 46 มาจากผืนรุ่นสี่ ใช้กับปุ่ม LINE ขนาดใหญ่บนจอกว้าง (จอแคบใช้ 44) เจ้าของงานเคาะ 2026-09-24 */
+.button--h46 { min-height: 46px; }
 .button--hfit { min-height: 0; padding: 0; }
 
 /* **ความสูงของจอกว้าง — ชั้นที่สองของมิติเดียวกัน ไม่ใช่มิติที่สาม**
@@ -324,6 +326,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .button--wide-h36 { min-height: 36px; }
   .button--wide-h40 { min-height: 40px; }
   .button--wide-h44 { min-height: 44px; }
+  .button--wide-h46 { min-height: 46px; }
   .button--wide-hfit { min-height: 0; padding: 0; }
 }
 
@@ -3260,74 +3263,58 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ขอบขาวซ้อนในขอบแดงทำด้วยเงาด้านในสองชั้น ไม่ใช่ border เพราะ border กินพื้นที่จริง
    ปุ่มจะโตกว่าปุ่มอื่นทั้งที่ `min-height` เท่ากัน                              */
 
-.button--shop, .button--shop-nav { background: var(--v3-red); color: var(--v3-white); border-color: transparent; font-weight: 600; }
-.button--shop:hover, .button--shop-nav:hover { background: var(--v3-red-dark); transform: translateY(-2px); }
-.button--shop:active, .button--shop-nav:active { transform: translateY(0) scale(.98); }
-
-/* ปุ่มลงมือ — เริ่มใช้ สมัคร ซื้อ · ห้าจุดในดีไซน์ ขอบขาวซ้อนเป็นเครื่องหมายของหน้าที่นี้
-
-   **มุม 4px ตรงนี้ห้ามจัดให้เท่าปุ่มอื่น** ขอบขาวที่ซ้อนอยู่ข้างในหนา 3px จะอ่านเป็นกรอบ
-   ได้ก็ต่อเมื่อมุมคม · พอดันมุมขึ้นเป็น 10px เท่าปุ่มทั้งเว็บ เส้นขาวจะโค้งจนกลืนไปกับ
-   พื้นแดงและเอฟเฟกต์หายทั้งอัน · เจ้าของงานเคาะ 2026-09-06 ให้แยกมุมตามหน้าที่ */
-.button--shop { border-radius: 4px; box-shadow: inset 0 0 0 1px var(--v3-red), inset 0 0 0 3px var(--v3-white); }
-.button--shop:hover { box-shadow: inset 0 0 0 1px var(--v3-red-dark), inset 0 0 0 3px var(--v3-white), 0 8px 18px var(--v3-red-a35); }
-.button--shop:active { box-shadow: inset 0 0 0 1px var(--v3-red-dark), inset 0 0 0 3px var(--v3-white); }
-
-/* ปุ่มพาไปหน้าอื่น — ขอใบเสนอราคา ดูทั้งหมด · สี่จุดในดีไซน์ แดงเรียบ ไม่มีขอบซ้อน
-
-   ตัวนี้ทำหน้าที่เดียวกับ `.button--orange` คือพาไปที่อื่น จึงใช้มุม 10px เท่าปุ่มพาไป
-   ทั้งเว็บ ไม่ใช่ 8px ตามผืนออกแบบ · ไม่มีขอบซ้อนให้เสีย จึงไม่มีเหตุผลให้ต่างจากของเดิม */
-.button--shop-nav { border-radius: 10px; }
-.button--shop-nav:hover { box-shadow: 0 8px 18px var(--v3-red-a35); }
-
-/* ปุ่มไป LINE — แคปซูลเขียวมีตรากลมขาวอยู่ข้างใน
-
-   สีเขียวคู่นี้ไม่ใช่สีที่เราเลือก เป็นสีของเจ้าของช่องทาง เหมือนสีน้ำเงินของ Facebook
-   จึงประกาศเป็น token แยกจากจานสีของเว็บ และห้ามปรับเฉดให้เข้ากับธีม
-
-   **ตัวหนังสือเป็นขาวตามผืนออกแบบ — เจ้าของงานเคาะทับคำตัดสินเดิม 2026-09-07**
-
-   คำตัดสินเดิม 2026-09-06 คือหมึกเข้ม เพราะขาวบนเขียวคู่นี้วัดได้ 1.91:1 ที่หัวไล่
-   และ 2.70:1 ที่ท้ายไล่ ตกเกณฑ์ 4.5:1 ทั้งคู่ · ตัวหนังสือ 18px หนาไม่เข้าเกณฑ์ตัวใหญ่
-   ซึ่งเริ่มที่ 18.66px จึงใช้ 4.5:1 ไม่ใช่ 3:1 และต่อให้ใช้ 3:1 ค่า 2.70 ก็ยังตกอยู่ดี ·
-   หมึกเข้มบนเขียวคู่เดิมได้ 8.29:1 ที่ `#5fd36a` และ 5.85:1 ที่ `#3fb350` ผ่านทั้งไล่เฉด
-
-   **เจ้าของงานรับทราบเลขทั้งชุดแล้วและสั่งให้ยึดผืน** เลขข้างบนจึงไม่ได้หายไป มันยังจริง
-   อยู่ทุกตัว และเก็บไว้ตรงนี้เพื่อให้วันที่มีคนถามว่าทำไมปุ่มนี้อ่านยาก คำตอบอยู่ที่เดียวกับปุ่ม
-   ไม่ต้องไปวัดใหม่ · **ถ้าจะกลับไปหมึกเข้ม ให้กลับทั้งบรรทัด `color` ไม่ใช่ปรับเฉดเขียว**
-   เขียวคู่นี้เป็นสีของเจ้าของช่องทาง แตะไม่ได้
-
-   ตัวอักษร LINE ในวงกลมขาวเป็นคนละเรื่อง มันคือตราของแบรนด์ ไม่ใช่ตัวหนังสือที่คนต้องอ่าน
-   **และมันผ่านเกณฑ์อยู่แล้ว** วัดได้ 3.46:1 ซึ่งเกินเกณฑ์ 3:1 ที่ใช้กับกราฟิก
-   ไม่ต้องแก้และไม่ใช่ของค้าง · จดไว้เพราะเลข 3.46 ดูต่ำจนคนที่มาอ่านทีหลังอาจนึกว่า
-   เป็นของที่ลืมแก้ แล้วเสียเวลาไปตามแก้สิ่งที่ถูกอยู่แล้ว
-
-   เลขทั้งหมดคำนวณจากค่าสีที่ประกาศในไฟล์นี้ **ยังไม่ได้วัดด้วย `getComputedStyle`
-   บนของจริง** เพราะคอมโพเนนต์ยังไม่มี · ต้องวัดซ้ำตอนแถบ Hermes ขึ้นจริง */
-.button--line {
+/* **รุ่นสี่ (เจ้าของงานเคาะ 2026-09-24): ทั้ง `shop` และ `shopNav` เป็นแคปซูลแดงเดียวกับปุ่ม LINE**
+   ไม่มีวงกลม LINE และ**ไม่มีขอบขาวซ้อน**ของรุ่นสามอีกแล้ว · สองระดับยังแยกชื่อกันไว้
+   เพราะหน้าที่ต่างกัน (ลงมือ กับ พาไปหน้าอื่น) แม้หน้าตาจะเหมือนกันในตอนนี้ */
+.button--shop, .button--shop-nav {
   border-radius: 999px;
-  padding-inline: 10px 26px;
-  background: linear-gradient(180deg, var(--v3-line-green), var(--v3-line-green-dark));
-  color: var(--v3-white);
+  padding-inline: 22px;
+  background: var(--v4-cta);
+  color: var(--v4-white);
   border-color: transparent;
   font-weight: 700;
+  box-shadow: none;
 }
-.button--line:hover { filter: brightness(1.06); transform: translateY(-2px); box-shadow: 0 12px 26px var(--v3-black-a28); }
-.button--line:active { transform: translateY(0) scale(.98); }
-/* ตรากลมขาว — ตัวอักษร LINE ข้างในเป็นสีเขียวเข้มสุดของชุด ให้อ่านออกบนวงขาว */
+.button--shop.button--h40, .button--shop-nav.button--h40 { font-size: 15px; }
+.button--shop:hover, .button--shop-nav:hover { background: var(--v4-cta-hover); color: var(--v4-white); transform: translateY(-2px); box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--shop:active, .button--shop-nav:active { transform: scale(.97); }
+
+/* ปุ่มไป LINE — แคปซูลแดงมีวงกลมขาวตัวอักษรแดงอยู่ข้างใน
+
+   **คำตัดสินใหม่ 2026-09-24 ทับคำตัดสิน 2026-09-06 ("เขียวตัวเดียวทั้งคู่")**
+   เจ้าของงานเคาะให้ใช้แดง `--v4-cta` กับวงขาวตัวอักษรแดงทุกจุดที่เป็น "ปรึกษาฟรี"
+   ตามภาพอ้างอิงของเขา (`design_handoff_home_v4/assets/reference/btn-line-reference.jpg`)
+   ห้ามสร้างปุ่มชุดที่สอง ปุ่มนี้ตัวเดียวทั้งเว็บ
+
+   เรื่องคอนทราสต์ของเขียวเดิม (ขาวบนเขียว 1.91:1 ถึง 2.70:1) จบไปพร้อมสีเขียว ·
+   ขาวบน `#9c332e` ผ่าน 4.5:1 · **ยังไม่ได้วัดด้วย `getComputedStyle` บนของจริง**
+   ต้องวัดซ้ำหลังหน้าแรกรุ่นสี่ขึ้นจอ
+
+   ขนาดใหญ่ (46 บนจอกว้าง · 44 บนจอแคบ) ตัวอักษร 17 เงาใหญ่ · ขนาดเล็ก (h40) ตัวอักษร 15 เงาเล็ก */
+.button--line {
+  border-radius: 999px;
+  padding-inline: 26px;
+  gap: 9px;
+  background: var(--v4-cta);
+  color: var(--v4-white);
+  border-color: transparent;
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgb(var(--v4-accent-rgb) / .3);
+  transition: background .2s, transform .2s;
+}
+.button--line.button--h40 { padding-inline: 18px; font-size: 15px; box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--line:hover { background: var(--v4-cta-hover); color: var(--v4-white); filter: none; transform: none; box-shadow: 0 8px 22px rgb(var(--v4-accent-rgb) / .3); }
+.button--line.button--h40:hover { box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--line:active { transform: scale(.97); }
 .button--line .button__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 38px;
-  block-size: 38px;
-  border-radius: 50%;
-  background: var(--v3-white);
-  color: var(--v3-line-green-deep);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .02em;
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  inline-size: 32px; block-size: 32px; border-radius: 50%;
+  background: var(--v4-white); color: var(--v4-cta);
+  font-size: 10px; font-weight: 800; letter-spacing: .02em; line-height: 1;
 }
+@media (max-width: 640px) { .button--line:not(.button--h40) { font-size: 15px; padding-inline: 18px; } }
 
 /* ปุ่มเลื่อนสไลด์ — วงกลมโปร่งบนภาพ ระดับที่แปดของ `<Button>`
 
@@ -3340,18 +3327,23 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ผืนออกแบบรอดตรงนี้ได้เพราะภาพทั้งสามใบมุมซ้ายขวาเข้มพอดี ซึ่งไม่ใช่สิ่งที่รับประกันได้
    วันที่มีคนเปลี่ยนภาพสไลด์ */
 
+/* รุ่นสี่ (2026-09-24): วงกลม 40 พื้นขาว 16% เบลอ 6 ตัวอักษรขาว 20 ตามผืน */
 .button--slide-nav {
-  inline-size: 36px;
-  min-block-size: 36px;
+  inline-size: 40px;
+  min-block-size: 40px;
+  block-size: 40px;
   padding: 0;
   border-radius: 50%;
-  background: var(--v3-banner-a55);
-  color: var(--v3-white);
+  background: rgb(var(--v4-white-rgb) / .16);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--v4-white);
+  font-size: 20px;
   border-color: transparent;
 }
 /* ตัวปุ่มไม่ต้องจัดตัวเองให้อยู่กลางแนวตั้ง กล่อง `.v3-banner__nav` ที่ครอบมันทำไปแล้ว
    ถ้าประกาศ `translateY(-50%)` ซ้ำที่นี่ ปุ่มจะเลื่อนขึ้นสองเท่าตอนเอาเมาส์ไปชี้ */
-.button--slide-nav:hover { background: var(--v3-banner-a85); transform: scale(1.08); }
+.button--slide-nav:hover { background: rgb(var(--v4-white-rgb) / .28); color: var(--v4-white); transform: scale(1.08); }
 .button--slide-nav:active { transform: scale(.94); }
 .button--slide-nav svg { inline-size: 26px; block-size: 26px; }
 
@@ -3375,19 +3367,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ทั้งคู่เป็นคลาสเดียวเท่ากัน เบราว์เซอร์จึงเลือกตัวที่มาทีหลัง · ถ้าวันไหนมีคนจัดลำดับบล็อก
    ใน `globals.css` ใหม่แล้วบล็อกนี้ขึ้นไปอยู่ก่อน `.button` ขีดจะกลายเป็นสูง 48 ทันที
    โดยไม่มีด่านไหนแดง · ย้ายบล็อกนี้เมื่อไร ต้องวัดขีดใหม่ทุกครั้ง */
+/* รุ่นสี่ (2026-09-24): จุด 6×6 ที่ยืดเป็น 26 เมื่อ active แทนขีด 22×3 ของรุ่นสาม ·
+   เขตกด `::after` แผ่ออก 9px รอบตัว ได้ 24×24 ที่จุดเล็กสุด (6 + 9 + 9) ตามเกณฑ์ขนาดเป้ากด */
 .button--slide-dot {
   position: relative;
-  inline-size: 22px;
-  min-block-size: 3px;
-  block-size: 3px;
+  inline-size: 6px;
+  min-block-size: 6px;
+  block-size: 6px;
   padding: 0;
-  border-radius: 2px;
+  border-radius: 999px;
   border-color: transparent;
-  background: var(--v3-white-a45);
+  background: rgb(var(--v4-white-rgb) / .45);
+  transition: inline-size .4s var(--v4-ease), background .4s;
 }
-.button--slide-dot::after { content: ""; position: absolute; inset: -13px -3px; }
-.button--slide-dot:hover { background: var(--v3-white); }
-.button--slide-dot[aria-current="true"] { background: var(--v3-red); }
+.button--slide-dot::after { content: ""; position: absolute; inset: -9px; }
+.button--slide-dot:hover { background: rgb(var(--v4-white-rgb) / .75); }
+.button--slide-dot[aria-current="true"] { inline-size: 26px; background: var(--v4-white); }
 
 .v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
 
@@ -3861,4 +3856,345 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
      การเคลื่อนไหวจะกลายเป็นหน้าที่ว่างอยู่วินาทีกว่าแล้วของค่อยโผล่ทีละชิ้น
      นั่นไม่ใช่การเคลื่อนไหวที่น้อยลง มันคือความช้า · ล้างหน่วงทิ้งให้ทุกอย่างอยู่ครบทันที */
   .v3-banner *, .v3-hcard * { animation-delay: 0s !important; }
+}
+
+/* ==========================================================================
+   หน้าแรกรุ่นสี่ — ต่อท้าย src/app/globals.css (ครัวกลางที่เดียวที่ประกาศสีได้ · ADR 0021)
+   ผืน: design_handoff_home_v4/Home Redesign v4 Apple.dc.html · เจ้าของงานเคาะ 2026-09-24
+   ฟอนต์มาจาก `.v3-page` ที่มีอยู่แล้ว (Noto Sans Thai ผ่าน --font-canvas) ไม่ประกาศซ้ำ
+   ========================================================================== */
+
+:root {
+  --v4-cta: #9c332e;
+  --v4-cta-hover: #822824;
+  --v4-accent: #d32f2f;
+  --v4-ink: #1d1d1f;
+  --v4-muted: #6e6e73;
+  --v4-gray: #f5f5f7;
+  --v4-white: #ffffff;
+  --v4-line: #e5e5e7;
+  --v4-rule: #d2d2d7;
+  --v4-link: #0066cc;
+  --v4-slide-bg: #0e0e10;
+  --v4-slide-kicker: #ff8a80;
+  --v4-story-bg: #0b1730;
+  --v4-story-kicker: #9cc7ff;
+  --v4-mail: #3f4a56;
+
+  --v4-accent-rgb: 211 47 47;
+  --v4-cta-rgb: 156 51 46;
+  --v4-ink-rgb: 29 29 31;
+  --v4-black-rgb: 0 0 0;
+  --v4-white-rgb: 255 255 255;
+  --v4-shade-rgb: 8 8 10;
+  --v4-story-shade-rgb: 6 12 28;
+  --v4-nav-rgb: 245 245 247;
+
+  --v4-ease: cubic-bezier(.2, .7, .2, 1);
+  --v4-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --v4-header-h: 88px;
+}
+html[data-v4-compact="true"] { --v4-header-h: 60px; }
+
+/* ---------- พื้นฐานของหน้า ---------- */
+.v4-page { background: var(--v4-white); color: var(--v4-ink); -webkit-font-smoothing: antialiased; }
+.v4-page h1, .v4-page h2, .v4-page h3, .v4-page h4, .v4-page p { margin: 0; }
+/* กฎกลาง `h1…h6 { color: var(--ink) }` เลือกที่ตัวอิลิเมนต์เอง จึงชนะสีที่สืบทอดมา ·
+   หัวข้อรุ่นสี่ต้องเป็น `--v4-ink` บนพื้นขาว และขาวบนสไลด์กับ story จึงให้รับสีจากกล่องที่ครอบ */
+.v4-page h1, .v4-page h2, .v4-page h3, .v4-page h4 { color: inherit; }
+.v4-page a { text-decoration: none; }
+.v4-wrap { max-width: 1200px; margin-inline: auto; }
+.v4-wrap--1024 { max-width: 1024px; }
+.v4-wrap--900 { max-width: 900px; }
+.v4-nowrap { white-space: nowrap; }
+.v4-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.v4-kicker { font-size: 15px; font-weight: 600; letter-spacing: .04em; color: var(--v4-accent); }
+.v4-h2 { font-size: clamp(40px, 5vw, 64px); line-height: 1.08; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; }
+.v4-h2--md { font-size: clamp(36px, 4vw, 56px); line-height: 1.1; }
+.v4-h2--xl { font-size: clamp(44px, 6vw, 80px); line-height: 1.05; }
+.v4-body { font-size: 19px; line-height: 1.5; color: var(--v4-muted); }
+.v4-link { font-size: 19px; color: var(--v4-link); }
+.v4-link:hover { text-decoration: underline; color: var(--v4-link); }
+.v4-link--accent { color: var(--v4-accent); font-weight: 500; }
+.v4-link--accent:hover { color: var(--v4-accent); }
+
+/* reveal — ใช้ `LandingMotion` ตัวเดิม (data-reveal / data-revealed / data-delay) */
+.v4-page [data-reveal] { opacity: 0; transform: translateY(48px); transition: opacity 1s var(--v4-ease), transform 1s var(--v4-ease); }
+.v4-page [data-reveal][data-revealed="true"] { opacity: 1; transform: none; }
+
+.v4-tile { transition: transform .5s var(--v4-ease), box-shadow .5s ease; }
+.v4-tile:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgb(var(--v4-black-rgb) / .14); }
+
+.v4-ping { position: relative; display: inline-grid; place-items: center; width: 10px; height: 10px; flex: none; }
+.v4-ping::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--v4-accent); opacity: .35; animation: v4-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+.v4-ping::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--v4-accent); }
+
+@keyframes v4-ping { 0% { transform: scale(1); opacity: .5; } 70% { transform: scale(2.6); opacity: 0; } 100% { opacity: 0; } }
+@keyframes v4-sheen { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
+@keyframes v4-hero-in { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes v4-navpop { 0% { transform: translateY(4px) scale(.92); } 60% { transform: translateY(0) scale(1.04); } 100% { transform: none; } }
+
+/* ---------- 1. แถบบน ---------- */
+.v4-header {
+  position: sticky; top: 0; z-index: 50; height: var(--v4-header-h);
+  background: rgb(var(--v4-nav-rgb) / .97); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .06);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  transition: height .3s var(--v4-ease), box-shadow .3s ease;
+}
+html[data-v4-compact="true"] .v4-header { box-shadow: 0 1px 12px rgb(var(--v4-black-rgb) / .08); }
+.v4-header__inner { max-width: 1200px; height: 100%; margin-inline: auto; padding: 0 22px; display: flex; align-items: center; gap: clamp(16px, 2.4vw, 34px); }
+.v4-header__brand { display: block; flex: none; }
+.v4-header__logo { display: block; height: 64px; width: auto; border-radius: 8px; transition: height .3s var(--v4-ease); }
+html[data-v4-compact="true"] .v4-header__logo { height: 38px; }
+.v4-header__right { margin-left: auto; display: flex; align-items: center; gap: clamp(14px, 2vw, 28px); }
+
+.v4-nav-item { display: flex; align-items: center; gap: 10px; color: var(--v4-ink); transition: transform .28s var(--v4-ease), opacity .2s; }
+.v4-nav-item:hover { transform: translateY(-2px); color: var(--v4-ink); }
+.v4-nav-item:active { transform: scale(.96); }
+.v4-nav-item__icon { display: grid; place-items: center; width: 26px; height: 26px; color: var(--v4-accent); transition: transform .28s var(--v4-spring); }
+.v4-nav-item__icon svg { width: 24px; height: 24px; stroke-width: 1.5; }
+.v4-nav-item:hover .v4-nav-item__icon { transform: scale(1.18) rotate(-4deg); }
+.v4-nav-item__text { display: grid; line-height: 1.15; white-space: nowrap; }
+.v4-nav-item__caption { font-size: 12px; color: var(--v4-muted); }
+.v4-nav-item__value, .v4-nav-item__text .button { font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: var(--v4-ink); white-space: nowrap; }
+
+.v4-cart { position: relative; display: grid; place-items: center; }
+.v4-cart svg { width: 24px; height: 24px; transition: transform .28s var(--v4-spring); }
+.v4-cart:hover svg { transform: translateY(-2px) scale(1.12); }
+.v4-cart__count {
+  position: absolute; top: -6px; right: -8px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 999px; background: var(--v4-accent); color: var(--v4-white); font-size: 11px; font-weight: 700; display: grid; place-items: center;
+}
+
+.v4-socials { display: flex; align-items: center; gap: 8px; }
+.v4-social { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--v4-white); transition: transform .28s var(--v4-spring), box-shadow .28s ease; }
+.v4-social svg { width: 15px; height: 15px; }
+.v4-social:hover { color: var(--v4-white); transform: translateY(-3px) scale(1.12); box-shadow: 0 8px 18px rgb(var(--v4-black-rgb) / .18); }
+.v4-social:active { transform: scale(.94); }
+.v4-social--facebook { background: var(--v3-facebook); }
+.v4-social--line_oa { background: var(--v3-line-brand); }
+.v4-social--youtube { background: var(--v3-youtube); }
+.v4-social--email { background: var(--v4-mail); }
+
+html[data-v4-compact="true"] .v4-nav-item,
+html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4-spring); }
+
+/* ช่องทางที่ผู้ดูแลยังไม่ได้ตั้งค่า (`PendingChannel`) — เจ้าของงานเคาะ 2026-09-28 รอบสอง
+   **กดได้และท่าทางเหมือนปุ่มที่มีลิงก์ทุกอย่าง** hover ยก เด้ง pop กดยุบ มาจากคลาสเดิมของจุดนั้น
+   (`v4-social` `v4-nav-item` `v4-link` `.button--line`) ไม่มีกฎแยก · ที่นี่มีแค่สองเรื่อง
+   ล้างหน้าตาตั้งต้นของ <button> ด้วย :where() ซึ่งน้ำหนักเป็นศูนย์ คลาสของจุดนั้นจึงชนะเสมอ
+   และกล่องข้อความสั้นที่ขึ้นใต้จุดที่กดราว 2 วินาที */
+:where(.v4-pending__trigger) { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
+.v4-pending { position: relative; display: inline-flex; }
+.v4-pending__note {
+  position: absolute; top: calc(100% + 8px); left: 50%; z-index: 60; transform: translate(-50%, -4px);
+  padding: 6px 12px; border-radius: 10px; background: var(--v4-ink); color: var(--v4-white);
+  font-size: 13px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity .2s ease, transform .2s var(--v4-ease);
+}
+.v4-pending__note[data-shown="true"] { opacity: 1; transform: translate(-50%, 0); }
+.v4-pending__note:empty { padding: 0; }
+
+/* ---------- 2. Hero ---------- */
+.v4-hero { position: relative; overflow: hidden; min-height: 820px; display: grid; justify-items: center; align-content: start; padding: 36px 22px 0; background: var(--v4-gray); text-align: center; }
+.v4-hero__kicker { font-size: 21px; font-weight: 600; letter-spacing: .02em; color: var(--v4-muted); white-space: nowrap; animation: v4-hero-in .9s .1s both; }
+.v4-hero__title { margin-top: 10px !important; font-size: clamp(56px, 7.5vw, 96px); line-height: 1.05; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; animation: v4-hero-in .9s .25s both; }
+.v4-hero__lede { margin-top: 18px !important; max-width: 32ch; font-size: clamp(21px, 2.2vw, 28px); line-height: 1.3; font-weight: 500; color: var(--v4-muted); text-wrap: balance; animation: v4-hero-in .9s .4s both; }
+.v4-hero__actions { margin-top: 26px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; animation: v4-hero-in .9s .55s both; }
+/* **1156 = 1200 − 22 − 22 ไม่ใช่ 1200** แถบบนกับแถบเมนูกว้าง 1200 *รวม* padding ข้างละ 22
+   (box-sizing: border-box) เนื้อในจริงจึงกว้าง 1156 · ภาพต้องกว้างเท่าเนื้อในนั้น ขอบซ้ายจึงตรงโลโก้
+   กับชิป "แอปทั้งหมด" และขอบขวาตรงปุ่ม LINE · วัดแล้ว 2026-09-28 ว่า 1200 ทำให้ภาพเกินไปข้างละ 22px
+   จอแคบกว่า 1200 ทั้งสามแถบเหลือ padding 22 เท่ากัน ภาพจึงยังตรงด้วย `100%` */
+.v4-hero__media { position: relative; width: min(1156px, 100%); margin-top: 48px; will-change: transform; animation: v4-hero-in 1.2s .7s both; }
+/* สัดส่วนเท่าภาพจริง `naichangmoo-lekza-hero.png` (1672×845) ภาพจึงเต็มกรอบโดยไม่ถูกครอปซ้ายขวา
+   · ถ้าเปลี่ยนภาพ ต้องเปลี่ยนเลขนี้ตาม ไม่งั้น `object-fit: cover` จะตัดขอบภาพทิ้งเงียบ ๆ */
+.v4-hero__shot { position: relative; aspect-ratio: 1672 / 845; border-radius: 24px 24px 0 0; overflow: hidden; background: var(--v4-white); box-shadow: 0 24px 70px rgb(var(--v4-black-rgb) / .14); }
+.v4-hero__shot img { object-fit: cover; object-position: top; }
+
+/* ---------- 3. แถบเมนู ---------- */
+.v4-menubar { position: sticky; top: var(--v4-header-h); z-index: 40; background: var(--v4-white); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .08); transition: top .3s var(--v4-ease); }
+.v4-menubar__inner { max-width: 1200px; margin-inline: auto; padding: 0 22px; display: flex; align-items: stretch; gap: clamp(14px, 2.4vw, 34px); }
+.v4-menubar a { display: flex; align-items: center; font-size: 14px; white-space: nowrap; transition: transform .25s var(--v4-ease); }
+.v4-menubar a:hover { transform: translateY(-2px); }
+.v4-menubar__all { gap: 9px; height: 42px; padding: 0 18px; background: var(--v4-accent); color: var(--v4-white); font-weight: 600; }
+.v4-menubar__all:hover { color: var(--v4-white); }
+.v4-menubar__all svg { width: 15px; height: 15px; }
+.v4-menubar__link { color: var(--v4-ink); }
+.v4-menubar__link:hover { color: var(--v4-ink); }
+.v4-menubar__link--promo, .v4-menubar__link--promo:hover { color: var(--v4-accent); font-weight: 600; }
+
+/* ---------- 4. อัพเดทวันนี้ ---------- */
+.v4-updates { background: var(--v4-gray); padding: 64px 24px 88px; }
+.v4-updates__head { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.v4-updates__title { display: flex; align-items: center; gap: 12px; }
+.v4-updates__title h2 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+.v4-updates__date { font-size: 15px; color: var(--v4-muted); }
+.v4-slider { position: relative; margin-top: 28px; border-radius: 24px; overflow: hidden; background: var(--v4-slide-bg); aspect-ratio: 21 / 9; min-height: 360px; }
+.v4-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .9s var(--v4-ease); }
+.v4-slide[data-active="true"] { opacity: 1; pointer-events: auto; }
+.v4-slide__media { position: absolute; inset: 0; }
+.v4-slide__media img { object-fit: cover; }
+.v4-slide__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(var(--v4-shade-rgb) / .86) 0%, rgb(var(--v4-shade-rgb) / .62) 45%, rgb(var(--v4-shade-rgb) / .15) 100%); }
+.v4-slide__copy { position: absolute; inset: 0; max-width: 760px; padding: 0 clamp(28px, 6vw, 80px); display: grid; align-content: center; color: var(--v4-white); }
+.v4-slide__line { opacity: 0; transform: translateY(28px); transition: opacity .7s var(--v4-ease), transform .7s var(--v4-ease); }
+.v4-slide[data-active="true"] .v4-slide__line { opacity: 1; transform: none; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(2) { transition-delay: .1s; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(3) { transition-delay: .2s; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(4) { transition-delay: .3s; }
+.v4-slide__kicker { font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--v4-slide-kicker); }
+.v4-slide__title { margin-top: 12px !important; font-size: clamp(30px, 4.4vw, 58px); line-height: 1.06; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.v4-slide__desc { margin-top: 16px !important; max-width: 46ch; font-size: clamp(15px, 1.5vw, 19px); line-height: 1.5; color: rgb(var(--v4-white-rgb) / .86); }
+.v4-slide__cta { margin-top: 26px; }
+.v4-slider__arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
+.v4-slider__arrow--prev { left: 16px; }
+.v4-slider__arrow--next { right: 16px; }
+.v4-slider__dots { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2; display: flex; justify-content: center; gap: 8px; }
+
+/* ---------- 5. Hermes story ---------- */
+.v4-hermes { background: var(--v4-white); padding: 56px 24px 140px; }
+.v4-hermes__head { max-width: 1024px; margin-inline: auto; display: grid; justify-items: center; text-align: center; }
+.v4-hermes__head .v4-h2 { margin-top: 12px; }
+.v4-hermes__body { margin-top: 22px !important; max-width: 40ch; }
+.v4-hermes__cta { margin-top: 26px; }
+.v4-story { position: relative; height: 280vh; margin-top: 72px; }
+.v4-story__stage { position: sticky; top: calc(var(--v4-header-h) + 42px); height: calc(100vh - var(--v4-header-h) - 66px); max-width: 1200px; margin-inline: auto; transition: top .3s var(--v4-ease); }
+.v4-story__frame { position: relative; height: 100%; border-radius: 28px; overflow: hidden; background: var(--v4-story-bg); box-shadow: 0 30px 80px rgb(var(--v4-black-rgb) / .18); }
+.v4-story__img { position: absolute; inset: 0; transform: scale(1.15); will-change: transform; }
+.v4-story__img img { object-fit: cover; object-position: center top; }
+.v4-story__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(var(--v4-story-shade-rgb) / 0) 45%, rgb(var(--v4-story-shade-rgb) / .78) 100%); }
+.v4-story__caps { position: absolute; inset: auto 0 0 0; color: var(--v4-white); }
+.v4-story__cap { position: absolute; left: 56px; right: 56px; bottom: 56px; opacity: 0; transform: translateY(120px); will-change: transform, opacity; }
+.v4-story__kicker { font-size: 15px; font-weight: 600; letter-spacing: .06em; color: var(--v4-story-kicker); }
+.v4-story__text { margin-top: 8px !important; max-width: 22ch; font-size: clamp(32px, 4.2vw, 60px); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.v4-story__dots { position: absolute; right: 28px; top: 28px; display: flex; gap: 6px; }
+.v4-story__dot { width: 24px; height: 3px; border-radius: 2px; background: rgb(var(--v4-white-rgb) / .35); }
+.v4-story__dot[data-active="true"] { background: var(--v4-white); }
+
+/* ---------- 6. Stats ---------- */
+.v4-stats { background: var(--v4-white); padding: 160px 24px; text-align: center; }
+.v4-stats__lede { margin: 22px auto 0 !important; max-width: 44ch; }
+.v4-stats__grid { margin-top: 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; }
+.v4-stat { font-size: clamp(56px, 7vw, 88px); line-height: 1; font-weight: 700; letter-spacing: -.03em; }
+.v4-stat--accent { color: var(--v4-accent); }
+.v4-stat__unit { margin-left: 6px; font-size: .4em; font-weight: 500; font-family: inherit; }
+.v4-stat__label { margin-top: 10px !important; font-size: 17px; color: var(--v4-muted); }
+
+/* ---------- 7. ความสามารถ ---------- */
+.v4-features { background: var(--v4-white); padding: 140px 24px; }
+.v4-features .v4-h2 { text-align: center; }
+.v4-features__grid { margin-top: 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.v4-feature { background: var(--v4-gray); border-radius: 20px; padding: 36px 32px; display: grid; gap: 18px; align-content: start; }
+.v4-feature__icon { width: 44px; height: 44px; display: grid; place-items: center; color: var(--v4-accent); }
+.v4-feature__title { font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.01em; }
+.v4-feature__desc { font-size: 16px; line-height: 1.5; color: var(--v4-muted); }
+
+/* ---------- 8. เชลฟ์แอป ---------- */
+.v4-apps { background: var(--v4-gray); padding: 110px 24px 140px; }
+.v4-apps__count { display: flex; align-items: center; gap: 12px; }
+.v4-apps__count p { font-size: clamp(20px, 2.2vw, 26px); font-weight: 600; letter-spacing: -.01em; }
+.v4-apps__num { color: var(--v4-accent); }
+.v4-shelves { margin-top: 40px; display: grid; gap: 72px; }
+.v4-shelf__head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--v4-rule); }
+.v4-shelf__head h3 { font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+.v4-shelf__note { font-size: 15px; font-weight: 600; color: var(--v4-accent); }
+.v4-shelf__grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.v4-card { position: relative; overflow: hidden; display: grid; grid-template-rows: auto 1fr; background: var(--v4-white); border-radius: 20px; text-align: center; }
+.v4-card__media { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; filter: brightness(1.06) saturate(.92); }
+.v4-card__media img { object-fit: cover; }
+.v4-card__body { display: grid; justify-items: center; align-content: start; padding: 28px 28px 36px; }
+.v4-card__status { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--v4-muted); }
+.v4-card__status--live { color: var(--v4-accent); }
+.v4-card__name { margin-top: 8px !important; font-size: clamp(28px, 3vw, 36px); line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+.v4-card__desc { margin-top: 10px !important; max-width: 26ch; font-size: 16px; line-height: 1.45; color: rgb(var(--v4-ink-rgb) / .72); }
+.v4-card__price { margin-top: 16px !important; font-size: 18px; font-weight: 600; }
+.v4-card__cta { margin-top: 22px; }
+.v4-live {
+  position: relative; overflow: hidden; margin-bottom: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 12px;
+  border-radius: 999px; border: 1px solid rgb(var(--v4-accent-rgb) / .28); background: rgb(var(--v4-accent-rgb) / .07);
+  color: var(--v4-accent); font-size: 12px; font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+}
+.v4-live__dot { position: relative; width: 9px; height: 9px; display: grid; place-items: center; }
+.v4-live__dot::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--v4-accent); opacity: .4; animation: v4-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+.v4-live__dot::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--v4-accent); }
+.v4-live__sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(var(--v4-white-rgb) / .85) 50%, transparent 80%); transform: translateX(-120%); animation: v4-sheen 3.2s ease-in-out infinite; }
+
+/* ---------- 9. โปรโมชั่น ---------- */
+.v4-promo { background: var(--v4-white); padding: 160px 24px; text-align: center; }
+.v4-promo__note { margin: 18px auto 0 !important; max-width: 40ch; }
+.v4-countdown-row { margin-top: 36px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.v4-countdown-row__label { font-size: 17px; font-weight: 600; color: var(--v4-muted); }
+.v4-countdown { display: flex; align-items: flex-start; gap: 8px; }
+.v4-countdown__unit { display: grid; justify-items: center; gap: 6px; }
+.v4-countdown__box {
+  display: grid; place-items: center; min-width: 62px; height: 62px; padding: 0 8px; box-sizing: border-box; border-radius: 12px;
+  background: var(--v4-cta); color: var(--v4-white); font-size: 30px; font-weight: 700; letter-spacing: -.01em;
+  box-shadow: 0 6px 16px rgb(var(--v4-cta-rgb) / .24);
+}
+.v4-countdown__label { font-size: 13px; color: var(--v4-muted); }
+.v4-promo__grid { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
+.v4-promo-card { background: var(--v4-gray); border-radius: 20px; padding: 36px 32px; display: grid; gap: 8px; align-content: start; }
+.v4-promo-card__badge { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--v4-accent); }
+.v4-promo-card__name { font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+.v4-promo-card__group { font-size: 15px; color: var(--v4-muted); }
+.v4-promo-card__price { margin-top: 22px !important; display: flex; align-items: baseline; gap: 10px; }
+.v4-promo-card__price .v3-hd { font-size: 44px; line-height: 1; font-weight: 700; letter-spacing: -.02em; }
+.v4-promo-card__unit { font-size: 15px; color: var(--v4-muted); }
+.v4-promo-card__was { min-height: 1.4em; font-size: 14px; color: var(--v4-muted); }
+.v4-promo-card__cta { margin-top: 26px; justify-self: start; }
+
+/* ---------- 10. CTA ปิดท้าย ---------- */
+.v4-closing { background: var(--v4-gray); padding: 160px 24px; text-align: center; }
+.v4-closing__lede { margin: 20px auto 0 !important; max-width: 36ch; font-size: 21px; color: var(--v4-muted); }
+.v4-closing__actions { margin-top: 32px; display: flex; gap: 28px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) { .v4-socials { display: none; } }
+@media (max-width: 1000px) { .v4-nav-item__caption { display: none; } }
+@media (max-width: 760px) {
+  :root { --v4-header-h: 64px; }
+  html[data-v4-compact="true"] { --v4-header-h: 56px; }
+  .v4-nav-item__text { display: none; }
+  .v4-header__logo { height: 44px; }
+}
+@media (max-width: 640px) {
+  .v4-header__inner { gap: 12px; padding: 0 14px; }
+  .v4-header__logo { height: 36px; }
+  html[data-v4-compact="true"] .v4-header__logo { height: 30px; }
+  .v4-header__cta { display: none; }
+  .v4-hero { min-height: 0; padding: 24px 18px 0; }
+  .v4-hero__title { font-size: 38px; }
+  .v4-hero__lede { font-size: 17px; }
+  .v4-h2, .v4-h2--md, .v4-h2--xl { font-size: 32px; }
+  .v4-menubar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .v4-menubar__inner { padding: 0 14px; gap: 16px; }
+  .v4-updates { padding-inline: 18px; }
+  .v4-updates__title h2 { font-size: 26px; }
+  .v4-slider { aspect-ratio: auto; min-height: 0; }
+  .v4-slide { position: relative; display: none; opacity: 1; }
+  .v4-slide[data-active="true"] { display: block; }
+  .v4-slide__media { position: relative; height: 220px; }
+  .v4-slide__shade { display: none; }
+  .v4-slide__copy { position: static; max-width: none; padding: 22px 18px 44px; background: var(--v4-slide-bg); }
+  .v4-slide__title { font-size: 26px; }
+  .v4-slider__arrow { top: 110px; }
+  .v4-hermes { padding: 40px 18px 64px; }
+  .v4-story__cap { left: 22px; right: 22px; bottom: 28px; }
+  .v4-features, .v4-apps { padding: 56px 18px 64px; }
+  .v4-stats, .v4-promo, .v4-closing { padding: 64px 18px 72px; }
+}
+
+/* ---------- ลดการเคลื่อนไหว ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .v4-page [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .v4-hero__kicker, .v4-hero__title, .v4-hero__lede, .v4-hero__actions, .v4-hero__media { animation: none; }
+  .v4-ping::before, .v4-live__dot::before, .v4-live__sheen { animation: none; }
+  html[data-v4-compact="true"] .v4-nav-item, html[data-v4-compact="true"] .v4-header__cta { animation: none; }
+  .v4-story { height: auto; }
+  .v4-story__stage { position: static; height: auto; }
+  .v4-story__frame { aspect-ratio: 16 / 10; }
+  .v4-story__img { transform: none; }
+  .v4-story__caps { position: static; display: grid; gap: 24px; padding: 28px; background: var(--v4-story-bg); }
+  .v4-story__cap { position: static; opacity: 1; transform: none; }
+  .v4-story__dots { display: none; }
 }
