@@ -23,6 +23,13 @@ describe("กติกาตรวจค่าช่องทางติดต�
     expect(validateChannelValue("facebook", "https://facebook.com.evil.com/x").ok).toBe(false);
   });
 
+  it("รับช่อง YouTube จริง และปฏิเสธโดเมนเลียนแบบกับลิงก์ http", () => {
+    expect(validateChannelValue("youtube", "https://www.youtube.com/@naichangmoo").ok).toBe(true);
+    expect(validateChannelValue("youtube", "https://youtu.be/abc123").ok).toBe(true);
+    expect(validateChannelValue("youtube", "https://youtube.com.evil.com/x").ok).toBe(false);
+    expect(validateChannelValue("youtube", "http://www.youtube.com/@naichangmoo").ok).toBe(false);
+  });
+
   it("รับอีเมลรูปแบบถูกต้อง และปฏิเสธข้อความที่ไม่ใช่อีเมล", () => {
     expect(validateChannelValue("email", "contact@naichangmoo.com").ok).toBe(true);
     expect(validateChannelValue("email", "ทักไลน์มา").ok).toBe(false);

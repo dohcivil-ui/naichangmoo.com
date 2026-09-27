@@ -4,11 +4,13 @@
  * ไฟล์นี้เป็นเนื้อหาให้แสดงกับกติกาตรวจ — ค่าจริงอยู่ในตาราง platform_channels ซึ่งผู้ดูแล
  * กรอกจากหลังบ้าน ช่องที่ยังไม่กรอกจะไม่ขึ้นหน้าเว็บเลย ตามคำวินิจฉัยเจ้าของงาน 2026-08-28:
  * ซ่อนจนกว่าจะกรอกจริง ไม่โชว์ค่าปลอมให้ลูกค้าเห็นแม้แต่วินาทีเดียว
+ * **ยกเว้นหน้าแรก v4** — คำตัดสิน 2026-09-28 ให้แสดงปุ่มและไอคอนตามผืนเสมอ แต่กดไม่ได้
+ * จนกว่าจะกรอก (ยังไม่มีค่าปลอม ไม่มีลิงก์ตาย) · ท้ายเว็บและหน้าอื่นยังใช้กติกาเดิม
  *
  * การตรวจโฮสต์ของลิงก์เข้มไว้ก่อน — ลิงก์ผิดตัวเดียวขึ้นทุกหน้าของเว็บพร้อมกัน
  */
 
-export type ChannelKey = "phone" | "line_oa" | "facebook" | "email";
+export type ChannelKey = "phone" | "line_oa" | "facebook" | "youtube" | "email";
 
 export type ChannelKind = {
   key: ChannelKey;
@@ -31,6 +33,7 @@ export type ChannelKind = {
 
 const LINE_HOSTS = new Set(["line.me", "lin.ee", "page.line.me"]);
 const FACEBOOK_HOSTS = new Set(["facebook.com", "www.facebook.com", "web.facebook.com", "fb.com", "m.facebook.com"]);
+const YOUTUBE_HOSTS = new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"]);
 
 function hostOf(value: string): string | null {
   try {
@@ -74,6 +77,13 @@ export const channelKinds: readonly ChannelKind[] = [
     key: "facebook",
     label: "เพจ Facebook",
     hint: "ลิงก์เพจ เช่น https://www.facebook.com/naichangmoo",
+    toHref: (value) => value
+  },
+  {
+    /* เพิ่ม 2026-09-28 ให้วงไอคอน YouTube บนแถบบนของหน้าแรกรุ่นสี่มีค่าจริงให้ชี้ */
+    key: "youtube",
+    label: "ช่อง YouTube",
+    hint: "ลิงก์ช่อง เช่น https://www.youtube.com/@naichangmoo",
     toHref: (value) => value
   },
   {
@@ -126,6 +136,11 @@ export function validateChannelValue(key: ChannelKey, raw: string): ChannelValid
   if (key === "line_oa") {
     const known = LINE_HOSTS.has(host) || host.endsWith(".line.me");
     if (!known) return { ok: false, message: "ลิงก์ LINE ต้องอยู่บนโดเมน line.me หรือ lin.ee" };
+    return { ok: true, value };
+  }
+
+  if (key === "youtube") {
+    if (!YOUTUBE_HOSTS.has(host)) return { ok: false, message: "ลิงก์ช่องต้องอยู่บนโดเมน youtube.com หรือ youtu.be" };
     return { ok: true, value };
   }
 
