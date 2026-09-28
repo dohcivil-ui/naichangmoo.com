@@ -110,6 +110,11 @@ export function DoorEnterIcon(props: IconProps) {
   return <BaseIcon {...props}><path d="M27 8h9a3 3 0 0 1 3 3v26a3 3 0 0 1-3 3h-9" /><path d="M9 24h19" /><path d="m21 17 7 7-7 7" /></BaseIcon>;
 }
 
+/** ออกจากระบบ — ประตูเดียวกับ `DoorEnterIcon` แต่ลูกศรชี้ออกจากกรอบ ใช้ในเมนูบัญชีของแถบบนรุ่นสี่ */
+export function DoorExitIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M21 8h-9a3 3 0 0 0-3 3v26a3 3 0 0 0 3 3h9" /><path d="M20 24h19" /><path d="m32 17 7 7-7 7" /></BaseIcon>;
+}
+
 export function PersonIcon(props: IconProps) {
   return <BaseIcon {...props}><circle cx="24" cy="17" r="7" /><path d="M11 40c0-7.2 5.8-13 13-13s13 5.8 13 13" /></BaseIcon>;
 }

@@ -4,46 +4,14 @@ import type { ReactNode } from "react";
 import { FacebookMark, LineMark, YouTubeMark } from "@/components/icons/brand-icons";
 import { CartIcon, DoorEnterIcon, HeadsetIcon, MailIcon, PersonIcon } from "@/components/icons/platform-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
+import { AccountMenu } from "@/components/platform/account-menu";
 import { readViewer } from "@/components/platform/site-header";
-import { getAccountInteractionContract, landingActionContract } from "@/lib/landing-interactions";
+import { landingActionContract } from "@/lib/landing-interactions";
 import { channelKinds, type ChannelKey } from "@/lib/platform-channels";
 import { visualAssetUrl } from "@/lib/visual-assets";
 import { HeaderShell } from "./header-shell";
 import { LineCta } from "./line-cta";
 import { PendingChannel } from "./pending-channel";
-
-/**
- * ช่องบัญชีตอนล็อกอินแล้ว — รูปโปรไฟล์วงกลม 34 กับชื่อต้น แทน Login/Register ทั้งคู่ (เจ้าของงานสั่ง 2026-09-29)
- *
- * เป็นลิงก์ไป `/account` ตรง ๆ ไม่ใช่เมนูเปิดปิด · ออกจากระบบกับทางไปหลังบ้านยังอยู่ที่เมนูบัญชี
- * ของแถบนำทางแพลตฟอร์มบนหน้า `/account` ห่างไปคลิกเดียว · ชื่อ รูป และลิงก์มาจาก
- * `getAccountInteractionContract` ตัวเดียวกับเมนูบัญชี จึงใช้ชื่อสำรองเป็นอีเมลเหมือนกันเมื่อโปรไฟล์ไม่มีชื่อ
- * ไม่มีรูป = วงแดงกับอักษรแรกของชื่อ
- */
-function AccountSlot({ user }: { user: { name: string; email: string; image?: string | null } }) {
-  const account = getAccountInteractionContract({ user });
-  if (account.kind !== "signed_in") return null;
-  const firstName = account.label.trim().split(/\s+/)[0] || account.label;
-  const initial = Array.from(account.label)[0] ?? "?";
-  return (
-    <Link className="v4-nav-item v4-account" href={account.accountHref} aria-label={`บัญชีของฉัน: ${account.label}`}>
-      <span className="v4-account__avatar" aria-hidden="true">
-        {account.avatarUrl ? (
-          <Image className="v4-account__photo" src={account.avatarUrl} alt="" width={34} height={34} />
-        ) : (
-          <span className="v4-account__initial">{initial}</span>
-        )}
-      </span>
-      <span className="v4-nav-item__text" aria-hidden="true">
-        <span className="v4-nav-item__caption">บัญชีของฉัน</span>
-        <span className="v4-nav-item__value v4-account__name">{firstName}</span>
-      </span>
-      <svg className="v4-account__caret" viewBox="0 0 20 20" width="14" height="14" aria-hidden="true">
-        <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </Link>
-  );
-}
 
 /** ช่องทางที่ `readPublishedChannels()` คืนมา — ส่งเข้ามาจาก page ไม่อ่านซ้ำที่นี่ */
 export type PublishedChannel = { key: ChannelKey; href: string; label: string; display: string };
@@ -120,7 +88,10 @@ export async function V4SiteHeader({ channels, lineHref }: { channels: readonly 
           )}
 
           {viewer.user ? (
-            <AccountSlot user={viewer.user} />
+            /* คลิกแล้วเปิดเมนู บัญชีของฉัน / หลังบ้าน (เฉพาะผู้ดูแล) / ออกจากระบบ — เจ้าของงานสั่ง 2026-09-29
+               เดิมเป็นลิงก์ไป /account ตรง ๆ ซึ่งทำให้ออกจากระบบจากหน้าแรกไม่ได้ · isPlatformAdmin แค่ตัดสินว่าวาดลิงก์
+               หลังบ้านหรือไม่ /admin ยังปฏิเสธเองจากเซิร์ฟเวอร์ตาม ADR 0012 */
+            <AccountMenu variant="v4" user={viewer.user} isPlatformAdmin={viewer.isPlatformAdmin} apps={viewer.apps} />
           ) : (
             <>
               <NavSlot icon={<DoorEnterIcon />} caption="เข้าสู่ระบบ">

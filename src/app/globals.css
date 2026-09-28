@@ -3977,10 +3977,30 @@ html[data-v4-compact="true"] .v4-header__logo { height: 38px; }
   transition: transform .28s var(--v4-spring);
 }
 .v4-nav-item:hover .v4-account__avatar { transform: scale(1.18) rotate(-4deg); }
-.v4-account__photo { display: block; width: 34px; height: 34px; object-fit: cover; }
-.v4-account__initial { color: var(--v4-white); font-size: 16px; font-weight: 700; line-height: 1; }
+/* อักษรแรกอยู่ใต้รูปเสมอ รูปวางทับ ถ้ารูปโหลดไม่ขึ้นจะเห็นอักษรแทนวงว่าง (`AccountAvatar` ตัวเดียวกับเมนูแพลตฟอร์ม) */
+.v4-account__avatar { color: var(--v4-white); font-size: 16px; font-weight: 700; line-height: 1; }
+.v4-account__avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .v4-account__name { display: block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
-.v4-account__caret { flex: none; color: var(--v4-ink); margin-left: -4px; }
+.v4-account__caret { flex: none; color: var(--v4-ink); margin-left: -4px; transition: transform .2s var(--v4-ease); }
+.v4-account.is-open .v4-account__caret { transform: rotate(180deg); }
+
+/* เมนูบัญชีของแถบบนรุ่นสี่ — เจ้าของงานสั่ง 2026-09-29 · พื้นขาว มุม 12 เงานุ่ม ไอคอนแดง
+   เปิดปิด Esc และคลิกข้างนอกมาจาก `AccountMenu` ตัวเดียวกับของแพลตฟอร์ม */
+.v4-account-menu { position: relative; display: inline-flex; }
+.v4-account-panel {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 60; min-width: 220px; padding: 8px;
+  display: grid; gap: 2px; background: var(--v4-white); border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(var(--v4-black-rgb) / .14), 0 0 0 1px rgb(var(--v4-black-rgb) / .06);
+}
+.v4-account-panel__item {
+  appearance: none; margin: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 8px;
+  color: var(--v4-ink); font-size: 15px; font-weight: 500; white-space: nowrap; transition: background .15s ease;
+}
+.v4-account-panel__item:hover { background: var(--v4-gray); color: var(--v4-ink); }
+.v4-account-panel__icon { flex: none; width: 20px; height: 20px; color: var(--v4-accent); }
+.v4-account-panel__signout { margin-top: 4px; border-top: 1px solid var(--v4-line); border-radius: 0 0 8px 8px; padding-top: 12px; }
+.v4-account-panel__signout:disabled { cursor: progress; color: var(--v4-muted); }
 
 .v4-socials { display: flex; align-items: center; gap: 8px; }
 .v4-social { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--v4-white); transition: transform .28s var(--v4-spring), box-shadow .28s ease; }
@@ -4000,7 +4020,7 @@ html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4
    (`v4-social` `v4-nav-item` `v4-link` `.button--line`) ไม่มีกฎแยก · ที่นี่มีแค่สองเรื่อง
    ล้างหน้าตาตั้งต้นของ <button> ด้วย :where() ซึ่งน้ำหนักเป็นศูนย์ คลาสของจุดนั้นจึงชนะเสมอ
    และกล่องข้อความสั้นที่ขึ้นใต้จุดที่กดราว 2 วินาที */
-:where(.v4-pending__trigger) { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
+:where(.v4-pending__trigger, button.v4-account) { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
 .v4-pending { position: relative; display: inline-flex; }
 .v4-pending__note {
   position: absolute; top: calc(100% + 8px); left: 50%; z-index: 60; transform: translate(-50%, -4px);
