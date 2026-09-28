@@ -3967,6 +3967,21 @@ html[data-v4-compact="true"] .v4-header__logo { height: 38px; }
   border-radius: 999px; background: var(--v4-accent); color: var(--v4-white); font-size: 11px; font-weight: 700; display: grid; place-items: center;
 }
 
+/* ช่องบัญชีตอนล็อกอินแล้ว (`AccountSlot`) — เจ้าของงานสั่ง 2026-09-29
+   ยก เด้ง และ pop ตอนแถบย่อ มาจาก `.v4-nav-item` ตัวเดียวกับช่องอื่น · ที่นี่มีแค่รูป ชื่อ และลูกศร
+   สีในสเปกเขียน #fff กับ --v4-red ซึ่งไม่มี token ชื่อนั้น จึงใช้ --v4-white กับ --v4-accent (#d32f2f)
+   ที่เป็นแดงของไอคอนและชิปในแถบเดียวกัน · รูปคง 34 ตอนแถบย่อ ไม่มีกฎ compact มาย่อมัน */
+.v4-account__avatar {
+  position: relative; flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; overflow: hidden;
+  background: var(--v4-accent); box-shadow: 0 0 0 2px var(--v4-white), 0 0 0 3.5px var(--v4-accent);
+  transition: transform .28s var(--v4-spring);
+}
+.v4-nav-item:hover .v4-account__avatar { transform: scale(1.18) rotate(-4deg); }
+.v4-account__photo { display: block; width: 34px; height: 34px; object-fit: cover; }
+.v4-account__initial { color: var(--v4-white); font-size: 16px; font-weight: 700; line-height: 1; }
+.v4-account__name { display: block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+.v4-account__caret { flex: none; color: var(--v4-ink); margin-left: -4px; }
+
 .v4-socials { display: flex; align-items: center; gap: 8px; }
 .v4-social { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--v4-white); transition: transform .28s var(--v4-spring), box-shadow .28s ease; }
 .v4-social svg { width: 15px; height: 15px; }

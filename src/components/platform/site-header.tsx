@@ -19,7 +19,9 @@ export async function readViewer() {
   if (!user) return { user: null, isPlatformAdmin: false, apps: [] };
 
   const [administrator, apps] = await Promise.all([resolvePlatformAdmin(), readMemberAppAccess(user.id)]);
-  return { user: { name: user.name, email: user.email }, isPlatformAdmin: administrator.ok, apps };
+  /* `image` ต้องส่งต่อด้วย เดิมถูกทิ้งตรงนี้ รูปโปรไฟล์จึงไม่เคยขึ้นที่แถบบนทุกหน้า
+     ทั้งที่ `AccountMenu` กับสัญญาใน landing-interactions รองรับอยู่แล้ว (แก้ 2026-09-29) */
+  return { user: { name: user.name, email: user.email, image: user.image }, isPlatformAdmin: administrator.ok, apps };
 }
 
 /**
