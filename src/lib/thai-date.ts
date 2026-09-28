@@ -18,6 +18,12 @@ export const THAI_MONTH_FULL = [
   "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
 ] as const;
 
+/** ชื่อเดือนไทยย่อ — ของกลางที่เดียวกับชื่อเต็ม ไม่งั้นสำเนาที่สามจะเกิดในวันที่มีคนต้องใช้อีกที่ */
+export const THAI_MONTH_ABBR = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+] as const;
+
 export const THAI_WEEKDAY_SHORT = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"] as const;
 
 export function toBuddhistYear(ceYear: number): number {

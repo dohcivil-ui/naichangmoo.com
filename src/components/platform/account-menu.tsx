@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
+import { DoorExitIcon, PersonIcon, ShieldIcon } from "@/components/icons/platform-icons";
 import { SignInButton } from "@/components/landing/sign-in-button";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -56,11 +57,18 @@ function AccountAvatar({
 export function AccountMenu({
   user,
   isPlatformAdmin = false,
-  apps = []
+  apps = [],
+  variant = "platform"
 }: {
   user: AccountViewer | null;
   isPlatformAdmin?: boolean;
   apps?: AccountAppAccess[];
+  /**
+   * `v4` = แถบบนของหน้าแรกรุ่นสี่ (เจ้าของงานสั่ง 2026-09-29) · ตัวเปิดเป็นรูปวงกลม 34 กับชื่อต้น
+   * และเมนูเหลือสามรายการ บัญชีของฉัน หลังบ้าน (เฉพาะผู้ดูแล) ออกจากระบบ
+   * การเปิดปิด Esc คลิกข้างนอก และการออกจากระบบใช้ตัวเดียวกับเมนูของแพลตฟอร์ม ไม่เขียนซ้ำ
+   */
+  variant?: "platform" | "v4";
 }) {
   const router = useRouter();
   const panelId = useId();
@@ -108,6 +116,53 @@ export function AccountMenu({
       setSigningOut(false);
     }
   };
+
+  if (variant === "v4") {
+    const firstName = contract.label.trim().split(/\s+/)[0] || contract.label;
+    const initial = Array.from(contract.label.trim())[0] ?? "?";
+    return (
+      <div className="v4-account-menu" ref={rootRef}>
+        <button
+          className={`v4-nav-item v4-account${open ? " is-open" : ""}`}
+          type="button"
+          ref={triggerRef}
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-haspopup="true"
+          aria-label={`บัญชีของฉัน: ${contract.label}`}
+          onClick={() => setOpen((wasOpen) => !wasOpen)}
+        >
+          <AccountAvatar className="v4-account__avatar" initials={initial} url={contract.avatarUrl} size={34} />
+          <span className="v4-nav-item__text" aria-hidden="true">
+            <span className="v4-nav-item__caption">บัญชีของฉัน</span>
+            <span className="v4-nav-item__value v4-account__name">{firstName}</span>
+          </span>
+          <svg className="v4-account__caret" viewBox="0 0 20 20" width="14" height="14" aria-hidden="true">
+            <path d="M5 8l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        {open ? (
+          <div className="v4-account-panel" id={panelId}>
+            <Link className="v4-account-panel__item" href={contract.accountHref} onClick={() => setOpen(false)}>
+              <PersonIcon className="v4-account-panel__icon" />
+              บัญชีของฉัน
+            </Link>
+            {contract.adminHref ? (
+              <Link className="v4-account-panel__item" href={contract.adminHref} onClick={() => setOpen(false)}>
+                <ShieldIcon className="v4-account-panel__icon" />
+                {contract.adminLabel}
+              </Link>
+            ) : null}
+            <button className="v4-account-panel__item v4-account-panel__signout" type="button" onClick={signOut} disabled={signingOut}>
+              <DoorExitIcon className="v4-account-panel__icon" />
+              {signingOut ? contract.signingOutLabel : contract.signOutLabel}
+            </button>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
 
   return (
     <div className="account-menu" ref={rootRef}>

@@ -91,5 +91,10 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   ...fence,
-  globalIgnores([".next/**", "node_modules/**", "drizzle/**"])
+  /* `redesign/**` เป็นที่วางผืนออกแบบที่เจ้าของงานเอามาจากเครื่องมือภายนอก ไม่ใช่ซอร์สของเรา
+     ในนั้นมีสคริปต์ของเครื่องมือที่ยังใช้ `ReactDOM.render` และเขียนทับตัวแปร `module`
+     ซึ่งทำให้ `pnpm lint` แดงทั้งเรพอ และเพราะ `hooks/pre-commit` รัน lint เป็นด่านแรก
+     **มันบล็อกทุก commit ของทุกคน** ไม่ใช่แค่งานหน้าแรก · flat config ไม่อ่าน `.gitignore`
+     ให้เอง จึงต้องประกาศทั้งสองที่ ซ้ำกันโดยตั้งใจ */
+  globalIgnores([".next/**", "node_modules/**", "drizzle/**", "redesign/**"])
 ]);

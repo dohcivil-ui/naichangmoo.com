@@ -50,13 +50,18 @@ export function stripComments(content: string): string {
  * `className={` + backtick + `button ${x} micro-button` + backtick + `}` ซึ่งไม่ใช่สตริงตรง
  * เจอตอนไล่ดู HTML ที่เรนเดอร์ออกมาแล้วยังเห็นคำว่า micro-button ค้างอยู่ ทั้งที่ด่านเขียว
  * **บทเรียนคือด่านที่ผ่านไม่ได้แปลว่าไม่มีของหลุด ต้องดูผลลัพธ์จริงด้วย**
+ *
+ * **รอบที่สองเกือบหลุดอีก 2026-09-06 คราวนี้เพราะการสะกด** ผืนออกแบบหน้าแรกรุ่นสาม
+ * ตั้งชื่อคลาสปุ่มว่า `btn` ไม่ใช่ `button` ด่านที่มองหาแค่คำเต็มจึงไม่เห็นมันเลย
+ * ของยังไม่หลุดเข้าไฟล์คอมโพเนนต์เพราะจับได้ก่อน แต่ด่านทำงานถูกตามที่เขียน
+ * ทั้งที่เขียนไว้แคบกว่าเจตนา · ตัวย่อที่คนใช้กันจริงจึงต้องอยู่ในรายการด้วย
  */
 export function findHandTypedButtons(content: string): { line: number; snippet: string }[] {
   const hits: { line: number; snippet: string }[] = [];
   const lines = stripComments(content).split("\n");
   lines.forEach((line, index) => {
-    const inString = /className\s*=\s*(["'`])[^"'`]*\bbutton(--|\s|["'`])/.test(line);
-    const inTemplate = /className\s*=\s*\{[^}]*\bbutton(--|\s|["'`])/.test(line);
+    const inString = /className\s*=\s*(["'`])[^"'`]*\b(button|btn)(--|\s|["'`])/.test(line);
+    const inTemplate = /className\s*=\s*\{[^}]*\b(button|btn)(--|\s|["'`])/.test(line);
     if (inString || inTemplate) hits.push({ line: index + 1, snippet: line.trim().slice(0, 90) });
   });
   return hits;
@@ -110,6 +115,11 @@ describe("ด่านตรวจปุ่ม (IP-235)", () => {
     // คลาสที่ประกอบด้วย template ก็ต้องโดน — สี่จุดหลุดด่านรอบแรกด้วยรูปแบบนี้
     expect(findHandTypedButtons("<Link className={`button micro-button ${x}`} href={h}>ไป</Link>")).toHaveLength(1);
     expect(findHandTypedButtons("<b className={`gl-num ${x}`}>ไป</b>")).toHaveLength(0);
+    // ตัวย่อ btn ก็คือปุ่ม — ผืนออกแบบรุ่นสามสะกดแบบนี้ และเกือบหลุดด่านไปเมื่อ 2026-09-06
+    expect(findHandTypedButtons('<a className="v3-btn v3-btn--primary">เริ่มทดลองใช้</a>')).toHaveLength(1);
+    expect(findHandTypedButtons("<Link className={`v3-btn ${x}`} href={h}>ไป</Link>")).toHaveLength(1);
+    // แต่ btn ที่เป็นแค่ส่วนหนึ่งของคำอื่นไม่ใช่ปุ่ม
+    expect(findHandTypedButtons('<span className="debtnote__row">ไป</span>')).toHaveLength(0);
     expect(findToneOverrides('<Button tone="quiet" className="button--orange">ไป</Button>')).toHaveLength(1);
     expect(findToneOverrides('<Button tone="quiet" className="work-plan__restore">ไป</Button>')).toHaveLength(0);
   });

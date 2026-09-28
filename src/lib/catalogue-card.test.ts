@@ -11,7 +11,7 @@ import type { AppClaim } from "@/server/app-registry";
  * in today, and the state the landing page has been getting wrong since ADR 0014 was accepted.
  */
 
-const unannounced: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null };
+const unannounced: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null };
 const announcedAt = new Date("2026-03-14T04:00:00.000Z");
 
 describe("what a catalogue card is allowed to say", () => {
@@ -30,7 +30,7 @@ describe("what a catalogue card is allowed to say", () => {
     // A row exists for reasons that have nothing to do with an administrator: activateEstimeterTrial
     // writes one the moment a customer starts a trial. readCatalogueClaims already drops the fields;
     // this pins that the card would stay silent regardless.
-    const says = describeCardClaims({ announced: false, access: "member_free", open: true, announcedAt, availabilityNote: null });
+    const says = describeCardClaims({ announced: false, access: "member_free", open: true, announcedAt, availabilityNote: null, expectedOpenMonth: null });
 
     expect(says.readiness).toBeNull();
     expect(says.access).toBeNull();
@@ -39,7 +39,7 @@ describe("what a catalogue card is allowed to say", () => {
   });
 
   it("states access and readiness, and offers entry, once an app is announced and open", () => {
-    const says = describeCardClaims({ announced: true, access: "paid_trial", open: true, announcedAt, availabilityNote: null });
+    const says = describeCardClaims({ announced: true, access: "paid_trial", open: true, announcedAt, availabilityNote: null, expectedOpenMonth: null });
 
     expect(says.readiness).toEqual({ label: appReadinessLabel.open, modifier: "available" });
     expect(says.access).toEqual({ label: accessLabel.paid_trial, modifier: "paid_trial" });
@@ -47,8 +47,8 @@ describe("what a catalogue card is allowed to say", () => {
   });
 
   it("shows the announcement date only while an announced app is still being prepared", () => {
-    const preparing = describeCardClaims({ announced: true, access: "paid_trial", open: false, announcedAt, availabilityNote: null });
-    const open = describeCardClaims({ announced: true, access: "paid_trial", open: true, announcedAt, availabilityNote: null });
+    const preparing = describeCardClaims({ announced: true, access: "paid_trial", open: false, announcedAt, availabilityNote: null, expectedOpenMonth: null });
+    const open = describeCardClaims({ announced: true, access: "paid_trial", open: true, announcedAt, availabilityNote: null, expectedOpenMonth: null });
 
     // Bangkok, so the 14th rather than the 13th — the formatter pins the zone for exactly this.
     expect(preparing.announcedOn).toBe("14 มี.ค. 2569");
@@ -59,7 +59,7 @@ describe("what a catalogue card is allowed to say", () => {
   });
 
   it("does not invent a date for an announced app whose row has none", () => {
-    const says = describeCardClaims({ announced: true, access: "member_free", open: false, announcedAt: null, availabilityNote: null });
+    const says = describeCardClaims({ announced: true, access: "member_free", open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null });
 
     expect(says.announcedOn).toBeNull();
     expect(says.readiness).toEqual({ label: appReadinessLabel.preparing, modifier: "coming_soon" });

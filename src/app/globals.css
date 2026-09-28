@@ -282,6 +282,54 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 
 /* ระดับที่สาม — ปุ่มตัวหนังสือ สำหรับ action ที่ไม่ใช่ทั้งหลักและรอง เช่นยกเลิกหรือเปิดเมนู
    (เกณฑ์ข้อสามของเจ้าของงาน 2026-09-05 ที่ระบบเรายังขาดไป) · สูง 48px เท่ากันตามกฎเดิม */
+/* ความสูงของปุ่ม — **มิติที่สองต่อจากระดับ** เลขมาจากผืนออกแบบรุ่นสาม
+
+   เจ้าของงานเคาะ 2026-09-07 ว่าขนาดและทรงยึดผืน กฎ 48 ไม่ชนะผืนอีกต่อไป · แต่ที่อยู่
+   ของเลขยังเป็นที่นี่ ไม่ใช่ให้แต่ละหน้าเอื้อมมือมาเขียนทับด้วย selector ลูกหลาน
+   ซึ่ง `button-fence` มองไม่เห็นและเป็นทางที่ปุ่มทั้งเว็บเคยเพี้ยนมาแล้ว
+
+   **ปุ่มที่ไม่ได้สั่งขนาดยังสูง 48 เท่าเดิม** ทั้งเว็บนอกหน้าร้านจึงไม่ขยับสักปุ่ม
+
+   `hfit` ไม่ใช่ความสูง แต่คือไม่มีความสูงบังคับ สำหรับปุ่มที่เป็นบรรทัดข้อความในช่อง
+   หรือเป็นขีดบอกตำแหน่ง ซึ่งเขตกดของมันคือตัวหนังสือ ไม่ใช่กล่องที่คนเล็ง */
+.button--h36 { min-height: 36px; }
+.button--h40 { min-height: 40px; }
+.button--h44 { min-height: 44px; }
+/* 46 มาจากผืนรุ่นสี่ ใช้กับปุ่ม LINE ขนาดใหญ่บนจอกว้าง (จอแคบใช้ 44) เจ้าของงานเคาะ 2026-09-24 */
+.button--h46 { min-height: 46px; }
+.button--hfit { min-height: 0; padding: 0; }
+
+/* **ความสูงของจอกว้าง — ชั้นที่สองของมิติเดียวกัน ไม่ใช่มิติที่สาม**
+
+   ผืนออกแบบให้ปุ่มจุดเดียวกันสูงไม่เท่ากันในสองอาร์ตบอร์ด ปุ่มบนการ์ดโปรโมชั่นเป็น 40
+   ที่ 1280 และ 36 ที่ 390 · เดิม `size` เป็นค่าเดียว เปลี่ยนตามความกว้างไม่ได้เลย
+   ทางที่เหลือคือให้หน้าเขียน CSS ทับด้วย selector ลูกหลาน ซึ่ง `button-fence` มองไม่เห็น
+   และเป็นทางที่ปุ่มทั้งเว็บเคยเพี้ยนมาแล้ว · **เลขจึงต้องอยู่ที่นี่ทั้งสองค่า**
+
+   ค่าแคบเป็นค่าตั้งต้นและใช้กับทุกความกว้าง ส่วนค่ากว้างทับเฉพาะเมื่อจอกว้างพอ ·
+   เขียนแบบนี้เพราะจอแคบคือกรณีที่ต้องถูกก่อน — ถ้าเขียนกลับกัน ปุ่มบนเครื่องที่ไม่รู้จัก
+   media query จะได้ขนาดของจอกว้างบนจอแคบ
+
+   **จุดตัด 760 อยู่สามที่ ไม่ใช่สองที่** · ที่นี่ (`min-width: 760.02px`) ·
+   บล็อกมือถือของรุ่นสามท้ายไฟล์ (`max-width: 760px`) · และ `matchMedia` ใน
+   `hero-slider.tsx` ที่หยุดตัวจับเวลาของสไลด์ · **ย้ายที่ไหนต้องย้ายให้ครบทั้งสาม**
+   ไม่งั้นจะมีช่วงความกว้างที่ปุ่มสูงตามจอกว้างแต่ของรอบตัวยังจัดแบบจอแคบ
+   หรือสไลด์หมุนเองโดยไม่มีปุ่มให้กด
+
+   **ทำไมเป็น 760.02 ไม่ใช่ 761** คู่ 760/761 ไม่ประกบกัน จอกว้าง 760.5 ซึ่งเกิดได้จริง
+   จากการซูมของเบราว์เซอร์และจอที่มีอัตราส่วนพิกเซลไม่เต็มจำนวน หลุดทั้งสองกฎพร้อมกัน
+   คือบล็อกมือถือไม่ทำงานแล้วเพราะเกิน 760 แต่ความสูงของจอกว้างก็ยังไม่ติดเพราะไม่ถึง 761 ·
+   ผลคือปุ่มได้ความสูงของจอแคบบนเลย์เอาต์ของจอกว้าง · 760.02 ปิดช่องนั้นโดยไม่ทับกับ
+   `max-width: 760px` เพราะทุกค่าที่มากกว่า 760 อยู่นอกกฎนั้นอยู่แล้ว                */
+
+@media (min-width: 760.02px) {
+  .button--wide-h36 { min-height: 36px; }
+  .button--wide-h40 { min-height: 40px; }
+  .button--wide-h44 { min-height: 44px; }
+  .button--wide-h46 { min-height: 46px; }
+  .button--wide-hfit { min-height: 0; padding: 0; }
+}
+
 .button--text { background: transparent; border-color: transparent; color: var(--teal-deep); box-shadow: none; padding: 0 12px; }
 .button--text:hover { background: var(--teal-wash); color: var(--teal-deep); }
 .button--text:active { background: var(--teal-wash); }
@@ -3030,3 +3078,1163 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
    ความกว้างไป 396px คิดตามจอจึงพับช้าไปหนึ่งจังหวะเสมอ (`.assistant-dock-push--active`) */
 @container eh (max-width: 1000px) { .eh__steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container eh (max-width: 560px) { .eh__steps { grid-template-columns: 1fr; } }
+
+/* ============================================================================
+   หน้าแรกรุ่นสาม — ธีมขาว–แดง
+   ============================================================================
+
+   บล็อกนี้เป็นชั้นของตัวเอง ต่อท้ายไฟล์ ไม่แตะ token หรือคลาสเดิมสักตัว
+   ชื่อทุกตัวขึ้นต้นด้วย `v3-` เพื่อกันชนกับธีมหมึก–เขียว–ส้มที่ใช้อยู่ทั้งเว็บ
+
+   **ทำไมสีทุกค่าต้องอยู่ตรงนี้** ADR 0021 ให้เลขสีจริงประกาศได้ที่ไฟล์นี้ที่เดียว
+   ดีไซน์รุ่นสามเขียนเป็น inline style ที่ฝัง hex กับ rgba ไว้เกือบทุกบรรทัด
+   ถ้ายกไปวางใน TSX ตรง ๆ ด่านตรวจสีจะแดงเป็นร้อยจุด สีทุกค่าจึงมาจบที่นี่
+   แล้ว TSX ถือแค่ชื่อคลาส
+
+   **ค่าโปร่งใสประกาศเป็นช่องสีก่อน แล้วค่อยผสมความจาง** เพราะดีไซน์ใช้แดงตัวเดียวกัน
+   ที่ความจางเก้าระดับ ถ้าเขียนเป็น rgba เต็มตัวเก้าครั้ง วันที่เปลี่ยนเฉดแดงต้องไล่แก้เก้าที่
+   และจะลืมที่หนึ่งเสมอ                                                        */
+
+:root {
+  /* --- เนื้อสีหลัก ------------------------------------------------------- */
+  --v3-red: #d32f2f;
+  --v3-red-dark: #a81f1f;
+  --v3-red-deep: #b91c1c;
+  --v3-red-bright: #ff3d3d;
+  --v3-red-soft: #ff6b6b;
+  --v3-red-100: #fdecec;
+  --v3-pink-100: #ffe3e3;
+  --v3-pink-200: #ffd6d6;
+  --v3-ink: #1f2328;
+  --v3-slate: #374151;
+  --v3-muted: #6b7280;
+  --v3-line: #e5e7eb;
+  --v3-bg2: #f6f7f9;
+  --v3-white: #ffffff;
+  --v3-black: #000000;
+  --v3-night: #0b1b2b;
+  --v3-night-2: #12263a;
+  --v3-banner-bg: #1a1416;
+
+  /* รางของแถบความพร้อม — เทาอมฟ้าสามเฉดที่ดีไซน์ใช้ไล่จากบนลงล่างในราง */
+  --v3-track-top: #eceef2;
+  --v3-track-bottom: #f7f8fa;
+  --v3-track-edge: #e8eaee;
+
+  /* สีประจำช่องทางภายนอก ห้ามเลือกเอง เป็นสีที่เจ้าของช่องกำหนด */
+  --v3-line-brand: #06c755;
+  --v3-line-green: #5fd36a;
+  --v3-line-green-dark: #3fb350;
+  --v3-line-green-deep: #2e9e3e;
+  --v3-facebook: #1877f2;
+  --v3-youtube: #ff0000;
+
+  /* --- ช่องสีสำหรับผสมความจาง -------------------------------------------- */
+  --v3-red-rgb: 211 47 47;
+  --v3-white-rgb: 255 255 255;
+  --v3-ink-rgb: 31 35 40;
+  --v3-banner-rgb: 20 14 16;
+  --v3-black-rgb: 0 0 0;
+
+  /* --- แดงจาง ใช้กับเงา ขอบเรือง และปลายไล่สีที่ต้องจางหายไป -------------- */
+  --v3-red-a0: rgb(var(--v3-red-rgb) / 0);
+  --v3-red-a18: rgb(var(--v3-red-rgb) / .18);
+  --v3-red-a25: rgb(var(--v3-red-rgb) / .25);
+  --v3-red-a35: rgb(var(--v3-red-rgb) / .35);
+  --v3-red-a45: rgb(var(--v3-red-rgb) / .45);
+  --v3-red-a50: rgb(var(--v3-red-rgb) / .5);
+  --v3-red-a55: rgb(var(--v3-red-rgb) / .55);
+  --v3-red-a70: rgb(var(--v3-red-rgb) / .7);
+  --v3-red-a85: rgb(var(--v3-red-rgb) / .85);
+
+  /* --- ขาวจาง ใช้กับตัวหนังสือบนพื้นเข้มและขอบปุ่มรอง --------------------- */
+  --v3-white-a0: rgb(var(--v3-white-rgb) / 0);
+  --v3-white-a22: rgb(var(--v3-white-rgb) / .22);
+  --v3-white-a45: rgb(var(--v3-white-rgb) / .45);
+  --v3-white-a60: rgb(var(--v3-white-rgb) / .6);
+  --v3-white-a70: rgb(var(--v3-white-rgb) / .7);
+  --v3-white-a75: rgb(var(--v3-white-rgb) / .75);
+  --v3-white-a85: rgb(var(--v3-white-rgb) / .85);
+  --v3-white-a88: rgb(var(--v3-white-rgb) / .88);
+
+  /* --- หมึกจาง เป็นเนื้อของเงาทั้งสามระดับ ------------------------------- */
+  --v3-ink-a06: rgb(var(--v3-ink-rgb) / .06);
+  --v3-ink-a08: rgb(var(--v3-ink-rgb) / .08);
+  --v3-ink-a12: rgb(var(--v3-ink-rgb) / .12);
+  --v3-ink-a16: rgb(var(--v3-ink-rgb) / .16);
+
+  /* --- พื้นแบนเนอร์จาง ใช้ทำม่านทับภาพให้ตัวหนังสือขาวอ่านออก ------------- */
+  --v3-banner-a0: rgb(var(--v3-banner-rgb) / 0);
+  --v3-banner-a20: rgb(var(--v3-banner-rgb) / .2);
+  --v3-banner-a55: rgb(var(--v3-banner-rgb) / .55);
+  --v3-banner-a75: rgb(var(--v3-banner-rgb) / .75);
+  --v3-banner-a85: rgb(var(--v3-banner-rgb) / .85);
+
+  /* --- ดำจาง เงาใต้ภาพและใต้ปุ่มบนพื้นเข้ม ------------------------------- */
+  --v3-black-a18: rgb(var(--v3-black-rgb) / .18);
+  --v3-black-a22: rgb(var(--v3-black-rgb) / .22);
+  --v3-black-a28: rgb(var(--v3-black-rgb) / .28);
+  --v3-black-a30: rgb(var(--v3-black-rgb) / .3);
+
+  /* --- เงาสามระดับ ------------------------------------------------------- */
+  --v3-sh-sm: 0 1px 2px var(--v3-ink-a06);
+  --v3-sh-md: 0 6px 18px var(--v3-ink-a08);
+  --v3-sh-lg: 0 24px 60px var(--v3-ink-a16);
+}
+
+/* --- ฟอนต์ของผืนออกแบบ -----------------------------------------------------
+   ผืนรุ่นสามใช้ Noto Sans Thai ส่วนเว็บใช้ Prompt · เจ้าของงานเคาะ 2026-09-07
+   ให้ยึดผืนเป๊ะ **เฉพาะขอบเขตที่ผืนพูดถึง** ซึ่งคือหน้าแรกใบเดียว หน้าอื่นทั้งเว็บไม่ขยับ
+
+   **ขอบเขตเขียนกลับหัว และนั่นคือเจตนา** แทนที่จะไล่แปะฟอนต์ให้บล็อกรุ่นสามทีละบล็อก
+   ซึ่งต้องมีคนจำไปแปะเพิ่มทุกครั้งที่บล็อกใหม่ลง เราให้ทั้งหน้าเป็นฟอนต์ผืนไว้ก่อน
+   แล้วดึงบล็อกที่ยังเป็นของรุ่นหนึ่งกลับไปใช้ฟอนต์เดิม · บล็อกเก่าทุกอันห่อด้วย `.section`
+   และท้ายเว็บคือ `.footer` · **วันที่บล็อกเก่าอันไหนถูกแทน กฎยกเว้นของมันหายไปพร้อมกัน
+   แล้วฟอนต์ผืนก็ตามไปเอง** ไม่มีใครต้องจำอะไรเพิ่มเลย
+
+   ถึงวันที่ครบเก้าบล็อก จะไม่เหลือ `.section` ในหน้านี้ และบรรทัดยกเว้นจะกลายเป็นกฎที่
+   ไม่เลือกอะไรเลย ซึ่งเป็นสัญญาณให้ลบทิ้ง ไม่ใช่ของที่ค้างไว้เงียบ ๆ
+
+   `.v3-page` อยู่บน `<main>` ของหน้าแรกเท่านั้น หน้าอื่นไม่มีคลาสนี้ จึงไม่มีทางโดน   */
+
+.v3-page { font-family: var(--font-canvas), "Noto Sans Thai", Arial, sans-serif; }
+.v3-page .section, .v3-page .footer { font-family: var(--font-prompt), "Prompt", Arial, sans-serif; }
+
+/* --- จังหวะเคลื่อนไหว ------------------------------------------------------
+   คู่ A/B ของ rise กับ fade ไม่ใช่ของซ้ำซ้อน — สไลด์เปลี่ยนภาพโดยไม่เปลี่ยน
+   อิลิเมนต์ เบราว์เซอร์จึงไม่เล่น animation ซ้ำถ้าชื่อเดิม ดีไซน์แก้ด้วยการสลับ
+   ชื่อไปมาทุกครั้งที่เปลี่ยนสไลด์ ชั้นนี้จึงต้องมีสองชื่อที่เนื้อในเหมือนกันเป๊ะ */
+
+@keyframes v3-riseA { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes v3-riseB { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+@keyframes v3-fadeA { from { opacity: 0; transform: translateX(60px) scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes v3-fadeB { from { opacity: 0; transform: translateX(60px) scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes v3-shimmer { from { transform: translateX(-120%); } to { transform: translateX(320%); } }
+@keyframes v3-glow {
+  0%, 100% { box-shadow: 0 0 6px var(--v3-red-a45), 0 0 14px var(--v3-red-a25); }
+  50% { box-shadow: 0 0 12px var(--v3-red-a85), 0 0 28px var(--v3-red-a45); }
+}
+@keyframes v3-pulseDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: .5; } }
+@keyframes v3-badgePop { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.08) rotate(2deg); } }
+@keyframes v3-badgeGlow {
+  0%, 100% { box-shadow: 0 4px 14px var(--v3-red-a45), 0 0 0 0 var(--v3-red-a50); }
+  50% { box-shadow: 0 6px 22px var(--v3-red-a70), 0 0 0 8px var(--v3-red-a0); }
+}
+/* ดาวประกายจางหายสนิทที่หัวและท้ายรอบ ตามผืนออกแบบ · ตัวที่ใช้ keyframe นี้จึงต้องติด
+   `data-v3-decor` เสมอ ไม่งั้นคนที่ตั้งเครื่องลดการเคลื่อนไหวอาจเห็นดาวค้างที่เฟรมจางหาย
+   ถ้าวันไหนมีใครใส่ `animation-fill-mode: both` ให้มัน — ดูกฎท้ายบล็อกนี้ */
+@keyframes v3-sparkle { 0%, 100% { opacity: 0; transform: scale(.4) rotate(0); } 50% { opacity: 1; transform: scale(1) rotate(45deg); } }
+@keyframes v3-tick { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* --- ช่องตัวเลข ------------------------------------------------------------
+   ฟอนต์หลักของเว็บคือ Prompt ซึ่งไม่มี `tnum` และเลข 0-9 กว้างไม่เท่ากันจริง
+   ทุกช่องที่เป็นตัวเลขเรียงให้คนเทียบด้วยตา — นาฬิกา ราคา เบอร์โทร เลขกลุ่มงาน
+   จึงต้องมาจากฟอนต์ตัวเลข ส่วนคำไทยที่นั่งอยู่ในช่องเดียวกัน เช่น "/ เดือน"
+   ต้องดึงกลับเป็นฟอนต์เดิม ไม่งั้นมันจะถูกฟอนต์ตัวเลขลากไปด้วยทั้งที่ไม่มีหลักให้เรียง */
+
+.v3-hd { font-family: var(--font-numeric), sans-serif; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+.v3-hd small, .v3-hd em { font-family: var(--font-prompt), sans-serif; font-variant-numeric: normal; }
+
+/* --- การ์ด ---------------------------------------------------------------- */
+
+.v3-card { border: 1px solid var(--v3-line); border-radius: 12px; background: var(--v3-white); box-shadow: var(--v3-sh-sm); }
+
+/* **เคยมี `.v3-card-hi` ตรงนี้ ลบทิ้ง 2026-09-07 เพราะไม่มีใครเรียกเลยตั้งแต่วันที่เขียน**
+
+   มันประกาศมุมโค้ง 14px ซึ่งไม่ตรงผืนทั้งสองที่ที่ผืนใช้คลาสชื่อเดียวกัน — ผืนให้ 18
+   ที่แบนเนอร์ และ 16 ที่การ์ดแอปมาใหม่ · คลาสที่ไม่มีใครเรียกและค่าผิดทั้งสองที่
+   คือกับดักที่รอคนแรกมาเรียก แล้วได้มุมผิดโดยไม่มีอะไรบอก
+
+   ตระกูลเดียวกับ `micro-button` ที่เคยติดอยู่ 71 จุดโดยไม่มีกฎ CSS สักบรรทัด ซึ่ง
+   `button.tsx` เล่าไว้เองว่าวันที่มีคนใส่สไตล์ให้มัน ปุ่มเก้าตัวจะเพี้ยนพร้อมกันโดยไม่มีใครรู้
+
+   **สร้างใหม่ด้วยค่าที่วัดจากผืนตอนที่บล็อกแอปมาใหม่เรียกมันจริง** ไม่ใช่เก็บของเดิมไว้รอ
+   กฎเดียวกับที่ใช้กับ `SearchIcon` */
+
+/* --- ปุ่มบนหน้าร้าน --------------------------------------------------------
+   **ไม่ใช่ปุ่มชนิดใหม่** เป็นสองระดับที่ต่อจาก `.button` ตัวเดิม จึงรับ `min-height: 48px`
+   มาเองโดยไม่ต้องประกาศซ้ำ และเปลี่ยนแค่สีกับทรงมุม
+
+   ดีไซน์รุ่นสามวาดปุ่มไว้สี่ความสูง 36 40 44 56 เจ้าของงานเคาะ 2026-09-06 ให้ยึด 48
+   ทั้งเว็บตามคำสั่งเดิมของเขาเองที่หัวไฟล์ `button.tsx` ว่าไม่มีข้อยกเว้น
+   **ความสูงจึงไม่ประกาศที่นี่เลยแม้แต่ค่าเดียว** ถ้าวันไหนมีคนเติม height ลงมา
+   แปลว่ากำลังจะพาปุ่มทั้งเว็บกลับไปสูงไม่เท่ากันอีกรอบ
+
+   ขอบขาวซ้อนในขอบแดงทำด้วยเงาด้านในสองชั้น ไม่ใช่ border เพราะ border กินพื้นที่จริง
+   ปุ่มจะโตกว่าปุ่มอื่นทั้งที่ `min-height` เท่ากัน                              */
+
+/* **รุ่นสี่ (เจ้าของงานเคาะ 2026-09-24): ทั้ง `shop` และ `shopNav` เป็นแคปซูลแดงเดียวกับปุ่ม LINE**
+   ไม่มีวงกลม LINE และ**ไม่มีขอบขาวซ้อน**ของรุ่นสามอีกแล้ว · สองระดับยังแยกชื่อกันไว้
+   เพราะหน้าที่ต่างกัน (ลงมือ กับ พาไปหน้าอื่น) แม้หน้าตาจะเหมือนกันในตอนนี้ */
+.button--shop, .button--shop-nav {
+  border-radius: 999px;
+  padding-inline: 22px;
+  background: var(--v4-cta);
+  color: var(--v4-white);
+  border-color: transparent;
+  font-weight: 700;
+  box-shadow: none;
+}
+.button--shop.button--h40, .button--shop-nav.button--h40 { font-size: 15px; }
+.button--shop:hover, .button--shop-nav:hover { background: var(--v4-cta-hover); color: var(--v4-white); transform: translateY(-2px); box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--shop:active, .button--shop-nav:active { transform: scale(.97); }
+
+/* ปุ่มไป LINE — แคปซูลแดงมีวงกลมขาวตัวอักษรแดงอยู่ข้างใน
+
+   **คำตัดสินใหม่ 2026-09-24 ทับคำตัดสิน 2026-09-06 ("เขียวตัวเดียวทั้งคู่")**
+   เจ้าของงานเคาะให้ใช้แดง `--v4-cta` กับวงขาวตัวอักษรแดงทุกจุดที่เป็น "ปรึกษาฟรี"
+   ตามภาพอ้างอิงของเขา (`design_handoff_home_v4/assets/reference/btn-line-reference.jpg`)
+   ห้ามสร้างปุ่มชุดที่สอง ปุ่มนี้ตัวเดียวทั้งเว็บ
+
+   เรื่องคอนทราสต์ของเขียวเดิม (ขาวบนเขียว 1.91:1 ถึง 2.70:1) จบไปพร้อมสีเขียว ·
+   ขาวบน `#9c332e` ผ่าน 4.5:1 · **ยังไม่ได้วัดด้วย `getComputedStyle` บนของจริง**
+   ต้องวัดซ้ำหลังหน้าแรกรุ่นสี่ขึ้นจอ
+
+   ขนาดใหญ่ (46 บนจอกว้าง · 44 บนจอแคบ) ตัวอักษร 17 เงาใหญ่ · ขนาดเล็ก (h40) ตัวอักษร 15 เงาเล็ก */
+.button--line {
+  border-radius: 999px;
+  padding-inline: 26px;
+  gap: 9px;
+  background: var(--v4-cta);
+  color: var(--v4-white);
+  border-color: transparent;
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 8px 22px rgb(var(--v4-accent-rgb) / .3);
+  transition: background .2s, transform .2s;
+}
+.button--line.button--h40 { padding-inline: 18px; font-size: 15px; box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--line:hover { background: var(--v4-cta-hover); color: var(--v4-white); filter: none; transform: none; box-shadow: 0 8px 22px rgb(var(--v4-accent-rgb) / .3); }
+.button--line.button--h40:hover { box-shadow: 0 6px 18px rgb(var(--v4-accent-rgb) / .28); }
+.button--line:active { transform: scale(.97); }
+.button--line .button__icon {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  inline-size: 32px; block-size: 32px; border-radius: 50%;
+  background: var(--v4-white); color: var(--v4-cta);
+  font-size: 10px; font-weight: 800; letter-spacing: .02em; line-height: 1;
+}
+@media (max-width: 640px) { .button--line:not(.button--h40) { font-size: 15px; padding-inline: 18px; } }
+
+/* ปุ่มเลื่อนสไลด์ — วงกลมโปร่งบนภาพ ระดับที่แปดของ `<Button>`
+
+   **ต้องเป็นระดับของปุ่มจริง ไม่ใช่คลาสทับ** ปุ่มปกติได้ `padding: 0 22px` กับมุม 10px
+   ติดมาจาก `.button` ซึ่งทำให้ปุ่มที่มีแค่ไอคอนตัวเดียวยืดเป็นแคปซูลกว้างราว 61px
+   ตรงนี้จึงล้างระยะในออกแล้วบังคับกว้างเท่าความสูง ได้วงกลม 48
+
+   ผืนออกแบบวาดไว้ 36×36 ไม่มีพื้น มีแต่ไอคอนขาว · ที่นี่ใหญ่กว่าเพราะกฎ 48 ชนะ
+   และเพิ่มพื้นดำจางเพราะ **ไอคอนขาวล้วนบนภาพถ่ายอ่านไม่ออกเมื่อสไลด์นั้นพื้นสว่าง**
+   ผืนออกแบบรอดตรงนี้ได้เพราะภาพทั้งสามใบมุมซ้ายขวาเข้มพอดี ซึ่งไม่ใช่สิ่งที่รับประกันได้
+   วันที่มีคนเปลี่ยนภาพสไลด์ */
+
+/* รุ่นสี่ (2026-09-24): วงกลม 40 พื้นขาว 16% เบลอ 6 ตัวอักษรขาว 20 ตามผืน */
+.button--slide-nav {
+  inline-size: 40px;
+  min-block-size: 40px;
+  block-size: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgb(var(--v4-white-rgb) / .16);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--v4-white);
+  font-size: 20px;
+  border-color: transparent;
+}
+/* ตัวปุ่มไม่ต้องจัดตัวเองให้อยู่กลางแนวตั้ง กล่อง `.v3-banner__nav` ที่ครอบมันทำไปแล้ว
+   ถ้าประกาศ `translateY(-50%)` ซ้ำที่นี่ ปุ่มจะเลื่อนขึ้นสองเท่าตอนเอาเมาส์ไปชี้ */
+.button--slide-nav:hover { background: rgb(var(--v4-white-rgb) / .28); color: var(--v4-white); transform: scale(1.08); }
+.button--slide-nav:active { transform: scale(.94); }
+.button--slide-nav svg { inline-size: 26px; block-size: 26px; }
+
+/* ขีดบอกตำแหน่งสไลด์ — 22×3 ตามผืน (`PROMPT:259`) ซึ่งเป็นทรง ไม่ใช่แค่ความสูง
+
+   **ขนาดที่ตาเห็นกับขนาดเป้ากดเป็นคนละเรื่อง** ขีดที่ตาเห็นตรงผืนทุกพิกเซล ส่วนเขตกด
+   แผ่ออกด้วย `::after` ที่เป็น `absolute` จึงไม่ดันของข้าง ๆ เลยสักพิกเซล ·
+   **ภาพไม่ขยับแม้แต่จุดเดียว แต่กดติด**
+
+   **เคยถูกถอนออกเมื่อ 2026-09-07 ด้วยเหตุผล "ยึดผืนเป๊ะ" แล้วคืนกลับ 2026-09-09**
+   เจ้าของงานตัดสินว่า **คำว่าเหมือนผืนใช้กับสิ่งที่ตาเห็น ไม่ใช่กับพฤติกรรม** ·
+   ผืนเป็นภาพนิ่ง มันไม่ได้วาดเขตกดไว้เลย การอ่านความเงียบของภาพนิ่งว่าเป็นคำสั่ง
+   ให้เป้ากดเหลือ 22×3 คือการเอาเกณฑ์ที่ผืนไม่ได้พูดถึงไปทิ้ง · ระหว่างที่ถูกถอน
+   เป้ากดเหลือ 22×3 ซึ่งต่ำกว่าเกณฑ์ขนาดเป้ากด 24×24 กดยากบนเมาส์และแทบไม่ติดบนมือถือ
+
+   **`-13px` ไม่ใช่เลขสุ่ม** 3 + 13 + 13 = 29 และ 22 + 3 + 3 = 28 ทั้งสองด้านเกิน 24 ·
+   แต่เลขที่เชื่อได้คือเลขที่วัด ไม่ใช่เลขที่คำนวณ · `compare.mjs:hitTarget` ยิงสี่มุม
+   ของกล่อง 24×24 ด้วย `elementFromPoint` แล้วดูว่าโดนปุ่มตัวเดิมไหม ซึ่งตรงกับ
+   ความหมายของเกณฑ์มากกว่าการอ่านตัวเลข `inset` — **เป้ากดคือที่ที่กดแล้วโดน** */
+/* **กฎนี้ชนะ `min-height: 48px` ของ `.button` ด้วยลำดับในไฟล์ ไม่ใช่ด้วยน้ำหนักตัวเลือก**
+   ทั้งคู่เป็นคลาสเดียวเท่ากัน เบราว์เซอร์จึงเลือกตัวที่มาทีหลัง · ถ้าวันไหนมีคนจัดลำดับบล็อก
+   ใน `globals.css` ใหม่แล้วบล็อกนี้ขึ้นไปอยู่ก่อน `.button` ขีดจะกลายเป็นสูง 48 ทันที
+   โดยไม่มีด่านไหนแดง · ย้ายบล็อกนี้เมื่อไร ต้องวัดขีดใหม่ทุกครั้ง */
+/* รุ่นสี่ (2026-09-24): จุด 6×6 ที่ยืดเป็น 26 เมื่อ active แทนขีด 22×3 ของรุ่นสาม ·
+   เขตกด `::after` แผ่ออก 9px รอบตัว ได้ 24×24 ที่จุดเล็กสุด (6 + 9 + 9) ตามเกณฑ์ขนาดเป้ากด */
+.button--slide-dot {
+  position: relative;
+  inline-size: 6px;
+  min-block-size: 6px;
+  block-size: 6px;
+  padding: 0;
+  border-radius: 999px;
+  border-color: transparent;
+  background: rgb(var(--v4-white-rgb) / .45);
+  transition: inline-size .4s var(--v4-ease), background .4s;
+}
+.button--slide-dot::after { content: ""; position: absolute; inset: -9px; }
+.button--slide-dot:hover { background: rgb(var(--v4-white-rgb) / .75); }
+.button--slide-dot[aria-current="true"] { inline-size: 26px; background: var(--v4-white); }
+
+.v3-tag { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+
+/* --- ลิงก์ที่ตอบมือ --------------------------------------------------------
+   เจ้าของงานสั่งว่าทุกปุ่มและทุกไอคอนในแถบบนต้องกดได้จริงและต้องรู้สึกว่ากดได้
+   วงแหวนโฟกัสไม่ประกาศซ้ำที่นี่ — ของกลางที่ต้นไฟล์คุม a กับ button อยู่แล้ว
+   ประกาศทับจะกลายเป็นสองกฎที่ต้องแก้พร้อมกันทุกครั้ง */
+
+.v3-nl { display: inline-flex; align-items: center; border-radius: 8px; text-decoration: none; color: inherit; cursor: pointer; transition: transform .18s var(--ease-out), background .18s var(--ease-out), color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+.v3-nl:hover { transform: translateY(-1px); }
+.v3-nl:active { transform: scale(.95); }
+.v3-nl-item .v3-hd { transition: color .18s var(--ease-out); }
+.v3-nl-item:hover .v3-hd { color: var(--v3-red); }
+.v3-nl-icon { transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+/* เงาใต้ไอคอนโซเชียลเป็น **เงาดำ ไม่ใช่เงาแดง** — วงไอคอนแต่ละวงเป็นสีของเจ้าของช่องทาง
+   น้ำเงิน เขียว แดง เงาแดงจะไปย้อมวงที่ไม่ใช่สีแดงให้เพี้ยน เงาดำจางเป็นกลางกับทุกวง */
+.v3-nl-icon:hover { transform: translateY(-2px) scale(1.08); box-shadow: 0 6px 14px var(--v3-black-a18); }
+.v3-nl-tab { transition: background .18s var(--ease-out), color .18s var(--ease-out); white-space: nowrap; }
+.v3-nl-tab:hover { background: var(--v3-red-100); color: var(--v3-red-dark); }
+
+/* --- แถบความพร้อม ----------------------------------------------------------
+   **สามขั้น ตาม ADR 0025 — บล็อกนี้ยังทำไม่เสร็จ อย่าเชื่อว่ามันใช้งานได้แล้ว**
+
+   คอมเมนต์เดิมตรงนี้เขียนว่า "สองขั้น ไม่ใช่สาม" และ "ห้ามเติมขั้นที่สามกลับมาโดยไม่มี
+   คอลัมน์ใหม่ในทะเบียนที่ตอบได้จริง" ซึ่งจริงตอน 2026-09-06 · **ทั้งสองประโยคเป็นเท็จ
+   ไปแล้วตั้งแต่ 2026-09-07** เมื่อ ADR 0025 แก้เส้นของ ADR 0015 §5 ให้เป็นสามขั้น
+   และเงื่อนไขที่คอมเมนต์เองเรียกร้องก็ทำครบแล้ว คอลัมน์ `apps.expected_open_month`
+   ลงฐานจริงเมื่อ 2026-09-08 พร้อม CHECK ที่ `drizzle/0017_colossal_firebrand.sql` ·
+   แก้คอมเมนต์เมื่อ 2026-09-09
+
+   **สามขั้นคือ** ประกาศแล้ว · ประกาศแล้วและทะเบียนบอกเดือนที่คาด · เปิดใช้แล้ว ·
+   ตรรกะที่ตัดสินอยู่ที่ `src/lib/app-readiness.ts` ซึ่งรับเวลาเข้ามาแทนการอ่านนาฬิกาเอง
+
+   ความกว้างเป็นขั้น ไม่ใช่เปอร์เซ็นต์ที่พิมพ์เอง — **ADR 0025 ข้อ 6 ห้ามมีเลขเปอร์เซ็นต์
+   ที่ไหนเลย** แถบบอกขั้น ไม่ได้บอกสัดส่วน · ส่วนที่ ADR 0015 เคยปฏิเสธ "คาดว่าเปิดเมื่อ"
+   ด้วยเหตุผลว่ามันคือเปอร์เซ็นต์ที่เปลี่ยนหน่วย ถูกตอบไว้ครบใน ADR 0025 แล้ว
+   ด้วยการบังคับให้เดือนหมดอายุตัวเองและทุกการแก้ต้องลงบันทึก
+
+   **ความยาวสามขั้นคือ 33 / 66 / 100 — เจ้าของงานเคาะ 2026-09-09**
+
+   **ที่มาของเลขชุดนี้ต้องเขียนให้ตรง** มันเริ่มจากข้อเสนอของผู้ตรวจใน `V3_STATE_v4.md` §2
+   แล้วเจ้าของงานเคาะรับ · **ไม่ใช่เลขที่เจ้าของงานคิดขึ้นมาเอง** และไม่ใช่เลขที่ใครใส่เข้ามาเงียบ ๆ
+
+   เหตุผลที่รับ · `pct: 50` กับ `pct: 75` ในผืนเป็นค่าประมาณความคืบหน้าของงานพัฒนา
+   เอามาใส่ CSS แปลว่าไม่มีตัวเลขบนจอก็จริง **แต่ความยาวแถบยังแถลงว่าทำไปแล้ว 75 เปอร์เซ็นต์**
+   คือรับความหมายที่ ADR 0025 ข้อ 6 ห้าม เข้ามาทางหลังบ้าน · 33/66/100 เป็นเลขคณิตของ
+   จำนวนขั้น 1 ใน 3 · 2 ใน 3 · 3 ใน 3 ไม่แถลงอะไรเลย และถ้าวันหนึ่งมีขั้นที่สี่
+   เลขคำนวณจากจำนวนขั้นได้เอง ไม่ต้องมีใครมาเดาใหม่
+
+   **สิ่งที่ยังไม่มีในบล็อกนี้ สามอย่าง**
+   หนึ่ง ไม่มีคลาสฐาน ไม่มีราง และไม่มีความสูง แถบจึงสูงศูนย์ มองไม่เห็นแม้จะประกาศครบ
+   บทเรียนเดียวกับ `.v3-hline` ที่วัดได้ 0x0 ทั้งที่กฎประกาศ 36x3 ครบ
+   สอง ยังไม่มีคลาสของขั้นกลาง
+   สาม **เลข 50% ข้างล่างนี้ยังเป็นของเก่าที่ไม่มีที่มาแล้ว** มันมาจาก `pct: 50` ในผืน
+
+   **ทั้งสามอย่างต้องลงพร้อมกันในก้อนเดียว ตอนบล็อกแอปมาใหม่ลง — คำสั่งเจ้าของงาน 2026-09-09**
+   คลาสฐาน ราง และทั้งสามขั้น · **ห้ามแก้เฉพาะเลข 50 เป็น 33 แล้วจบ** เพราะแถบยังสูงศูนย์
+   อยู่ดี ผลคือได้เลขที่ถูกในกฎที่ไม่มีใครเห็นผล ซึ่งเป็นบทเรียนของ `.v3-hline` ทั้งดุ้น
+   แล้ววัดบนจอจริงทั้งสองความกว้างหลังลง ไม่ใช่เชื่อว่า CSS ที่เขียนแล้วมีผล
+
+   คลาสอยู่ที่นี่ แล้ว TSX เลือกคลาสจากทะเบียน จึงไม่มีตัวเลขอยู่ใน TSX เลย
+   แอปที่ทะเบียนยังไม่ประกาศ ไม่มีแถบเลย ไม่ใช่แถบว่าง · **วันนี้ยังไม่มี TSX ไฟล์ไหน
+   เรียกคลาสสองตัวนี้เลยสักที่** เพราะบล็อกแอปมาใหม่ยังไม่ลงหน้า
+
+   **ชื่อคลาสเรียกตามสถานะในทะเบียน ไม่ใช่ตามลำดับขั้น** เดิมชื่อ `--s1` กับ `--s2`
+   ซึ่งอ่านเป็นบันไดที่ไม่บอกว่าแต่ละขั้นแปลว่าอะไร · ชื่อที่บอกลำดับเป็นคำเชิญให้คน
+   เติมขั้นถัดไปตามใจ ส่วนชื่อที่บอกสถานะบังคับให้คนที่จะเติมต้องหาสถานะในทะเบียน
+   มาก่อน ซึ่งเป็นด่านที่เราต้องการพอดี · ขั้นกลางที่จะเพิ่มควรชื่อตามสถานะเช่นกัน  */
+
+.v3-progress--announced { width: 50%; }
+.v3-progress--open { width: 100%; }
+
+/* --- การ์ด Hermes ----------------------------------------------------------
+   ขีดแดงยืดตอนชี้ และบรรทัดรองที่ซ่อนอยู่โผล่ขึ้นมา เป็นสองอย่างที่บอกว่าการ์ดกดได้
+   โปสเตอร์ห้ามมี ken-burns หรือซูม เจ้าของงานสั่งไว้ชัดว่าต้องอ่านตัวอักษรในโปสเตอร์ได้ครบ */
+
+/* **`display: block` ไม่ใช่ของเกิน** ขีดนี้เป็น `<span>` ซึ่งเป็นอิลิเมนต์แนวบรรทัด
+   และอิลิเมนต์แนวบรรทัดไม่รับความกว้างความสูง · วัดบนของจริงแล้วได้ **0x0** ทั้งที่
+   กฎประกาศ 36x3 ไว้ครบ · กฎที่ประกาศแล้วไม่มีผลคือกฎที่ไม่มีใครเห็นว่าตาย */
+.v3-hline { display: block; inline-size: 36px; block-size: 3px; margin-block: 10px; border-radius: 2px; background: var(--v3-red); transition: inline-size .6s var(--ease-out); }
+.v3-hcard:hover .v3-hline { inline-size: 64px; }
+.v3-htext { transition: transform .3s var(--ease-out); }
+.v3-hcard:hover .v3-htext { transform: translateY(-4px); }
+.v3-hsub { opacity: 0; transform: translateY(8px); transition: opacity .3s var(--ease-out), transform .3s var(--ease-out); }
+.v3-hcard:hover .v3-hsub, .v3-hcard:focus-within .v3-hsub { opacity: 1; transform: none; }
+
+/* --- แถวเปิดหน้า แบนเนอร์สไลด์กับการ์ด Hermes -------------------------------
+   ผืนออกแบบรุ่นสาม ส่วนที่ 3 · สองใบนี้อยู่ในกริดเดียวกันและสูงเท่ากันด้วย `stretch`
+   ไม่ใช่ด้วยความสูงที่พิมพ์ตาย เพราะการ์ดขวาสูงตามโปสเตอร์ซึ่งห้ามครอป             */
+
+.v3-hero { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: stretch; padding: 28px 48px 0; }
+
+/* แบนเนอร์ — ภาพเป็นพื้นหลังเต็มใบ ตัวหนังสือขาวนั่งบนม่านสองชั้น
+
+   **ม่านสองชั้นไม่ใช่การตกแต่ง** ชั้นแนวนอนทำให้ครึ่งซ้ายเข้มพอให้ตัวหนังสือขาวอ่านออก
+   ชั้นแนวตั้งกันไม่ให้จุดบอกสไลด์ที่ขอบล่างจมหายไปกับภาพที่สว่าง · ถ้าเอาออกชั้นใดชั้นหนึ่ง
+   คอนทราสต์จะขึ้นกับว่าภาพสไลด์ใบนั้นมืดตรงไหน ซึ่งเปลี่ยนได้ทุกวันที่มีคนสลับภาพ */
+
+.v3-banner { position: relative; display: flex; align-items: flex-end; min-block-size: 400px; padding: 44px 96px 64px; border-radius: 18px; overflow: hidden; background: var(--v3-banner-bg); color: var(--v3-white); }
+.v3-banner__img { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; }
+.v3-banner__scrim { position: absolute; inset: 0; }
+.v3-banner__scrim--x { background: linear-gradient(90deg, var(--v3-banner-a85), var(--v3-banner-a55) 55%, var(--v3-banner-a20)); }
+.v3-banner__scrim--y { background: linear-gradient(180deg, var(--v3-banner-a0) 40%, var(--v3-banner-a75)); }
+.v3-banner__text { position: relative; flex: none; inline-size: 560px; max-inline-size: 100%; }
+.v3-banner .v3-tag { background: var(--v3-red); color: var(--v3-white); }
+/* **สีต้องประกาศตรงนี้ จะพึ่งการสืบทอดจาก `.v3-banner` ไม่ได้** กฎกลางบรรทัด 150
+   `h1, h2, h3, h4, h5, h6 { color: var(--ink) }` เลือกที่ตัวอิลิเมนต์เอง ซึ่งชนะค่าที่
+   สืบทอดลงมาเสมอ ไม่ว่าพ่อจะสั่งสีอะไรไว้ · วัดบนของจริงแล้วหัวเรื่องออกมาเป็นหมึกเข้ม
+   ของธีมเก่าบนพื้นแบนเนอร์เข้ม ได้คอนทราสต์ **1.32:1** ซึ่งแทบมองไม่เห็น
+   หัวเรื่องทุกตัวที่นั่งบนพื้นเข้มของรุ่นสามต้องประกาศสีของตัวเอง */
+.v3-banner__title { margin: 12px 0 0; font-size: 56px; font-weight: 700; line-height: 1.08; letter-spacing: -.02em; color: var(--v3-white); }
+.v3-banner__title span { display: block; white-space: nowrap; }
+.v3-banner__title span + span { margin-block-start: 10px; font-size: 34px; font-weight: 600; line-height: 1.3; }
+.v3-banner__body { margin: 14px 0 26px; max-inline-size: 44ch; font-size: 16px; line-height: 26px; color: var(--v3-white-a88); }
+.v3-banner__actions { display: flex; flex-wrap: wrap; gap: 10px; }
+/* ปุ่มรองบนแบนเนอร์ — ขอบขาวจางบนภาพ ไม่ใช่ระดับใหม่ของปุ่ม เป็น `quiet` ที่เปลี่ยนสีขอบ
+   เพราะพื้นหลังเป็นภาพ ไม่ใช่กระดาษ · ขาว .6 มาจากผืนออกแบบ */
+.v3-banner .button--ghost { border-color: var(--v3-white-a60); color: var(--v3-white); background: none; }
+.v3-banner .button--ghost:hover { border-color: var(--v3-white); background: var(--v3-banner-a55); }
+
+/* จุดบอกสไลด์ — ขีดสั้นสี่เหลี่ยม ไม่ใช่วงกลม ตามผืนออกแบบ
+
+   เป็น `<button>` จริงทุกขีด ไม่ใช่ `<span>` ที่ผูก onClick เพราะมันเปลี่ยนสิ่งที่คนเห็น
+   คนที่ใช้คีย์บอร์ดต้องแท็บถึงได้ · `button-fence` บังคับให้ปุ่มมาจาก `<Button>` อยู่แล้ว
+   ตรงนี้จึงใช้ระดับ `plain` แล้วล้างระยะในทิ้ง */
+/* ทรงของขีดอยู่ที่ `.button--slide-dot` ในระบบปุ่ม ที่นี่บอกแค่ตำแหน่งกับระยะห่าง
+   ซึ่งเป็นเรื่องของหน้า ไม่ใช่เรื่องของปุ่ม */
+.v3-banner__dots { position: absolute; inset-block-end: 18px; inset-inline-start: 96px; display: flex; align-items: center; gap: 6px; }
+/* --- จังหวะเข้าของสไลด์ ----------------------------------------------------
+   ภาพเลื่อนเข้าจากขวาแล้วซูมลง ตัวหนังสือวิ่งขึ้นทีละชิ้นตามลำดับการอ่าน
+   ป้าย .7s หัวเรื่อง .85s เนื้อความ 1s ปุ่ม 1.15s ตามผืนออกแบบ
+
+   **ที่ต้องมีสองชุด A กับ B ไม่ใช่ของซ้ำ** สไลด์เปลี่ยนเนื้อในโดยไม่เปลี่ยนอิลิเมนต์
+   เบราว์เซอร์จึงไม่เล่น animation ซ้ำถ้าชื่อยังเป็นชื่อเดิม คอมโพเนนต์สลับ `data-flip`
+   ไปมาทุกครั้งที่เปลี่ยนสไลด์ เพื่อให้ชื่อ animation เปลี่ยนจริงและจังหวะเริ่มใหม่ */
+
+.v3-banner[data-flip="a"] .v3-banner__img { animation: v3-fadeA 1.1s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__img { animation: v3-fadeB 1.1s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-tag { animation: v3-riseA .6s .7s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-tag { animation: v3-riseB .6s .7s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__title { animation: v3-riseA .7s .85s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__title { animation: v3-riseB .7s .85s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__body { animation: v3-riseA .7s 1s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__body { animation: v3-riseB .7s 1s var(--ease-out) both; }
+.v3-banner[data-flip="a"] .v3-banner__actions { animation: v3-riseA .7s 1.15s var(--ease-out) both; }
+.v3-banner[data-flip="b"] .v3-banner__actions { animation: v3-riseB .7s 1.15s var(--ease-out) both; }
+
+.v3-banner__nav { position: absolute; inset-block-start: 50%; transform: translateY(-50%); }
+.v3-banner__nav--prev { inset-inline-start: 24px; }
+.v3-banner__nav--next { inset-inline-end: 24px; }
+/* ลูกศรซ้ายเป็นตัวเดียวกับขวา พลิกด้วย CSS ไม่ได้วาดรูปที่สอง */
+.v3-banner__nav--prev svg { transform: scale(-1, 1); }
+
+/* การ์ด Hermes — โปสเตอร์เต็มใบข้างบน แผงน้ำเงินเข้มข้างล่าง
+
+   `1fr` แถวล่างทำให้แผงยืดเต็มความสูงที่เหลือเมื่อการ์ดถูกยืดให้สูงเท่าแบนเนอร์
+   ซึ่งเป็นเหตุผลที่กริดข้างบนใช้ `stretch` ไม่ใช่ `start` */
+
+.v3-hcard { position: relative; display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--v3-line); border-radius: 18px; overflow: hidden; background: var(--v3-night); box-shadow: var(--v3-sh-md); color: var(--v3-white); text-decoration: none; }
+.v3-hcard__poster { display: block; inline-size: 100%; block-size: auto; }
+.v3-hcard__panel { position: relative; padding: 18px 20px 20px; background: linear-gradient(180deg, var(--v3-night), var(--v3-night-2)); }
+/* `inline-block` ไม่ใช่ `block` ตามผืน (`dc.html:69`) — ต่างกันจริงเจ็ดพิกเซล เพราะ
+   inline-block นั่งอยู่ในกล่องบรรทัดของแม่ ซึ่งสูงตาม line-height ของแม่ ไม่ใช่สูงเท่าตัวเอง */
+.v3-hcard__eyebrow { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .14em; color: var(--v3-pink-200); }
+/* สีประกาศตรงนี้ด้วยเหตุผลเดียวกับ `.v3-banner__title` — วัดได้ 1.26:1 ก่อนแก้ */
+.v3-hcard__title { margin: 6px 0 0; font-size: 34px; font-weight: 700; line-height: 1.05; letter-spacing: -.01em; white-space: nowrap; color: var(--v3-white); }
+.v3-hcard__lead { margin: 0; font-size: 16px; line-height: 1.4; font-weight: 600; white-space: nowrap; }
+/* ลิงก์ที่หัวเรื่องแผ่แผ่นใสปูทับทั้งการ์ด ทำให้ทั้งใบกดได้โดยไม่ต้องซ้อน `<a>` ใน `<a>`
+   ปุ่ม LINE ยกตัวขึ้นเหนือแผ่นด้วย `z-index` จึงยังเป็นลิงก์ของตัวเองที่กดได้แยก */
+.v3-hcard__link { color: inherit; text-decoration: none; }
+.v3-hcard__link::after { content: ""; position: absolute; inset: 0; }
+.v3-hcard__action { position: relative; z-index: 1; margin-block-start: 14px; }
+.v3-hsub { margin-block-start: 10px; font-size: 12px; color: var(--v3-white-a85); }
+
+/* --- แถบบนของหน้าร้าน ------------------------------------------------------
+   ค่าทุกตัวมาจากผืนออกแบบรุ่นสาม ส่วนที่ 5 ข้อ 1 · ยกเว้นความสูงปุ่มขอใบเสนอราคา
+   ที่ผืนวาดไว้ 40 แต่ทั้งเว็บใช้ 48 ซึ่งชนะตามคำสั่งเจ้าของงาน                   */
+
+/* **เพดานความกว้าง 1280 — ผลที่ตามมาของคำสั่ง "หน้าจริงต้องเหมือนผืนทุกอย่าง"**
+
+   **คำสั่งของเจ้าของงาน คือ "หน้าจริงต้องเหมือนผืนทุกอย่าง"** เขาเปิดผืนที่ `:4173`
+   ดูเองแล้วยืนยัน · **เขาไม่ได้ระบุตัวเลข 1280 และห้ามเขียนว่าเขาเคาะ 1280**
+
+   เพดานเป็นผลที่ตามมาของคำสั่งนั้น เพราะ**ที่จอกว้างกว่า 1280 ผืนไม่ได้วาดอะไรไว้เลย**
+   การปล่อยให้ยืดจึงทำให้หน้าจริงไม่เหมือนผืนทุกจุดพร้อมกัน · ส่วนเลข 1280 มาจาก
+   ความกว้างอาร์ตบอร์ดของผืน ไม่ใช่ค่าที่ใครเลือกขึ้นมา
+
+   ผืนไม่มีเพดานและไม่มีการจัดกึ่งกลางเลยสักที่ มี `max-width` อยู่สองแห่งและเป็น `32ch`
+   กับ `44ch` ซึ่งเป็นความกว้างของย่อหน้า ไม่ใช่ของหน้า · เพดานนี้จึงเป็นการเพิ่มสิ่งที่
+   ผืนไม่ได้วาด และเข้าสมุดข้อยกเว้นแล้วในชื่อ `เพดานความกว้างของหน้า`
+
+   **ย่อหน้าถัดไปเป็นข้อเสนอของผู้ตรวจ ไม่ใช่คำของเจ้าของงาน** แยกไว้เพราะเหตุผลที่ฟัง
+   ขึ้นกับคำสั่งที่ถูกสั่งจริง เป็นคนละชนิดกัน และการเขียนปนกันคือวิธีที่คำของผู้ตรวจ
+   กลายเป็นคำของเจ้าของงานโดยไม่มีใครตั้งใจ · เกิดขึ้นแล้วครั้งหนึ่ง แก้เมื่อ 2026-09-09
+
+   ตรึงที่ 1280 แปลว่าแถวที่เขียววันนี้ยังเขียวบนทุกจอ ไม่ต้องวัดใหม่สักแถว · 1160
+   ซึ่งเป็นความกว้างของบล็อกรุ่นหนึ่ง จะทำให้เนื้อในแคบกว่าผืน 24px ทุกแถวที่เทียบ
+   ความกว้างต้องรื้อ และต้องมีข้อครอบทั้งหน้าในสมุด ซึ่งเป็นชนิดที่อันตรายที่สุด ·
+   ประโยชน์ของ 1160 คือรอยต่อกับบล็อกรุ่นหนึ่งหายทันที ซึ่งเป็นของชั่วคราวเพราะ
+   บล็อกล่างจะเป็นรุ่นสามอยู่แล้ว ส่วนต้นทุน 24px อยู่ถาวร
+
+   **พื้นสองข้างที่โผล่มาคือสิ่งที่ผืนบอกอยู่แล้ว** อาร์ตบอร์ดของผืนเป็นแผ่นขาวบนพื้นเทา
+   ไม่ใช่แผ่นที่ยืดไม่มีที่สิ้นสุด · บล็อกรุ่นหนึ่งที่ยังเหลือยังกว้าง 1160 ตามของเดิมของมัน
+   รอยต่อจึงยังอยู่จนกว่าบล็อกเหล่านั้นจะถูกแทน */
+.v3-header, .v3-catbar, .v3-hero, .v3-promo { max-inline-size: 1280px; margin-inline: auto; }
+.v3-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; min-block-size: 92px; padding: 12px 36px; border-block-end: 1px solid var(--v3-line); background: var(--v3-white); color: var(--v3-ink); }
+.v3-header__left { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; }
+.v3-header__right { display: flex; align-items: center; gap: 16px; }
+.v3-header__brand img { display: block; block-size: 44px; inline-size: auto; }
+
+.v3-hslot { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px; }
+.v3-hslot__icon { display: inline-flex; color: var(--v3-red); }
+.v3-hslot__icon svg { inline-size: 34px; block-size: 34px; }
+.v3-hslot__text { display: grid; gap: 1px; }
+.v3-hslot__caption { font-size: 12px; color: var(--v3-muted); line-height: 1.3; }
+/* บรรทัดล่างของช่องสองบรรทัด — ตอนนี้มีผู้ใช้รายเดียวคือเบอร์โทรในแถบบน
+   กฎนี้เคยประกาศไว้แล้วไม่มีใครเรียกเลยตั้งแต่วันที่เขียน · `line-height` เคยเป็น 1.25
+   ซึ่งเป็นค่าที่เดาไว้ ไม่ได้มาจากผืน · ผืนสั่ง 1.1 ที่บรรทัด 24 ของไฟล์ `.dc.html` */
+.v3-hslot__value { font-size: 18px; font-weight: 700; color: var(--v3-ink); text-decoration: none; white-space: nowrap; line-height: 1.1; }
+
+/* ปุ่มเข้าสู่ระบบกับสมัครสมาชิกนั่งอยู่ในช่องสองบรรทัด **ความสูงกับระยะในมาจาก `size="fit"`
+   ที่ระบบปุ่ม ไม่ได้ทับจากที่นี่** — ที่นี่เหลือแค่หน้าตาของตัวหนังสือในบริบทนี้
+   ซึ่งเป็นเรื่องของหน้า ไม่ใช่ขนาดของปุ่ม · 18px หนา 700 มาจากผืน (`PROMPT:213`) */
+.v3-hslot .button--text { font-size: 18px; font-weight: 700; color: var(--v3-ink); justify-content: start; }
+.v3-hslot .button--text:hover { background: none; color: var(--v3-red); }
+.v3-hslot .sign-in-preview { display: grid; gap: 2px; }
+.v3-hslot .sign-in-preview [role="status"] { font-size: 11px; color: var(--v3-muted); }
+
+.v3-header__cart { position: relative; display: inline-flex; color: var(--v3-red); }
+.v3-header__cart svg { inline-size: 28px; block-size: 28px; }
+.v3-header__cart-count { position: absolute; inset-block-start: -6px; inset-inline-end: -10px; min-inline-size: 18px; padding: 0 5px; border-radius: 999px; background: var(--v3-red); color: var(--v3-white); font-size: 13px; line-height: 18px; text-align: center; }
+.v3-header__rule { inline-size: 1px; block-size: 28px; background: var(--v3-line); }
+
+.v3-header__channels { display: flex; align-items: center; gap: 8px; }
+.v3-header__channel { display: inline-flex; align-items: center; justify-content: center; inline-size: 32px; block-size: 32px; border-radius: 50%; color: var(--v3-white); }
+.v3-header__channel svg { inline-size: 18px; block-size: 18px; }
+/* วงไอคอนใช้สีของเจ้าของช่องทาง ไม่ใช่สีของธีมเรา — อีเมลไม่มีเจ้าของแบรนด์ จึงใช้หมึกของเว็บ */
+.v3-channel--facebook { background: var(--v3-facebook); }
+.v3-channel--line_oa { background: var(--v3-line-brand); }
+.v3-channel--email { background: var(--v3-ink); }
+
+.v3-header__account { display: flex; align-items: center; }
+
+/* --- แถวโปรโมชั่น ----------------------------------------------------------
+   ผืนออกแบบรุ่นสาม ส่วนที่ 5 ข้อ 4
+
+   **นาฬิกาต้องใช้ฟอนต์ตัวเลข** เลขที่นับถอยหลังเปลี่ยนทุกวินาที ถ้าตัวเลขกว้างไม่เท่ากัน
+   ช่องจะกระตุกไปมาตลอดเวลา · `.v3-hd` คุมเรื่องนี้อยู่แล้ว                       */
+
+.v3-promo { padding: 52px 48px 0; }
+.v3-promo__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; padding-block-end: 12px; border-block-end: 2px solid var(--v3-red); }
+/* หัวเรื่องกับหมายเหตุเรียง **ข้างกัน** ไม่ใช่บนล่าง — วัดจากผืนแล้วทั้งคู่อยู่บรรทัดเดียวกัน
+   `PROMPT.md` เขียนแค่ว่า "h2 + หมายเหตุ" ไม่ได้บอกทิศทาง ผืนเป็นคนบอก */
+.v3-promo__heading { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.v3-promo__title { margin: 0; font-size: 28px; font-weight: 700; line-height: 1.2; }
+.v3-promo__note { margin: 0; font-size: 13px; color: var(--v3-muted); }
+
+/* ระยะบน 6px มาจากผืน ไม่ใช่ของเกิน · มันคือสิ่งที่ทำให้หัวบล็อกสูง 70 ไม่ใช่ 64
+   ผืนจัดชิดบนด้วย เพราะป้ายกำกับใต้กล่องต้องห้อยลงล่าง ไม่ใช่ดันทั้งแถบให้ลอยขึ้น */
+.v3-promo__clock { display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; padding-block-start: 6px; color: var(--v3-slate); }
+.v3-promo__clock-caption { font-size: 13px; }
+/* ระยะ 4px เป็นของในกลุ่ม ส่วน 10px ข้างบนเป็นระยะจากคำนำหน้าถึงกลุ่ม สองระดับตามผืน
+   น้ำหนักกับช่องไฟตั้งที่กลุ่มเพื่อให้ทั้งกล่องเลขและตัวคั่นรับไปเหมือนกัน แบบเดียวกับที่ผืนทำ */
+.v3-promo__clock-group { display: inline-flex; align-items: center; gap: 4px; font-size: 22px; font-weight: 700; letter-spacing: .04em; }
+.v3-promo__clock-cell { min-inline-size: 36px; padding: 2px 0; border-radius: 6px; background: var(--v3-red); color: var(--v3-white); font-size: 22px; text-align: center; }
+/* ช่องหนึ่งช่องคือกล่องเลขซ้อนป้ายกำกับ · ผืนวัดได้ 36×50 = กล่อง 37 บวกระยะ 3 บวกป้าย 10 */
+.v3-promo__clock-slot { display: grid; justify-items: center; gap: 3px; }
+.v3-promo__clock-unit { font-size: 10px; font-weight: 700; line-height: 10px; letter-spacing: .2px; color: var(--v3-muted); }
+.v3-promo__tick { animation: v3-tick 1s steps(1) infinite; color: var(--v3-slate); font-size: 22px; }
+
+.v3-promo__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-block-start: 32px; }
+.v3-promo__card { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; padding: 22px; }
+
+/* ป้ายสิทธิ์มุมซ้ายบน — เต้นและเรืองตามผืน ตัวประดับทุกตัวต้องติด `data-v3-decor`
+   เพราะสองคีย์เฟรมนี้มีเฟรมที่จางหายและเงาเป็นศูนย์ ถ้ามีใครใส่ fill-mode ให้มัน
+   ป้ายจะค้างที่เฟรมนั้นสำหรับคนที่ตั้งเครื่องลดการเคลื่อนไหว */
+.v3-promo__badge {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--v3-red-bright), var(--v3-red) 55%, var(--v3-red-soft));
+  color: var(--v3-white);
+  /* ระยะในซ้ายน้อยกว่าขวาตามผืน เพราะฝั่งซ้ายมีที่เผื่อไอคอนดาวไว้ */
+  padding: 6px 14px 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: .04em;
+  animation: v3-badgePop 1.4s infinite, v3-badgeGlow 1.4s infinite;
+}
+.v3-promo__shine { position: absolute; inset-block: 0; inset-inline-start: 0; inline-size: 45%; background: linear-gradient(90deg, var(--v3-white-a0), var(--v3-white-a45), var(--v3-white-a0)); animation: v3-shimmer 1.8s infinite; }
+
+/* กล่องภาพถือขอบกับมุมโค้ง ตัวภาพเต็มกล่องข้างใน — ตามที่ผืนวางไว้
+   กล่อง 120 ขอบ 1px ภาพจึงเหลือ 118 เท่าผืน */
+.v3-promo__frame { display: block; inline-size: 120px; block-size: 120px; overflow: hidden; border: 1px solid var(--v3-line); border-radius: 10px; }
+.v3-promo__image { inline-size: 100%; block-size: 100%; object-fit: cover; }
+.v3-promo__body { min-inline-size: 0; }
+.v3-promo__group { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .1em; line-height: 1.55; color: var(--v3-red-dark); }
+.v3-promo__name { margin: 4px 0 0; font-size: 20px; font-weight: 700; line-height: 1.1; }
+.v3-promo__link { color: inherit; text-decoration: none; }
+.v3-promo__link::after { content: ""; position: absolute; inset: 0; }
+/* `line-height: 1` ตามผืน — ที่ 1.1 แถวราคาสูง 33 ซึ่งเกินผืนไปสามพิกเซล */
+.v3-promo__price { margin: 10px 0 0; font-size: 30px; line-height: 1; }
+.v3-promo__was { margin-inline-start: 8px; font-size: 14px; color: var(--v3-muted); }
+.v3-promo__unit { margin-inline-start: 6px; font-size: 12px; color: var(--v3-muted); }
+/* ปุ่มลอยเหนือแผ่นใสของลิงก์ที่ปูทับการ์ด จึงยังกดแยกได้ */
+.v3-promo__action { position: relative; z-index: 1; margin-block-start: 14px; }
+
+/* --- แถบหมวด ---------------------------------------------------------------
+   ส่วนที่ 5 ข้อ 2 · แท็บซ้ายมุมบนโค้ง มุมล่างเหลี่ยม เพื่อให้อ่านว่ามันต่อลงมาจากแถบบน */
+
+.v3-catbar { display: flex; align-items: stretch; gap: 6px; min-block-size: 44px; padding: 0 48px; border-block-end: 1px solid var(--v3-line); background: var(--v3-white); font-size: 13px; overflow-x: auto; }
+.v3-catbar__all { display: inline-flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 8px 8px 0 0; background: var(--v3-red); color: var(--v3-white); font-weight: 600; text-decoration: none; white-space: nowrap; }
+.v3-catbar__all svg { inline-size: 16px; block-size: 16px; }
+.v3-catbar__tab { display: inline-flex; align-items: center; padding: 0 14px; border-radius: 6px; color: var(--v3-red-dark); font-weight: 600; text-decoration: none; }
+
+/* --- มือถือ ----------------------------------------------------------------
+   **ผืนมือถือเป็นคนละโครง ไม่ใช่ผืนเดสก์ท็อปที่ถูกบีบให้แคบ** นับคลาสในอาร์ตบอร์ด 390
+   แล้วไม่มี `.nl` `.nl-item` `.nl-icon` `.nl-tab` `.scp0` `.hcard` `.hline` เลยสักตัว
+   ทุกค่าในบล็อกนี้ลอกจาก `redesign/V3/Home Redesign v3.dc.html` อาร์ตบอร์ด 390
+   แล้ววัดยืนยันด้วย `scripts/v3-spec/compare.mjs` ที่ความกว้าง 390
+
+   **สองบล็อกที่ยังไม่อยู่ในนี้คือแถบบนกับแถวเปิดหน้า** ทั้งคู่ผืนมือถือวาดองค์ประกอบ
+   คนละชุดกับที่หน้าจริงมี ไม่ใช่ขนาดคนละค่า จึงเป็นคำถามที่ต้องให้เจ้าของงานตัดสิน
+   ไม่ใช่ค่าที่ลอกมาได้ · ดูไม้ต่อ                                                */
+
+@media (max-width: 760px) {
+  /* แถบบนยังเป็นของเดิม ตรงนี้กันไม่ให้ล้นออกนอกจอระหว่างที่ยังรอคำตัดสินเรื่ององค์ประกอบ */
+  .v3-header { padding: 12px 16px; gap: 14px; }
+  .v3-header__left { gap: 16px; }
+  /* ผืนมือถือให้ตราคำสูง 36 ส่วนเดสก์ท็อปให้ 44 */
+  .v3-header__brand img { block-size: 36px; inline-size: auto; }
+
+  /* แถบหมวด — ผืนมือถือเป็นแคปซูลเรียงแถว ไม่ใช่แท็บที่ติดขอบล่างเหมือนเดสก์ท็อป
+     `padding: 12px 16px` บวกแคปซูลสูง 32 ได้ 56 ซึ่งเป็นความสูงที่ผืนวัดได้
+     ผืนใช้ `mask-image` ให้ปลายขวาจางหายแทนแถบเลื่อน บอกว่ายังมีของต่อไปทางขวา */
+  .v3-catbar {
+    align-items: center;
+    gap: 8px;
+    min-block-size: 0;
+    padding: 12px 16px;
+    font-size: 12px;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  .v3-catbar__all { padding: 6px 14px; border-radius: 999px; }
+  .v3-catbar__tab { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--v3-line); color: var(--v3-ink); }
+
+  /* --- แถวเปิดหน้า ---------------------------------------------------------
+     **ผืนมือถือวาดการ์ดนิ่งใบเดียว ไม่มีสไลด์** ไม่มีขีดบอกตำแหน่ง ไม่มีลูกศรเลื่อน
+     พื้นแดงอ่อนตัวหนังสือเข้ม ไม่ใช่ภาพถ่ายพื้นเข้ม · เจ้าของงานเคาะ 2026-09-07 ให้ตามผืน
+
+     **ซ่อนด้วย CSS ไม่ใช่ตัดคอมโพเนนต์ทิ้ง** DOM ยังเป็นชุดเดียวกันทั้งสองความกว้าง
+     **แต่การซ่อนปุ่มไม่ได้หยุดตัวจับเวลา ตัวหมุนจึงถูกหยุดที่ฝั่ง JavaScript ด้วย**
+     `hero-slider.tsx` อ่าน `matchMedia("(max-width: 760px)")` แล้วไม่ตั้งตัวจับเวลาเลย
+     ที่จอแคบ · **ห้ามถอด `matchMedia` ตัวนั้นทิ้งโดยคิดว่า CSS ตรงนี้ทำแทนได้แล้ว**
+     CSS ซ่อนได้แต่ขีดกับลูกศร มันแตะตัวจับเวลาที่เป็น JavaScript ไม่ถึงเลยสักทาง ·
+     ถ้าถอด ภาพกับหัวเรื่องจะเปลี่ยนเองทุกห้าวินาทีโดยไม่มีปุ่มให้กดกลับ ไม่มีขีดบอกว่า
+     มีกี่ใบ และไม่มีทางหยุด เพราะการหยุดตอนชี้กับตอนโฟกัสถูกถอนไปแล้วตามคำสั่งยึดผืน
+
+     คนใช้มือถือจึงเห็นแอปเดียวจากสามแอป ซึ่งเป็นสิ่งที่ผืนเลือก ไม่ใช่ผลข้างเคียง
+     ที่หลุดมา — เข้าสมุดข้อยกเว้นพร้อมเหตุผลแล้วในชื่อ `สไลด์บนมือถือ`
+
+     ขอบ 1px มาจากผืน ที่ใช้คลาส `.card` ซึ่งมีขอบ · ไม่ใช่ของเกิน ถ้าไม่มีขอบ
+     คอลัมน์ซ้ายจะกว้าง 192 แทนที่จะเป็น 190 ที่ผืนวัดได้                          */
+  .v3-hero { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 8px 16px 0; }
+  .v3-banner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 110px;
+    align-items: center;
+    /* ช่องไฟแนวตั้งเป็นศูนย์ เพราะระยะระหว่างแถวมาจาก margin ของแต่ละชิ้นตามที่ผืนสั่ง
+       ป้าย 12 ก่อนหัวเรื่อง และ 18 ก่อนปุ่ม · ถ้าใส่ gap ด้วยจะบวกกันเป็นสองเท่า */
+    gap: 0 16px;
+    min-block-size: 0;
+    padding: 22px 20px;
+    border: 1px solid var(--v3-line);
+    border-radius: 12px;
+    background: var(--v3-red-100);
+    color: var(--v3-ink);
+  }
+  /* **`display: contents` เพื่อให้ลูกของกล่องข้อความเป็นสมาชิกกริดโดยตรง**
+     ปุ่มกับป้ายต้องกินเต็มความกว้างของการ์ดตามผืน แต่ทั้งคู่อยู่ในกล่องข้อความ
+     ซึ่งถ้ายังเป็นกล่องอยู่ จะกินได้แค่คอลัมน์ซ้าย 190 แทนที่จะเป็น 316
+     · ทางเลือกอื่นคือย้ายตำแหน่งใน `page.tsx` ซึ่งกระทบเดสก์ท็อปด้วย */
+  .v3-banner__text { display: contents; }
+  /* **ระยะ 12 ที่ผืนวางระหว่างป้ายกับแถวภาพ ต้องอยู่ใต้ป้าย ไม่ใช่เหนือหัวเรื่อง**
+     หัวเรื่องอยู่แถวเดียวกับภาพซึ่งสูงกว่ามัน ระยะบนของหัวเรื่องจึงถูกกลืนหายไปในแถวนั้น
+     วัดแล้วการ์ดเตี้ยกว่าผืน 14.5 ก่อนย้าย */
+  .v3-banner .v3-tag { grid-column: 1 / -1; grid-row: 1; justify-self: start; margin-block-end: 12px; }
+  .v3-banner__title { grid-column: 1; grid-row: 2; margin: 0; }
+  /* ภาพเลิกเป็นพื้นหลังเต็มใบ กลายเป็นกล่องจัตุรัสข้างหัวเรื่องตามผืน
+     ม่านสองชั้นจึงไม่มีหน้าที่แล้ว มันมีไว้ให้ตัวหนังสือขาวอ่านออกบนภาพ */
+  .v3-banner__img { position: static; grid-column: 2; grid-row: 2; inline-size: 110px; block-size: 110px; border-radius: 14px; background: var(--v3-white); box-shadow: var(--v3-sh-md); }
+  .v3-banner__scrim { display: none; }
+  /* หัวเรื่องนั่งบนพื้นสว่างแล้ว ต้องประกาศสีเข้มของตัวเอง ด้วยเหตุผลเดียวกับที่
+     บรรทัด 150 บังคับให้ประกาศสีขาวตอนอยู่บนพื้นเข้ม */
+  .v3-banner__title { margin: 12px 0 0; font-size: 30px; line-height: 1.1; letter-spacing: 0; color: var(--v3-ink); }
+  .v3-banner__title span + span { margin-block-start: 0; font-size: 22px; font-weight: 600; line-height: 1.3; color: var(--v3-red-dark); }
+  /* ผืนมือถือไม่มีย่อหน้าอธิบายในการ์ด เหลือแค่ป้าย หัวเรื่อง ภาพ และปุ่ม */
+  .v3-banner__body { display: none; }
+  /* ปุ่มเต็มกว้างใต้ทั้งสองคอลัมน์ตามผืน */
+  .v3-banner__actions { grid-column: 1 / -1; grid-row: 3; margin-block-start: 18px; }
+  .v3-banner__actions .button { flex: 1 1 auto; }
+  .v3-banner__dots, .v3-banner__nav { display: none; }
+
+  /* บล็อกโปรโมชั่น — คอลัมน์เดียว ภาพ 84 และนาฬิกาเป็นสายเดียวไม่มีกล่องแดง */
+  .v3-promo { padding: 36px 16px 0; }
+  .v3-promo__head { align-items: flex-end; gap: 12px; padding-block-end: 10px; }
+  .v3-promo__title { font-size: 22px; line-height: 1.1; }
+  /* หมายเหตุราคาตัวอย่างห้ามหาย มันคือสิ่งเดียวที่กันไม่ให้ราคาสมมติอ่านเป็นราคาจริง ·
+     ผืนมือถือไม่มีที่ให้วางข้างหัวเรื่อง จึงลงมาอยู่ใต้หัวเรื่องแทนการตัดทิ้ง */
+  .v3-promo__heading { display: block; }
+  .v3-promo__note { margin-block-start: 2px; font-size: 11px; }
+  /* ผืนมือถือไม่มีคำว่า "หมดเขตใน" และไม่มีกล่องแดงรอบตัวเลข เหลือแค่สายตัวเลข 16px */
+  .v3-promo__clock { gap: 0; font-size: 16px; letter-spacing: .04em; align-items: center; padding-block-start: 0; }
+  .v3-promo__clock-caption { display: none; }
+  /* จอแคบเป็นสายตัวเลข 16px ทั้งสาย กลุ่มจึงรับขนาดจากแถบ ไม่ใช่ 22px ของกล่องเดสก์ท็อป
+     ช่องไฟ .04em คิดจากขนาดของตัวเอง ขนาดผิดเมื่อไรช่องไฟผิดตาม */
+  .v3-promo__clock-group { gap: 0; font-size: inherit; }
+  .v3-promo__clock-cell { min-inline-size: 0; padding: 0; border-radius: 0; background: none; color: var(--v3-red); font-size: 16px; }
+  /* ผืนมือถือเป็นสายตัวเลขเดียว ไม่มีกล่องแดงและไม่มีป้ายกำกับ · ถอดช่องออกด้วย
+     `display: contents` ให้กล่องเลขกลับไปเป็นสมาชิกแถวโดยตรงเหมือนก่อนมีป้าย */
+  .v3-promo__clock-slot { display: contents; }
+  /* ซ่อนป้ายที่ตาเห็นได้เต็มที่ เพราะคำที่หูได้ยินเป็นคนละอิลิเมนต์และไม่เคยถูกซ่อน
+     ทั้งสองความกว้าง · ถ้าวันไหนคำเต็มนั้นหายไป การซ่อนบรรทัดนี้จะกลายเป็นการตัดเสียงทันที */
+  .v3-promo__clock-unit { display: none; }
+  /* จอแคบเป็นสายตัวเลขเดียว ตัวคั่นจึงตัวเท่าเลข ไม่ใช่ 22px ของกล่องแบบเดสก์ท็อป */
+  .v3-promo__tick { color: var(--v3-red); font-weight: 400; font-size: 16px; }
+
+  .v3-promo__grid { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-block-start: 18px; }
+  .v3-promo__card { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 14px; }
+  .v3-promo__frame { inline-size: 84px; block-size: 84px; }
+  /* ป้ายเล็กลงและขยับเข้ามุมตามผืน · ระยะในซ้ายยังน้อยกว่าขวาด้วยเหตุผลเดิม */
+  .v3-promo__badge { inset-block-start: 8px; inset-inline-start: 8px; padding: 4px 10px 4px 8px; font-size: 11px; }
+  /* **ผืนมือถือไม่มีบรรทัดกลุ่มงานบนการ์ด** วัดเนื้อในการ์ดของผืนแล้วมีสามชิ้น
+     หัวเรื่อง 20.7 แถวราคา 24 และปุ่ม 36 ไม่มีชิ้นที่สี่ · ของจริงมีบรรทัดกลุ่มงานเพิ่มมา
+     15.5 ซึ่งเป็นส่วนต่างที่วัดได้พอดี · จอแคบมีที่น้อยกว่า ผืนเลือกตัดบรรทัดที่บอกซ้ำกับ
+     ชื่อแอปออก ไม่ใช่ย่อทุกอย่างให้เล็กลง */
+  .v3-promo__group { display: none; }
+  .v3-promo__name { margin: 0 0 6px; font-size: 18px; line-height: 1.15; }
+  .v3-promo__price { margin: 0; font-size: 24px; }
+  .v3-promo__was { font-size: 12px; }
+  .v3-promo__action { margin-block-start: 10px; }
+}
+
+/* --- คนที่ตั้งเครื่องให้ลดการเคลื่อนไหว ------------------------------------
+   กฎกลางที่ต้นไฟล์บีบ animation ทั้งเว็บเหลือ .01ms อยู่แล้ว บล็อกนี้เขียนซ้ำ
+   เฉพาะของรุ่นสามที่ "หยุด" กับ "เร็วมาก" ไม่เหมือนกัน — ประกายที่วิ่งเร็วมาก
+   ยังกวนสายตา ต้องสั่งให้ไม่เล่นเลย                                          */
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-hline, .v3-htext, .v3-hsub, .v3-nl, .v3-nl-icon { transition: none; }
+  .button--shop, .button--shop-nav { transition: none; }
+  .button--shop:hover, .button--shop-nav:hover { transform: none; }
+
+  /* **ตัวประดับที่วิ่งด้วย keyframe ต้องหยุดที่สถานะมองเห็น ไม่ใช่หยุดที่เฟรมที่มันจางหาย**
+     กฎกลางที่ต้นไฟล์บีบ animation ทั้งเว็บเหลือ .01ms ซึ่งพอสำหรับของทั่วไป แต่ `v3-sparkle`
+     กับ `v3-badgeGlow` มีเฟรมที่ opacity เป็นศูนย์และวงเงาเป็นศูนย์ตามผืนออกแบบ
+     ถ้าวันไหนมีใครใส่ `animation-fill-mode: both` หรือ `forwards` ให้มัน ตัวประดับจะค้าง
+     ที่เฟรมนั้นและหายไปเลยสำหรับคนที่ตั้งเครื่องลดการเคลื่อนไหว · กฎนี้ปิดรูนั้นล่วงหน้า
+     **ทุกตัวที่ติด keyframe ประดับต้องใส่ `data-v3-decor` ด้วยเสมอ** */
+  [data-v3-decor] { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .v3-hsub { opacity: 1; transform: none; }
+
+  /* **กฎกลางบีบความยาว animation แต่ไม่บีบเวลาหน่วง** ของในแบนเนอร์กับการ์ด Hermes
+     ตั้งหน่วงไว้ .6 ถึง 1.35 วินาทีเพื่อให้เข้าทีละชิ้นตามลำดับการอ่าน ซึ่งสำหรับคนที่ปิด
+     การเคลื่อนไหวจะกลายเป็นหน้าที่ว่างอยู่วินาทีกว่าแล้วของค่อยโผล่ทีละชิ้น
+     นั่นไม่ใช่การเคลื่อนไหวที่น้อยลง มันคือความช้า · ล้างหน่วงทิ้งให้ทุกอย่างอยู่ครบทันที */
+  .v3-banner *, .v3-hcard * { animation-delay: 0s !important; }
+}
+
+/* ==========================================================================
+   หน้าแรกรุ่นสี่ — ต่อท้าย src/app/globals.css (ครัวกลางที่เดียวที่ประกาศสีได้ · ADR 0021)
+   ผืน: design_handoff_home_v4/Home Redesign v4 Apple.dc.html · เจ้าของงานเคาะ 2026-09-24
+   ฟอนต์มาจาก `.v3-page` ที่มีอยู่แล้ว (Noto Sans Thai ผ่าน --font-canvas) ไม่ประกาศซ้ำ
+   ========================================================================== */
+
+:root {
+  --v4-cta: #9c332e;
+  --v4-cta-hover: #822824;
+  --v4-accent: #d32f2f;
+  --v4-ink: #1d1d1f;
+  --v4-muted: #6e6e73;
+  --v4-gray: #f5f5f7;
+  --v4-white: #ffffff;
+  --v4-line: #e5e5e7;
+  --v4-rule: #d2d2d7;
+  --v4-link: #0066cc;
+  --v4-slide-bg: #0e0e10;
+  --v4-slide-kicker: #ff8a80;
+  --v4-story-bg: #0b1730;
+  --v4-story-kicker: #9cc7ff;
+  --v4-mail: #3f4a56;
+
+  --v4-accent-rgb: 211 47 47;
+  --v4-cta-rgb: 156 51 46;
+  --v4-ink-rgb: 29 29 31;
+  --v4-black-rgb: 0 0 0;
+  --v4-white-rgb: 255 255 255;
+  --v4-shade-rgb: 8 8 10;
+  --v4-story-shade-rgb: 6 12 28;
+  --v4-nav-rgb: 245 245 247;
+
+  --v4-ease: cubic-bezier(.2, .7, .2, 1);
+  --v4-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --v4-header-h: 88px;
+}
+html[data-v4-compact="true"] { --v4-header-h: 60px; }
+
+/* ---------- พื้นฐานของหน้า ---------- */
+.v4-page { background: var(--v4-white); color: var(--v4-ink); -webkit-font-smoothing: antialiased; }
+.v4-page h1, .v4-page h2, .v4-page h3, .v4-page h4, .v4-page p { margin: 0; }
+/* กฎกลาง `h1…h6 { color: var(--ink) }` เลือกที่ตัวอิลิเมนต์เอง จึงชนะสีที่สืบทอดมา ·
+   หัวข้อรุ่นสี่ต้องเป็น `--v4-ink` บนพื้นขาว และขาวบนสไลด์กับ story จึงให้รับสีจากกล่องที่ครอบ */
+.v4-page h1, .v4-page h2, .v4-page h3, .v4-page h4 { color: inherit; }
+.v4-page a { text-decoration: none; }
+.v4-wrap { max-width: 1200px; margin-inline: auto; }
+.v4-wrap--1024 { max-width: 1024px; }
+.v4-wrap--900 { max-width: 900px; }
+.v4-nowrap { white-space: nowrap; }
+.v4-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.v4-kicker { font-size: 15px; font-weight: 600; letter-spacing: .04em; color: var(--v4-accent); }
+.v4-h2 { font-size: clamp(40px, 5vw, 64px); line-height: 1.08; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; }
+.v4-h2--md { font-size: clamp(36px, 4vw, 56px); line-height: 1.1; }
+.v4-h2--xl { font-size: clamp(44px, 6vw, 80px); line-height: 1.05; }
+.v4-body { font-size: 19px; line-height: 1.5; color: var(--v4-muted); }
+.v4-link { font-size: 19px; color: var(--v4-link); }
+.v4-link:hover { text-decoration: underline; color: var(--v4-link); }
+.v4-link--accent { color: var(--v4-accent); font-weight: 500; }
+.v4-link--accent:hover { color: var(--v4-accent); }
+
+/* reveal — ใช้ `LandingMotion` ตัวเดิม (data-reveal / data-revealed / data-delay) */
+.v4-page [data-reveal] { opacity: 0; transform: translateY(48px); transition: opacity 1s var(--v4-ease), transform 1s var(--v4-ease); }
+.v4-page [data-reveal][data-revealed="true"] { opacity: 1; transform: none; }
+
+.v4-tile { transition: transform .5s var(--v4-ease), box-shadow .5s ease; }
+.v4-tile:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgb(var(--v4-black-rgb) / .14); }
+
+.v4-ping { position: relative; display: inline-grid; place-items: center; width: 10px; height: 10px; flex: none; }
+.v4-ping::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--v4-accent); opacity: .35; animation: v4-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+.v4-ping::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--v4-accent); }
+
+@keyframes v4-ping { 0% { transform: scale(1); opacity: .5; } 70% { transform: scale(2.6); opacity: 0; } 100% { opacity: 0; } }
+@keyframes v4-sheen { 0% { transform: translateX(-120%); } 55%, 100% { transform: translateX(120%); } }
+@keyframes v4-hero-in { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes v4-navpop { 0% { transform: translateY(4px) scale(.92); } 60% { transform: translateY(0) scale(1.04); } 100% { transform: none; } }
+
+/* ---------- 1. แถบบน ---------- */
+.v4-header {
+  position: sticky; top: 0; z-index: 50; height: var(--v4-header-h);
+  background: rgb(var(--v4-nav-rgb) / 1); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .06);
+  backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  transition: height .3s var(--v4-ease), box-shadow .3s ease;
+}
+html[data-v4-compact="true"] .v4-header { box-shadow: 0 1px 12px rgb(var(--v4-black-rgb) / .08); }
+.v4-header__inner { max-width: 1200px; height: 100%; margin-inline: auto; padding: 0 22px; display: flex; align-items: center; gap: clamp(16px, 2.4vw, 34px); }
+.v4-header__brand { display: block; flex: none; }
+.v4-header__logo { display: block; height: 64px; width: auto; border-radius: 8px; transition: height .3s var(--v4-ease); }
+html[data-v4-compact="true"] .v4-header__logo { height: 38px; }
+.v4-header__right { margin-left: auto; display: flex; align-items: center; gap: clamp(14px, 2vw, 28px); }
+
+.v4-nav-item { display: flex; align-items: center; gap: 10px; color: var(--v4-ink); transition: transform .28s var(--v4-ease), opacity .2s; }
+.v4-nav-item:hover { transform: translateY(-2px); color: var(--v4-ink); }
+.v4-nav-item:active { transform: scale(.96); }
+.v4-nav-item__icon { display: grid; place-items: center; width: 26px; height: 26px; color: var(--v4-accent); transition: transform .28s var(--v4-spring); }
+.v4-nav-item__icon svg { width: 24px; height: 24px; stroke-width: 1.5; }
+.v4-nav-item:hover .v4-nav-item__icon { transform: scale(1.18) rotate(-4deg); }
+.v4-nav-item__text { display: grid; line-height: 1.15; white-space: nowrap; }
+.v4-nav-item__caption { font-size: 12px; color: var(--v4-muted); }
+.v4-nav-item__value, .v4-nav-item__text .button { font-size: 17px; font-weight: 700; letter-spacing: -.01em; color: var(--v4-ink); white-space: nowrap; }
+
+.v4-cart { position: relative; display: grid; place-items: center; }
+.v4-cart svg { width: 24px; height: 24px; transition: transform .28s var(--v4-spring); }
+.v4-cart:hover svg { transform: translateY(-2px) scale(1.12); }
+.v4-cart__count {
+  position: absolute; top: -6px; right: -8px; min-width: 17px; height: 17px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 999px; background: var(--v4-accent); color: var(--v4-white); font-size: 11px; font-weight: 700; display: grid; place-items: center;
+}
+
+/* ช่องบัญชีตอนล็อกอินแล้ว (`AccountSlot`) — เจ้าของงานสั่ง 2026-09-29
+   ยก เด้ง และ pop ตอนแถบย่อ มาจาก `.v4-nav-item` ตัวเดียวกับช่องอื่น · ที่นี่มีแค่รูป ชื่อ และลูกศร
+   สีในสเปกเขียน #fff กับ --v4-red ซึ่งไม่มี token ชื่อนั้น จึงใช้ --v4-white กับ --v4-accent (#d32f2f)
+   ที่เป็นแดงของไอคอนและชิปในแถบเดียวกัน · รูปคง 34 ตอนแถบย่อ ไม่มีกฎ compact มาย่อมัน */
+.v4-account__avatar {
+  position: relative; flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; overflow: hidden;
+  background: var(--v4-accent); box-shadow: 0 0 0 2px var(--v4-white), 0 0 0 3.5px var(--v4-accent);
+  transition: transform .28s var(--v4-spring);
+}
+.v4-nav-item:hover .v4-account__avatar { transform: scale(1.18) rotate(-4deg); }
+/* อักษรแรกอยู่ใต้รูปเสมอ รูปวางทับ ถ้ารูปโหลดไม่ขึ้นจะเห็นอักษรแทนวงว่าง (`AccountAvatar` ตัวเดียวกับเมนูแพลตฟอร์ม) */
+.v4-account__avatar { color: var(--v4-white); font-size: 16px; font-weight: 700; line-height: 1; }
+.v4-account__avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.v4-account__name { display: block; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+.v4-account__caret { flex: none; color: var(--v4-ink); margin-left: -4px; transition: transform .2s var(--v4-ease); }
+.v4-account.is-open .v4-account__caret { transform: rotate(180deg); }
+
+/* เมนูบัญชีของแถบบนรุ่นสี่ — เจ้าของงานสั่ง 2026-09-29 · พื้นขาว มุม 12 เงานุ่ม ไอคอนแดง
+   เปิดปิด Esc และคลิกข้างนอกมาจาก `AccountMenu` ตัวเดียวกับของแพลตฟอร์ม */
+.v4-account-menu { position: relative; display: inline-flex; }
+.v4-account-panel {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 60; min-width: 220px; padding: 8px;
+  display: grid; gap: 2px; background: var(--v4-white); border-radius: 12px;
+  box-shadow: 0 16px 40px rgb(var(--v4-black-rgb) / .14), 0 0 0 1px rgb(var(--v4-black-rgb) / .06);
+}
+.v4-account-panel__item {
+  appearance: none; margin: 0; border: 0; background: none; font: inherit; text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border-radius: 8px;
+  color: var(--v4-ink); font-size: 15px; font-weight: 500; white-space: nowrap; transition: background .15s ease;
+}
+.v4-account-panel__item:hover { background: var(--v4-gray); color: var(--v4-ink); }
+.v4-account-panel__icon { flex: none; width: 20px; height: 20px; color: var(--v4-accent); }
+.v4-account-panel__signout { margin-top: 4px; border-top: 1px solid var(--v4-line); border-radius: 0 0 8px 8px; padding-top: 12px; }
+.v4-account-panel__signout:disabled { cursor: progress; color: var(--v4-muted); }
+
+.v4-socials { display: flex; align-items: center; gap: 8px; }
+.v4-social { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--v4-white); transition: transform .28s var(--v4-spring), box-shadow .28s ease; }
+.v4-social svg { width: 15px; height: 15px; }
+.v4-social:hover { color: var(--v4-white); transform: translateY(-3px) scale(1.12); box-shadow: 0 8px 18px rgb(var(--v4-black-rgb) / .18); }
+.v4-social:active { transform: scale(.94); }
+.v4-social--facebook { background: var(--v3-facebook); }
+.v4-social--line_oa { background: var(--v3-line-brand); }
+.v4-social--youtube { background: var(--v3-youtube); }
+.v4-social--email { background: var(--v4-mail); }
+
+html[data-v4-compact="true"] .v4-nav-item,
+html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4-spring); }
+
+/* ช่องทางที่ผู้ดูแลยังไม่ได้ตั้งค่า (`PendingChannel`) — เจ้าของงานเคาะ 2026-09-28 รอบสอง
+   **กดได้และท่าทางเหมือนปุ่มที่มีลิงก์ทุกอย่าง** hover ยก เด้ง pop กดยุบ มาจากคลาสเดิมของจุดนั้น
+   (`v4-social` `v4-nav-item` `v4-link` `.button--line`) ไม่มีกฎแยก · ที่นี่มีแค่สองเรื่อง
+   ล้างหน้าตาตั้งต้นของ <button> ด้วย :where() ซึ่งน้ำหนักเป็นศูนย์ คลาสของจุดนั้นจึงชนะเสมอ
+   และกล่องข้อความสั้นที่ขึ้นใต้จุดที่กดราว 2 วินาที */
+:where(.v4-pending__trigger, button.v4-account) { appearance: none; margin: 0; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-align: inherit; cursor: pointer; }
+.v4-pending { position: relative; display: inline-flex; }
+.v4-pending__note {
+  position: absolute; top: calc(100% + 8px); left: 50%; z-index: 60; transform: translate(-50%, -4px);
+  padding: 6px 12px; border-radius: 10px; background: var(--v4-ink); color: var(--v4-white);
+  font-size: 13px; font-weight: 500; line-height: 1.3; white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity .2s ease, transform .2s var(--v4-ease);
+}
+.v4-pending__note[data-shown="true"] { opacity: 1; transform: translate(-50%, 0); }
+.v4-pending__note:empty { padding: 0; }
+
+/* ---------- 2. Hero ---------- */
+.v4-hero { position: relative; overflow: hidden; min-height: 820px; display: grid; justify-items: center; align-content: start; padding: 36px 22px 0; background: var(--v4-gray); text-align: center; }
+.v4-hero__kicker { font-size: 21px; font-weight: 600; letter-spacing: .02em; color: var(--v4-muted); white-space: nowrap; animation: v4-hero-in .9s .1s both; }
+.v4-hero__title { margin-top: 10px !important; font-size: clamp(56px, 7.5vw, 96px); line-height: 1.05; letter-spacing: -.02em; font-weight: 700; text-wrap: balance; animation: v4-hero-in .9s .25s both; }
+.v4-hero__lede { margin-top: 18px !important; max-width: 32ch; font-size: clamp(21px, 2.2vw, 28px); line-height: 1.3; font-weight: 500; color: var(--v4-muted); text-wrap: balance; animation: v4-hero-in .9s .4s both; }
+.v4-hero__actions { margin-top: 26px; display: flex; align-items: center; gap: 28px; flex-wrap: wrap; justify-content: center; animation: v4-hero-in .9s .55s both; }
+/* **1156 = 1200 − 22 − 22 ไม่ใช่ 1200** แถบบนกับแถบเมนูกว้าง 1200 *รวม* padding ข้างละ 22
+   (box-sizing: border-box) เนื้อในจริงจึงกว้าง 1156 · ภาพต้องกว้างเท่าเนื้อในนั้น ขอบซ้ายจึงตรงโลโก้
+   กับชิป "แอปทั้งหมด" และขอบขวาตรงปุ่ม LINE · วัดแล้ว 2026-09-28 ว่า 1200 ทำให้ภาพเกินไปข้างละ 22px
+   จอแคบกว่า 1200 ทั้งสามแถบเหลือ padding 22 เท่ากัน ภาพจึงยังตรงด้วย `100%` */
+.v4-hero__media { position: relative; width: min(1156px, 100%); margin-top: 48px; will-change: transform; animation: v4-hero-in 1.2s .7s both; }
+/* สัดส่วนเท่าภาพจริง `naichangmoo-lekza-hero.png` (1672×845) ภาพจึงเต็มกรอบโดยไม่ถูกครอปซ้ายขวา
+   · ถ้าเปลี่ยนภาพ ต้องเปลี่ยนเลขนี้ตาม ไม่งั้น `object-fit: cover` จะตัดขอบภาพทิ้งเงียบ ๆ */
+.v4-hero__shot { position: relative; aspect-ratio: 1672 / 845; border-radius: 24px 24px 0 0; overflow: hidden; background: var(--v4-white); box-shadow: 0 24px 70px rgb(var(--v4-black-rgb) / .14); }
+.v4-hero__shot img { object-fit: cover; object-position: top; }
+
+/* ---------- 3. แถบเมนู ---------- */
+.v4-menubar { position: sticky; top: var(--v4-header-h); z-index: 40; background: var(--v4-white); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .08); transition: top .3s var(--v4-ease); }
+.v4-menubar__inner { max-width: 1200px; margin-inline: auto; padding: 0 22px; display: flex; align-items: stretch; gap: clamp(14px, 2.4vw, 34px); }
+.v4-menubar a { display: flex; align-items: center; font-size: 14px; white-space: nowrap; transition: transform .25s var(--v4-ease); }
+.v4-menubar a:hover { transform: translateY(-2px); }
+.v4-menubar__all { gap: 9px; height: 42px; padding: 0 18px; background: var(--v4-accent); color: var(--v4-white); font-weight: 600; }
+.v4-menubar__all:hover { color: var(--v4-white); }
+.v4-menubar__all svg { width: 15px; height: 15px; }
+.v4-menubar__link { color: var(--v4-ink); }
+.v4-menubar__link:hover { color: var(--v4-ink); }
+.v4-menubar__link--promo, .v4-menubar__link--promo:hover { color: var(--v4-accent); font-weight: 600; }
+
+/* ---------- 4. อัพเดทวันนี้ ---------- */
+/* **ตรงแนวแถบบน** (เจ้าของงานสั่ง 2026-09-28) — แถบบนกว้าง 1200 รวม padding ข้างละ 22 เนื้อในจึงเป็น 1156
+   ระยะข้าง 22 กับเพดาน 1156 ที่นี่ทำให้ขอบกรอบสไลด์ตรงกับโลโก้และปุ่ม LINE ทุกความกว้าง เหตุผลเดียวกับ `.v4-hero__media` */
+.v4-updates { background: var(--v4-gray); padding: 64px 22px 88px; }
+.v4-updates > .v4-wrap { max-width: 1156px; }
+.v4-updates__head { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.v4-updates__title { display: flex; align-items: center; gap: 12px; }
+.v4-updates__title h2 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+.v4-updates__date { font-size: 15px; color: var(--v4-muted); }
+.v4-slider { position: relative; margin-top: 28px; border-radius: 24px; overflow: hidden; background: var(--v4-slide-bg); aspect-ratio: 21 / 9; min-height: 360px; }
+.v4-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .9s var(--v4-ease); }
+.v4-slide[data-active="true"] { opacity: 1; pointer-events: auto; }
+.v4-slide__media { position: absolute; inset: 0; }
+.v4-slide__media img { object-fit: cover; }
+.v4-slide__shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgb(var(--v4-shade-rgb) / .86) 0%, rgb(var(--v4-shade-rgb) / .62) 45%, rgb(var(--v4-shade-rgb) / .15) 100%); }
+.v4-slide__copy { position: absolute; inset: 0; max-width: 760px; padding: 0 clamp(28px, 6vw, 80px); display: grid; align-content: center; color: var(--v4-white); }
+.v4-slide__line { opacity: 0; transform: translateY(28px); transition: opacity .7s var(--v4-ease), transform .7s var(--v4-ease); }
+.v4-slide[data-active="true"] .v4-slide__line { opacity: 1; transform: none; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(2) { transition-delay: .1s; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(3) { transition-delay: .2s; }
+.v4-slide[data-active="true"] .v4-slide__line:nth-child(4) { transition-delay: .3s; }
+.v4-slide__kicker { font-size: 13px; font-weight: 600; letter-spacing: .08em; color: var(--v4-slide-kicker); }
+.v4-slide__title { margin-top: 12px !important; font-size: clamp(30px, 4.4vw, 58px); line-height: 1.06; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.v4-slide__desc { margin-top: 16px !important; max-width: 46ch; font-size: clamp(15px, 1.5vw, 19px); line-height: 1.5; color: rgb(var(--v4-white-rgb) / .86); }
+.v4-slide__cta { margin-top: 26px; }
+.v4-slider__arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; }
+.v4-slider__arrow--prev { left: 16px; }
+.v4-slider__arrow--next { right: 16px; }
+.v4-slider__dots { position: absolute; left: 0; right: 0; bottom: 18px; z-index: 2; display: flex; justify-content: center; gap: 8px; }
+
+/* ---------- 5. Hermes story ---------- */
+.v4-hermes { background: var(--v4-white); padding: 56px 24px 140px; }
+.v4-hermes__head { max-width: 1024px; margin-inline: auto; display: grid; justify-items: center; text-align: center; }
+.v4-hermes__head .v4-h2 { margin-top: 12px; }
+.v4-hermes__body { margin-top: 22px !important; max-width: 40ch; }
+.v4-hermes__cta { margin-top: 26px; }
+.v4-story { position: relative; height: 280vh; margin-top: 72px; }
+.v4-story__stage { position: sticky; top: calc(var(--v4-header-h) + 42px); height: calc(100vh - var(--v4-header-h) - 66px); max-width: 1200px; margin-inline: auto; transition: top .3s var(--v4-ease); }
+.v4-story__frame { position: relative; height: 100%; border-radius: 28px; overflow: hidden; background: var(--v4-story-bg); box-shadow: 0 30px 80px rgb(var(--v4-black-rgb) / .18); }
+.v4-story__img { position: absolute; inset: 0; transform: scale(1.15); will-change: transform; }
+.v4-story__img img { object-fit: cover; object-position: center top; }
+.v4-story__shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(var(--v4-story-shade-rgb) / 0) 45%, rgb(var(--v4-story-shade-rgb) / .78) 100%); }
+.v4-story__caps { position: absolute; inset: auto 0 0 0; color: var(--v4-white); }
+.v4-story__cap { position: absolute; left: 56px; right: 56px; bottom: 56px; opacity: 0; transform: translateY(120px); will-change: transform, opacity; }
+.v4-story__kicker { font-size: 15px; font-weight: 600; letter-spacing: .06em; color: var(--v4-story-kicker); }
+.v4-story__text { margin-top: 8px !important; max-width: 22ch; font-size: clamp(32px, 4.2vw, 60px); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.v4-story__dots { position: absolute; right: 28px; top: 28px; display: flex; gap: 6px; }
+.v4-story__dot { width: 24px; height: 3px; border-radius: 2px; background: rgb(var(--v4-white-rgb) / .35); }
+.v4-story__dot[data-active="true"] { background: var(--v4-white); }
+
+/* ---------- 6. Stats ---------- */
+.v4-stats { background: var(--v4-white); padding: 160px 24px; text-align: center; }
+.v4-stats__lede { margin: 22px auto 0 !important; max-width: 44ch; }
+.v4-stats__grid { margin-top: 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; }
+.v4-stat { font-size: clamp(56px, 7vw, 88px); line-height: 1; font-weight: 700; letter-spacing: -.03em; }
+.v4-stat--accent { color: var(--v4-accent); }
+.v4-stat__unit { margin-left: 6px; font-size: .4em; font-weight: 500; font-family: inherit; }
+.v4-stat__label { margin-top: 10px !important; font-size: 17px; color: var(--v4-muted); }
+
+/* ---------- 7. ความสามารถ ---------- */
+.v4-features { background: var(--v4-white); padding: 140px 24px; }
+.v4-features .v4-h2 { text-align: center; }
+.v4-features__grid { margin-top: 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.v4-feature { background: var(--v4-gray); border-radius: 20px; padding: 36px 32px; display: grid; gap: 18px; align-content: start; }
+.v4-feature__icon { width: 44px; height: 44px; display: grid; place-items: center; color: var(--v4-accent); }
+.v4-feature__title { font-size: 24px; line-height: 1.2; font-weight: 600; letter-spacing: -.01em; }
+.v4-feature__desc { font-size: 16px; line-height: 1.5; color: var(--v4-muted); }
+
+/* ---------- 8. เชลฟ์แอป ---------- */
+.v4-apps { background: var(--v4-gray); padding: 110px 24px 140px; }
+.v4-apps__count { display: flex; align-items: center; gap: 12px; }
+.v4-apps__count p { font-size: clamp(20px, 2.2vw, 26px); font-weight: 600; letter-spacing: -.01em; }
+.v4-apps__num { color: var(--v4-accent); }
+.v4-shelves { margin-top: 40px; display: grid; gap: 72px; }
+.v4-shelf__head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--v4-rule); }
+.v4-shelf__head h3 { font-size: clamp(24px, 2.6vw, 34px); line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+.v4-shelf__note { font-size: 15px; font-weight: 600; color: var(--v4-accent); }
+.v4-shelf__grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.v4-card { position: relative; overflow: hidden; display: grid; grid-template-rows: auto 1fr; background: var(--v4-white); border-radius: 20px; text-align: center; }
+.v4-card__media { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; filter: brightness(1.06) saturate(.92); }
+.v4-card__media img { object-fit: cover; }
+.v4-card__body { display: grid; justify-items: center; align-content: start; padding: 28px 28px 36px; }
+.v4-card__status { font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--v4-muted); }
+.v4-card__status--live { color: var(--v4-accent); }
+.v4-card__name { margin-top: 8px !important; font-size: clamp(28px, 3vw, 36px); line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+.v4-card__desc { margin-top: 10px !important; max-width: 26ch; font-size: 16px; line-height: 1.45; color: rgb(var(--v4-ink-rgb) / .72); }
+.v4-card__price { margin-top: 16px !important; font-size: 18px; font-weight: 600; }
+.v4-card__cta { margin-top: 22px; }
+.v4-live {
+  position: relative; overflow: hidden; margin-bottom: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 12px;
+  border-radius: 999px; border: 1px solid rgb(var(--v4-accent-rgb) / .28); background: rgb(var(--v4-accent-rgb) / .07);
+  color: var(--v4-accent); font-size: 12px; font-weight: 600; letter-spacing: .04em; white-space: nowrap;
+}
+.v4-live__dot { position: relative; width: 9px; height: 9px; display: grid; place-items: center; }
+.v4-live__dot::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--v4-accent); opacity: .4; animation: v4-ping 1.8s cubic-bezier(0, 0, .2, 1) infinite; }
+.v4-live__dot::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--v4-accent); }
+.v4-live__sheen { position: absolute; inset: 0; background: linear-gradient(100deg, transparent 20%, rgb(var(--v4-white-rgb) / .85) 50%, transparent 80%); transform: translateX(-120%); animation: v4-sheen 3.2s ease-in-out infinite; }
+
+/* ---------- 9. โปรโมชั่น ---------- */
+.v4-promo { background: var(--v4-white); padding: 160px 24px; text-align: center; }
+.v4-promo__note { margin: 18px auto 0 !important; max-width: 40ch; }
+.v4-countdown-row { margin-top: 36px; display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.v4-countdown-row__label { font-size: 17px; font-weight: 600; color: var(--v4-muted); }
+.v4-countdown { display: flex; align-items: flex-start; gap: 8px; }
+.v4-countdown__unit { display: grid; justify-items: center; gap: 6px; }
+.v4-countdown__box {
+  display: grid; place-items: center; min-width: 62px; height: 62px; padding: 0 8px; box-sizing: border-box; border-radius: 12px;
+  background: var(--v4-cta); color: var(--v4-white); font-size: 30px; font-weight: 700; letter-spacing: -.01em;
+  box-shadow: 0 6px 16px rgb(var(--v4-cta-rgb) / .24);
+}
+.v4-countdown__label { font-size: 13px; color: var(--v4-muted); }
+.v4-promo__grid { margin-top: 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; text-align: left; }
+.v4-promo-card { background: var(--v4-gray); border-radius: 20px; padding: 36px 32px; display: grid; gap: 8px; align-content: start; }
+.v4-promo-card__badge { font-size: 13px; font-weight: 600; letter-spacing: .06em; color: var(--v4-accent); }
+.v4-promo-card__name { font-size: 28px; line-height: 1.15; font-weight: 600; letter-spacing: -.01em; }
+.v4-promo-card__group { font-size: 15px; color: var(--v4-muted); }
+.v4-promo-card__price { margin-top: 22px !important; display: flex; align-items: baseline; gap: 10px; }
+.v4-promo-card__price .v3-hd { font-size: 44px; line-height: 1; font-weight: 700; letter-spacing: -.02em; }
+.v4-promo-card__unit { font-size: 15px; color: var(--v4-muted); }
+.v4-promo-card__was { min-height: 1.4em; font-size: 14px; color: var(--v4-muted); }
+.v4-promo-card__cta { margin-top: 26px; justify-self: start; }
+
+/* ---------- 10. CTA ปิดท้าย ---------- */
+.v4-closing { background: var(--v4-gray); padding: 160px 24px; text-align: center; }
+.v4-closing__lede { margin: 20px auto 0 !important; max-width: 36ch; font-size: 21px; color: var(--v4-muted); }
+.v4-closing__actions { margin-top: 32px; display: flex; gap: 28px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) { .v4-socials { display: none; } }
+@media (max-width: 1000px) { .v4-nav-item__caption { display: none; } }
+@media (max-width: 760px) {
+  :root { --v4-header-h: 64px; }
+  html[data-v4-compact="true"] { --v4-header-h: 56px; }
+  .v4-nav-item__text { display: none; }
+  .v4-header__logo { height: 44px; }
+}
+@media (max-width: 640px) {
+  /* จอแคบใช้ระยะข้าง 18 เท่ากันทั้งแถบบน แถบเมนู hero และอัพเดทวันนี้ ตามตาราง Responsive ของผืน
+     เดิมแถบบนกับแถบเมนูเป็น 14 แต่เนื้อหาเป็น 18 ขอบจึงเหลื่อมกัน 4px (เจ้าของงานสั่งแก้ 2026-09-28) */
+  .v4-header__inner { gap: 12px; padding: 0 18px; }
+  .v4-header__logo { height: 36px; }
+  html[data-v4-compact="true"] .v4-header__logo { height: 30px; }
+  .v4-header__cta { display: none; }
+  .v4-hero { min-height: 0; padding: 24px 18px 0; }
+  .v4-hero__title { font-size: 38px; }
+  .v4-hero__lede { font-size: 17px; }
+  .v4-h2, .v4-h2--md, .v4-h2--xl { font-size: 32px; }
+  .v4-menubar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .v4-menubar__inner { padding: 0 18px; gap: 16px; }
+  .v4-updates { padding-inline: 18px; }
+  .v4-updates__title h2 { font-size: 26px; }
+  .v4-slider { aspect-ratio: auto; min-height: 0; }
+  .v4-slide { position: relative; display: none; opacity: 1; }
+  .v4-slide[data-active="true"] { display: block; }
+  .v4-slide__media { position: relative; height: 220px; }
+  .v4-slide__shade { display: none; }
+  .v4-slide__copy { position: static; max-width: none; padding: 22px 18px 44px; background: var(--v4-slide-bg); }
+  .v4-slide__title { font-size: 26px; }
+  .v4-slider__arrow { top: 110px; }
+  .v4-hermes { padding: 40px 18px 64px; }
+  .v4-story__cap { left: 22px; right: 22px; bottom: 28px; }
+  .v4-features, .v4-apps { padding: 56px 18px 64px; }
+  .v4-stats, .v4-promo, .v4-closing { padding: 64px 18px 72px; }
+}
+
+/* ---------- ลดการเคลื่อนไหว ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .v4-page [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .v4-hero__kicker, .v4-hero__title, .v4-hero__lede, .v4-hero__actions, .v4-hero__media { animation: none; }
+  .v4-ping::before, .v4-live__dot::before, .v4-live__sheen { animation: none; }
+  html[data-v4-compact="true"] .v4-nav-item, html[data-v4-compact="true"] .v4-header__cta { animation: none; }
+  .v4-story { height: auto; }
+  .v4-story__stage { position: static; height: auto; }
+  .v4-story__frame { aspect-ratio: 16 / 10; }
+  .v4-story__img { transform: none; }
+  .v4-story__caps { position: static; display: grid; gap: 24px; padding: 28px; background: var(--v4-story-bg); }
+  .v4-story__cap { position: static; opacity: 1; transform: none; }
+  .v4-story__dots { display: none; }
+}

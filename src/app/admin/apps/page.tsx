@@ -1,8 +1,15 @@
 import { AdminCard, AdminEmpty, AdminGrid, AdminTable } from "@/components/admin/admin-card";
 import { AppRegistryForm } from "@/components/admin/app-registry-form";
 import { accessLabel } from "@/lib/platform";
+import { formatExpectedMonth, isMonthStillAhead } from "@/lib/app-readiness";
 import { formatThaiDateTime } from "@/lib/thai-format";
-import { readRecentAnnouncements, readRegistryForAdmin, type RecentAnnouncement, type RegistryEntry } from "@/server/app-registry";
+import {
+  EXPECTED_MONTH_EVENT,
+  readRecentAnnouncements,
+  readRegistryForAdmin,
+  type RecentAnnouncement,
+  type RegistryEntry
+} from "@/server/app-registry";
 import { resolvePlatformAdmin } from "@/server/platform-admin";
 
 /**
@@ -32,6 +39,23 @@ export default async function AdminAppsPage() {
   }
 
   const announced = registry.entries.filter((entry) => entry.announced);
+
+  /**
+   * **หน้าหลังบ้านต้องบอกว่าเดือนที่กรอกไว้เลยกำหนดแล้ว ไม่ใช่แสดงแค่ค่าที่เก็บไว้** — ADR 0025
+   *
+   * การหมดอายุถูกออกแบบให้เงียบต่อลูกค้า ซึ่งถูก · **แต่มันต้องไม่เงียบต่อผู้ดูแล ซึ่งเป็นคน
+   * เดียวที่แก้มันได้** ถ้าหน้านี้แสดง "2026-10" เฉย ๆ ผู้ดูแลที่กรอกไว้ตั้งแต่สิงหาคมจะเชื่อ
+   * ไปจนถึงธันวาคมว่าการ์ดยังพูดอยู่ ทั้งที่มันเงียบไปตั้งแต่ 1 พฤศจิกายน
+   *
+   * **ใช้ `isMonthStillAhead` ตัวเดียวกับที่หน้าเว็บใช้ ไม่ได้เขียนตรรกะที่สองขึ้นมา**
+   * ตรรกะที่สองจะเดินออกจากกันวันไหนก็ได้ แล้ววันนั้นหลังบ้านจะรายงานสิ่งที่หน้าเว็บไม่ได้ทำ
+   *
+   * **อ่านนาฬิกาครั้งเดียวสำหรับทั้งหน้า** ไม่ใช่ทีละแถว ไม่งั้นแถวที่เรนเดอร์คร่อมเที่ยงคืน
+   * วันสิ้นเดือนจะตอบไม่เหมือนกันภายในหน้าเดียว
+   */
+  const now = new Date();
+  const monthExpired = (entry: RegistryEntry) =>
+    entry.expectedOpenMonth !== null && !isMonthStillAhead(entry.expectedOpenMonth, now);
 
   return (
     <>
@@ -98,6 +122,25 @@ export default async function AdminAppsPage() {
               render: (row) => (!row.announced ? "—" : row.open ? "เปิดใช้แล้ว" : "กำลังเตรียมระบบ")
             },
             {
+              key: "expected",
+              header: "เดือนที่คาดว่าเปิด",
+              render: (row) => {
+                if (!row.expectedOpenMonth) return !row.announced ? "—" : "ยังไม่กรอก";
+                const shown = formatExpectedMonth(row.expectedOpenMonth) ?? row.expectedOpenMonth;
+                return monthExpired(row) ? (
+                  <>
+                    {shown}
+                    <span className="admin-registry-status">
+                      <span className="admin-pill admin-pill--conflict">เลยกำหนดแล้ว</span>
+                    </span>
+                    <span className="admin-registry-status">การ์ดเลิกพูดถึงเดือนนี้แล้ว</span>
+                  </>
+                ) : (
+                  shown
+                );
+              }
+            },
+            {
               key: "when",
               header: "ประกาศเมื่อ",
               render: (row) =>
@@ -129,7 +172,7 @@ export default async function AdminAppsPage() {
                 : "ยังไม่เคยประกาศ หน้าราคาจึงไม่เอ่ยชื่อแอปนี้"
             }
           >
-            <AppRegistryForm entry={entry} />
+            <AppRegistryForm entry={entry} monthExpired={monthExpired(entry)} />
           </AdminCard>
         ))}
       </AdminGrid>
@@ -143,8 +186,39 @@ export default async function AdminAppsPage() {
             {
               key: "event",
               header: "เหตุการณ์",
-              render: (row: RecentAnnouncement) =>
-                row.eventType === "app.announcement_revoked_by_administrator" ? "ถอนคำประกาศ" : "ประกาศ"
+              /**
+               * **การลบเดือนต้องอ่านออกว่าเป็นการลบ ไม่ใช่คำเดียวกับการกรอก** ADR 0025
+               * เรียกการลบว่าแถวที่อันตรายที่สุด เพราะมันทำให้แอปถอยกลับขั้นที่หนึ่ง ·
+               * ถ้าทั้งสามอย่างขึ้นเป็นคำเดียวกัน การถอยขั้นก็ยังเงียบอยู่ แค่ย้ายที่เงียบ
+               */
+              render: (row: RecentAnnouncement) => {
+                if (row.eventType === "app.announcement_revoked_by_administrator") return "ถอนคำประกาศ";
+                if (row.eventType !== EXPECTED_MONTH_EVENT) return "ประกาศ";
+
+                const before = row.monthChange?.before ?? null;
+                const after = row.monthChange?.after ?? null;
+                const shown = (month: string) => formatExpectedMonth(month) ?? month;
+
+                if (after === null) {
+                  return (
+                    <>
+                      <span className="admin-pill admin-pill--conflict">ลบเดือนออก</span>
+                      <span className="admin-registry-status">
+                        {before ? `เคยบอกไว้ ${shown(before)} · แอปถอยกลับเป็นประกาศแล้ว` : "แอปถอยกลับเป็นประกาศแล้ว"}
+                      </span>
+                    </>
+                  );
+                }
+
+                return (
+                  <>
+                    {before === null ? "กรอกเดือนครั้งแรก" : "เลื่อนเดือน"}
+                    <span className="admin-registry-status">
+                      {before === null ? shown(after) : `${shown(before)} เป็น ${shown(after)}`}
+                    </span>
+                  </>
+                );
+              }
             },
             { key: "app", header: "แอป", render: (row) => <code>{row.slug}</code> },
             { key: "reason", header: "เหตุผลที่ระบุ", render: (row) => row.reason || "—" },

@@ -3,6 +3,7 @@ import { eq, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { apps, auditEvents, users } from "@/db/schema";
 import { platformApps, type AppAccess } from "@/lib/platform";
+import { isExpectedMonthWritable } from "@/lib/app-readiness";
 
 /**
  * The one way in and out of the app registry. See ADR 0014.
@@ -93,12 +94,18 @@ export type AppClaim = {
   announcedAt: Date | null;
   /** ADR 0018: the pre-entry availability sentence. Null means the platform says nothing. */
   availabilityNote: string | null;
+  /**
+   * ADR 0025: the month an administrator expects the app to open, as `YYYY-MM`, or null when
+   * nobody has said. Whether that month has passed is decided when the page reads it, never
+   * when it is stored — see `describeReadiness`.
+   */
+  expectedOpenMonth: string | null;
 };
 
 /** Keyed by slug, and holding an entry for every app in the catalogue, so no caller handles a miss. */
 export type CatalogueClaims = Record<string, AppClaim>;
 
-const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null };
+const UNANNOUNCED: AppClaim = { announced: false, access: null, open: false, announcedAt: null, availabilityNote: null, expectedOpenMonth: null };
 
 /**
  * Reads the registry for the public catalogue surfaces — the landing page cards and the app detail
@@ -125,7 +132,8 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         accessModel: apps.accessModel,
         enabled: apps.enabled,
         availabilityNote: apps.availabilityNote,
-        announcedAt: apps.announcedAt
+        announcedAt: apps.announcedAt,
+        expectedOpenMonth: apps.expectedOpenMonth
       })
       .from(apps);
 
@@ -138,7 +146,8 @@ export async function readCatalogueClaims(): Promise<CatalogueClaims> {
         access: row.accessModel,
         open: row.enabled,
         announcedAt: row.announcedAt,
-        availabilityNote: row.availabilityNote ?? null
+        availabilityNote: row.availabilityNote ?? null,
+        expectedOpenMonth: row.expectedOpenMonth ?? null
       };
     }
   } catch {
@@ -164,6 +173,15 @@ export type RegistryEntry = {
   seededNote: string;
   /** True when the administrator announced something other than what the source seeded. */
   conflictsWithSeed: boolean;
+  /**
+   * **ค่าดิบที่เก็บไว้ ไม่ใช่คำตอบว่าวันนี้มันยังพูดอยู่ไหม** ADR 0025
+   *
+   * ส่งค่าดิบไปให้หน้าหลังบ้านตัดสินเอง ด้วยฟังก์ชันตัวเดียวกับที่หน้าเว็บใช้ ·
+   * ถ้าที่นี่ตัดสินให้แล้วส่งไปแต่คำตอบ ผู้ดูแลจะเห็นช่องว่างในวันที่เดือนหมดอายุ
+   * แล้วแยกไม่ออกระหว่างเคยกรอกแล้วเลยกำหนด กับไม่เคยกรอกเลย ซึ่งเป็นสิ่งที่
+   * ADR 0025 ห้ามไว้ตรง ๆ ใน Consequences
+   */
+  expectedOpenMonth: string | null;
 };
 
 export type RegistryResult = { ok: true; entries: RegistryEntry[] } | { ok: false; reason: "unavailable" };
@@ -183,6 +201,7 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         enabled: apps.enabled,
         availabilityNote: apps.availabilityNote,
         announcedAt: apps.announcedAt,
+        expectedOpenMonth: apps.expectedOpenMonth,
         // Who said it, by the name they are known by here. An announcement with a time but no
         // author is half a record, and the half it is missing is the one worth having.
         announcedByEmail: users.email
@@ -208,7 +227,10 @@ export async function readRegistryForAdmin(): Promise<RegistryResult> {
         announcedByEmail: announced ? row?.announcedByEmail ?? null : null,
         availabilityNote: announced ? row?.availabilityNote ?? null : null,
         seededNote: app.marketDetail.availabilityNote,
-        conflictsWithSeed: announced && access !== null && access !== app.seededAccess
+        conflictsWithSeed: announced && access !== null && access !== app.seededAccess,
+        /* ส่งค่าที่เก็บไว้ไปเสมอแม้แอปยังไม่ประกาศ ต่างจากช่องอื่นข้างบนที่กรองด้วย `announced`
+           เพราะช่องนี้มีไว้ให้ผู้ดูแลเห็นสิ่งที่ตัวเองเคยกรอก ไม่ใช่สิ่งที่หน้าเว็บกำลังพูด */
+        expectedOpenMonth: row?.expectedOpenMonth ?? null
       } satisfies RegistryEntry;
     });
 
@@ -376,6 +398,123 @@ export async function revokeAnnouncement(input: RevocationInput): Promise<Revoca
   return { ok: true };
 }
 
+export type ExpectedMonthInput = {
+  slug: string;
+  /** `YYYY-MM` หรือ `null` เมื่อผู้ดูแลลบเดือนออก ซึ่งเป็นการกระทำที่ถูกต้อง ไม่ใช่ค่าที่ขาด */
+  month: string | null;
+  reason: string;
+  actorId: string;
+  /** รับเวลาเข้ามาได้เพื่อให้เขียนเทสต์ช่วงปีได้โดยไม่ต้องรอให้ถึงปีนั้นจริง */
+  now?: Date;
+};
+
+export type ExpectedMonthResult =
+  | { ok: true }
+  | { ok: false; reason: "unknown_app" | "reason_required" | "invalid_month" | "year_out_of_range" | "not_announced" };
+
+/** รูปแบบเดียวกับ CHECK ที่ `drizzle/0017_colossal_firebrand.sql` บังคับไว้ที่ฐาน */
+const EXPECTED_MONTH_PATTERN = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+/**
+ * เดือนที่คาดว่าจะเปิด — ADR 0025
+ *
+ * **คอลัมน์นี้ได้รับอนุญาตเพราะมันเลื่อนเงียบไม่ได้** ADR 0015 เคยปฏิเสธมันไว้ด้วยเหตุผลว่า
+ * ผู้ดูแลจะเลื่อนจากตุลาคมเป็นพฤศจิกายนแล้วธันวาคมเงียบ ๆ จนกลายเป็นเปอร์เซ็นต์ที่ค้างอยู่ที่ 90
+ * ในรูปของวันที่ · ADR 0025 ข้อ 3 รับข้อกลัวนั้นแล้วตอบด้วยการบังคับให้**ทุกการเขียนลงบันทึก** ·
+ * **ถ้าวันหนึ่งมีคนถอดการลงบันทึกออก ข้ออนุญาตนี้หมดอายุพร้อมกัน** ไม่ใช่เหลือคอลัมน์ไว้เฉย ๆ
+ *
+ * **การลบเดือนออกคือแถวที่อันตรายที่สุดในสามแถว** มันทำให้แอปถอยกลับขั้นที่หนึ่งทันที
+ * ซึ่งเป็นการถอยขั้นที่จะเงียบได้ง่ายที่สุดถ้าไม่มีใครเฝ้า · การลบจึงเดินทางเดียวกับการกรอก
+ * ทุกประการ คือต้องมีเหตุผล ต้องมีผู้กระทำ และต้องลงบันทึก
+ *
+ * **ต้องประกาศแล้วก่อน** ขั้นกลางตาม ADR 0025 ข้อ 1 คือ *ประกาศแล้ว และทะเบียนบอกเดือน*
+ * เดือนบนแอปที่ยังไม่ถูกประกาศจึงไม่มีความหมายตามนิยามของ ADR เอง และไม่มีที่ไหนแสดงมัน
+ * เพราะ `describeReadiness` คืน `null` ทันทีเมื่อยังไม่ประกาศ · ปฏิเสธที่นี่แทนการเขียนแถวเงียบ ๆ
+ *
+ * **ไม่มีการเขียนค่าจากที่อื่นเลย** ADR 0025 ข้อ 5 ห้าม seed และไม่มีงานตามเวลามาล้างค่าที่
+ * เลยกำหนด เพราะนั่นคือการเขียนฐานโดยไม่มีผู้กระทำ · การหมดอายุเกิดตอนอ่านที่ `app-readiness.ts`
+ */
+export async function setExpectedOpenMonth(input: ExpectedMonthInput): Promise<ExpectedMonthResult> {
+  const reason = input.reason.trim();
+  if (reason.length < REASON_MIN_LENGTH) return { ok: false, reason: "reason_required" };
+
+  /* ช่องว่างเปล่าจากฟอร์มแปลว่าลบเดือนออก ไม่ใช่ค่าผิดรูปแบบ · ส่วนค่าที่กรอกมาแล้วผิดรูป
+     ต้องตกที่นี่ ไม่ใช่ปล่อยให้ CHECK ที่ฐานเป็นคนตอบ เพราะข้อความที่ผู้ดูแลจะได้เห็น
+     จากการที่ทรานแซกชันระเบิด คือ "บันทึกไม่สำเร็จ" ซึ่งไม่บอกว่าเขาพิมพ์อะไรผิด */
+  const raw = input.month?.trim() ?? "";
+  const month = raw === "" ? null : raw;
+  if (month !== null && !EXPECTED_MONTH_PATTERN.test(month)) return { ok: false, reason: "invalid_month" };
+
+  /**
+   * **เซิร์ฟเวอร์ต้องไม่รับค่าที่หน้าจอของตัวเองสร้างไม่ได้**
+   *
+   * กล่องเลือกปีในหน้าหลังบ้านยื่นให้เฉพาะปีนี้ถึงปีนี้บวก `EXPECTED_MONTH_YEARS_AHEAD`
+   * ตามนาฬิกากรุงเทพ · ก่อนหน้านี้ฝั่งนี้รับเลขสี่หลักอะไรก็ได้ ทั้งที่ CHECK ที่ฐานก็ตรวจ
+   * แค่รูปแบบเหมือนกัน · **ผลคือ `2569-10` ผ่านทั้งสองด่าน** แล้วการ์ดจะขึ้นว่า "ต.ค. 12"
+   * เพราะ `formatExpectedMonth` บวก 543 ให้อีกรอบ
+   *
+   * **มันตกเพราะไกลเกินขอบ ไม่ใช่เพราะเราเดาว่ามันเป็น พ.ศ.** ซึ่งเป็นเหตุผลที่ตรวจสอบได้
+   * และไม่ต้องเดาใจคนกรอก · เจ้าของงานเคาะขอบเขตนี้เมื่อ 2026-09-09
+   *
+   * **บังคับตอนเขียนเท่านั้น** ค่าที่บันทึกไว้แล้วและวันนี้หลุดช่วง ยังอ่านได้ แสดงได้
+   * และแก้ได้ตามปกติ · การลบก็ไม่ผ่านด่านนี้เพราะ `month` เป็น `null` ไปแล้ว
+   */
+  if (month !== null && !isExpectedMonthWritable(month, input.now ?? new Date())) {
+    return { ok: false, reason: "year_out_of_range" };
+  }
+
+  const app = platformApps.find((item) => item.slug === input.slug);
+  if (!app) return { ok: false, reason: "unknown_app" };
+
+  const db = getDb();
+
+  const [existing] = await db
+    .select({ expectedOpenMonth: apps.expectedOpenMonth, announcedAt: apps.announcedAt })
+    .from(apps)
+    .where(eq(apps.slug, input.slug))
+    .limit(1);
+
+  if (!existing?.announcedAt) return { ok: false, reason: "not_announced" };
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(apps)
+      .set({ expectedOpenMonth: month, updatedAt: new Date() })
+      .where(eq(apps.slug, input.slug));
+
+    await tx.insert(auditEvents).values({
+      id: randomUUID(),
+      organizationId: null,
+      actorId: input.actorId,
+      eventType: "app.expected_open_month_set_by_administrator",
+      resourceType: "app",
+      resourceId: app.slug,
+      /**
+       * **`before` กับ `after` เป็นออบเจกต์เสมอ และช่องในนั้นเป็น `null` ได้**
+       * ไม่ใช่ตัวก้อนเองที่หายไปหรือเป็น `null`
+       *
+       * ADR 0025 ข้อ 3 บอกว่าทั้งสองช่องเป็นค่าว่างได้ ซึ่งอ่านได้สองทาง ·
+       * ทางที่เลือกคือ **"ว่าง" หมายถึงช่องที่มีชื่อและมีค่าเป็น `null`** ไม่ใช่ก้อนที่หายไป ·
+       * **เหตุผลคือต้องแยก "ไม่มีค่า" ออกจาก "ไม่ได้เขียน" ให้ได้จากในฐาน ไม่ใช่จากในโค้ด**
+       * ถ้าการลบเดือนเขียน `after: null` แถวนั้นจะหน้าตาเหมือนกันเป๊ะกับแถวที่โค้ดลืมเขียน
+       * `after` · แล้วเทสต์ที่ถามแค่ว่ามีแถวไหม จะผ่านด้วยเหตุผลผิด และวันที่มีบั๊กจริง
+       * ก็จะไม่มีใครแยกออก · ก้อนที่หายไปเป็นบั๊กเสมอ ค่า `null` ในช่องเป็นข้อมูลเสมอ
+       *
+       * ต่างจาก `announceApp` ที่เขียน `before: null` ได้ เพราะที่นั่น `null` ตอบคำถาม
+       * คนละข้อ คือ *ยังไม่มีแถวในทะเบียนเลย* ส่วนที่นี่แถวมีแน่นอนแล้ว เพราะแอปต้อง
+       * ถูกประกาศมาก่อนถึงจะมาถึงบรรทัดนี้ได้
+       */
+      metadata: {
+        reason,
+        before: { expectedOpenMonth: existing.expectedOpenMonth ?? null },
+        after: { expectedOpenMonth: month }
+      }
+    });
+  });
+
+  return { ok: true };
+}
+
 /**
  * Readiness for the app entry page, and deliberately three-valued.
  *
@@ -414,12 +553,36 @@ export type RecentAnnouncement = {
   reason: string;
   createdAt: Date;
   actorEmail: string | null;
+  /**
+   * เดือนก่อนและหลัง สำหรับเหตุการณ์เดือนที่คาดว่าเปิดเท่านั้น · `null` สำหรับเหตุการณ์อื่น
+   *
+   * **ADR 0025 อ้างการลงบันทึกเป็นเหตุขออนุญาตให้มีคอลัมน์นี้** บันทึกที่ไม่มีใครเห็น
+   * ทำหน้าที่นั้นไม่ได้ · ตารางต้องบอกได้ว่าแถวนี้คือการกรอก การเลื่อน หรือ**การลบ**
+   * ซึ่งเป็นแถวที่ ADR เรียกว่าอันตรายที่สุด · ถ้าทั้งสามอย่างขึ้นเป็นคำเดียวกัน
+   * การถอยขั้นก็ยังเงียบอยู่ดี แค่เงียบอยู่ในตารางแทนที่จะเงียบอยู่ในฐาน
+   */
+  monthChange: { before: string | null; after: string | null } | null;
 };
+
+export const EXPECTED_MONTH_EVENT = "app.expected_open_month_set_by_administrator";
 
 const ANNOUNCEMENT_EVENTS = [
   "app.announced_by_administrator",
-  "app.announcement_revoked_by_administrator"
+  "app.announcement_revoked_by_administrator",
+  EXPECTED_MONTH_EVENT
 ];
+
+/** อ่านเดือนก่อนและหลังจาก metadata โดยไม่เชื่อรูปของมัน เพราะแถวเก่าถูกเขียนด้วยโค้ดคนละรุ่น */
+function readMonthChange(metadata: unknown): { before: string | null; after: string | null } | null {
+  if (typeof metadata !== "object" || metadata === null) return null;
+  const side = (key: "before" | "after") => {
+    const block = (metadata as Record<string, unknown>)[key];
+    if (typeof block !== "object" || block === null) return null;
+    const value = (block as Record<string, unknown>).expectedOpenMonth;
+    return typeof value === "string" ? value : null;
+  };
+  return { before: side("before"), after: side("after") };
+}
 
 export async function readRecentAnnouncements(limit = 8): Promise<RecentAnnouncement[]> {
   try {
@@ -445,7 +608,8 @@ export async function readRecentAnnouncements(limit = 8): Promise<RecentAnnounce
       eventType: row.eventType,
       reason: readReason(row.metadata),
       createdAt: row.createdAt,
-      actorEmail: row.actorEmail ?? null
+      actorEmail: row.actorEmail ?? null,
+      monthChange: row.eventType === EXPECTED_MONTH_EVENT ? readMonthChange(row.metadata) : null
     }));
   } catch {
     return [];

@@ -76,3 +76,68 @@ export function NotIncludedIcon(props: IconProps) {
 export function ArrowRightIcon(props: IconProps) {
   return <BaseIcon {...props} />;
 }
+
+/**
+ * ไอคอนของแถบบนหน้าร้าน — วาดบนกริด 48 หน่วยเดียวกับที่เหลือ ไม่ได้แยกชุด
+ *
+ * ผืนออกแบบรุ่นสามวาดไอคอนพวกนี้ไว้บนกริด 24 ที่ความหนาเส้น 1.5 ซึ่งคิดเป็นสัดส่วน
+ * 0.0625 ของกรอบ ส่วนของเราคือ 2.4 บนกริด 48 คิดเป็น 0.05 · **เส้นของเราบางกว่าเล็กน้อย**
+ * เลือกตามบ้านไว้ก่อนเพื่อให้ไอคอนทั้งเว็บหนาเท่ากัน ถ้าอยากได้เท่าผืนออกแบบเป๊ะ
+ * ส่ง`strokeWidth={3}` ตอนเรียกได้เลย `BaseIcon` เปิดทางไว้แล้วโดยไม่ต้องแก้ตัวมัน
+ */
+
+/**
+ * หัวลูกศรของปุ่มเลื่อนสไลด์ — **chevron ไม่มีก้าน** ตามผืนออกแบบรุ่นสาม
+ *
+ * ต้นฉบับอยู่ที่ `dc.html:63` บนกริด 24 · `m9 6 6 6-6 6` · ที่นี่กริด 48 จึงคูณด้วย 2
+ * ได้ `m18 12 12 12-12 12` ปลายแหลมอยู่กลางกรอบพอดีทั้งสองแกน
+ *
+ * **ต่างจากลูกศรของปุ่มใน `button.tsx` โดยตั้งใจ** ตัวนั้นมีก้าน เพราะมันบอกว่า "กดแล้วไปที่อื่น"
+ * ส่วนตัวนี้บอกว่า "เลื่อนไปอีกใบ" ซึ่งเป็นการเคลื่อนที่ในที่เดิม · เจ้าของงานเคาะ 2026-09-07
+ * ให้ใช้ตามผืนออกแบบ หลังเห็นทั้งสองทรงเทียบกัน
+ *
+ * **ลูกศรซ้ายไม่วาดตัวที่สอง** พลิกตัวนี้ด้วย CSS `scale(-1, 1)` เอา
+ *
+ * ผืนวาดเส้นหนา 2.2 บนกริด 24 คิดเป็นสัดส่วน 0.0917 ส่วน `BaseIcon` ให้ 2.4 บนกริด 48
+ * คิดเป็น 0.05 · **เส้นของเราบางกว่าครึ่งหนึ่ง** ปุ่มสไลด์จึงสั่ง `strokeWidth={4.4}` ตอนเรียก
+ * (0.0917 คูณ 48) เพื่อให้หนาเท่าที่ตาเห็นในผืน โดยไม่ต้องแตะความหนามาตรฐานของไอคอนทั้งเว็บ
+ */
+export function ChevronRightIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="m18 12 12 12-12 12" /></BaseIcon>;
+}
+
+export function DoorEnterIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M27 8h9a3 3 0 0 1 3 3v26a3 3 0 0 1-3 3h-9" /><path d="M9 24h19" /><path d="m21 17 7 7-7 7" /></BaseIcon>;
+}
+
+/** ออกจากระบบ — ประตูเดียวกับ `DoorEnterIcon` แต่ลูกศรชี้ออกจากกรอบ ใช้ในเมนูบัญชีของแถบบนรุ่นสี่ */
+export function DoorExitIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M21 8h-9a3 3 0 0 0-3 3v26a3 3 0 0 0 3 3h9" /><path d="M20 24h19" /><path d="m32 17 7 7-7 7" /></BaseIcon>;
+}
+
+export function PersonIcon(props: IconProps) {
+  return <BaseIcon {...props}><circle cx="24" cy="17" r="7" /><path d="M11 40c0-7.2 5.8-13 13-13s13 5.8 13 13" /></BaseIcon>;
+}
+
+export function CartIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M8 9h4.5l4.6 20.5A3 3 0 0 0 20 32h16a3 3 0 0 0 2.9-2.3L42 17H14" /><circle cx="21" cy="38" r="2.5" /><circle cx="35" cy="38" r="2.5" /></BaseIcon>;
+}
+
+export function MenuIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M9 15h30" /><path d="M9 24h30" /><path d="M9 33h30" /></BaseIcon>;
+}
+
+/**
+ * หูฟังของฝ่ายบริการลูกค้า — ไอคอนของช่องโทรศัพท์ในแถบบนของหน้าร้าน
+ *
+ * ลอกรูปจากผืนออกแบบรุ่นสาม `redesign/V3/Home Redesign v3.dc.html` บรรทัด 24
+ * ซึ่งวาดบนตาราง 24 หน่วย · ที่นี่ใช้ตาราง 48 ตาม `BaseIcon` ทุกค่าจึงคูณสอง
+ * รวมทั้งรัศมีของส่วนโค้ง ไม่ใช่แค่พิกัด — คูณเฉพาะพิกัดจะได้หูที่แบนกว่าผืน
+ */
+export function HeadsetIcon(props: IconProps) {
+  return <BaseIcon {...props}><path d="M6 36v-12a18 18 0 0 1 36 0v12" /><path d="M42 38a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-6a4 4 0 0 1 4-4h6z" /><path d="M6 38a4 4 0 0 0 4 4h2a4 4 0 0 0 4-4v-6a4 4 0 0 0-4-4H6z" /><path d="M30 42h-6" /></BaseIcon>;
+}
+
+export function MailIcon(props: IconProps) {
+  return <BaseIcon {...props}><rect x="7" y="11" width="34" height="26" rx="3" /><path d="m8 14 16 12 16-12" /></BaseIcon>;
+}
