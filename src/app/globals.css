@@ -3938,7 +3938,7 @@ html[data-v4-compact="true"] { --v4-header-h: 60px; }
 /* ---------- 1. แถบบน ---------- */
 .v4-header {
   position: sticky; top: 0; z-index: 50; height: var(--v4-header-h);
-  background: rgb(var(--v4-nav-rgb) / .97); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .06);
+  background: rgb(var(--v4-nav-rgb) / 1); border-bottom: 1px solid rgb(var(--v4-black-rgb) / .06);
   backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
   transition: height .3s var(--v4-ease), box-shadow .3s ease;
 }
@@ -4025,7 +4025,10 @@ html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4
 .v4-menubar__link--promo, .v4-menubar__link--promo:hover { color: var(--v4-accent); font-weight: 600; }
 
 /* ---------- 4. อัพเดทวันนี้ ---------- */
-.v4-updates { background: var(--v4-gray); padding: 64px 24px 88px; }
+/* **ตรงแนวแถบบน** (เจ้าของงานสั่ง 2026-09-28) — แถบบนกว้าง 1200 รวม padding ข้างละ 22 เนื้อในจึงเป็น 1156
+   ระยะข้าง 22 กับเพดาน 1156 ที่นี่ทำให้ขอบกรอบสไลด์ตรงกับโลโก้และปุ่ม LINE ทุกความกว้าง เหตุผลเดียวกับ `.v4-hero__media` */
+.v4-updates { background: var(--v4-gray); padding: 64px 22px 88px; }
+.v4-updates > .v4-wrap { max-width: 1156px; }
 .v4-updates__head { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
 .v4-updates__title { display: flex; align-items: center; gap: 12px; }
 .v4-updates__title h2 { font-size: clamp(28px, 3.4vw, 44px); line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
@@ -4158,7 +4161,9 @@ html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4
   .v4-header__logo { height: 44px; }
 }
 @media (max-width: 640px) {
-  .v4-header__inner { gap: 12px; padding: 0 14px; }
+  /* จอแคบใช้ระยะข้าง 18 เท่ากันทั้งแถบบน แถบเมนู hero และอัพเดทวันนี้ ตามตาราง Responsive ของผืน
+     เดิมแถบบนกับแถบเมนูเป็น 14 แต่เนื้อหาเป็น 18 ขอบจึงเหลื่อมกัน 4px (เจ้าของงานสั่งแก้ 2026-09-28) */
+  .v4-header__inner { gap: 12px; padding: 0 18px; }
   .v4-header__logo { height: 36px; }
   html[data-v4-compact="true"] .v4-header__logo { height: 30px; }
   .v4-header__cta { display: none; }
@@ -4167,7 +4172,7 @@ html[data-v4-compact="true"] .v4-header__cta { animation: v4-navpop .4s var(--v4
   .v4-hero__lede { font-size: 17px; }
   .v4-h2, .v4-h2--md, .v4-h2--xl { font-size: 32px; }
   .v4-menubar { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .v4-menubar__inner { padding: 0 14px; gap: 16px; }
+  .v4-menubar__inner { padding: 0 18px; gap: 16px; }
   .v4-updates { padding-inline: 18px; }
   .v4-updates__title h2 { font-size: 26px; }
   .v4-slider { aspect-ratio: auto; min-height: 0; }
